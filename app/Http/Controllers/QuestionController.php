@@ -4,21 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\Question;
 use Illuminate\Http\Request;
+use App\Imports\QuestionImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
 
 class QuestionController extends Controller
 {
     public function index()
     {
         $questions = Question::latest()->get();
-        return view('questions.index', compact('questions'));
+        $trainings = \App\Models\Training::all(); // Ambil semua pelatihan untuk dropdown
+        return view('questions.index', compact('questions', 'trainings'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'training_type' => 'required',
+            'training_id'   => 'nullable|exists:trainings,id', // Tangkap training_id
             'category'      => 'required',
-            'type'          => 'required|in:slider,text,dropdown,ya_tidak', // Tambahkan ya_tidak di sini
+            'type'          => 'required',
             'question_text' => 'required',
             'options'       => 'nullable|array',
         ]);
@@ -59,7 +64,40 @@ class QuestionController extends Controller
 
     public function destroy($id)
     {
-        Question::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Pertanyaan berhasil dihapus.');
+        $question = Question::findOrFail($id);
+        
+        // Hapus manual hasil evaluasi yang merujuk ke soal ini agar tidak error constraint
+        \App\Models\EvaluationResultL1::where('question_id', $id)->delete();
+        \App\Models\EvaluationResultL34::where('question_id', $id)->delete();
+        
+        $question->delete();
+        return redirect()->back()->with('success', 'Soal dan data jawaban terkait berhasil dihapus.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        Excel::import(new QuestionImport, $request->file('file'));
+
+        return redirect()->back()->with('success', 'Bank Soal berhasil diimport.');
+    }
+
+    public function downloadTemplate()
+    {
+        $header = [
+            ['jenis_pelatihan', 'level_peran', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
+            ['PKTI/PKTU', 'Mandiri', 'slider', 'Sejauh mana anda menerapkan ilmu?', ''],
+            ['CPNS', 'Atasan', 'dropdown', 'Bagaimana integritas alumni?', 'Sangat Baik, Baik, Cukup, Kurang'],
+            ['PKP', 'Rekan', 'text', 'Berikan saran untuk alumni.', ''],
+        ];
+
+        return Excel::download(new class($header) implements FromArray {
+            private $data;
+            public function __construct($data) { $this->data = $data; }
+            public function array(): array { return $this->data; }
+        }, 'template_bank_soal_evaluasi.xlsx');
     }
 }

@@ -6,14 +6,15 @@ use App\Models\Training;
 use App\Models\Participant;
 use App\Models\EvaluationResultL2;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ParticipantScoreImport;
+use Maatwebsite\Excel\Concerns\FromArray;
 
 class EvaluationLevel2Controller extends Controller
 {
     public function index($id)
     {
         $training = Training::findOrFail($id);
-        
-        // Ambil peserta dengan relasi nilai L2
         $participants = Participant::with('evaluationL2')
             ->where('training_id', $id)
             ->get();
@@ -52,26 +53,47 @@ class EvaluationLevel2Controller extends Controller
      */
     public function importExcel(Request $request, $id)
     {
-        $request->validate(['file' => 'required|mimes:xlsx,xls']);
-        
-        // Catatan: Anda perlu membuat class ParticipantScoreImport 
-        // menggunakan php artisan make:import
-        // Excel::import(new ParticipantScoreImport($id), $request->file('file'));
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
 
-        return redirect()->back()->with('success', 'Data nilai berhasil diimport secara massal.');
+        Excel::import(new ParticipantScoreImport($id), $request->file('file'));
+
+        return redirect()->back()->with('success', 'Nilai Pretest & Posttest berhasil diimport.');
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate($id)
     {
-        $header = [
+        $training = Training::findOrFail($id);
+        
+        // Ambil semua peserta di pelatihan ini beserta nilai L2 jika sudah ada
+        $participants = Participant::with('evaluationL2')
+            ->where('training_id', $id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        // Siapkan Header Excel
+        $data = [
             ['nip_nik', 'nama_lengkap', 'nilai_pretest', 'nilai_posttest']
         ];
 
-        return Excel::download(new class($header) implements FromArray {
+        // Masukkan data peserta ke dalam baris Excel
+        foreach ($participants as $p) {
+            $data[] = [
+                "'" . $p->nip_nik, // Gunakan tanda kutip satu agar NIP tidak error di excel
+                $p->name,
+                $p->evaluationL2->pretest ?? '', // Kosongkan jika belum ada nilai
+                $p->evaluationL2->postest ?? '', // Kosongkan jika belum ada nilai
+            ];
+        }
+
+        $fileName = 'Template_Nilai_L2_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
+
+        return Excel::download(new class($data) implements FromArray {
             private $data;
             public function __construct($data) { $this->data = $data; }
             public function array(): array { return $this->data; }
-        }, 'template_import_nilai_L2.xlsx');
+        }, $fileName);
     }
 
     public function indexAll()

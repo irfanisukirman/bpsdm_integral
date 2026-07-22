@@ -9,6 +9,7 @@ use App\Models\EvaluationResultL34;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\AlumniProfile;
 
 class EvaluationLevel34Controller extends Controller
 {
@@ -52,15 +53,30 @@ class EvaluationLevel34Controller extends Controller
     public function publicForm($training_id, $role)
     {
         $training = Training::findOrFail($training_id);
-        $participants = Participant::where('training_id', $training_id)->orderBy('name')->get();
         
-        // Ambil soal dari bank soal berdasarkan kategori (l34_mandiri / l34_rekan / l34_atasan)
-        $category = 'l34_' . $role;
-        $questions = Question::where('category', $category)
-                             ->where('training_type', $training->training_type)
-                             ->get();
+        // 1. Ambil ID peserta yang SUDAH mengisi untuk role ini
+        $filledIds = EvaluationResultL34::where('evaluator_role', $role)
+            ->whereHas('participant', function($q) use ($training_id) {
+                $q->where('training_id', $training_id);
+            })
+            ->pluck('participant_id');
 
-        return view('evaluasi.l34_public_form', compact('training', 'participants', 'role', 'questions'));
+        // 2. Peserta yang BELUM mengisi (Untuk Dropdown)
+        $participants = Participant::where('training_id', $training_id)
+            ->whereNotIn('id', $filledIds)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        // 3. Peserta yang SUDAH mengisi (Untuk Daftar Antrean/Progres)
+        $alreadyFilled = Participant::where('training_id', $training_id)
+            ->whereIn('id', $filledIds)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $categorySearch = 'l34_' . strtolower($role);
+        $questions = Question::where('category', $categorySearch)->get()->groupBy('sub_category');
+
+        return view('evaluasi.l34_public_form', compact('training', 'participants', 'alreadyFilled', 'role', 'questions'));
     }
 
     /**
@@ -68,33 +84,83 @@ class EvaluationLevel34Controller extends Controller
      */
     public function publicStore(Request $request, $training_id, $role)
     {
-        $request->validate([
-            'participant_id' => 'required|exists:participants,id',
+        $rules = [
+            'participant_id' => 'required',
             'scores'         => 'required|array',
-            'evaluator_name' => ($role != 'mandiri') ? 'required|string|max:255' : 'nullable',
-        ]);
+        ];
+
+        if ($role !== 'mandiri') {
+            $rules += [
+                'evaluator_name' => 'required',
+                'evaluator_nip'  => 'required',
+            ];
+        }
+
+        $request->validate($rules);
+
+        // Cek apakah sudah pernah mengisi (Double Input)
+        $exists = EvaluationResultL34::where('participant_id', $request->participant_id)
+            ->where('evaluator_role', $role)
+            ->where('training_id', $training_id)
+            ->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'Anda sudah melakukan pengisian untuk alumni ini.');
+        }
 
         try {
             DB::beginTransaction();
 
-            foreach ($request->scores as $question_id => $score) {
+            // 1. Simpan Profil jika Mandiri
+            if ($role == 'mandiri') {
+                AlumniProfile::updateOrCreate(
+                    ['participant_id' => $request->participant_id, 'training_id' => $training_id],
+                    [
+                        'edu_during_training'  => $request->edu_before,
+                        'edu_current'          => $request->edu_after,
+                        'rank_during_training' => $request->rank_before,
+                        'rank_current'         => $request->rank_after,
+                        'pos_during_training'  => $request->pos_before,
+                        'pos_current'          => $request->pos_after,
+                        'unit_during_training' => $request->unit_before,
+                        'unit_current'         => $request->unit_after,
+                    ]
+                );
+            }
+
+            // 2. Simpan Penempatan Tugas (Kualitatif) - MENGGUNAKAN NULL BUKAN 0
+            if ($request->has('task')) {
+                foreach ($request->task as $index => $val) {
+                    EvaluationResultL34::create([
+                        'training_id'    => $training_id,
+                        'participant_id' => $request->participant_id,
+                        'evaluator_role' => $role,
+                        'evaluator_name' => ($role == 'mandiri') ? 'Diri Sendiri' : $request->evaluator_name,
+                        'question_id'    => null, // INI PERBAIKANNYA
+                        'note'           => "Penempatan Tugas ke-" . ($index+1) . ": $val",
+                    ]);
+                }
+            }
+
+            // 3. Simpan Jawaban Skor (Slider)
+            foreach ($request->scores as $q_id => $value) {
                 EvaluationResultL34::create([
+                    'training_id'    => $training_id,
                     'participant_id' => $request->participant_id,
                     'evaluator_role' => $role,
                     'evaluator_name' => ($role == 'mandiri') ? 'Diri Sendiri' : $request->evaluator_name,
-                    'question_id'    => $question_id,
-                    'score'          => $score,
+                    'question_id'    => $q_id,
+                    'score'          => is_numeric($value) ? $value : null,
+                    'note'           => !is_numeric($value) ? $value : null,
                 ]);
             }
 
             DB::commit();
-
-            return redirect()->route('public.l34.gateway', $training_id)
-                             ->with('success', 'Penilaian berhasil disimpan. Terima kasih atas partisipasi Anda.');
+            return redirect()->back()->with('success', 'Data berhasil dikirim ke database.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data.');
+            return redirect()->back()->with('error', 'Gagal Simpan: ' . $e->getMessage());
         }
     }
 }

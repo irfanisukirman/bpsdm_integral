@@ -3,12 +3,13 @@
 namespace App\Imports;
 
 use App\Models\Participant;
+use App\Models\EvaluationResultL2;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class ParticipantImport implements ToModel, WithHeadingRow
+class ParticipantScoreImport implements ToModel, WithHeadingRow
 {
-    private $training_id;
+    protected $training_id;
 
     public function __construct($training_id)
     {
@@ -17,17 +18,17 @@ class ParticipantImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // Bersihkan NIP dari tanda kutip
+        // 1. Bersihkan NIP dari tanda kutip jika ada
         $nip = ltrim($row['nip_nik'], "'");
 
-        // Cari peserta di pelatihan ini berdasarkan NIP
-        $participant = \App\Models\Participant::where('training_id', $this->training_id)
+        // 2. Cari peserta berdasarkan NIP dan ID Pelatihan
+        $participant = Participant::where('training_id', $this->training_id)
             ->where('nip_nik', $nip)
             ->first();
 
+        // 3. Jika peserta ditemukan, update atau buat nilai L2
         if ($participant) {
-            // Update atau buat nilai baru
-            return \App\Models\EvaluationResultL2::updateOrCreate(
+            return EvaluationResultL2::updateOrCreate(
                 ['participant_id' => $participant->id],
                 [
                     'pretest' => $row['nilai_pretest'] ?? 0,
@@ -36,6 +37,6 @@ class ParticipantImport implements ToModel, WithHeadingRow
             );
         }
 
-        return null;
+        return null; // Lewati jika NIP tidak terdaftar di pelatihan ini
     }
 }

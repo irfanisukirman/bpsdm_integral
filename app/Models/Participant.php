@@ -43,9 +43,29 @@ class Participant extends Model
         return $this->hasOne(EvaluationResultL2::class);
     }
 
+    public function evaluationResultsL34()
+    {
+        return $this->hasMany(EvaluationResultL34::class, 'participant_id');
+    }
+
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function hasFilledL34($role)
+    {
+        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
+            ->where('evaluator_role', $role)
+            ->exists();
+    }
+
+    public function getAvgL4Attribute()
+    {
+        // Menghitung rata-rata skor dari semua penilai (Mandiri, Atasan, Rekan)
+        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
+            ->whereNotNull('score')
+            ->avg('score') ?? 0;
     }
     
 }

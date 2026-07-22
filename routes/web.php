@@ -59,12 +59,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('trainings', TrainingController::class);
 
     // Kelola Pertanyaan
+    Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
+    Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
     Route::resource('questions', QuestionController::class);
     Route::get('questions', [QuestionController::class, 'index'])->name('questions.index');
     Route::post('questions', [QuestionController::class, 'store'])->name('questions.store');
     Route::delete('questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
     Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
-
+    
     // Sub-Modul: Import Peserta & Kelola Jadwal
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
@@ -80,7 +82,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
-
+    Route::get('trainings/{id}/evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
+    Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Controller::class, 'publicStore'])
+    ->name('public.l34.store');
 
     // Rute Admin Kehadiran Harian
     Route::get('attendance/detail/{id}/{date}', [AttendanceController::class, 'showDetailDaily'])->name('attendance.detail.daily');
