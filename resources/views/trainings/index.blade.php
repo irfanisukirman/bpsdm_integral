@@ -112,11 +112,17 @@
                                 <a class="dropdown-item" href="{{ route('evall1.index', $t->id) }}">
                                     <i class="bx bx-smile me-1 text-warning"></i> Level 1: Reaksi
                                 </a>
+                                <a class="dropdown-item" href="{{ route('trainings.export_evaluation', $t->id) }}">
+                                    <i class="bx bx-download me-1 text-success"></i> Download Hasil L1 & L2
+                                </a>
                                 <a class="dropdown-item" href="{{ route('evall2.index', $t->id) }}">
                                     <i class="bx bx-book-open me-1 text-success"></i> Level 2: Learning
                                 </a>
                                 <a class="dropdown-item" href="{{ route('evall34.index', $t->id) }}">
                                     <i class="bx bx-trending-up me-1 text-primary"></i> Level 3 & 4: Dampak
+                                </a>
+                                <a class="dropdown-item text-primary fw-bold" href="{{ route('evall34.export', $t->id) }}">
+                                    <i class="bx bxs-spreadsheet me-1"></i> Download Laporan L3 & L4
                                 </a>
 
                                 <div class="dropdown-divider"></div>

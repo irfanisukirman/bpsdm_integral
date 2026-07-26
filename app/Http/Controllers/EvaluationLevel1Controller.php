@@ -177,4 +177,17 @@ class EvaluationLevel1Controller extends Controller
         return view('evaluasi.l34_all', compact('trainings'));
     }
 
+    public function exportExcel($form_id)
+    {
+        $form = \App\Models\EvaluationFormL1::with(['training', 'schedule'])->findOrFail($form_id);
+        
+        $prefix = ($form->type == 'penyelenggara') ? 'Eval_Penyelenggara_' : 'Eval_Narasumber_';
+        $fileName = $prefix . time() . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\EvaluationL1Export($form), 
+            $fileName
+        );
+    }
+
 }

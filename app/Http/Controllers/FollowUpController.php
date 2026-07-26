@@ -12,9 +12,11 @@ class FollowUpController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $query = MonitoringResult::with('training')->where('answer', 'tidak');
+        
+        // Ambil data "TIDAK" dengan relasi training dan question
+        $query = MonitoringResult::with(['training', 'question'])->where('answer', 'tidak');
 
-        // Jika bukan superadmin, hanya lihat yang ditujukan ke bidangnya
+        // Filter jika bukan superadmin
         if ($user->role !== 'superadmin') {
             $query->where('follow_up_target', $user->bidang);
         }
@@ -27,30 +29,20 @@ class FollowUpController extends Controller
     public function resolve(Request $request, $id)
     {
         $request->validate([
-            'resolution_notes' => 'required|string|min:10',
-            'evidence_file' => 'required|mimes:pdf|max:10240', // Max 10MB PDF
-        ], [
-            'resolution_notes.required' => 'Narasi penyelesaian wajib diisi.',
-            'evidence_file.required' => 'Bukti fisik PDF wajib diunggah.',
-            'evidence_file.mimes' => 'Format file harus PDF.',
+            'resolution_notes' => 'required|string|min:5',
+            'evidence_file' => 'required|mimes:pdf|max:10240',
         ]);
 
         $result = MonitoringResult::findOrFail($id);
 
-        // Upload File
         if ($request->hasFile('evidence_file')) {
-            // Hapus file lama jika ada (opsional)
-            if ($result->evidence_file) {
-                Storage::disk('public')->delete($result->evidence_file);
-            }
-            
             $file = $request->file('evidence_file');
             $path = $file->store('evidence_monitoring', 'public');
             $result->evidence_file = $path;
         }
 
         $result->resolution_notes = $request->resolution_notes;
-        $result->is_resolved = true; // Tandai selesai
+        $result->is_resolved = true;
         $result->save();
 
         return redirect()->back()->with('success', 'Tindak lanjut berhasil diselesaikan.');

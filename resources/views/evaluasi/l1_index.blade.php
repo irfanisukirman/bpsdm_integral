@@ -81,10 +81,20 @@
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ $publicLink }}')"><i class="bx bx-copy me-1"></i> Copy Link Publik</a>
-                                    <a class="dropdown-item" href="{{ route('evall1.progres', ['id' => $training->id, 'sid' => $form->schedule_id ?? 'null']) }}"><i class="bx bx-group me-1"></i> Lihat Progres</a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ $publicLink }}')">
+                                        <i class="bx bx-copy me-1"></i> Copy Link Publik
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('evall1.progres', ['id' => $training->id, 'sid' => $form->schedule_id ?? 'null']) }}">
+                                        <i class="bx bx-group me-1"></i> Lihat Progres
+                                    </a>
+                                    
+                                    <!-- TOMBOL DOWNLOAD EXCEL (TAMBAHKAN INI) -->
+                                    <a class="dropdown-item text-success" href="{{ route('evall1.export', $form->id) }}">
+                                        <i class="bx bxs-file-export me-1"></i> Download Excel
+                                    </a>
+
                                     <div class="dropdown-divider"></div>
-                                    <form action="{{ route('evall1.destroyForm', $form->id) }}" method="POST" onsubmit="return confirm('Hapus form ini beserta semua respon yang sudah masuk?')">
+                                    <form action="{{ route('evall1.destroyForm', $form->id) }}" method="POST" onsubmit="return confirm('Hapus form?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i> Hapus Form</button>
                                     </form>

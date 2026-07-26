@@ -10,11 +10,12 @@ class QuestionImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
-        // Mapping Kategori agar user bisa ngetik "Mandiri" saja di Excel
+        // 1. Mapping Kategori (Level & Peran)
         $categoryMap = [
-            'mandiri' => 'l34_mandiri',
-            'rekan'   => 'l34_rekan',
-            'atasan'  => 'l34_atasan',
+            'mandiri'       => 'l34_mandiri',
+            'alumni'        => 'l34_mandiri',
+            'rekan'         => 'l34_rekan',
+            'atasan'        => 'l34_atasan',
             'penyelenggara' => 'l1_penyelenggara',
             'narasumber'    => 'l1_narasumber',
         ];
@@ -22,16 +23,20 @@ class QuestionImport implements ToModel, WithHeadingRow
         $rawCategory = strtolower($row['level_peran']);
         $category = $categoryMap[$rawCategory] ?? $rawCategory;
 
-        // Proses pilihan jawaban (jika ada)
+        // 2. Mapping Sub Kategori (Grup Pertanyaan)
+        // Jika di excel kosong, beri default 'Perubahan Perilaku'
+        $subCategory = $row['sub_kategori'] ?? 'Perubahan Perilaku';
+
+        // 3. Proses pilihan jawaban jika tipe dropdown
         $options = null;
         if (!empty($row['pilihan_jawaban'])) {
-            // Pecah string koma menjadi array
             $options = array_map('trim', explode(',', $row['pilihan_jawaban']));
         }
 
         return new Question([
-            'training_type' => $row['jenis_pelatihan'], // PKTI, CPNS, dll
+            'training_type' => $row['jenis_pelatihan'] ?? 'Semua',
             'category'      => $category,
+            'sub_category'  => $subCategory, // KOLOM BARU: Untuk grouping di form
             'type'          => strtolower($row['tipe_jawaban']), // slider, dropdown, text
             'question_text' => $row['pertanyaan'],
             'options'       => $options,

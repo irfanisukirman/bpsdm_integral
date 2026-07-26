@@ -67,5 +67,9 @@ class Participant extends Model
             ->whereNotNull('score')
             ->avg('score') ?? 0;
     }
+
+    public function alumniProfile() {
+        return $this->hasOne(AlumniProfile::class);
+    }
     
 }

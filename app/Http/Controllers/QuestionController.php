@@ -88,16 +88,16 @@ class QuestionController extends Controller
     public function downloadTemplate()
     {
         $header = [
-            ['jenis_pelatihan', 'level_peran', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
-            ['PKTI/PKTU', 'Mandiri', 'slider', 'Sejauh mana anda menerapkan ilmu?', ''],
-            ['CPNS', 'Atasan', 'dropdown', 'Bagaimana integritas alumni?', 'Sangat Baik, Baik, Cukup, Kurang'],
-            ['PKP', 'Rekan', 'text', 'Berikan saran untuk alumni.', ''],
+            ['jenis_pelatihan', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
+            ['Semua', 'Mandiri', 'Perubahan Perilaku', 'slider', 'Ybs memahami sumber daya yang diperlukan...', ''],
+            ['Semua', 'Mandiri', 'Dampak Pelatihan', 'slider', 'Dampak pelatihan terhadap unit kerja', ''],
+            ['Semua', 'Atasan', 'Perubahan Perilaku', 'dropdown', 'Bagaimana integritas alumni?', 'Sangat Baik, Baik, Cukup, Kurang'],
         ];
 
-        return Excel::download(new class($header) implements FromArray {
+        return \Maatwebsite\Excel\Facades\Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromArray {
             private $data;
             public function __construct($data) { $this->data = $data; }
             public function array(): array { return $this->data; }
-        }, 'template_bank_soal_evaluasi.xlsx');
+        }, 'template_bank_soal_L34.xlsx');
     }
 }

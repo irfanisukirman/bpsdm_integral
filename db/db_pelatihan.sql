@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 21 Jul 2026 pada 11.07
+-- Waktu pembuatan: 22 Jul 2026 pada 10.39
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -48,7 +48,8 @@ CREATE TABLE `alumni_profiles` (
 --
 
 INSERT INTO `alumni_profiles` (`id`, `participant_id`, `training_id`, `edu_during_training`, `edu_current`, `rank_during_training`, `rank_current`, `pos_during_training`, `pos_current`, `unit_during_training`, `unit_current`, `created_at`, `updated_at`) VALUES
-(4, 2, 2, 'SD/SMP', 'SD/SMP', 'I/a', 'I/a', 'dasd', 'dsadas', 'dasd', 'asdasdasd', '2026-07-21 02:06:35', '2026-07-21 02:06:35');
+(4, 2, 2, 'SD/SMP', 'SD/SMP', 'I/a', 'I/a', 'dasd', 'dasd', 'dasdsa', 'dasdasdasd', '2026-07-21 02:06:35', '2026-07-21 19:06:47'),
+(5, 1, 2, 'SD/SMP', 'SD/SMP', 'I/a', 'I/a', 'dasdsa', 'dasdasd', 'dasdasd', 'dasdasd', '2026-07-21 18:55:09', '2026-07-21 18:55:09');
 
 -- --------------------------------------------------------
 
@@ -299,31 +300,15 @@ CREATE TABLE `evaluation_results_l2` (
 CREATE TABLE `evaluation_results_l34` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `participant_id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED DEFAULT NULL,
   `evaluator_role` enum('mandiri','rekan','atasan') NOT NULL,
   `evaluator_name` varchar(255) NOT NULL,
-  `question_id` bigint(20) UNSIGNED NOT NULL,
+  `question_id` bigint(20) UNSIGNED DEFAULT NULL,
   `score` int(11) DEFAULT NULL,
   `note` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `evaluation_results_l34`
---
-
-INSERT INTO `evaluation_results_l34` (`id`, `participant_id`, `evaluator_role`, `evaluator_name`, `question_id`, `score`, `note`, `created_at`, `updated_at`) VALUES
-(7, 2, 'mandiri', 'Diri Sendiri', 100, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(8, 2, 'mandiri', 'Diri Sendiri', 101, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(9, 2, 'mandiri', 'Diri Sendiri', 102, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(10, 2, 'mandiri', 'Diri Sendiri', 103, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(11, 2, 'mandiri', 'Diri Sendiri', 104, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(12, 2, 'mandiri', 'Diri Sendiri', 105, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(13, 2, 'mandiri', 'Diri Sendiri', 106, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(14, 2, 'mandiri', 'Diri Sendiri', 107, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(15, 2, 'mandiri', 'Diri Sendiri', 108, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(16, 2, 'mandiri', 'Diri Sendiri', 109, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35'),
-(17, 2, 'mandiri', 'Diri Sendiri', 110, 80, NULL, '2026-07-21 02:06:35', '2026-07-21 02:06:35');
 
 -- --------------------------------------------------------
 
@@ -429,7 +414,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (34, '2026_07_21_055227_adjust_evaluation_questions_for_specific_training', 25),
 (35, '2026_07_21_063241_create_alumni_profiles_table', 26),
 (36, '2026_07_21_063744_create_alumni_profiles_table', 27),
-(37, '2026_07_21_065123_add_note_to_evaluation_results_l34', 28);
+(37, '2026_07_21_065123_add_note_to_evaluation_results_l34', 28),
+(38, '2026_07_22_014357_make_question_id_nullable_in_l34_results', 29);
 
 -- --------------------------------------------------------
 
@@ -693,7 +679,8 @@ ALTER TABLE `evaluation_results_l2`
 ALTER TABLE `evaluation_results_l34`
   ADD PRIMARY KEY (`id`),
   ADD KEY `evaluation_results_l34_participant_id_foreign` (`participant_id`),
-  ADD KEY `evaluation_results_l34_question_id_foreign` (`question_id`);
+  ADD KEY `evaluation_results_l34_question_id_foreign` (`question_id`),
+  ADD KEY `evaluation_results_l34_training_id_foreign` (`training_id`);
 
 --
 -- Indeks untuk tabel `failed_jobs`
@@ -786,7 +773,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `alumni_profiles`
 --
 ALTER TABLE `alumni_profiles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `attendances`
@@ -822,7 +809,7 @@ ALTER TABLE `evaluation_results_l2`
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l34`
 --
 ALTER TABLE `evaluation_results_l34`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
 -- AUTO_INCREMENT untuk tabel `failed_jobs`
@@ -840,7 +827,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -941,7 +928,8 @@ ALTER TABLE `evaluation_results_l2`
 --
 ALTER TABLE `evaluation_results_l34`
   ADD CONSTRAINT `evaluation_results_l34_participant_id_foreign` FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`),
-  ADD CONSTRAINT `evaluation_results_l34_question_id_foreign` FOREIGN KEY (`question_id`) REFERENCES `evaluation_questions` (`id`);
+  ADD CONSTRAINT `evaluation_results_l34_question_id_foreign` FOREIGN KEY (`question_id`) REFERENCES `evaluation_questions` (`id`),
+  ADD CONSTRAINT `evaluation_results_l34_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `monitoring_results`

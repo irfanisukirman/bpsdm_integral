@@ -8,6 +8,7 @@ use App\Models\Participant;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel; 
 use App\Imports\ParticipantImport;
+use App\Exports\TrainingEvaluationExport;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth; 
@@ -289,5 +290,17 @@ class TrainingController extends Controller
         $training->delete();
 
         return redirect()->route('trainings.index')->with('success', 'Pelatihan berhasil dihapus dari sistem.');
+    }
+    public function exportEvaluation($id)
+    {
+        $training = Training::findOrFail($id);
+        
+        // Nama file yang rapi
+        $fileName = 'Hasil_Evaluasi_L1_L2_' . time() . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\TrainingEvaluationExport($training), 
+            $fileName
+        );
     }
 }

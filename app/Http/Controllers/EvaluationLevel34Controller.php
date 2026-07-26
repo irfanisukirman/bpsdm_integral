@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\AlumniProfile;
+use App\Exports\EvaluationL34Export; // Import di bagian atas
+use Maatwebsite\Excel\Facades\Excel;
 
 class EvaluationLevel34Controller extends Controller
 {
@@ -163,4 +165,16 @@ class EvaluationLevel34Controller extends Controller
             return redirect()->back()->with('error', 'Gagal Simpan: ' . $e->getMessage());
         }
     }
+
+    public function exportExcel($id)
+    {
+        // Ambil data pelatihan
+        $training = Training::findOrFail($id);
+
+        // Nama file: Laporan_Dampak_NamaPelatihan.xlsx
+        $fileName = 'Laporan_Dampak_L3_L4_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
+
+        return Excel::download(new EvaluationL34Export($training), $fileName);
+    }
+    
 }
