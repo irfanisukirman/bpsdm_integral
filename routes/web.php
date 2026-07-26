@@ -12,6 +12,7 @@ use App\Http\Controllers\MonitoringIndicatorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\FollowUpController; 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -55,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
     // --- 03 & 04. KELOLA PELATIHAN ---
     Route::resource('trainings', TrainingController::class);
 
@@ -78,7 +83,11 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('trainings/{id}/schedules', [TrainingController::class, 'showSchedules'])->name('trainings.schedules');
     Route::post('trainings/{id}/schedules', [TrainingController::class, 'storeSchedule'])->name('schedules.store');
+    
+    Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus
+    
+    
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
@@ -95,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('attendance/pdf-harian/{id}/{date}', [AttendanceController::class, 'downloadPdfDaily'])->name('attendance.pdf.daily');
     
     // --- 07. KEHADIRAN (Monitoring Admin) ---
+    Route::get('attendance/pdf-all/{id}', [AttendanceController::class, 'downloadPdfAll'])->name('attendance.pdf.all');
     Route::get('attendance', [AttendanceController::class, 'indexAll'])->name('attendance.all');
     Route::get('trainings/{id}/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('attendance/detail/{schedule_id}', [AttendanceController::class, 'showDetail'])->name('attendance.detail');

@@ -8,9 +8,15 @@
         <h4 class="fw-bold py-3 mb-0">
             <span class="text-muted fw-light">Pelaksanaan /</span> Kehadiran Harian
         </h4>
-        <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali
-        </a>
+        <div class="d-flex gap-2">
+            
+            <a href="{{ route('attendance.pdf.all', $training->id) }}" class="btn btn-danger">
+                <i class="bx bxs-file-pdf me-1"></i> Download Rekap Total
+            </a>
+            <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali
+            </a>
+        </div>
     </div>
 
     @if(session('success'))

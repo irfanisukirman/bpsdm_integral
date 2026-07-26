@@ -10,4 +10,9 @@ class EvaluationResultL2 extends Model
     protected $table = 'evaluation_results_l2';
 
     protected $guarded = [];
+
+    public function participant()
+    {
+        return $this->belongsTo(Participant::class, 'participant_id');
+    }
 }

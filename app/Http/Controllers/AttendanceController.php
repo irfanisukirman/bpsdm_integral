@@ -242,4 +242,32 @@ class AttendanceController extends Controller
 
         return $pdf->download('Presensi-'.$training->id.'-'.$date.'.pdf');
     }
+
+    public function downloadPdfAll($id)
+    {
+        $training = Training::with(['participants', 'schedules.attendances'])->findOrFail($id);
+        
+        // Ambil daftar tanggal unik dari jadwal
+        $dates = $training->schedules->pluck('date')->unique()->sort();
+        
+        // Ambil data peserta diurutkan berdasarkan nama
+        $participants = $training->participants()->orderBy('name')->get();
+
+        $data = [
+            'training'     => $training,
+            'dates'        => $dates,
+            'participants' => $participants
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('attendance.pdf_all_days', $data);
+        
+        // Gunakan Landscape jika jumlah hari cukup banyak (lebih dari 5 hari)
+        if($dates->count() > 5) {
+            $pdf->setPaper('a4', 'landscape');
+        } else {
+            $pdf->setPaper('a4', 'portrait');
+        }
+
+        return $pdf->download('Rekap-Kehadiran-Total-'.$training->id.'.pdf');
+    }
 }

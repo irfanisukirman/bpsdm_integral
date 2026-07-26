@@ -20,8 +20,8 @@ class TrainingController extends Controller
 {
     public function index()
     {
-        $query = Training::query();
-
+        $query = Training::with('schedules');
+        
         // Jika bukan superadmin, filter berdasarkan bidang user
         if (Auth::user()->role !== 'superadmin') {
             $query->where('bidang', Auth::user()->bidang);
@@ -302,5 +302,21 @@ class TrainingController extends Controller
             new \App\Exports\TrainingEvaluationExport($training), 
             $fileName
         );
+    }
+
+    public function updateSchedule(Request $request, $id)
+    {
+        $request->validate([
+            'date'       => 'required|date',
+            'start_time' => 'required',
+            'end_time'   => 'required',
+            'activity'   => 'required|string|max:255',
+            'pic'        => 'required|string|max:255',
+        ]);
+
+        $schedule = Schedule::findOrFail($id);
+        $schedule->update($request->all());
+
+        return redirect()->back()->with('success', 'Jadwal berhasil diperbarui.');
     }
 }

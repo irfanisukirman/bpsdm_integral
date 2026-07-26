@@ -39,8 +39,7 @@ class Participant extends Model
 
     public function evaluationL2()
     {
-        // Hubungkan ke tabel evaluation_results_l2
-        return $this->hasOne(EvaluationResultL2::class);
+        return $this->hasOne(EvaluationResultL2::class, 'participant_id');
     }
 
     public function evaluationResultsL34()

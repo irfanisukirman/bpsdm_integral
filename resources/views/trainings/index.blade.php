@@ -29,7 +29,7 @@
                     <th>Pelatihan</th>
                     <th>Bidang / Model</th>
                     <th>Tanggal</th>
-                    <th>Status</th>
+                    <th>Status & Kegiatan</th> {{-- Judul Kolom Diperbarui --}}
                     <th width="50">Aksi</th>
                 </tr>
             </thead>
@@ -39,6 +39,20 @@
                     <td>
                         <span class="fw-bold text-dark">{{ $t->nama_pelatihan }}</span><br>
                         <small class="text-muted">Angkatan {{ $t->angkatan }} - {{ $t->lokasi }}</small>
+                        
+                        {{-- INFO KEGIATAN BERJALAN DENGAN PERBAIKAN WRAP TEXT --}}
+                        @php $current = $t->current_activity; @endphp
+                        @if($current)
+                            <div class="mt-2" style="max-width: 450px;"> {{-- Batasi lebar maksimal agar tidak mepet ke kanan --}}
+                                <span class="badge bg-label-secondary text-wrap d-inline-block animate__animated animate__pulse animate__infinite" 
+                                    style="font-size: 11px; line-height: 1.5; text-align: left; white-space: normal;">
+                                    <i class="bx bx-play-circle me-1 text-success"></i> 
+                                    <span class="text-uppercase">Sedang berlangsung:</span> 
+                                    <strong class="text-dark">{{ $current->activity }}</strong> 
+                                    <span class="text-muted">({{ substr($current->start_time, 0, 5) }} - {{ substr($current->end_time, 0, 5) }})</span>
+                                </span>
+                            </div>
+                        @endif
                     </td>
                     <td>
                         <span class="badge bg-label-info mb-1">{{ $t->bidang }}</span><br>
@@ -56,22 +70,18 @@
                         @endphp
 
                         @if($sisa < 0)
-                            {{-- Pelatihan Sudah Berakhir --}}
                             <span class="badge bg-label-danger">
                                 <i class="bx bx-check-double me-1"></i> Pelatihan Selesai
                             </span>
                         @elseif($sisa == 0)
-                            {{-- Hari Terakhir --}}
                             <span class="badge bg-label-warning animate__animated animate__flash animate__infinite">
                                 <i class="bx bx-timer me-1"></i> Hari Terakhir
                             </span>
                         @elseif($sisa <= 7)
-                            {{-- Kurang dari 7 hari --}}
                             <span class="badge bg-label-warning">
                                 <i class="bx bx-time-five me-1"></i> {{ $sisa }} Hari Tersisa
                             </span>
                         @else
-                            {{-- Masih lama --}}
                             <span class="badge bg-label-success">
                                 <i class="bx bx-play-circle me-1"></i> Berjalan
                             </span>
@@ -83,14 +93,10 @@
                                 <i class="bx bx-dots-vertical-rounded"></i>
                             </button>
                             <div class="dropdown-menu">
-                                <!-- FITUR EDIT (BARU) -->
                                 <a class="dropdown-item text-warning" href="{{ route('trainings.edit', $t->id) }}">
                                     <i class="bx bx-edit-alt me-1"></i> Edit Pelatihan
                                 </a>
-                                
                                 <div class="dropdown-divider"></div>
-
-                                <!-- Management Data -->
                                 <h6 class="dropdown-header small text-muted">Manajemen Data</h6>
                                 <a class="dropdown-item" href="{{ route('trainings.schedules', $t->id) }}">
                                     <i class="bx bx-calendar me-1"></i> Buat Jadwal
@@ -101,10 +107,7 @@
                                 <a class="dropdown-item" href="{{ route('attendance.index', $t->id) }}">
                                     <i class="bx bx-user-check me-1"></i> Kehadiran / Absensi
                                 </a>
-
                                 <div class="dropdown-divider"></div>
-
-                                <!-- Monitoring & Evaluasi -->
                                 <h6 class="dropdown-header small text-muted">Monitoring & Evaluasi</h6>
                                 <a class="dropdown-item" href="{{ route('monitoring.fill', $t->id) }}">
                                     <i class="bx bx-desktop me-1 text-info"></i> Monitoring
@@ -112,8 +115,8 @@
                                 <a class="dropdown-item" href="{{ route('evall1.index', $t->id) }}">
                                     <i class="bx bx-smile me-1 text-warning"></i> Level 1: Reaksi
                                 </a>
-                                <a class="dropdown-item" href="{{ route('trainings.export_evaluation', $t->id) }}">
-                                    <i class="bx bx-download me-1 text-success"></i> Download Hasil L1 & L2
+                                <a class="dropdown-item text-success" href="{{ route('trainings.export_evaluation', $t->id) }}">
+                                    <i class="bx bxs-file-export me-1"></i> Download Hasil L1 & L2
                                 </a>
                                 <a class="dropdown-item" href="{{ route('evall2.index', $t->id) }}">
                                     <i class="bx bx-book-open me-1 text-success"></i> Level 2: Learning
@@ -124,10 +127,7 @@
                                 <a class="dropdown-item text-primary fw-bold" href="{{ route('evall34.export', $t->id) }}">
                                     <i class="bx bxs-spreadsheet me-1"></i> Download Laporan L3 & L4
                                 </a>
-
                                 <div class="dropdown-divider"></div>
-                                
-                                <!-- Actions -->
                                 <form action="{{ route('trainings.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Hapus pelatihan ini?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="dropdown-item text-danger">
