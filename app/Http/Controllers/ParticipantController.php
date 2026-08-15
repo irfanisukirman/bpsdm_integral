@@ -15,8 +15,12 @@ class ParticipantController extends Controller
      */
     public function index()
     {
+        if (Auth::user()->role !== 'participant') {
+            return redirect()->route('dashboard');
+        }
+
         $user = Auth::user();
-        $totalFollowed = Participant::where('nip_nik', $user->username)->count();
+        $totalFollowed = \App\Models\Participant::where('nip_nik', $user->nip_nik)->count();
         
         return view('participant.dashboard', compact('user', 'totalFollowed'));
     }
@@ -24,14 +28,26 @@ class ParticipantController extends Controller
     /**
      * Menu: Daftar Pelatihan (Melihat semua pelatihan yang dibuka oleh Bidang)
      */
-    public function availableTrainings()
+    public function availableTrainings(Request $request)
     {
-        // Mengambil pelatihan yang belum selesai
-        $trainings = Training::where('tgl_selesai', '>=', now())
-            ->latest()
+        $search = $request->query('search');
+
+        // Mengambil semua pelatihan dengan hitungan peserta
+        $trainings = \App\Models\Training::withCount('participants')
+            // Filter Pencarian jika ada
+            ->when($search, function($query) use ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nama_pelatihan', 'LIKE', "%$search%")
+                    ->orWhere('bidang', 'LIKE', "%$search%")
+                    ->orWhere('lokasi', 'LIKE', "%$search%");
+                });
+            })
+            // Urutan: Active (tgl_selesai >= hari ini) di atas, Selesai di bawah
+            ->orderByRaw("tgl_selesai < '" . now()->toDateString() . "' ASC")
+            ->orderBy('tgl_mulai', 'desc')
             ->get();
 
-        return view('participant.available_trainings', compact('trainings'));
+        return view('participant.available_trainings', compact('trainings', 'search'));
     }
 
     /**
