@@ -11,9 +11,11 @@ class Training extends Model
 
     protected $fillable = [
         'nama_pelatihan',
+        'invitation_code',
+        'link_lms',
         'bidang',
         'model',
-        'metode', // <--- Pastikan ini ada
+        'metode',
         'lokasi',
         'angkatan',
         'jumlah_peserta',
@@ -97,5 +99,15 @@ class Training extends Model
         return (int) $today->diffInDays($target, false);
     }
     
+    protected static function boot() {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->invitation_code = strtoupper(\Illuminate\Support\Str::random(6));
+        });
+    }
+
+    public function folder() {
+        return $this->hasOne(Folder::class, 'training_id');
+    }
 
 }

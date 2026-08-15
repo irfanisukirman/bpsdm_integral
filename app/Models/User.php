@@ -14,18 +14,9 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name',
-        'username',      // Digunakan untuk Email Google atau ID Login
-        'google_id',     // ID Unik dari Google
-        'avatar',        // Foto Profil dari Google
-        'whatsapp',
-        'role',          // superadmin, admin_bidang, participant
-        'bidang',        // Nama bidang jika dia admin_bidang
-        'gender',        // Laki-Laki / Perempuan
-        'provinsi',      // Nama Provinsi
-        'kabupaten_kota', // Nama Kabupaten/Kota
-        'status_kepegawaian', // PNS, PPPK, Non-ASN
-        'password',
+        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 
+        'nip_nik', 'gender', 'jabatan', 'instansi', 'provinsi', 
+        'kabupaten_kota', 'status_kepegawaian', 'password'
     ];
 
     /**

@@ -14,6 +14,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon; 
+use App\Models\Folder; 
+use App\Helpers\LogHelper;
 
 
 class TrainingController extends Controller
@@ -39,11 +41,11 @@ class TrainingController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Definisikan Rule Validasi Dasar
+        // 1. Validasi Input (Seperti sebelumnya)
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang' => 'required',
-            'model' => 'required|in:standar,blended',
+            'model' => 'required',
             'lokasi' => 'required',
             'angkatan' => 'required',
             'jumlah_peserta' => 'required|numeric',
@@ -51,24 +53,25 @@ class TrainingController extends Controller
             'tgl_mulai' => 'required|date',
             'tgl_selesai' => 'required|date',
         ];
-
-        // 2. Jika model standar, metode wajib diisi dari form
-        if ($request->model === 'standar') {
-            $rules['metode'] = 'required';
-        }
-
+        if ($request->model === 'standar') { $rules['metode'] = 'required'; }
         $data = $request->validate($rules);
 
-        // 3. Jika model blended, set metode utama sebagai 'blended' 
-        // karena detail metode ada di tabel stages
-        if ($request->model === 'blended') {
-            $data['metode'] = 'blended';
-        }
+        if ($request->model === 'blended') { $data['metode'] = 'blended'; }
 
-        // 4. Simpan Data Utama Pelatihan
+        // 2. Simpan Data Pelatihan
         $training = Training::create($data);
 
-        // 5. Simpan Tahapan (Hanya jika model Blended)
+        // 3. LOGIKA OTOMATIS: BUAT FOLDER DOKUMEN
+        Folder::create([
+            'training_id' => $training->id,
+            'name'        => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan,
+            'bidang'      => $training->bidang,
+            'user_id'     => Auth::id(),
+            'parent_id'   => null, // Jadi folder utama di bidang tersebut
+            'is_public'   => false, // Default private
+        ]);
+
+        // 4. Simpan Tahapan (Jika Blended)
         if ($request->model === 'blended' && $request->has('stages')) {
             foreach ($request->stages as $stage) {
                 $training->stages()->create([
@@ -80,7 +83,9 @@ class TrainingController extends Controller
             }
         }
 
-        return redirect()->route('trainings.index')->with('success', 'Pelatihan berhasil disimpan.');
+        LogHelper::record('Pelatihan', 'Membuat pelatihan & folder dokumen: ' . $training->nama_pelatihan);
+
+        return redirect()->route('trainings.index')->with('success', 'Pelatihan dan Folder Dokumen berhasil dibuat.');
     }
 
     public function storeParticipant(Request $request, $id)
@@ -272,7 +277,11 @@ class TrainingController extends Controller
         $data = $request->validate($rules);
 
         // Update data utama
-        $training->update($data);
+        $training->update($request->all());
+        
+        Folder::where('training_id', $training->id)->update([
+            'name' => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan
+        ]);
 
         // Jika model blended, update tahapan
         if ($training->model === 'blended' && $request->has('stages')) {
@@ -331,5 +340,25 @@ class TrainingController extends Controller
         $schedule->update($request->all());
 
         return redirect()->back()->with('success', 'Jadwal berhasil diperbarui.');
+    }
+
+    public function generateNewCode($id) {
+        $training = Training::findOrFail($id);
+        $training->update(['invitation_code' => strtoupper(\Illuminate\Support\Str::random(6))]);
+        return redirect()->back()->with('success', 'Kode Undangan diperbarui: ' . $training->invitation_code);
+    }
+
+    public function setLmsLink(Request $request, $id)
+    {
+        $request->validate([
+            'link_lms' => 'required|url'
+        ], [
+            'link_lms.url' => 'Format link tidak valid (gunakan http:// atau https://)'
+        ]);
+
+        $training = Training::findOrFail($id);
+        $training->update(['link_lms' => $request->link_lms]);
+
+        return redirect()->back()->with('success', 'Link LMS berhasil diperbarui.');
     }
 }

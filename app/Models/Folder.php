@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Folder extends Model
 {
     protected $fillable = [
+        'training_id',
         'name',
         'bidang',
         'parent_id',

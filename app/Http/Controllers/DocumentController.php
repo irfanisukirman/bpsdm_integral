@@ -48,8 +48,10 @@ class DocumentController extends Controller
         $folders = Folder::where('parent_id', $parentId)
             ->where(function($query) use ($currentBidang) {
                 $query->where('bidang', $currentBidang)
-                      ->orWhere('bidang', 'Semua Bidang'); // Folder Global muncul di sini
+                    ->orWhere('bidang', 'Semua Bidang');
             })
+            ->orderBy('training_id', 'desc') // Folder pelatihan terbaru muncul duluan
+            ->orderBy('name', 'asc')
             ->get();
 
         // 4. QUERY DATA FILE (Hanya dalam folder yang sedang dibuka)
