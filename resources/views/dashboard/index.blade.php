@@ -153,6 +153,35 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="card-title m-0">Penyimpanan Dokumen</h5>
+                <i class="bx bx-folder text-warning"></i>
+            </div>
+            <div class="card-body">
+                <ul class="p-0 m-0">
+                    <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-file"></i></span>
+                        </div>
+                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                                <h6 class="mb-0">Total Dokumen</h6>
+                                <small class="text-muted">File terunggah</small>
+                            </div>
+                            <div class="user-progress">
+                                <small class="fw-bold">{{ \App\Models\File::count() }} File</small>
+                            </div>
+                        </div>
+                    </li>
+                    {{-- Tambah list lainnya seperti Folder Publik, dll --}}
+                </ul>
+                <a href="{{ route('documents.index') }}" class="btn btn-outline-primary btn-sm w-100">Buka File Manager</a>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 

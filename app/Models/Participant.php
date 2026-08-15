@@ -6,12 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Participant extends Model
 {
+    protected $table = 'participants';
+
     protected $fillable = [
         'training_id', 
         'nip_nik', 
         'name', 
+        'gender',           // Pastikan ini ada
         'jabatan', 
-        'instansi'
+        'instansi',
+        'provinsi',         // Pastikan ini ada
+        'kabupaten_kota',    // Pastikan ini ada
+        'status_kepegawaian' // Pastikan ini ada
     ];
 
     /**

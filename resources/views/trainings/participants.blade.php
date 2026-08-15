@@ -30,7 +30,7 @@
     <!-- Alert Notifikasi -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible border-0 shadow-sm" role="alert">
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
                 <i class="bx bx-check-circle me-2"></i>
                 <div>{{ session('success') }}</div>
             </div>
@@ -52,33 +52,61 @@
         </div>
     @endif
 
-    <!-- Tabel Peserta -->
+    <!-- Tabel Peserta Modern -->
     <div class="card shadow-sm">
         <div class="card-header border-bottom d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Daftar Peserta Pelatihan</h5>
             <span class="badge bg-label-primary">{{ count($participants) }} ORANG</span>
         </div>
         
-        <!-- Bagian table-responsive ini penting -->
         <div class="table-responsive text-nowrap">
             <table class="table table-hover" style="table-layout: fixed; width: 100%;">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 180px;">NIP / NIK</th>
+                        <th style="width: 160px;">NIP / NIK</th>
                         <th style="width: 200px;">NAMA LENGKAP</th>
-                        <th style="width: 200px;">JABATAN</th>
-                        <th>INSTANSI</th> <!-- Kolom ini fleksibel -->
-                        <th style="width: 100px;" class="text-center">AKSI</th>
+                        <th style="width: 130px;">GENDER/STATUS</th>
+                        <th style="width: 180px;">JABATAN</th>
+                        <th>INSTANSI & WILAYAH</th>
+                        <th style="width: 90px;" class="text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
                     @forelse($participants as $p)
                     <tr>
-                        <td><code class="fw-bold text-danger" style="font-size: 0.85rem;">{{ $p->nip_nik }}</code></td>
-                        <td class="text-wrap fw-bold" style="font-size: 0.9rem; color: #566a7f;">{{ $p->name }}</td>
-                        <td class="text-wrap" style="font-size: 0.85rem;">{{ $p->jabatan }}</td>
-                        <td class="text-wrap" style="font-size: 0.85rem; color: #a1acb8;">{{ $p->instansi }}</td>
-                        <td class="text-center">
+                        <!-- Kolom NIP -->
+                        <td class="align-top">
+                            <code class="fw-bold text-danger" style="font-size: 0.8rem;">{{ $p->nip_nik }}</code>
+                        </td>
+
+                        <!-- Kolom Nama -->
+                        <td class="align-top text-wrap">
+                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">{{ $p->name }}</span>
+                        </td>
+
+                        <!-- Kolom Gender & Status -->
+                        <td class="align-top">
+                            <small class="d-block fw-bold text-secondary">{{ $p->gender }}</small>
+                            <span class="badge bg-label-info" style="font-size: 0.65rem;">{{ $p->status_kepegawaian }}</span>
+                        </td>
+
+                        <!-- Kolom Jabatan -->
+                        <td class="align-top text-wrap">
+                            <small class="text-dark fw-semibold" style="line-height: 1.2; display: block;">
+                                {{ $p->jabatan }}
+                            </small>
+                        </td>
+
+                        <!-- Kolom Instansi & Wilayah -->
+                        <td class="align-top text-wrap">
+                            <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ $p->instansi }}</span><br>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bx bx-map-pin" style="font-size: 10px;"></i> {{ $p->kabupaten_kota }}, {{ $p->provinsi }}
+                            </small>
+                        </td>
+
+                        <!-- Kolom Aksi -->
+                        <td class="align-top text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <!-- Tombol Edit -->
                                 <button class="btn btn-xs btn-icon btn-outline-warning" 
@@ -99,7 +127,12 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" class="text-center py-5">Belum ada data peserta.</td></tr>
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bx bx-info-circle mb-2" style="font-size: 2rem;"></i>
+                            <p>Belum ada data peserta dalam pelatihan ini.</p>
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -117,12 +150,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning py-2 small" role="alert">
-                    <i class="bx bx-info-circle me-1"></i> Masukkan NIP/NIK dengan teliti agar data tidak ganda.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">NIP / NIK</label>
-                    <input type="text" name="nip_nik" class="form-control" placeholder="Contoh: 19901231..." required>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">NIP / NIK</label>
+                        <input type="text" name="nip_nik" class="form-control" placeholder="Masukkan NIP/NIK" required>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Nama Lengkap</label>
@@ -131,11 +163,34 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">Jabatan</label>
-                        <input type="text" name="jabatan" class="form-control" placeholder="Contoh: Staff" required>
+                        <input type="text" name="jabatan" class="form-control" placeholder="Contoh: Analis SDM" required>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">Instansi</label>
                         <input type="text" name="instansi" class="form-control" placeholder="Contoh: BPSDM" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Gender</label>
+                        <select name="gender" class="form-select" required>
+                            <option value="Laki-Laki">Laki-Laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Status Kepegawaian</label>
+                        <input type="text" name="status_kepegawaian" class="form-control" placeholder="Contoh: PNS / PPPK / ASN" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Provinsi</label>
+                        <input type="text" name="provinsi" class="form-control" placeholder="Jawa Barat" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Kabupaten / Kota</label>
+                        <input type="text" name="kabupaten_kota" class="form-control" placeholder="Kota Bandung" required>
                     </div>
                 </div>
             </div>
@@ -161,7 +216,7 @@
                     <small class="text-primary fw-bold d-block mb-1">PENTING:</small>
                     <ul class="small mb-0 text-primary">
                         <li>Gunakan tanda <strong>'</strong> (kutip satu) di awal NIP/NIK agar tidak berubah menjadi 0.</li>
-                        <li>Format kolom: <strong>nip_nik, nama_lengkap, jabatan, instansi</strong>.</li>
+                        <li>Format kolom: <strong>nip_nik, nama_lengkap, gender, jabatan, instansi, provinsi, kabupaten_kota, status_kepegawaian</strong>.</li>
                     </ul>
                 </div>
                 <div class="mb-3">
@@ -208,6 +263,29 @@
                         <input type="text" name="instansi" id="edit_instansi" class="form-control" required>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Gender</label>
+                        <select name="gender" id="edit_gender" class="form-select" required>
+                            <option value="Laki-Laki">Laki-Laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Status Kepegawaian</label>
+                        <input type="text" name="status_kepegawaian" id="edit_status" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Provinsi</label>
+                        <input type="text" name="provinsi" id="edit_provinsi" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Kabupaten / Kota</label>
+                        <input type="text" name="kabupaten_kota" id="edit_kabupaten" class="form-control" required>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer border-top p-3">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -217,29 +295,23 @@
     </div>
 </div>
 @endsection
+
 @push('css')
 <style>
     /* Memaksa teks yang panjang turun ke bawah */
     .text-wrap {
         white-space: normal !important;
         word-wrap: break-word;
-        vertical-align: top;
     }
-
-    /* Agar tabel tetap konsisten */
     table.table {
         width: 100% !important;
         margin: 0 !important;
     }
-
-    /* Mempercantik tampilan kolom NIP agar tidak pecah */
-    code {
-        white-space: nowrap;
-    }
-
-    /* Penyesuaian baris agar lebih lega jika teks turun ke bawah */
     .table td {
-        padding: 1rem 0.75rem !important;
+        padding: 0.85rem 0.75rem !important;
+    }
+    .align-top {
+        vertical-align: top !important;
     }
 </style>
 @endpush
@@ -254,8 +326,12 @@
         // Isi data ke field modal
         $('#edit_nip').val(data.nip_nik);
         $('#edit_name').val(data.name);
+        $('#edit_gender').val(data.gender); 
         $('#edit_jabatan').val(data.jabatan);
         $('#edit_instansi').val(data.instansi);
+        $('#edit_provinsi').val(data.provinsi); 
+        $('#edit_kabupaten').val(data.kabupaten_kota); 
+        $('#edit_status').val(data.status_kepegawaian);
     }
 </script>
 @endpush

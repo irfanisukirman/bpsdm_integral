@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title') | Sistem Pelatihan</title>
+    <title>@yield('title') | INTEGRAL - Pengelolaan Pelatihan Terintegrasi</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -77,7 +77,7 @@
                     <footer class="content-footer footer bg-footer-theme">
                         <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
                             <div class="mb-2 mb-md-0">
-                                © {{ date('Y') }} Sistem Kalender, Monitoring & Evaluasi Pelatihan
+                                © {{ date('Y') }} <strong>Integral</strong> - BPSDM Provinsi Jawa Barat
                             </div>
                         </div>
                     </footer>

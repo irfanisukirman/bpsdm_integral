@@ -15,12 +15,23 @@ use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostEvalControlController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ParticipantController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES (Akses Tanpa Login - Untuk Peserta, Narasumber, Atasan)
 |--------------------------------------------------------------------------
 */
+Auth::routes(['register' => false]);
+
+Route::get('auth/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('auth/google/callback', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+
+Route::get('share/folder/{token}', [DocumentController::class, 'share'])->name('documents.public');
 
 // Absensi Publik per Sesi
 Route::get('absen/{schedule_id}', [AttendanceController::class, 'publicShow'])->name('public.attendance.show');
@@ -64,6 +75,14 @@ Route::middleware(['auth'])->group(function () {
 
     // --- 03 & 04. KELOLA PELATIHAN ---
     Route::resource('trainings', TrainingController::class);
+
+    //Kelola Dokumen & Folder
+    Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::post('documents/folder', [DocumentController::class, 'createFolder'])->name('documents.folder.create');
+    Route::post('documents/upload', [DocumentController::class, 'uploadFiles'])->name('documents.upload');
+    Route::put('documents/folder/{id}/privacy', [DocumentController::class, 'togglePrivacy'])->name('documents.folder.privacy');
+    Route::delete('documents/file/{id}', [DocumentController::class, 'destroyFile'])->name('documents.file.destroy');
+    Route::delete('documents/folder/{id}', [DocumentController::class, 'destroyFolder'])->name('documents.folder.destroy');
 
     // Kelola Pertanyaan
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
@@ -152,17 +171,25 @@ Route::middleware(['auth'])->group(function () {
     // Level 3 & 4: Impact (360)
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
     Route::get('trainings/{id}/evaluasi-l34', [EvaluationLevel34Controller::class, 'index'])->name('evall34.index'); // Detail L34
+
+    Route::get('/complete-profile', [ParticipantController::class, 'completeProfile'])->name('participant.profile.complete');
+    Route::post('/complete-profile', [ParticipantController::class, 'storeProfile'])->name('participant.profile.store');
+
+    // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
+    Route::middleware(['can:isParticipant'])->group(function () {
+        Route::get('/my-trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
+        Route::get('/my-history', [ParticipantController::class, 'myHistory'])->name('participant.history');
+    });
+
 });
+
+
 
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATION SYSTEM
 |--------------------------------------------------------------------------
 */
-
-// Menonaktifkan Registrasi Publik agar hanya Superadmin yang bisa buat akun
-Auth::routes(['register' => false]);
-
 // Redirect default Laravel
 Route::get('/home', function() {
     return redirect()->route('dashboard');
