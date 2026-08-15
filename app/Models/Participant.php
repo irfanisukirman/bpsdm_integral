@@ -10,14 +10,17 @@ class Participant extends Model
 
     protected $fillable = [
         'training_id', 
+        'user_id', 
         'nip_nik', 
         'name', 
-        'gender',           // Pastikan ini ada
+        'gender', 
         'jabatan', 
         'instansi',
-        'provinsi',         // Pastikan ini ada
-        'kabupaten_kota',    // Pastikan ini ada
-        'status_kepegawaian' // Pastikan ini ada
+        'provinsi', 
+        'kabupaten_kota', 
+        'status_kepegawaian',
+        'biodata_file_id',    // TAMBAHKAN INI
+        'surat_tugas_file_id' // TAMBAHKAN INI
     ];
 
     /**

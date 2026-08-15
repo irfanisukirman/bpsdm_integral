@@ -7,6 +7,14 @@ use App\Models\Participant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Folder;
+use App\Models\File; 
+use Illuminate\Support\Facades\Storage;
+use App\Helpers\LogHelper;
+use App\Models\EvaluationFormL1;
+use App\Models\EvaluationFormL34;
+
+
 
 class ParticipantController extends Controller
 {
@@ -20,9 +28,24 @@ class ParticipantController extends Controller
         }
 
         $user = Auth::user();
+        $currentYear = date('Y');
+
+        // 1. Hitung total pelatihan yang pernah diikuti (seluruh waktu)
         $totalFollowed = \App\Models\Participant::where('nip_nik', $user->nip_nik)->count();
-        
-        return view('participant.dashboard', compact('user', 'totalFollowed'));
+
+        // 2. Hitung Total JP Tahun Ini
+        // Mengambil data dari tabel participant -> join ke training -> ambil kolom JP -> filter tahun berjalan
+        $myJpThisYear = \App\Models\Participant::where('nip_nik', $user->nip_nik)
+            ->whereHas('training', function($q) use ($currentYear) {
+                $q->whereYear('tgl_mulai', $currentYear);
+            })
+            ->with('training')
+            ->get()
+            ->sum(function($p) {
+                return $p->training->jp;
+            });
+
+        return view('participant.dashboard', compact('user', 'totalFollowed', 'myJpThisYear'));
     }
 
     /**
@@ -51,21 +74,6 @@ class ParticipantController extends Controller
     }
 
     /**
-     * Menu: Riwayat Pelatihan (Pelatihan yang pernah diikuti oleh ybs)
-     */
-    public function myHistory()
-    {
-        $user = Auth::user();
-        
-        // Mencari data di tabel participants berdasarkan NIP (username user)
-        $history = Participant::with('training')
-            ->where('nip_nik', $user->username)
-            ->get();
-
-        return view('participant.history', compact('history'));
-    }
-
-    /**
      * Halaman Lengkapi Profil (Muncul setelah login Google pertama kali)
      */
     public function completeProfile()
@@ -79,24 +87,147 @@ class ParticipantController extends Controller
      */
     public function storeProfile(Request $request)
     {
-        $user = User::findOrFail(Auth::id());
+        $user = \App\Models\User::findOrFail(Auth::id());
 
         $request->validate([
+            'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
             'gender' => 'required',
+            'jabatan' => 'required',
+            'instansi' => 'required',
             'provinsi' => 'required',
             'kabupaten_kota' => 'required',
             'status_kepegawaian' => 'required',
-            'whatsapp' => 'required|numeric'
+            'whatsapp' => 'required'
         ]);
 
-        $user->update([
-            'gender' => $request->gender,
-            'provinsi' => $request->provinsi,
-            'kabupaten_kota' => $request->kabupaten_kota,
-            'status_kepegawaian' => $request->status_kepegawaian,
-            'whatsapp' => $request->whatsapp,
+        $user->update($request->all());
+
+        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    // Proses Daftar dengan Kode
+    public function enroll(Request $request, $id)
+    {
+        $training = \App\Models\Training::findOrFail($id);
+        $user = Auth::user();
+
+        // Validasi Token
+        if (strtoupper($request->invitation_code) !== strtoupper($training->invitation_code)) {
+            return redirect()->back()->with('error', 'Kode Undangan Salah!');
+        }
+
+        // OTOMATIS COPY DATA DARI USER KE PARTICIPANT
+        \App\Models\Participant::updateOrCreate(
+            [
+                'training_id' => $id,
+                'nip_nik'     => $user->nip_nik // Kunci utama pencocokan
+            ],
+            [
+                'user_id'            => $user->id,
+                'name'               => $user->name,
+                'gender'             => $user->gender,
+                'jabatan'            => $user->jabatan,
+                'instansi'           => $user->instansi,
+                'provinsi'           => $user->provinsi,
+                'kabupaten_kota'     => $user->kabupaten_kota,
+                'status_kepegawaian' => $user->status_kepegawaian,
+            ]
+        );
+
+        return redirect()->route('participant.training.show', $id)
+            ->with('success_enroll', 'Pendaftaran Berhasil! Data profil Anda telah disinkronkan ke pelatihan ini.');
+    }
+
+    public function showTrainingDetail($id)
+    {
+        $training = Training::with(['stages', 'schedules'])->findOrFail($id);
+        $user = Auth::user();
+        
+        // Pastikan user memang terdaftar di pelatihan ini
+        $participant = Participant::where('training_id', $id)
+            ->where('nip_nik', $user->nip_nik)
+            ->firstOrFail();
+
+        // Ambil form evaluasi yang tersedia
+        $formsL1 = EvaluationFormL1::where('training_id', $id)->get();
+
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user'));
+    }
+
+    public function myHistory()
+    {
+        $user = Auth::user();
+        // Mengambil semua data dari tabel participant yang NIP-nya sama dengan user login
+        $history = Participant::with('training')
+            ->where('nip_nik', $user->nip_nik)
+            ->get();
+
+        return view('participant.history', compact('history'));
+    }
+
+    // Upload Kelengkapan & Masuk Folder Otomatis
+    public function uploadRequirement(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|mimes:pdf|max:5120',
+            'type' => 'required|in:biodata,surat_tugas'
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Profil Anda berhasil dilengkapi.');
+        $training = Training::with('folder')->findOrFail($id);
+        $user = Auth::user();
+
+        // PERBAIKAN: Cari peserta berdasarkan training_id DAN (user_id ATAU nip_nik)
+        $participant = Participant::where('training_id', $id)
+            ->where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('nip_nik', $user->nip_nik);
+            })->first();
+
+        // Jika tidak ditemukan juga, baru kita beri pesan error yang jelas (bukan 404)
+        if (!$participant) {
+            return redirect()->back()->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+        }
+
+        // Pastikan user_id terhubung jika sebelumnya kosong
+        if (empty($participant->user_id)) {
+            $participant->update(['user_id' => $user->id]);
+        }
+
+        // 1. Dapatkan/Buat Folder Utama Pelatihan
+        $parentFolder = Folder::firstOrCreate(
+            ['training_id' => $id],
+            [
+                'name' => $training->nama_pelatihan,
+                'bidang' => $training->bidang,
+                'user_id' => Auth::id()
+            ]
+        );
+
+        // 2. Dapatkan/Buat Sub-Folder "KELENGKAPAN PESERTA"
+        $subFolder = Folder::firstOrCreate(
+            ['name' => 'KELENGKAPAN PESERTA', 'parent_id' => $parentFolder->id],
+            ['bidang' => $training->bidang, 'user_id' => Auth::id(), 'training_id' => $id]
+        );
+
+        // 3. Simpan File
+        $extension = $request->file('file')->getClientOriginalExtension();
+        $fileName = strtoupper($request->type) . '_' . str_replace(' ', '_', $user->name) . '_' . time() . '.' . $extension;
+        $path = $request->file('file')->storeAs('documents', $fileName, 'public');
+
+        // 4. Catat ke tabel Files
+        $fileRecord = File::create([
+            'folder_id' => $subFolder->id,
+            'display_name' => $fileName,
+            'file_path' => $path,
+            'file_type' => $extension,
+            'file_size' => $request->file('file')->getSize(),
+            'user_id' => $user->id
+        ]);
+
+        // 5. Update referensi file di tabel Participants
+        $column = ($request->type == 'biodata') ? 'biodata_file_id' : 'surat_tugas_file_id';
+        $participant->update([$column => $fileRecord->id]);
+
+        return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
 }

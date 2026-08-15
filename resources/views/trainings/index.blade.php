@@ -102,10 +102,17 @@
                                     <i class="bx bx-calendar me-1"></i> Buat Jadwal
                                 </a>
                                 <a class="dropdown-item" href="{{ route('trainings.participants', $t->id) }}">
-                                    <i class="bx bx-group me-1"></i> Import Peserta
+                                    <i class="bx bx-group me-1"></i> Lihat Peserta {{ $t->participants_count }}
                                 </a>
                                 <a class="dropdown-item" href="{{ route('attendance.index', $t->id) }}">
                                     <i class="bx bx-user-check me-1"></i> Kehadiran / Absensi
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#modalLms{{ $t->id }}">
+                                    <i class="bx bx-link-external me-1"></i> Input Link LMS
+                                </a>
+                                <a class="dropdown-item text-primary fw-bold" href="javascript:void(0);" 
+                                    onclick="copyInvitationCode('{{ $t->invitation_code }}', this)">
+                                    <i class="bx bx-copy-alt me-1"></i> Copy Kode: <span class="text-dark">{{ $t->invitation_code }}</span>
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <h6 class="dropdown-header small text-muted">Monitoring & Evaluasi</h6>
@@ -146,4 +153,109 @@
         </table>
     </div>
 </div>
+
+
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('assets/js/main.js') }}"></script>
+<script>
+    
+/**
+ * Fungsi untuk menyalin kode undangan dan menampilkan notifikasi
+ */
+function copyInvitationCode(code, element) {
+    // 1. Proses Salin ke Clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(() => {
+            showSuccessNotify(code, element);
+        });
+    } else {
+        // Fallback untuk browser lama atau koneksi non-HTTPs
+        var textArea = document.createElement("textarea");
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showSuccessNotify(code, element);
+        } catch (err) {
+            console.error('Gagal menyalin kode');
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+/**
+ * Fungsi untuk menampilkan feedback visual
+ */
+function showSuccessNotify(code, el) {
+    // 1. Feedback pada teks menu (agar user tahu tombol bekerja)
+    const originalHTML = el.innerHTML;
+    el.innerHTML = '<i class="bx bx-check text-success me-1"></i> <span class="text-success">Tersalin!</span>';
+    
+    // 2. Notifikasi SweetAlert (Pastikan penulisan S-nya besar: Swal)
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Kode ' + code + ' disalin ke clipboard.',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end',
+            timerProgressBar: true
+        });
+    } else {
+        // Jika SweetAlert gagal dimuat, gunakan alert biasa agar tidak macet
+        console.error('SweetAlert2 tidak ditemukan!');
+    }
+
+    // Kembalikan teks menu ke semula
+    setTimeout(() => {
+        el.innerHTML = originalHTML;
+    }, 2000);
+}
+</script>
+@endpush
+
+@push('css')
+<style>
+    /* Mengatur tumpukan agar di atas navbar */
+    .swal2-container {
+        z-index: 9999 !important;
+    }
+    /* Memberikan jarak dari atas agar tidak tertutup navbar (sekitar 75px) */
+    .swal2-toast {
+        margin-top: 75px !important; 
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+@endpush
+
+@foreach($trainings as $t)
+<div class="modal fade" id="modalLms{{ $t->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ route('trainings.set_lms', $t->id) }}" method="POST" class="modal-content">
+            @csrf @method('PUT')
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title">Pengaturan Link LMS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">URL Learning Management System (LMS)</label>
+                    <input type="url" name="link_lms" class="form-control" placeholder="https://lms.bpsdm.jabarprov.go.id/..." value="{{ $t->link_lms }}" required>
+                    <div class="form-text">Link ini akan muncul di dashboard peserta sebagai tombol akses pelatihan.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
 @endsection
+
+

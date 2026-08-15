@@ -106,10 +106,15 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('trainings/{id}/schedules', [TrainingController::class, 'showSchedules'])->name('trainings.schedules');
     Route::post('trainings/{id}/schedules', [TrainingController::class, 'storeSchedule'])->name('schedules.store');
-    
+    Route::put('trainings/{id}/set-lms', [TrainingController::class, 'setLmsLink'])->name('trainings.set_lms');
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus
     
+
+    Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
+    Route::post('participant/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
+    Route::get('participant/training/{id}', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+    Route::post('participant/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload');  
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
@@ -180,6 +185,15 @@ Route::middleware(['auth'])->group(function () {
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
     Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
+    
+        // Proses Daftar (Join)
+        Route::post('/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
+        Route::post('/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])
+            ->name('participant.training.upload');
+        // Detail Pelatihan (Halaman 4 Bar)
+        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+        
+        // Riwayat
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
     });
 
