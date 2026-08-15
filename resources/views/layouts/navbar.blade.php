@@ -8,6 +8,19 @@
 
     <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
         <!-- Search (Otomatis sembunyi di HP jika layar terlalu kecil atau menyesuaikan) -->
+        <form action="{{ route('global.search') }}" method="GET" class="navbar-nav align-items-center w-100">
+            <div class="nav-item d-flex align-items-center w-100">
+                <i class="bx bx-search fs-4 lh-0"></i>
+                <input 
+                    type="text" 
+                    name="q" {{-- Berikan nama input 'q' --}}
+                    class="form-control border-0 shadow-none" 
+                    placeholder="Cari Pelatihan, Peserta, atau Dokumen..." 
+                    aria-label="Search..."
+                    value="{{ request('q') }}" {{-- Menjaga teks pencarian tetap ada setelah submit --}}
+                />
+            </div>
+        </form>
         <div class="navbar-nav align-items-center">
             <div class="nav-item d-flex align-items-center">
                 <i class="bx bx-search fs-4 lh-0"></i>

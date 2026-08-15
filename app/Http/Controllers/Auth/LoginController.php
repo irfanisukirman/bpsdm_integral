@@ -88,6 +88,7 @@ class LoginController extends Controller implements HasMiddleware
                     'google_id'=> $user->id,
                     'avatar' => $user->avatar,
                     'role' => 'participant',
+                    'bidang'    => null,
                     'password' => bcrypt(Str::random(16))
                 ]);
                 Auth::login($newUser);
@@ -103,6 +104,7 @@ class LoginController extends Controller implements HasMiddleware
 
         } catch (\Exception $e) {
             // Log error untuk debug jika diperlukan: \Log::error($e->getMessage());
+            //dd($e->getMessage()); 
             return redirect('/login')->with('error', 'Gagal login via Google. Silakan coba lagi.');
         }
     }

@@ -19,6 +19,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,7 @@ use App\Http\Controllers\Auth\RegisterController;
 |--------------------------------------------------------------------------
 */
 Auth::routes(['register' => false]);
+Route::get('/search', [SearchController::class, 'index'])->name('global.search');
 
 Route::get('auth/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback'])->name('auth.google.callback');
@@ -60,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     
     // --- DASHBOARD ---
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [ParticipantController::class, 'index'])->name('participant.dashboard');
     
 
     // --- 02. KELOLA USER (Khusus Superadmin) ---
@@ -176,9 +178,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/complete-profile', [ParticipantController::class, 'storeProfile'])->name('participant.profile.store');
 
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
-    Route::middleware(['can:isParticipant'])->group(function () {
-        Route::get('/my-trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
-        Route::get('/my-history', [ParticipantController::class, 'myHistory'])->name('participant.history');
+    Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
+        Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
+        Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
     });
 
 });
