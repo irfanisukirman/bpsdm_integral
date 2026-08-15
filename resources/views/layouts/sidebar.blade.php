@@ -117,6 +117,34 @@
             </ul>
         </li>
 
+        @php
+            // Hitung berapa pelatihan yang sisa harinya <= 0 (Sudah harus sebar)
+            $allTrainings = \App\Models\Training::all();
+            if (Auth::user()->role !== 'superadmin') {
+                $allTrainings = $allTrainings->where('bidang', Auth::user()->bidang);
+            }
+
+            $countReadyToDistribute = 0;
+            foreach($allTrainings as $tr) {
+                if($tr->sisa_hari_sebar <= 0) {
+                    $countReadyToDistribute++;
+                }
+            }
+        @endphp
+        <li class="menu-item {{ request()->is('*control-l34*') ? 'active' : '' }}">
+            <a href="{{ route('control_l34.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-stopwatch"></i>
+                <div class="d-flex justify-content-between w-100">
+                    <div>Kontrol Evaluasi Pasca</div>
+                    @if($countReadyToDistribute > 0)
+                        <span class="badge badge-center rounded-pill bg-danger animate__animated animate__heartBeat animate__infinite" style="width: 20px; height: 20px; font-size: 10px;">
+                            {{ $countReadyToDistribute }}
+                        </span>
+                    @endif
+                </div>
+            </a>
+        </li>
+
         <!-- 6. PENGATURAN (SUPERADMIN ONLY) -->
         @if(Auth::check() && Auth::user()->role == 'superadmin')
         <li class="menu-header small text-uppercase">

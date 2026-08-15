@@ -71,4 +71,31 @@ class Training extends Model
             ->where('end_time', '>=', $currentTime)
             ->first(); // Mengambil sesi pertama yang cocok
     }
+
+    public function getTglSebarL34Attribute()
+    {
+        $selesai = Carbon::parse($this->tgl_selesai);
+
+        // Jika Bidang Manajerial -> 1 Tahun
+        if ($this->bidang == 'Bidang Pengembangan Kompetensi Manajerial') {
+            return $selesai->addYear();
+        }
+
+        // Selain itu (Teknis/Sertifikasi) -> 4 Bulan
+        return $selesai->addMonths(4);
+    }
+
+    /**
+     * Menghitung Sisa Hari Menuju Sebar Kuisioner
+     */
+    public function getSisaHariSebarAttribute()
+    {
+        $today = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+        $target = $this->tgl_sebar_l34->startOfDay();
+
+        // Menghasilkan angka positif jika masa depan, negatif jika sudah lewat
+        return (int) $today->diffInDays($target, false);
+    }
+    
+
 }

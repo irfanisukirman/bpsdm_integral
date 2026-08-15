@@ -270,4 +270,16 @@ class AttendanceController extends Controller
 
         return $pdf->download('Rekap-Kehadiran-Total-'.$training->id.'.pdf');
     }
+
+    public function downloadExcelAll($id)
+    {
+        $training = Training::with(['participants', 'schedules.attendances'])->findOrFail($id);
+        $dates = $training->schedules->pluck('date')->unique()->sort();
+        $participants = $training->participants()->orderBy('name')->get();
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\AttendanceTotalExport($training, $dates, $participants), 
+            'Rekap-Absensi-'.$training->id.'.xlsx'
+        );
+    }
 }

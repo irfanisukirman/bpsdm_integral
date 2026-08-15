@@ -127,6 +127,9 @@
                                 <a class="dropdown-item text-primary fw-bold" href="{{ route('evall34.export', $t->id) }}">
                                     <i class="bx bxs-spreadsheet me-1"></i> Download Laporan L3 & L4
                                 </a>
+                                <a class="dropdown-item text-info" href="{{ route('evall34.export_word', $t->id) }}">
+                                    <i class="bx bx-file me-1"></i> Download Laporan Akhir (Word)
+                                </a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{{ route('trainings.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Hapus pelatihan ini?')">
                                     @csrf @method('DELETE')

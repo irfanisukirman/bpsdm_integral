@@ -9,9 +9,13 @@
             <span class="text-muted fw-light">Pelaksanaan /</span> Kehadiran Harian
         </h4>
         <div class="d-flex gap-2">
-            
+            {{-- TOMBOL EXCEL --}}
+            <a href="{{ route('attendance.excel.all', $training->id) }}" class="btn btn-success">
+                <i class="bx bx-spreadsheet me-1"></i> Download Excel
+            </a>
+            {{-- TOMBOL PDF --}}
             <a href="{{ route('attendance.pdf.all', $training->id) }}" class="btn btn-danger">
-                <i class="bx bxs-file-pdf me-1"></i> Download Rekap Total
+                <i class="bx bxs-file-pdf me-1"></i> Download PDF
             </a>
             <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali

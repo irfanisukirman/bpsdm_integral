@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\FollowUpController; 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PostEvalControlController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -49,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
     // --- DASHBOARD ---
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    
 
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
@@ -87,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus
     
-    
+    Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
@@ -97,13 +99,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Controller::class, 'publicStore'])
     ->name('public.l34.store');
     Route::get('evaluasi-l1/export/{form_id}', [EvaluationLevel1Controller::class, 'exportExcel'])->name('evall1.export');
-
+    
     // Rute Admin Kehadiran Harian
     Route::get('attendance/detail/{id}/{date}', [AttendanceController::class, 'showDetailDaily'])->name('attendance.detail.daily');
     Route::get('attendance/pdf-harian/{id}/{date}', [AttendanceController::class, 'downloadPdfDaily'])->name('attendance.pdf.daily');
     Route::get('attendance/pdf-harian/{id}/{date}', [AttendanceController::class, 'downloadPdfDaily'])->name('attendance.pdf.daily');
     
     // --- 07. KEHADIRAN (Monitoring Admin) ---
+    Route::get('attendance/excel-all/{id}', [AttendanceController::class, 'downloadExcelAll'])->name('attendance.excel.all');
     Route::get('attendance/pdf-all/{id}', [AttendanceController::class, 'downloadPdfAll'])->name('attendance.pdf.all');
     Route::get('attendance', [AttendanceController::class, 'indexAll'])->name('attendance.all');
     Route::get('trainings/{id}/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
@@ -135,6 +138,7 @@ Route::middleware(['auth'])->group(function () {
     // --- EVALUASI KIRKPATRICK (Admin View) ---
 
     // Level 1: Reaction
+    Route::get('control-l34', [PostEvalControlController::class, 'index'])->name('control_l34.index');
     Route::get('evaluasi/l1', [EvaluationLevel1Controller::class, 'indexAll'])->name('evaluasi.l1'); // List Pelatihan L1
     Route::get('trainings/{id}/evaluasi-l1', [EvaluationLevel1Controller::class, 'index'])->name('evall1.index'); // Detail L1
     Route::get('evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
