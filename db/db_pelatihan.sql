@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 22 Jul 2026 pada 10.39
+-- Waktu pembuatan: 15 Agu 2026 pada 11.45
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -20,6 +20,37 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_pelatihan`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_logs`
+--
+
+CREATE TABLE `activity_logs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `activity` varchar(255) NOT NULL,
+  `module` varchar(255) NOT NULL,
+  `ip_address` varchar(255) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `activity`, `module`, `ip_address`, `user_agent`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Membuat folder: Bpsdm Jabar pada bidang: Bidang A', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:34:43', '2026-08-15 07:34:43'),
+(2, 1, 'Membuat folder: Samsidin Alafghani, A.Md.Kom. pada bidang: Semua Bidang', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:40:29', '2026-08-15 07:40:29'),
+(3, 1, 'Mengubah folder Samsidin Alafghani, A.Md.Kom. menjadi Publik', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:41:10', '2026-08-15 07:41:10'),
+(4, 3, 'Menghapus folder: Samsidin Alafghani, A.Md.Kom.', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:46:53', '2026-08-15 07:46:53'),
+(5, 1, 'Membuat folder: Evaluasi Penyelenggara pada bidang: Semua Bidang', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:47:09', '2026-08-15 07:47:09'),
+(6, 3, 'Mengunggah 1 file ke folder ID: 11', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:47:46', '2026-08-15 07:47:46'),
+(7, 3, 'Menghapus file: Integral (1).png', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 07:47:55', '2026-08-15 07:47:55'),
+(8, 1, 'Membuat folder: Bpsdm Jabar pada bidang: Semua Bidang', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', '2026-08-15 08:11:04', '2026-08-15 08:11:04');
 
 -- --------------------------------------------------------
 
@@ -42,14 +73,6 @@ CREATE TABLE `alumni_profiles` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `alumni_profiles`
---
-
-INSERT INTO `alumni_profiles` (`id`, `participant_id`, `training_id`, `edu_during_training`, `edu_current`, `rank_during_training`, `rank_current`, `pos_during_training`, `pos_current`, `unit_during_training`, `unit_current`, `created_at`, `updated_at`) VALUES
-(4, 2, 2, 'SD/SMP', 'SD/SMP', 'I/a', 'I/a', 'dasd', 'dasd', 'dasdsa', 'dasdasdasd', '2026-07-21 02:06:35', '2026-07-21 19:06:47'),
-(5, 1, 2, 'SD/SMP', 'SD/SMP', 'I/a', 'I/a', 'dasdsa', 'dasdasd', 'dasdasd', 'dasdasd', '2026-07-21 18:55:09', '2026-07-21 18:55:09');
 
 -- --------------------------------------------------------
 
@@ -329,6 +352,66 @@ CREATE TABLE `failed_jobs` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `files`
+--
+
+CREATE TABLE `files` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `folder_id` bigint(20) UNSIGNED NOT NULL,
+  `display_name` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `file_type` varchar(255) NOT NULL,
+  `file_size` bigint(20) NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `files`
+--
+
+INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`, `file_size`, `user_id`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Flow Bisnis Peserta KMS.docx', 'documents/RjGhHBe4WWY0lbcdjw0erqkqmVnW7NHn7SCCxJVp.docx', 'docx', 1809514, 3, '2026-08-15 06:19:26', '2026-08-15 06:19:26'),
+(2, 1, '04 - Manual Book.docx', 'documents/x4g4HanvC2JDRWL9E8HMbRTSZqsMo5J9RPfs2yA5.docx', 'docx', 18177817, 3, '2026-08-15 06:19:26', '2026-08-15 06:19:26'),
+(3, 1, 'FINAL_SOP_Juknis_Upload_Persetujuan_Pengetahuan_KMS_BPSDM_Jabar.docx', 'documents/NjoEkfO4xlxn4N8gjpTB0uYgn1uByZCZ9c5FtoO5.docx', 'docx', 4917049, 3, '2026-08-15 06:19:26', '2026-08-15 06:19:26'),
+(4, 1, 'Sertifikat Sertifikat Asn Berakhlak Enung.pdf', 'documents/c4DAvQgtOpWASqbIgrQjsUAzyq5BPTn4QTDbsb9h.pdf', 'pdf', 272914, 1, '2026-08-15 07:01:55', '2026-08-15 07:01:55');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `folders`
+--
+
+CREATE TABLE `folders` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `bidang` varchar(255) NOT NULL,
+  `parent_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `is_public` tinyint(1) NOT NULL DEFAULT 0,
+  `share_token` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `folders`
+--
+
+INSERT INTO `folders` (`id`, `name`, `bidang`, `parent_id`, `user_id`, `is_public`, `share_token`, `created_at`, `updated_at`) VALUES
+(1, 'BPSDM', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 3, 0, 'Q0JwhTIaQknZdEqbc4BMT7jOG0vW3zvc', '2026-08-15 06:12:09', '2026-08-15 07:16:05'),
+(5, 'Samsidin Alafghani, A.Md.Kom.', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:27:12', '2026-08-15 07:27:12'),
+(6, 'Samsidin Alafghani, A.Md.Kom.', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:28:47', '2026-08-15 07:28:47'),
+(7, 'Samsidin Alafghani, A.Md.Kom.', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:30:19', '2026-08-15 07:30:19'),
+(8, 'Bpsdm Jabar', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:31:24', '2026-08-15 07:31:24'),
+(9, 'Bpsdm Jabar', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:34:43', '2026-08-15 07:34:43'),
+(11, 'Evaluasi Penyelenggara', 'Semua Bidang', NULL, 1, 0, NULL, '2026-08-15 07:47:09', '2026-08-15 07:47:09'),
+(12, 'Bpsdm Jabar', 'Semua Bidang', 11, 1, 0, NULL, '2026-08-15 08:11:04', '2026-08-15 08:11:04');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `jobs`
 --
 
@@ -415,7 +498,16 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (35, '2026_07_21_063241_create_alumni_profiles_table', 26),
 (36, '2026_07_21_063744_create_alumni_profiles_table', 27),
 (37, '2026_07_21_065123_add_note_to_evaluation_results_l34', 28),
-(38, '2026_07_22_014357_make_question_id_nullable_in_l34_results', 29);
+(38, '2026_07_22_014357_make_question_id_nullable_in_l34_results', 29),
+(39, '2026_07_26_140917_add_profile_photo_to_users_table', 30),
+(40, '2026_08_15_125110_create_folders_table', 30),
+(41, '2026_08_15_125112_create_files_table', 30),
+(42, '2026_08_15_130113_create_activity_logs_table', 31),
+(43, '2026_08_15_130709_add_user_agent_to_activity_logs', 32),
+(44, '2026_08_15_143731_change_bidang_to_string_in_folders_table', 33),
+(45, '2026_08_15_152335_add_details_to_participants_table', 34),
+(46, '2026_08_15_161839_add_socialite_and_profile_to_users_table', 35),
+(47, '2026_08_15_163911_create_personal_access_tokens_table', 35);
 
 -- --------------------------------------------------------
 
@@ -467,8 +559,12 @@ CREATE TABLE `participants` (
   `training_id` bigint(20) UNSIGNED NOT NULL,
   `nip_nik` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `gender` enum('Laki-Laki','Perempuan') DEFAULT NULL,
   `jabatan` varchar(255) DEFAULT NULL,
   `instansi` varchar(255) DEFAULT NULL,
+  `provinsi` varchar(255) DEFAULT NULL,
+  `kabupaten_kota` varchar(255) DEFAULT NULL,
+  `status_kepegawaian` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -477,9 +573,27 @@ CREATE TABLE `participants` (
 -- Dumping data untuk tabel `participants`
 --
 
-INSERT INTO `participants` (`id`, `training_id`, `nip_nik`, `name`, `jabatan`, `instansi`, `created_at`, `updated_at`) VALUES
-(1, 2, '199503032934601221', 'Samsul Arifin', 'Pengelolaa', 'Dinas Kesehatan', '2026-07-19 07:43:50', '2026-07-19 07:43:50'),
-(2, 2, '199503032025211003', 'Samsidin Alafghani, A.Md.Kom.', 'Pengelolaa Layanan Operasional', 'Badan Pengembangan Sumber Daya Manusia', '2026-07-19 07:44:31', '2026-07-19 07:44:31');
+INSERT INTO `participants` (`id`, `training_id`, `nip_nik`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kabupaten_kota`, `status_kepegawaian`, `created_at`, `updated_at`) VALUES
+(5, 2, '199503032934601221', 'Sem Syamsidin', 'Laki-Laki', 'Pengelolaa', 'Dinas Kesehatan', 'Jawa Barat', 'Bandung', 'ASN', '2026-08-15 08:39:19', '2026-08-15 08:42:20');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `personal_access_tokens`
+--
+
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `tokenable_type` varchar(255) NOT NULL,
+  `tokenable_id` bigint(20) UNSIGNED NOT NULL,
+  `name` text NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `abilities` text DEFAULT NULL,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -586,30 +700,44 @@ CREATE TABLE `training_stages` (
 
 CREATE TABLE `users` (
   `id` bigint(20) UNSIGNED NOT NULL,
+  `google_id` varchar(255) DEFAULT NULL,
+  `avatar` varchar(255) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `whatsapp` varchar(255) DEFAULT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
   `role` enum('superadmin','admin_bidang') NOT NULL,
   `bidang` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `gender` enum('Laki-Laki','Perempuan') DEFAULT NULL,
+  `provinsi` varchar(255) DEFAULT NULL,
+  `kabupaten_kota` varchar(255) DEFAULT NULL,
+  `status_kepegawaian` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `username`, `whatsapp`, `role`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Super Admin', 'superadmin@bpsdm.go.id', '08123456789', 'superadmin', 'Bidang A', '$2y$12$KHa0Fa1GlSnHfvT2cqKTCudgjV7sgty4ki9Y1uwHaY9Eg7t0yTNae', NULL, '2026-07-18 04:34:53', '2026-07-18 04:34:53'),
-(2, 'Iman Nurmana', 'bidangpkti@bpsdm.go.id', '0832329342375235', 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$PP5WdHdpb.AxhjlwKwk/x.M6BMOCpO6/lHvMElHLGmFTvaR.EHvey', NULL, '2026-07-18 05:12:05', '2026-07-18 05:12:05'),
-(3, 'Ridwan', 'bidangpktu@bpsdm.go.id', '0984782642342435', 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$rjcI5dYrWJOgqIeeAGyhy.hg9uCN9DT03etthsUs.s7AhMODoe.GC', NULL, '2026-07-19 20:38:57', '2026-07-19 20:38:57'),
-(4, 'Test User', 'testuser', '1-574-686-1010', 'superadmin', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$h/Iu2kfvvPSLfYhnF.UAVu.HQoCVRcZtiwu8Z.iNZ.qNFFqgDxA0e', 'BGMzSiO41j', '2026-07-21 01:56:16', '2026-07-21 01:56:16');
+INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `whatsapp`, `profile_photo`, `role`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`, `gender`, `provinsi`, `kabupaten_kota`, `status_kepegawaian`) VALUES
+(1, NULL, NULL, 'Super Admin', 'superadmin@bpsdm.go.id', '08123456789', 'avatars/wjCCoVyqu0NoTmjEzbz4hOjr9gTtRduH0RgLX50U.png', 'superadmin', 'Bidang A', '$2y$12$KHa0Fa1GlSnHfvT2cqKTCudgjV7sgty4ki9Y1uwHaY9Eg7t0yTNae', NULL, '2026-07-18 04:34:53', '2026-08-15 07:26:48', NULL, NULL, NULL, NULL),
+(2, NULL, NULL, 'Iman Nurmana', 'bidangpkti@bpsdm.go.id', '0832329342375235', NULL, 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$PP5WdHdpb.AxhjlwKwk/x.M6BMOCpO6/lHvMElHLGmFTvaR.EHvey', NULL, '2026-07-18 05:12:05', '2026-07-18 05:12:05', NULL, NULL, NULL, NULL),
+(3, NULL, NULL, 'Ridwan', 'bidangpktu@bpsdm.go.id', '0984782642342435', NULL, 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$rjcI5dYrWJOgqIeeAGyhy.hg9uCN9DT03etthsUs.s7AhMODoe.GC', NULL, '2026-07-19 20:38:57', '2026-07-19 20:38:57', NULL, NULL, NULL, NULL),
+(4, NULL, NULL, 'Test User', 'testuser', '1-574-686-1010', NULL, 'superadmin', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$h/Iu2kfvvPSLfYhnF.UAVu.HQoCVRcZtiwu8Z.iNZ.qNFFqgDxA0e', 'BGMzSiO41j', '2026-07-21 01:56:16', '2026-07-21 01:56:16', NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indeks untuk tabel `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `activity_logs_user_id_foreign` (`user_id`);
 
 --
 -- Indeks untuk tabel `alumni_profiles`
@@ -690,6 +818,23 @@ ALTER TABLE `failed_jobs`
   ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
 
 --
+-- Indeks untuk tabel `files`
+--
+ALTER TABLE `files`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `files_folder_id_foreign` (`folder_id`),
+  ADD KEY `files_user_id_foreign` (`user_id`);
+
+--
+-- Indeks untuk tabel `folders`
+--
+ALTER TABLE `folders`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `folders_share_token_unique` (`share_token`),
+  ADD KEY `folders_parent_id_foreign` (`parent_id`),
+  ADD KEY `folders_user_id_foreign` (`user_id`);
+
+--
 -- Indeks untuk tabel `jobs`
 --
 ALTER TABLE `jobs`
@@ -733,6 +878,15 @@ ALTER TABLE `participants`
   ADD KEY `participants_training_id_foreign` (`training_id`);
 
 --
+-- Indeks untuk tabel `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
+  ADD KEY `personal_access_tokens_expires_at_index` (`expires_at`);
+
+--
 -- Indeks untuk tabel `questions`
 --
 ALTER TABLE `questions`
@@ -768,6 +922,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `alumni_profiles`
@@ -818,6 +978,18 @@ ALTER TABLE `failed_jobs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `files`
+--
+ALTER TABLE `files`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT untuk tabel `folders`
+--
+ALTER TABLE `folders`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
 -- AUTO_INCREMENT untuk tabel `jobs`
 --
 ALTER TABLE `jobs`
@@ -827,7 +999,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -845,7 +1017,13 @@ ALTER TABLE `monitoring_summaries`
 -- AUTO_INCREMENT untuk tabel `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT untuk tabel `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `questions`
@@ -880,6 +1058,12 @@ ALTER TABLE `users`
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
+
+--
+-- Ketidakleluasaan untuk tabel `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Ketidakleluasaan untuk tabel `alumni_profiles`
@@ -930,6 +1114,20 @@ ALTER TABLE `evaluation_results_l34`
   ADD CONSTRAINT `evaluation_results_l34_participant_id_foreign` FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`),
   ADD CONSTRAINT `evaluation_results_l34_question_id_foreign` FOREIGN KEY (`question_id`) REFERENCES `evaluation_questions` (`id`),
   ADD CONSTRAINT `evaluation_results_l34_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `files`
+--
+ALTER TABLE `files`
+  ADD CONSTRAINT `files_folder_id_foreign` FOREIGN KEY (`folder_id`) REFERENCES `folders` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `files_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Ketidakleluasaan untuk tabel `folders`
+--
+ALTER TABLE `folders`
+  ADD CONSTRAINT `folders_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `folders` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `folders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Ketidakleluasaan untuk tabel `monitoring_results`

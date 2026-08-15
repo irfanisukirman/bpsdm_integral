@@ -3,10 +3,12 @@
     <div class="app-brand demo">
         <a href="{{ route('dashboard') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
-                <svg width="25" viewBox="0 0 25 42" version="1.1"><path d="M13,3.5c-6.903,0-12.5,5.597-12.5,12.5c0,3.911,1.799,7.401,4.603,9.702c0.2,0.165,0.41,0.321,0.627,0.468 c0.33,0.222,0.672,0.428,1.026,0.615c0.199,0.106,0.404,0.203,0.612,0.293C8.423,27.534,9.673,28,11,28c0.16,0,0.318-0.007,0.476-0.02 c0.16,0.013,0.316,0.02,0.476,0.02c1.327,0,2.577-0.466,3.632-1.252c0.208-0.09,0.413-0.187,0.612-0.293 c0.354-0.187,0.696-0.393,1.026-0.615c0.217-0.147,0.427-0.303,0.627-0.468C20.701,23.401,22.5,19.911,22.5,16 C22.5,9.097,16.903,3.5,13,3.5z" fill="#696cff" /></svg>
+                {{-- LOGO INTEGRAL BARU --}}
+                <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 35px;">
             </span>
-            <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase">Sim-Pel</span>
+            <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase">Integral</span>
         </a>
+
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm align-middle"></i>
         </a>
@@ -116,7 +118,7 @@
                 </li>
             </ul>
         </li>
-
+       
         @php
             // Hitung berapa pelatihan yang sisa harinya <= 0 (Sudah harus sebar)
             $allTrainings = \App\Models\Training::all();
@@ -144,6 +146,13 @@
                 </div>
             </a>
         </li>
+        <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
+            <a href="{{ route('documents.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-folder"></i>
+                <div>Manajemen Dokumen</div>
+            </a>
+        </li>
+
 
         <!-- 6. PENGATURAN (SUPERADMIN ONLY) -->
         @if(Auth::check() && Auth::user()->role == 'superadmin')
@@ -156,6 +165,32 @@
                 <div>Kelola User PIC</div>
             </a>
         </li>
+        @endif
+
+        @if(Auth::user()->role == 'superadmin')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring Sistem</span></li>
+            <li class="menu-item {{ request()->is('activity-logs*') ? 'active' : '' }}">
+                <a href="#" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i>
+                    <div>Log Aktivitas Admin</div>
+                </a>
+            </li>
+        @endif
+
+        @if(Auth::user()->role == 'participant')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Menu Peserta</span></li>
+            <li class="menu-item {{ request()->is('available-trainings*') ? 'active' : '' }}">
+                <a href="{{ route('participant.trainings') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                    <div>Daftar Pelatihan</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->is('my-history*') ? 'active' : '' }}">
+                <a href="{{ route('participant.history') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i>
+                    <div>Riwayat Pelatihan</div>
+                </a>
+            </li>
         @endif
     </ul>
 </aside>

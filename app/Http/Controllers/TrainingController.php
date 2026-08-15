@@ -86,24 +86,29 @@ class TrainingController extends Controller
     public function storeParticipant(Request $request, $id)
     {
         $request->validate([
-            // Aturan: NIP harus unik di dalam training_id yang sama
             'nip_nik' => 'required|string|unique:participants,nip_nik,NULL,id,training_id,' . $id,
             'name' => 'required|string|max:255',
-            'jabatan' => 'required|string',
-            'instansi' => 'required|string',
-        ], [
-            'nip_nik.unique' => 'NIP/NIK ini sudah terdaftar di pelatihan ini.'
+            'gender' => 'required',
+            'jabatan' => 'required',
+            'instansi' => 'required',
+            'provinsi' => 'required',
+            'kabupaten_kota' => 'required',
+            'status_kepegawaian' => 'required',
         ]);
 
         \App\Models\Participant::create([
-            'training_id' => $id,
-            'nip_nik'     => ltrim($request->nip_nik, "'"),
-            'name'        => $request->name,
-            'jabatan'     => $request->jabatan,
-            'instansi'    => $request->instansi,
+            'training_id'        => $id,
+            'nip_nik'            => ltrim($request->nip_nik, "'"),
+            'name'               => $request->name,
+            'gender'             => $request->gender,
+            'jabatan'            => $request->jabatan,
+            'instansi'           => $request->instansi,
+            'provinsi'           => $request->provinsi,
+            'kabupaten_kota'     => $request->kabupaten_kota,
+            'status_kepegawaian' => $request->status_kepegawaian,
         ]);
 
-        return redirect()->back()->with('success', 'Peserta berhasil ditambahkan secara manual.');
+        return redirect()->back()->with('success', 'Peserta berhasil ditambahkan.');
     }
 
     public function showParticipants($id)
@@ -118,21 +123,28 @@ class TrainingController extends Controller
 
     public function updateParticipant(Request $request, $id)
     {
-        $participant = Participant::findOrFail($id);
+        $participant = \App\Models\Participant::findOrFail($id);
 
         $request->validate([
-            // Validasi NIP unik kecuali untuk ID peserta ini sendiri dalam pelatihan yang sama
             'nip_nik' => 'required|string|unique:participants,nip_nik,' . $id . ',id,training_id,' . $participant->training_id,
             'name' => 'required|string|max:255',
-            'jabatan' => 'required|string',
-            'instansi' => 'required|string',
+            'gender' => 'required',
+            'jabatan' => 'required',
+            'instansi' => 'required',
+            'provinsi' => 'required',
+            'kabupaten_kota' => 'required',
+            'status_kepegawaian' => 'required',
         ]);
 
         $participant->update([
-            'nip_nik' => ltrim($request->nip_nik, "'"), // Tetap bersihkan jika ada tanda kutip
-            'name' => $request->name,
-            'jabatan' => $request->jabatan,
-            'instansi' => $request->instansi,
+            'nip_nik'            => ltrim($request->nip_nik, "'"),
+            'name'               => $request->name,
+            'gender'             => $request->gender,
+            'jabatan'            => $request->jabatan,
+            'instansi'           => $request->instansi,
+            'provinsi'           => $request->provinsi,
+            'kabupaten_kota'     => $request->kabupaten_kota,
+            'status_kepegawaian' => $request->status_kepegawaian,
         ]);
 
         return redirect()->back()->with('success', 'Data peserta berhasil diperbarui.');
@@ -166,8 +178,9 @@ class TrainingController extends Controller
     public function downloadTemplate()
     {
         // Header yang akan muncul di Excel
-        $header = [
-            ['nip_nik', 'nama_lengkap', 'jabatan', 'instansi']
+         $header = [
+            ['nip_nik', 'nama_lengkap', 'gender', 'jabatan', 'instansi', 'provinsi', 'kabupaten_kota', 'status_kepegawaian'],
+            ["'19950101...", "Contoh Nama", "Laki-Laki", "Analis", "BPSDM", "Jawa Barat", "Bandung", "PNS"]
         ];
 
         // Menggunakan anonymous class untuk membuat file excel tanpa file fisik

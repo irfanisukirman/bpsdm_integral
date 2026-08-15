@@ -178,8 +178,8 @@
                 </div>
 
                 <!-- Branding Bottom -->
-                <div class="text-center mt-4 text-white opacity-75">
-                    <small>Sistem Informasi Monitoring & Evaluasi Pelatihan (SIM-PEL) &copy; {{ date('Y') }}</small>
+                <div class="card-footer bg-light text-center py-3">
+                    <small class="text-muted">Powered by <strong>INTEGRAL</strong> &copy; {{ date('Y') }}</small>
                 </div>
             </div>
         </div>

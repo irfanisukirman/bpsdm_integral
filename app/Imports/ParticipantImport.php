@@ -27,13 +27,17 @@ class ParticipantImport implements ToModel, WithHeadingRow
 
         if ($participant) {
             // Update atau buat nilai baru
-            return \App\Models\EvaluationResultL2::updateOrCreate(
-                ['participant_id' => $participant->id],
-                [
-                    'pretest' => $row['nilai_pretest'] ?? 0,
-                    'postest' => $row['nilai_posttest'] ?? 0,
-                ]
-            );
+            return new Participant([
+                'training_id'        => $this->training_id,
+                'nip_nik'            => $nip,
+                'name'               => $row['nama_lengkap'],
+                'gender'             => $row['gender'],
+                'jabatan'            => $row['jabatan'],
+                'instansi'           => $row['instansi'],
+                'provinsi'           => $row['provinsi'],
+                'kabupaten_kota'     => $row['kabupaten_kota'],
+                'status_kepegawaian' => $row['status_kepegawaian'],
+            ]);
         }
 
         return null;

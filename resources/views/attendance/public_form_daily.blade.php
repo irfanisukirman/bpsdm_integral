@@ -134,7 +134,7 @@
                     @endif
                 </div>
                 <div class="card-footer bg-light text-center py-3">
-                    <small class="text-muted">SIM-PEL © {{ date('Y') }}</small>
+                    <small class="text-muted">Powered by <strong>INTEGRAL</strong> &copy; {{ date('Y') }}</small>
                 </div>
             </div>
         </div>
