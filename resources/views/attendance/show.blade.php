@@ -7,6 +7,9 @@
     <a href="{{ route('attendance.pdf', $schedule->id) }}" class="btn btn-danger">
         <i class="bx bxs-file-pdf me-1"></i> Download PDF Hari Ini
     </a>
+    <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
+            </a>
 </div>
 
 <div class="card">

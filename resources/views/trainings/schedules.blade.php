@@ -7,9 +7,13 @@
     <h4 class="fw-bold py-3 mb-0">
         <span class="text-muted fw-light">Pelatihan /</span> Jadwal: {{ $training->nama_pelatihan }}
     </h4>
+    <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+        <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
+    </a>
     <a href="{{ route('schedules.pdf', $training->id) }}" class="btn btn-danger">
         <i class="bx bxs-file-pdf me-1"></i> Download PDF
     </a>
+
 </div>
 
 @if(session('success'))

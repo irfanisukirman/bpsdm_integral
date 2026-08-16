@@ -277,9 +277,15 @@ class AttendanceController extends Controller
         $dates = $training->schedules->pluck('date')->unique()->sort();
         $participants = $training->participants()->orderBy('name')->get();
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\AttendanceTotalExport($training, $dates, $participants), 
-            'Rekap-Absensi-'.$training->id.'.xlsx'
-        );
+        $export = new \App\Exports\AttendanceTotalExport($training, $dates, $participants);
+        $fileName = 'REKAP_KEHADIRAN_TOTAL_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
+
+        // --- PROSES AUTO ARCHIVE ---
+        $fileContent = \Maatwebsite\Excel\Facades\Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+        \App\Http\Controllers\DocumentController::archiveInternal($id, 'REKAP KEHADIRAN EXCEL', $fileName, $fileContent, 'xlsx');
+
+        return response()->streamDownload(function() use($fileContent) {
+            echo $fileContent;
+        }, $fileName);
     }
 }

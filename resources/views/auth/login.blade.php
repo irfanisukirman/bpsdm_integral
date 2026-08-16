@@ -3,17 +3,27 @@
 @section('content')
 <div class="authentication-wrapper authentication-basic container-p-y">
     <div class="authentication-inner">
+        
+        <!-- Tombol Kembali ke Beranda (Diletakkan di luar Card agar terlihat modern) -->
+        <div class="mb-3 animate__animated animate__fadeInLeft">
+            <a href="{{ url('/') }}" class="d-flex align-items-center text-muted fw-semibold">
+                <i class="bx bx-chevron-left fs-4"></i>
+                <span>Kembali ke Beranda</span>
+            </a>
+        </div>
+
         <!-- Login Card -->
         <div class="card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px;">
-            <div class="card-body p-4 p-md-5">
+            <div class="card-body p-3 p-sm-4 p-md-5">
                 <!-- Branding Logo -->
                 <div class="app-brand justify-content-center mb-4">
                     <a href="/" class="app-brand-link gap-2">
                         <span class="app-brand-logo demo">
-                            <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 60px; filter: drop-shadow(0px 4px 10px rgba(105, 108, 255, 0.3));">
+                            <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 55px; filter: drop-shadow(0px 4px 10px rgba(105, 108, 255, 0.3));">
                         </span>
                     </a>
                 </div>
+                
                 <div class="text-center mb-4">
                     <h4 class="mb-1 fw-bold text-dark" style="letter-spacing: -0.5px;">Integral <span class="text-primary">Technology</span></h4>
                     <p class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 1px;">Sistem Pengelolaan Terintegrasi</p>
@@ -65,14 +75,14 @@
                 </form>
 
                 <div class="divider my-4">
-                    <div class="divider-text text-muted small uppercase">Atau akses cepat</div>
+                    <div class="divider-text text-muted small text-uppercase">Atau akses cepat</div>
                 </div>
 
                 {{-- TOMBOL GOOGLE MODERN --}}
                 <div class="d-flex justify-content-center">
-                    <a href="{{ route('auth.google') }}" class="btn btn-outline-white w-100 d-flex align-items-center justify-content-center py-2 google-btn">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width: 20px;" class="me-2">
-                        <span class="fw-bold text-dark">Google Account</span>
+                    <a href="{{ route('auth.google') }}" class="btn btn-outline-white w-100 d-flex align-items-center justify-content-center py-2 google-btn shadow-xs">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width: 18px;" class="me-2">
+                        <span class="fw-bold text-dark" style="font-size: 0.9rem;">Google Account</span>
                     </a>
                 </div>
 
@@ -88,8 +98,8 @@
 </div>
 
 <!-- Background Elements -->
-<div class="bg-shape-1"></div>
-<div class="bg-shape-2"></div>
+<div class="bg-shape-1 d-none d-sm-block"></div>
+<div class="bg-shape-2 d-none d-sm-block"></div>
 
 <style>
     body {
@@ -98,12 +108,28 @@
         background-size: 30px 30px;
         min-height: 100vh;
         position: relative;
-        overflow: hidden;
+        overflow-x: hidden;
     }
 
-    /* Dekorasi Lingkaran di Background */
+    /* Responsivitas Kontainer Utama */
+    .authentication-inner {
+        max-width: 450px !important;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 1.2rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    @media (max-width: 576px) {
+        .hero-title { font-size: 1.5rem; }
+        .card-body { padding: 1.5rem !important; }
+        .authentication-wrapper.authentication-basic .authentication-inner { padding: 0 1rem; }
+    }
+
+    /* Dekorasi Lingkaran di Background (Hidden on Mobile for Performance) */
     .bg-shape-1 {
-        position: absolute;
+        position: fixed;
         top: -100px;
         right: -100px;
         width: 400px;
@@ -114,7 +140,7 @@
     }
 
     .bg-shape-2 {
-        position: absolute;
+        position: fixed;
         bottom: -150px;
         left: -150px;
         width: 500px;
@@ -122,12 +148,6 @@
         background: linear-gradient(135deg, rgba(3, 195, 236, 0.15) 0%, rgba(3, 195, 236, 0) 100%);
         border-radius: 50%;
         z-index: -1;
-    }
-
-    .authentication-inner {
-        max-width: 450px !important;
-        position: relative;
-        z-index: 10;
     }
 
     /* Input Focus Styling */
@@ -160,7 +180,7 @@
     .google-btn:hover {
         background-color: #f8f9fa !important;
         border-color: #696cff !important;
-        transform: scale(1.02);
+        transform: scale(1.01);
     }
 
     /* Divider */
@@ -171,6 +191,10 @@
     }
     .divider::before, .divider::after {
         border-color: #d9dee3 !important;
+    }
+    
+    .shadow-xs {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 </style>
 @endsection

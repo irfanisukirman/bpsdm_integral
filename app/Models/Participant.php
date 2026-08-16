@@ -13,16 +13,16 @@ class Participant extends Model
         'user_id', 
         'nip_nik', 
         'name', 
-        'gender',
-        'phone', 
+        'gender', 
+        'phone',
         'jabatan', 
         'instansi',
         'provinsi', 
         'kabupaten_kota', 
         'status_kepegawaian',
         'biodata_file_id',
-        'pas_foto_file_id',   
-        'surat_tugas_file_id' 
+        'surat_tugas_file_id',
+        'pas_foto_file_id'
     ];
 
     /**
@@ -64,6 +64,13 @@ class Participant extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function hasFilledL34($role)
+    {
+        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
+            ->where('evaluator_role', 'mandiri')
+            ->exists();
     }
 
     public function hasFilledL34Mandiri()

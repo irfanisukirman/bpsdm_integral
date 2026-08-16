@@ -180,14 +180,17 @@ class EvaluationLevel1Controller extends Controller
     public function exportExcel($form_id)
     {
         $form = \App\Models\EvaluationFormL1::with(['training', 'schedule'])->findOrFail($form_id);
+        $export = new \App\Exports\EvaluationL1Export($form);
         
-        $prefix = ($form->type == 'penyelenggara') ? 'Eval_Penyelenggara_' : 'Eval_Narasumber_';
+        $prefix = ($form->type == 'penyelenggara') ? 'REKAP_L1_PENYELENGGARA_' : 'REKAP_L1_NARASUMBER_';
         $fileName = $prefix . time() . '.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\EvaluationL1Export($form), 
-            $fileName
-        );
+        // --- PROSES AUTO ARCHIVE ---
+        $fileContent = \Maatwebsite\Excel\Facades\Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($form->training_id, 'REKAP EVALUASI L1', $fileName, $fileContent, 'xlsx');
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
     }
 
 }

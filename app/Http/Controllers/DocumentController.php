@@ -186,4 +186,43 @@ class DocumentController extends Controller
         
         return view('documents.public_share', compact('folder'));
     }
+
+    public static function archiveInternal($trainingId, $categoryName, $fileName, $content, $extension)
+    {
+        // 1. Cari Folder Utama Pelatihan tersebut
+        $parentFolder = Folder::where('training_id', $trainingId)->whereNull('parent_id')->first();
+        
+        // Jika belum ada folder utamanya (backup), buat otomatis
+        if (!$parentFolder) {
+            $training = \App\Models\Training::find($trainingId);
+            $parentFolder = Folder::create([
+                'training_id' => $trainingId,
+                'name' => $training->nama_pelatihan,
+                'bidang' => $training->bidang,
+                'user_id' => Auth::id() ?? 1,
+            ]);
+        }
+
+        // 2. Buat/Cari Sub-Folder Kategori (Misal: LAPORAN MONITORING)
+        $subFolder = Folder::firstOrCreate([
+            'name' => strtoupper($categoryName),
+            'parent_id' => $parentFolder->id,
+            'training_id' => $trainingId,
+            'bidang' => $parentFolder->bidang
+        ], ['user_id' => Auth::id() ?? 1]);
+
+        // 3. Simpan File Fisik
+        $path = 'documents/' . $fileName;
+        Storage::disk('public')->put($path, $content);
+
+        // 4. Catat ke Tabel Files
+        File::create([
+            'folder_id' => $subFolder->id,
+            'display_name' => $fileName,
+            'file_path' => $path,
+            'file_type' => $extension,
+            'file_size' => strlen($content),
+            'user_id' => Auth::id() ?? 1
+        ]);
+    }
 }

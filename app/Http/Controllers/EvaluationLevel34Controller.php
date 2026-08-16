@@ -171,13 +171,26 @@ class EvaluationLevel34Controller extends Controller
 
     public function exportExcel($id)
     {
-        // Ambil data pelatihan
         $training = Training::findOrFail($id);
+        $export = new EvaluationL34Export($training);
+        
+        $fileName = 'LAPORAN_DAMPAK_L3_L4_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
 
-        // Nama file: Laporan_Dampak_NamaPelatihan.xlsx
-        $fileName = 'Laporan_Dampak_L3_L4_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
+        // --- PROSES AUTO ARCHIVE ---
+        // Gunakan Excel::raw untuk mendapatkan konten file tanpa langsung mendownload
+        $fileContent = Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
 
-        return Excel::download(new EvaluationL34Export($training), $fileName);
+        \App\Http\Controllers\DocumentController::archiveInternal(
+            $training->id, 
+            'HASIL EVALUASI DAMPAK', 
+            $fileName, 
+            $fileContent, 
+            'xlsx'
+        );
+
+        return response()->streamDownload(function() use($fileContent) {
+            echo $fileContent;
+        }, $fileName);
     }
 
     public function exportWord($id)
@@ -207,68 +220,68 @@ class EvaluationLevel34Controller extends Controller
 
         // --- 2. STATISTIK RESPONDEN ---
        $results = EvaluationResultL34::where('training_id', $id)->get();
-    $respondenAlumni = $results->where('evaluator_role', 'mandiri')->unique('participant_id')->count();
-    $respondenAtasan = $results->where('evaluator_role', 'atasan')->unique('participant_id')->count();
-    $respondenRekan = $results->where('evaluator_role', 'rekan')->unique('participant_id')->count();
+        $respondenAlumni = $results->where('evaluator_role', 'mandiri')->unique('participant_id')->count();
+        $respondenAtasan = $results->where('evaluator_role', 'atasan')->unique('participant_id')->count();
+        $respondenRekan = $results->where('evaluator_role', 'rekan')->unique('participant_id')->count();
 
-    $templateProcessor->setValue('jumlah_alumni', $respondenAlumni);
-    $templateProcessor->setValue('jumlah_atasan', $respondenAtasan);
-    $templateProcessor->setValue('jumlah_rekan', $respondenRekan);
+        $templateProcessor->setValue('jumlah_alumni', $respondenAlumni);
+        $templateProcessor->setValue('jumlah_atasan', $respondenAtasan);
+        $templateProcessor->setValue('jumlah_rekan', $respondenRekan);
 
-    // --- A. INFORMASI UMUM (PENDIDIKAN & GOLONGAN) ---
-    $profiles = AlumniProfile::where('training_id', $id)->get();
-    
-    $eduLevels = ['S2/S3', 'D4/S1', 'D3', 'SMA/K', 'SD/SMP'];
-    foreach($eduLevels as $edu) {
-        $key = strtolower(str_replace(['/', ' '], '_', $edu));
-        $templateProcessor->setValue('edu_'.$key.'_before', $profiles->where('edu_during_training', $edu)->count());
-        $templateProcessor->setValue('edu_'.$key.'_after', $profiles->where('edu_current', $edu)->count());
-    }
+        // --- A. INFORMASI UMUM (PENDIDIKAN & GOLONGAN) ---
+        $profiles = AlumniProfile::where('training_id', $id)->get();
+        
+        $eduLevels = ['S2/S3', 'D4/S1', 'D3', 'SMA/K', 'SD/SMP'];
+        foreach($eduLevels as $edu) {
+            $key = strtolower(str_replace(['/', ' '], '_', $edu));
+            $templateProcessor->setValue('edu_'.$key.'_before', $profiles->where('edu_during_training', $edu)->count());
+            $templateProcessor->setValue('edu_'.$key.'_after', $profiles->where('edu_current', $edu)->count());
+        }
 
-    $golLevels = ['IV', 'III', 'II', 'I'];
-    foreach($golLevels as $gol) {
-        $templateProcessor->setValue('gol_'.$gol.'_before', $profiles->filter(fn($p) => str_contains($p->rank_during_training, $gol))->count());
-        $templateProcessor->setValue('gol_'.$gol.'_after', $profiles->filter(fn($p) => str_contains($p->rank_current, $gol))->count());
-    }
+        $golLevels = ['IV', 'III', 'II', 'I'];
+        foreach($golLevels as $gol) {
+            $templateProcessor->setValue('gol_'.$gol.'_before', $profiles->filter(fn($p) => str_contains($p->rank_during_training, $gol))->count());
+            $templateProcessor->setValue('gol_'.$gol.'_after', $profiles->filter(fn($p) => str_contains($p->rank_current, $gol))->count());
+        }
 
-    // Perubahan Jabatan & Unit Kerja
-    $jabatanBerubah = $profiles->filter(fn($p) => $p->pos_during_training != $p->pos_current)->count();
-    $unitBerubah = $profiles->filter(fn($p) => $p->unit_during_training != $p->unit_current)->count();
-    
-    $templateProcessor->setValue('jab_berubah', $jabatanBerubah);
-    $templateProcessor->setValue('jab_tetap', $respondenAlumni - $jabatanBerubah);
-    $templateProcessor->setValue('unit_berubah', $unitBerubah);
-    $templateProcessor->setValue('unit_tetap', $respondenAlumni - $unitBerubah);
+        // Perubahan Jabatan & Unit Kerja
+        $jabatanBerubah = $profiles->filter(fn($p) => $p->pos_during_training != $p->pos_current)->count();
+        $unitBerubah = $profiles->filter(fn($p) => $p->unit_during_training != $p->unit_current)->count();
+        
+        $templateProcessor->setValue('jab_berubah', $jabatanBerubah);
+        $templateProcessor->setValue('jab_tetap', $respondenAlumni - $jabatanBerubah);
+        $templateProcessor->setValue('unit_berubah', $unitBerubah);
+        $templateProcessor->setValue('unit_tetap', $respondenAlumni - $unitBerubah);
 
-    // --- B. PENUGASAN (BAGIAN 2) ---
-    // Logika Persentase (Jawaban "Ya")
-    for ($i = 1; $i <= 4; $i++) {
-        $countYa = $results->filter(fn($r) => str_contains($r->note, "Tugas ke-$i") && str_contains($r->note, 'Ya'))->count();
-        $totalRes = $results->filter(fn($r) => str_contains($r->note, "Tugas ke-$i"))->count();
-        $persen = ($totalRes > 0) ? round(($countYa / $totalRes) * 100, 2) : 0;
-        $templateProcessor->setValue("task_{$i}_persen", $persen . '%');
-    }
+        // --- B. PENUGASAN (BAGIAN 2) ---
+        // Logika Persentase (Jawaban "Ya")
+        for ($i = 1; $i <= 4; $i++) {
+            $countYa = $results->filter(fn($r) => str_contains($r->note, "Tugas ke-$i") && str_contains($r->note, 'Ya'))->count();
+            $totalRes = $results->filter(fn($r) => str_contains($r->note, "Tugas ke-$i"))->count();
+            $persen = ($totalRes > 0) ? round(($countYa / $totalRes) * 100, 2) : 0;
+            $templateProcessor->setValue("task_{$i}_persen", $persen . '%');
+        }
 
-    // --- C. PERUBAHAN PERILAKU & DAMPAK (BAGIAN 3 & 4) ---
-    $questions = Question::where('category', 'LIKE', 'l34%')->get();
-    
-    // Contoh: Pertanyaan "Sumber Daya" (Perilaku No 1)
-    $q1Results = $results->where('question_id', $questions->where('sub_category', 'Perubahan Perilaku')->first()->id ?? 0);
-    $baikCount = $q1Results->where('score', '>=', 81)->count();
-    $persenKetersediaan = ($q1Results->count() > 0) ? round(($baikCount / $q1Results->count()) * 100, 2) : 0;
-    $templateProcessor->setValue('persentase_ketersedaian', $persenKetersediaan . '%');
+        // --- C. PERUBAHAN PERILAKU & DAMPAK (BAGIAN 3 & 4) ---
+        $questions = Question::where('category', 'LIKE', 'l34%')->get();
+        
+        // Contoh: Pertanyaan "Sumber Daya" (Perilaku No 1)
+        $q1Results = $results->where('question_id', $questions->where('sub_category', 'Perubahan Perilaku')->first()->id ?? 0);
+        $baikCount = $q1Results->where('score', '>=', 81)->count();
+        $persenKetersediaan = ($q1Results->count() > 0) ? round(($baikCount / $q1Results->count()) * 100, 2) : 0;
+        $templateProcessor->setValue('persentase_ketersedaian', $persenKetersediaan . '%');
 
-    // --- REKAPITULASI TABEL AKHIR ---
-    $participants = Participant::where('training_id', $id)->orderBy('name', 'asc')->get();
-    $templateProcessor->cloneRow('res_nama', $participants->count());
-    foreach ($participants as $index => $p) {
-        $row = $index + 1;
-        $templateProcessor->setValue("res_nama#$row", $p->name . " | " . $p->nip_nik);
-        $templateProcessor->setValue("res_jab#$row", $p->jabatan);
-        $templateProcessor->setValue("res_m#$row", $p->hasFilledL34('mandiri') ? 'Sudah Isi' : 'Belum Isi');
-        $templateProcessor->setValue("res_a#$row", $p->hasFilledL34('atasan') ? 'Sudah Isi' : 'Belum Isi');
-        $templateProcessor->setValue("res_r#$row", $p->hasFilledL34('rekan') ? 'Sudah Isi' : 'Belum Isi');
-    }
+        // --- REKAPITULASI TABEL AKHIR ---
+        $participants = Participant::where('training_id', $id)->orderBy('name', 'asc')->get();
+        $templateProcessor->cloneRow('res_nama', $participants->count());
+        foreach ($participants as $index => $p) {
+            $row = $index + 1;
+            $templateProcessor->setValue("res_nama#$row", $p->name . " | " . $p->nip_nik);
+            $templateProcessor->setValue("res_jab#$row", $p->jabatan);
+            $templateProcessor->setValue("res_m#$row", $p->hasFilledL34('mandiri') ? 'Sudah Isi' : 'Belum Isi');
+            $templateProcessor->setValue("res_a#$row", $p->hasFilledL34('atasan') ? 'Sudah Isi' : 'Belum Isi');
+            $templateProcessor->setValue("res_r#$row", $p->hasFilledL34('rekan') ? 'Sudah Isi' : 'Belum Isi');
+        }
 
         // --- 3. TABEL ASAL INSTANSI ---
         $instansiData = Participant::where('training_id', $id)
@@ -312,12 +325,71 @@ class EvaluationLevel34Controller extends Controller
             }
         }
 
-        // --- 6. PROSES DOWNLOAD ---
-        $filename = "Laporan_Evaluasi_L34_" . str_replace(' ', '_', $training->nama_pelatihan) . ".docx";
+        $fileName = "LAPORAN_AKHIR_DAMPAK_L34_" . str_replace(' ', '_', $training->nama_pelatihan) . ".docx";
+        $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+        $templateProcessor->saveAs($tempFile);
+        $fileContent = file_get_contents($tempFile);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'LAPORAN AKHIR DAMPAK', $fileName, $fileContent, 'docx');
+        unlink($tempFile);
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
+    }
+
+    public function exportInvitation($id)
+    {
+        \Carbon\Carbon::setLocale('id');
+        $training = Training::with('participants')->findOrFail($id);
         
-        return response()->streamDownload(function() use($templateProcessor) {
-            $templateProcessor->saveAs('php://output');
-        }, $filename);
+        $templateProcessor = new TemplateProcessor(public_path('templates/template_undangan_l34.docx'));
+
+        // 1. Data Dasar Pelatihan
+        $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
+        $templateProcessor->setValue('tgl_mulai_pelatihan', \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_selesai_pelatihan', \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_surat', \Carbon\Carbon::now()->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_cetak', \Carbon\Carbon::now()->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_surat_lengkap', 'Cimahi, ' . \Carbon\Carbon::now()->translatedFormat('d F Y'));
+
+        // 2. Logika Tanggal Batas Waktu (1 Bulan Setelah Link Dibuka)
+        // tgl_sebar_l34 adalah accessor yang kita buat sebelumnya (4 bln / 1 thn)
+        $tglMulaiSurvey = $training->tgl_sebar_l34;
+        $tglBatasWaktu = $tglMulaiSurvey->copy()->addMonth();
+        $templateProcessor->setValue('tgl_batas_waktu', $tglBatasWaktu->translatedFormat('d F Y'));
+
+        // 3. Daftar Kepala Perangkat Daerah (Unik)
+        // Mengambil instansi unik dari peserta, lalu tambah kata "Kepala"
+        $uniqueInstansi = $training->participants->pluck('instansi')->unique();
+        $daftarKepala = "";
+        foreach ($uniqueInstansi as $index => $ins) {
+            $daftarKepala .= ($index + 1) . ". Kepala " . $ins . "\n";
+        }
+        // Gunakan setComplexValue atau multiline agar \n terbaca sebagai baris baru
+        $templateProcessor->setValue('daftar_kepala', $daftarKepala);
+
+        // 4. Tabel Daftar Peserta (Cloning Row)
+        $participants = $training->participants()->orderBy('name', 'asc')->get();
+        if ($participants->count() > 0) {
+            $templateProcessor->cloneRow('p_nama', $participants->count());
+            foreach ($participants as $index => $p) {
+                $row = $index + 1;
+                $templateProcessor->setValue("p_no#$row", $row);
+                $templateProcessor->setValue("p_nama#$row", $p->name);
+                $templateProcessor->setValue("p_nip#$row", $p->nip_nik);
+                $templateProcessor->setValue("p_jabatan#$row", $p->jabatan);
+                $templateProcessor->setValue("p_instansi#$row", $p->instansi);
+            }
+        }
+
+       $fileName = "SURAT_UNDANGAN_EVALUASI_L34_" . str_replace(' ', '_', $training->nama_pelatihan) . ".docx";
+        $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+        $templateProcessor->saveAs($tempFile);
+        $fileContent = file_get_contents($tempFile);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'SURAT UNDANGAN EVALUASI', $fileName, $fileContent, 'docx');
+        unlink($tempFile);
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
     }
     
 }

@@ -11,8 +11,8 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Daftar Pelatihan terpantau</h5>
         <small class="text-muted">Kelola instrumen monitoring per pelatihan</small>
-        <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali
+        <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
         </a>
     </div>
     <div class="table-responsive text-nowrap">

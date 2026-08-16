@@ -28,49 +28,64 @@ use App\Http\Controllers\AlumniController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('landing'); 
+/*
+|--------------------------------------------------------------------------
+| 1. PUBLIC ROUTES (Tanpa Login)
+|--------------------------------------------------------------------------
+*/
 
+// LANDING PAGE (Satu-satunya rute untuk '/')
+// Route::get('/', function () {
+//     // Jika user sudah login, saat dia buka halaman depan, 
+//     // otomatis dialihkan ke dashboard aplikasi
+//     if (Auth::check()) {
+//         return redirect()->route('dashboard');
+//     }
+//     return view('welcome');
+// })->name('landing');
+
+Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+
+// Search Global (Hanya hasil, aksi di dalam auth)
 Route::get('/search', [SearchController::class, 'index'])->name('global.search');
 
+// Google Auth
 Route::get('auth/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
-
+// Document Share
 Route::get('share/folder/{token}', [DocumentController::class, 'share'])->name('documents.public');
 
-// Absensi Publik per Sesi
+// Absensi Publik
 Route::get('absen/{schedule_id}', [AttendanceController::class, 'publicShow'])->name('public.attendance.show');
 Route::get('absen/harian/{training_id}/{date}', [AttendanceController::class, 'publicShowDaily'])->name('public.attendance.daily');
-Route::post('absen/{schedule_id}', [AttendanceController::class, 'publicStore'])->name('public.attendance.store');
+Route::post('absen/harian/{training_id}/{date}', [AttendanceController::class, 'publicStoreDaily'])->name('public.attendance.store_daily');
 
-// Evaluasi Level 1 (Kepuasan Peserta)
+// Evaluasi Level 1 Publik
 Route::get('evaluasi-l1/form/{training_id}', [EvaluationLevel1Controller::class, 'publicForm'])->name('public.evall1.form');
 Route::post('evaluasi-l1/store/{training_id}', [EvaluationLevel1Controller::class, 'publicStore'])->name('public.evall1.store');
 
-// Evaluasi Level 3 & 4 (Penilaian 360 Derajat)
+// Evaluasi Level 3 & 4 Publik
 Route::get('evaluasi-dampak/gateway/{training_id}', [EvaluationLevel34Controller::class, 'publicGateway'])->name('public.l34.gateway');
 Route::get('evaluasi-dampak/form/{training_id}/{role}', [EvaluationLevel34Controller::class, 'publicForm'])->name('public.l34.form');
 Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Controller::class, 'publicStore'])->name('public.l34.store');
 
-Route::get('absen/harian/{training_id}/{date}', [AttendanceController::class, 'publicShowDaily'])->name('public.attendance.daily');
-Route::post('absen/harian/{training_id}/{date}', [AttendanceController::class, 'publicStoreDaily'])->name('public.attendance.store_daily');
-
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES (Hanya untuk Admin & Superadmin)
+| 2. AUTHENTICATION SYSTEM
 |--------------------------------------------------------------------------
 */
-
 Auth::routes(['register' => false]);
+Route::get('/logout', function() {
+    Auth::logout();
+    return redirect('/');
+});
 
 Route::middleware(['auth'])->group(function () {
     
     // --- DASHBOARD ---
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard', [ParticipantController::class, 'index'])->name('participant.dashboard');
-    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+     
 
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
@@ -103,6 +118,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
     
     // Sub-Modul: Import Peserta & Kelola Jadwal
+    Route::get('trainings/{id}/export-participants-data', [TrainingController::class, 'exportParticipants'])->name('participants.export_data');
+    Route::get('trainings/{id}/export-invitation-l34', [EvaluationLevel34Controller::class, 'exportInvitation'])->name('evall34.export_invitation');
     Route::get('trainings/{id}/export-l34', [EvaluationLevel34Controller::class, 'exportExcel'])->name('evall34.export');
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
@@ -197,6 +214,7 @@ Route::middleware(['auth'])->group(function () {
         
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
     Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
+        Route::get('/dashboard', [ParticipantController::class, 'index'])->name('participant.dashboard');
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
     
         // Proses Daftar (Join)

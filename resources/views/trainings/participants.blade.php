@@ -26,8 +26,8 @@
                 </div>
             </form>
 
-            <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-                <i class="bx bx-arrow-back me-1"></i> Kembali
+            <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdd">
                 <i class="bx bx-plus me-1"></i> Tambah
