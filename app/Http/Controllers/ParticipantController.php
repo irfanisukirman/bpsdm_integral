@@ -143,13 +143,13 @@ class ParticipantController extends Controller
         $training = Training::with(['stages', 'schedules'])->findOrFail($id);
         $user = Auth::user();
         
-        // Pastikan user memang terdaftar di pelatihan ini
+        // Ambil record participant milik user ini di pelatihan ini
         $participant = Participant::where('training_id', $id)
-            ->where('nip_nik', $user->nip_nik)
+            ->where('user_id', $user->id)
             ->firstOrFail();
 
-        // Ambil form evaluasi yang tersedia
-        $formsL1 = EvaluationFormL1::where('training_id', $id)->get();
+        // Ambil semua form L1 yang telah dibuat Admin
+        $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
 
         return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user'));
     }
@@ -168,13 +168,16 @@ class ParticipantController extends Controller
     // Upload Kelengkapan & Masuk Folder Otomatis
     public function uploadRequirement(Request $request, $id)
     {
+        $allowedMimes = ($request->type == 'pas_foto') ? 'jpeg,png,jpg' : 'pdf';
+        
         $request->validate([
-            'file' => 'required|mimes:pdf|max:5120',
-            'type' => 'required|in:biodata,surat_tugas'
+            'file' => "required|mimes:$allowedMimes|max:5120",
+            'type' => 'required|in:biodata,surat_tugas,pas_foto'
         ]);
-
-        $training = Training::with('folder')->findOrFail($id);
+           
         $user = Auth::user();
+        $participant = Participant::where('training_id', $id)->where('user_id', $user->id)->firstOrFail();
+        $training = Training::with('folder')->findOrFail($id);
 
         // PERBAIKAN: Cari peserta berdasarkan training_id DAN (user_id ATAU nip_nik)
         $participant = Participant::where('training_id', $id)
@@ -194,6 +197,7 @@ class ParticipantController extends Controller
         }
 
         // 1. Dapatkan/Buat Folder Utama Pelatihan
+        
         $parentFolder = Folder::firstOrCreate(
             ['training_id' => $id],
             [
@@ -204,10 +208,12 @@ class ParticipantController extends Controller
         );
 
         // 2. Dapatkan/Buat Sub-Folder "KELENGKAPAN PESERTA"
-        $subFolder = Folder::firstOrCreate(
-            ['name' => 'KELENGKAPAN PESERTA', 'parent_id' => $parentFolder->id],
-            ['bidang' => $training->bidang, 'user_id' => Auth::id(), 'training_id' => $id]
-        );
+        $subFolder = Folder::firstOrCreate([
+            'name' => 'KELENGKAPAN PESERTA',
+            'parent_id' => $training->folder->id,
+            'training_id' => $id,
+            'bidang' => $training->bidang
+        ], ['user_id' => Auth::id()]);
 
         // 3. Simpan File
         $extension = $request->file('file')->getClientOriginalExtension();
@@ -225,7 +231,7 @@ class ParticipantController extends Controller
         ]);
 
         // 5. Update referensi file di tabel Participants
-        $column = ($request->type == 'biodata') ? 'biodata_file_id' : 'surat_tugas_file_id';
+        $column = $request->type . '_file_id';
         $participant->update([$column => $fileRecord->id]);
 
         return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');

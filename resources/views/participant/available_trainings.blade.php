@@ -39,6 +39,9 @@
                 $percent = ($t->jumlah_peserta > 0) ? ($t->participants_count / $t->jumlah_peserta) * 100 : 0;
                 // Cek apakah user login sudah terdaftar
                 $isEnrolled = $t->participants->where('user_id', auth()->id())->first();
+                if(!$isEnrolled) {
+                    $isEnrolled = $t->participants->where('nip_nik', auth()->user()->nip_nik)->first();
+                }
             @endphp
             
             <div class="col-md-6 col-lg-4 mb-4">

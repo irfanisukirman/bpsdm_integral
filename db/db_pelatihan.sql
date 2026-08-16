@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 15 Agu 2026 pada 19.22
+-- Waktu pembuatan: 16 Agu 2026 pada 09.08
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -297,8 +297,7 @@ INSERT INTO `evaluation_questions` (`id`, `training_type`, `training_id`, `categ
 (129, 'Semua', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan produktivitas', 'slider', NULL, '2026-07-21 01:56:16', '2026-07-21 01:56:16'),
 (130, 'Semua', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap perbaikan kualitas hasil kerja', 'slider', NULL, '2026-07-21 01:56:16', '2026-07-21 01:56:16'),
 (131, 'Semua', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan kepuasan pelanggan', 'slider', NULL, '2026-07-21 01:56:16', '2026-07-21 01:56:16'),
-(132, 'Semua', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja', 'slider', NULL, '2026-07-21 01:56:16', '2026-07-21 01:56:16'),
-(133, 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'semua', NULL, 'kendajsdhaksfasff', 'slider', NULL, '2026-08-15 16:58:35', '2026-08-15 16:58:35');
+(132, 'Semua', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja', 'slider', NULL, '2026-07-21 01:56:16', '2026-07-21 01:56:16');
 
 -- --------------------------------------------------------
 
@@ -317,13 +316,6 @@ CREATE TABLE `evaluation_results_l1` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `evaluation_results_l1`
---
-
-INSERT INTO `evaluation_results_l1` (`id`, `training_id`, `participant_id`, `schedule_id`, `question_id`, `score`, `note`, `created_at`, `updated_at`) VALUES
-(3, 7, 6, NULL, 133, 94, NULL, '2026-08-15 16:58:50', '2026-08-15 16:58:50');
 
 -- --------------------------------------------------------
 
@@ -394,6 +386,14 @@ CREATE TABLE `files` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `files`
+--
+
+INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`, `file_size`, `user_id`, `created_at`, `updated_at`) VALUES
+(16, 16, 'BIODATA_Sem_Syamsidin_1786844782.pdf', 'documents/BIODATA_Sem_Syamsidin_1786844782.pdf', 'pdf', 165342, 7, '2026-08-16 01:46:24', '2026-08-16 01:46:24'),
+(17, 16, 'PAS_FOTO_Sem_Syamsidin_1786857651.jpg', 'documents/PAS_FOTO_Sem_Syamsidin_1786857651.jpg', 'jpg', 36493, 7, '2026-08-16 05:20:52', '2026-08-16 05:20:52');
+
 -- --------------------------------------------------------
 
 --
@@ -424,9 +424,8 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (8, NULL, 'Bpsdm Jabar', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:31:24', '2026-08-15 07:31:24'),
 (9, NULL, 'Bpsdm Jabar', 'Bidang A', NULL, 1, 0, NULL, '2026-08-15 07:34:43', '2026-08-15 07:34:43'),
 (11, NULL, 'Evaluasi Penyelenggara', 'Semua Bidang', NULL, 1, 0, NULL, '2026-08-15 07:47:09', '2026-08-15 07:47:09'),
-(12, NULL, 'Bpsdm Jabar', 'Semua Bidang', 11, 1, 0, NULL, '2026-08-15 08:11:04', '2026-08-15 08:11:04'),
-(13, 7, 'Pelatihan Semaunya gue - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 1, 0, NULL, '2026-08-15 13:31:00', '2026-08-15 13:31:00'),
-(16, 7, 'KELENGKAPAN PESERTA', 'Bidang Pengembangan Kompetensi Teknis Umum', 13, 7, 0, NULL, '2026-08-15 16:14:34', '2026-08-15 16:14:34');
+(13, 7, 'Pelatihan Semaunya gue - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 1, 0, NULL, '2026-08-15 13:31:00', '2026-08-16 05:22:58'),
+(16, 7, 'KELENGKAPAN PESERTA', 'Bidang Pengembangan Kompetensi Teknis Umum', 13, 7, 0, NULL, '2026-08-15 16:14:34', '2026-08-16 05:22:51');
 
 -- --------------------------------------------------------
 
@@ -533,7 +532,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (51, '2026_08_15_204912_adjust_training_and_participants_for_invitation', 39),
 (52, '2026_08_15_223407_add_profile_details_to_users_table', 40),
 (53, '2026_08_15_225839_add_file_references_to_participants_table', 41),
-(54, '2026_08_16_000737_add_link_lms_to_trainings_table', 42);
+(54, '2026_08_16_000737_add_link_lms_to_trainings_table', 42),
+(55, '2026_08_16_121011_add_pas_foto_to_participants_table', 43),
+(56, '2026_08_16_124239_add_phone_to_participants_table', 44),
+(57, '2026_08_16_125348_add_phone_to_participants_table', 45);
 
 -- --------------------------------------------------------
 
@@ -585,6 +587,7 @@ CREATE TABLE `participants` (
   `training_id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
   `nip_nik` varchar(255) NOT NULL,
+  `phone` varchar(255) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `gender` enum('Laki-Laki','Perempuan') DEFAULT NULL,
   `jabatan` varchar(255) DEFAULT NULL,
@@ -595,15 +598,17 @@ CREATE TABLE `participants` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `biodata_file_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `surat_tugas_file_id` bigint(20) UNSIGNED DEFAULT NULL
+  `surat_tugas_file_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `pas_foto_file_id` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data untuk tabel `participants`
 --
 
-INSERT INTO `participants` (`id`, `training_id`, `user_id`, `nip_nik`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kabupaten_kota`, `status_kepegawaian`, `created_at`, `updated_at`, `biodata_file_id`, `surat_tugas_file_id`) VALUES
-(6, 7, 7, '199503032025211003', 'Sem Syamsidin', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG', 'PNS', '2026-08-15 15:43:03', '2026-08-15 16:40:24', NULL, NULL);
+INSERT INTO `participants` (`id`, `training_id`, `user_id`, `nip_nik`, `phone`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kabupaten_kota`, `status_kepegawaian`, `created_at`, `updated_at`, `biodata_file_id`, `surat_tugas_file_id`, `pas_foto_file_id`) VALUES
+(7, 7, NULL, '19995235903523526', '081382830814', 'Admin Sistapraja', 'Perempuan', 'PENGELOLA LAYANAN OPERASIONAL', 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA CIREBON', 'PPPK', '2026-08-16 01:34:15', '2026-08-16 06:22:50', NULL, NULL, NULL),
+(16, 7, NULL, '199984837482357325', '08664734553254', 'Contoh Nama', 'Laki-Laki', 'Staff', 'BPSDM', 'JAWA BARAT', 'KOTA BANDUNG', 'PNS', '2026-08-16 06:32:34', '2026-08-16 06:32:34', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -669,7 +674,8 @@ CREATE TABLE `schedules` (
 
 INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `pic`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`) VALUES
 (4, 2, '2026-07-19', '08:00:00', '09:00:00', 'Matei I untuk kegiatan itu', 'Maman Karbu', '2026-07-19 08:06:23', '2026-07-19 19:22:32', '09:25:00', '10:00:00'),
-(5, 2, '2026-07-20', '09:00:00', '10:00:00', 'Matei II dhadhaJKD hdADadAD', 'dasdasdasdasdasdsd', '2026-07-19 08:06:39', '2026-07-19 08:06:39', NULL, NULL);
+(5, 2, '2026-07-20', '09:00:00', '10:00:00', 'Matei II dhadhaJKD hdADadAD', 'dasdasdasdasdasdsd', '2026-07-19 08:06:39', '2026-07-19 08:06:39', NULL, NULL),
+(6, 7, '2026-08-16', '14:00:00', '16:00:00', 'Rapat Paripurna', 'Muhamad Jajang', '2026-08-16 07:02:50', '2026-08-16 07:02:50', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -770,8 +776,7 @@ INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`,
 (1, NULL, NULL, 'Super Admin', 'superadmin@bpsdm.go.id', NULL, '08123456789', 'avatars/wjCCoVyqu0NoTmjEzbz4hOjr9gTtRduH0RgLX50U.png', 'superadmin', 'Bidang A', '$2y$12$KHa0Fa1GlSnHfvT2cqKTCudgjV7sgty4ki9Y1uwHaY9Eg7t0yTNae', NULL, '2026-07-18 04:34:53', '2026-08-15 07:26:48', NULL, NULL, NULL, NULL, NULL, NULL),
 (2, NULL, NULL, 'Iman Nurmana', 'bidangpkti@bpsdm.go.id', NULL, '0832329342375235', NULL, 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$PP5WdHdpb.AxhjlwKwk/x.M6BMOCpO6/lHvMElHLGmFTvaR.EHvey', NULL, '2026-07-18 05:12:05', '2026-07-18 05:12:05', NULL, NULL, NULL, NULL, NULL, NULL),
 (3, NULL, NULL, 'Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '0984782642342435', NULL, 'admin_bidang', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$rjcI5dYrWJOgqIeeAGyhy.hg9uCN9DT03etthsUs.s7AhMODoe.GC', NULL, '2026-07-19 20:38:57', '2026-07-19 20:38:57', NULL, NULL, NULL, NULL, NULL, NULL),
-(4, NULL, NULL, 'Test User', 'testuser', NULL, '1-574-686-1010', NULL, 'superadmin', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$h/Iu2kfvvPSLfYhnF.UAVu.HQoCVRcZtiwu8Z.iNZ.qNFFqgDxA0e', 'BGMzSiO41j', '2026-07-21 01:56:16', '2026-07-21 01:56:16', NULL, NULL, NULL, NULL, NULL, NULL),
-(7, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '199503032025211003', '08123456789', 'avatars/YQ3J7RJwQXnsfuXqXcUMwTMvzL7RlgdPMpJWO1WH.png', 'participant', NULL, '$2y$12$V9Jn4rS.8ZNx9UZf/fpQm.6hcTX9kJcHLG4U95jWQRgnK2DTpzgeu', NULL, '2026-08-15 15:42:21', '2026-08-15 16:55:37', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG', 'PNS');
+(7, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '199503032025211003', '08123456789', 'avatars/YQ3J7RJwQXnsfuXqXcUMwTMvzL7RlgdPMpJWO1WH.png', 'participant', 'Luar BPSDM', '$2y$12$V9Jn4rS.8ZNx9UZf/fpQm.6hcTX9kJcHLG4U95jWQRgnK2DTpzgeu', NULL, '2026-08-15 15:42:21', '2026-08-16 04:01:09', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG', 'PNS');
 
 --
 -- Indexes for dumped tables
@@ -924,7 +929,8 @@ ALTER TABLE `participants`
   ADD KEY `participants_training_id_foreign` (`training_id`),
   ADD KEY `participants_user_id_foreign` (`user_id`),
   ADD KEY `participants_biodata_file_id_foreign` (`biodata_file_id`),
-  ADD KEY `participants_surat_tugas_file_id_foreign` (`surat_tugas_file_id`);
+  ADD KEY `participants_surat_tugas_file_id_foreign` (`surat_tugas_file_id`),
+  ADD KEY `participants_pas_foto_file_id_foreign` (`pas_foto_file_id`);
 
 --
 -- Indeks untuk tabel `personal_access_tokens`
@@ -1030,7 +1036,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT untuk tabel `folders`
@@ -1048,7 +1054,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -1066,7 +1072,7 @@ ALTER TABLE `monitoring_summaries`
 -- AUTO_INCREMENT untuk tabel `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT untuk tabel `personal_access_tokens`
@@ -1084,7 +1090,7 @@ ALTER TABLE `questions`
 -- AUTO_INCREMENT untuk tabel `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `trainings`
@@ -1199,6 +1205,7 @@ ALTER TABLE `monitoring_summaries`
 --
 ALTER TABLE `participants`
   ADD CONSTRAINT `participants_biodata_file_id_foreign` FOREIGN KEY (`biodata_file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `participants_pas_foto_file_id_foreign` FOREIGN KEY (`pas_foto_file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `participants_surat_tugas_file_id_foreign` FOREIGN KEY (`surat_tugas_file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `participants_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

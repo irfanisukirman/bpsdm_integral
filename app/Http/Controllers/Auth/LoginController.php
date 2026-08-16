@@ -108,4 +108,10 @@ class LoginController extends Controller implements HasMiddleware
             return redirect('/login')->with('error', 'Gagal login via Google. Silakan coba lagi.');
         }
     }
+
+    protected function loggedOut(Request $request)
+    {
+        // Arahkan ke rute landing page (/)
+        return redirect('/');
+    }
 }

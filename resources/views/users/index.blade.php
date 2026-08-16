@@ -2,65 +2,107 @@
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Sistem /</span> Kelola Pengguna</h4>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
-            <i class="bx bx-user-plus me-1"></i> Tambah User
-        </button>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h4 class="fw-bold py-3 mb-0">
+            <span class="text-muted fw-light">Sistem /</span> Kelola Pengguna
+        </h4>
+
+        <div class="d-flex flex-wrap gap-2">
+            <!-- FORM PENCARIAN USER -->
+            <form action="{{ route('users.index') }}" method="GET" style="min-width: 300px;">
+                <div class="input-group input-group-merge shadow-sm">
+                    <span class="input-group-text"><i class="bx bx-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Cari Nama, NIP, atau Bidang..." 
+                           value="{{ $search ?? '' }}">
+                    @if($search)
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary px-2">
+                            <i class="bx bx-x"></i>
+                        </a>
+                    @endif
+                </div>
+            </form>
+
+            <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddUser">
+                <i class="bx bx-user-plus me-1"></i> Tambah User
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success border-0 shadow-sm">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger border-0 shadow-sm">{{ session('error') }}</div>
+        <div class="alert alert-success border-0 shadow-sm alert-dismissible" role="alert">
+            <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     @endif
 
-    <div class="card">
+    @if($search)
+        <div class="mb-3 animate__animated animate__fadeIn">
+            <small class="text-muted">Hasil pencarian untuk: <span class="fw-bold text-primary">"{{ $search }}"</span></small>
+        </div>
+    @endif
+
+    <div class="card shadow-sm border-0">
         <div class="table-responsive text-nowrap">
             <table class="table table-hover">
-                <thead>
+                <thead class="table-light">
                     <tr>
                         <th>Nama & Role</th>
                         <th>Bidang / Penyelenggara</th>
-                        <th>Username</th>
+                        <th>Username / NIP</th>
                         <th>WhatsApp</th>
-                        <th>Aksi</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($users as $user)
+                    @forelse($users as $user)
                     <tr>
                         <td>
                             <div class="d-flex justify-content-start align-items-center">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded-circle bg-label-{{ $user->role == 'superadmin' ? 'danger' : ($user->role == 'admin_bidang' ? 'primary' : 'success') }}">
+                                        {{ substr($user->name, 0, 1) }}
+                                    </span>
+                                </div>
                                 <div class="d-flex flex-column">
-                                    <span class="fw-bold">{{ $user->name }}</span>
-                                    <small class="text-muted">
-                                        <span class="badge {{ $user->role == 'superadmin' ? 'bg-label-danger' : 'bg-label-primary' }} btn-xs">
-                                            {{ strtoupper($user->role) }}
-                                        </span>
-                                    </small>
+                                    <span class="fw-bold text-dark">{{ $user->name }}</span>
+                                    <small class="text-muted" style="font-size: 10px;">{{ strtoupper(str_replace('_', ' ', $user->role)) }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <small class="text-wrap" style="width: 250px; display: block; line-height: 1.2">
-                                {{ $user->bidang }}
+                        <td class="text-wrap">
+                            <small class="text-muted" style="font-size: 11px; line-height: 1.2; display: block; max-width: 250px;">
+                                {{ $user->bidang ?? 'Tidak Terikat Bidang' }}
                             </small>
                         </td>
-                        <td><code>{{ $user->username }}</code></td>
-                        <td>{{ $user->whatsapp }}</td>
                         <td>
+                            <div class="d-flex flex-column">
+                                <code class="text-primary fw-bold" style="font-size: 12px;">{{ $user->username }}</code>
+                                @if($user->nip_nik)
+                                    <small class="text-danger" style="font-size: 10px;">NIP: {{ $user->nip_nik }}</small>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
+                            <a href="https://wa.me/{{ $user->whatsapp }}" target="_blank" class="text-body small">
+                                <i class="bx bxl-whatsapp text-success me-1"></i>{{ $user->whatsapp }}
+                            </a>
+                        </td>
+                        <td class="text-center">
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                                     <i class="bx bx-dots-vertical-rounded"></i>
                                 </button>
                                 <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="editUser({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalEditUser">
+                                        <i class="bx bx-edit-alt me-1"></i> Edit User
+                                    </a>
                                     <form action="{{ route('users.reset-password', $user->id) }}" method="POST">
                                         @csrf @method('PUT')
-                                        <button class="dropdown-item"><i class="bx bx-refresh me-1"></i> Reset Pass</button>
+                                        <button class="dropdown-item"><i class="bx bx-refresh me-1"></i> Reset Password</button>
                                     </form>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST">
+                                    <div class="dropdown-divider"></div>
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
                                         @csrf @method('DELETE')
                                         <button class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i> Hapus</button>
                                     </form>
@@ -68,7 +110,14 @@
                             </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bx bx-user-x h1 d-block mb-2"></i>
+                            User tidak ditemukan.
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -129,4 +178,71 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="" method="POST" id="formEditUser" class="modal-content">
+            @csrf @method('PUT')
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title">Edit Data Pengguna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">NAMA LENGKAP</label>
+                    <input type="text" name="name" id="edit_name" class="form-control" required />
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">ROLE / HAK AKSES</label>
+                        <select name="role" id="edit_role" class="form-select" required>
+                            <option value="participant">Participant (Peserta)</option>
+                            <option value="admin_bidang">Admin Bidang</option>
+                            <option value="superadmin">Superadmin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">NOMOR WA</label>
+                        <input type="number" name="whatsapp" id="edit_whatsapp" class="form-control" required />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">PENYELENGGARA / BIDANG</label>
+                    <select name="bidang" id="edit_bidang" class="form-select" required>
+                        <option value="Luar BPSDM">Bukan Admin Bidang (Luar BPSDM)</option>
+                        @foreach($listBidang as $b)
+                            <option value="{{ $b }}">{{ $b }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="alert alert-info py-2 mb-0">
+                    <small><i class="bx bx-info-circle me-1"></i> Username dan Password tidak dapat diubah di sini. Gunakan fitur Reset Password jika diperlukan.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Update Data User</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+
+@push('js')
+<script>
+    /**
+     * Fungsi untuk mengisi data ke Modal Edit
+     */
+    function editUser(data) {
+        // Set URL Form Action
+        const url = "{{ url('users') }}/" + data.id;
+        $('#formEditUser').attr('action', url);
+
+        // Isi field input
+        $('#edit_name').val(data.name);
+        $('#edit_role').val(data.role);
+        $('#edit_whatsapp').val(data.whatsapp);
+        $('#edit_bidang').val(data.bidang ? data.bidang : 'Luar BPSDM');
+    }
+</script>
+@endpush
