@@ -88,6 +88,9 @@
                     <div class="tab-pane fade" id="kelengkapan" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Unggah Berkas Administrasi</h5>
+                            @php
+                                $isComplete = $participant->biodata_file_id && $participant->surat_tugas_file_id && $participant->pas_foto_file_id;
+                            @endphp
                             @if($isComplete)
                                 <span class="badge bg-label-success"><i class="bx bx-check-double me-1"></i> Semua Berkas Lengkap</span>
                             @endif
@@ -96,27 +99,28 @@
                         <div class="row">
                             @php
                                 $docs = [
-                                    ['label' => 'Biodata Peserta', 'key' => 'biodata', 'file_id' => $participant->biodata_file_id],
-                                    ['label' => 'Surat Tugas', 'key' => 'surat_tugas', 'file_id' => $participant->surat_tugas_file_id]
+                                    ['label' => 'Pas Foto (Berwarna)', 'key' => 'pas_foto', 'file_id' => $participant->pas_foto_file_id, 'accept' => 'image/*'],
+                                    ['label' => 'Biodata Peserta', 'key' => 'biodata', 'file_id' => $participant->biodata_file_id, 'accept' => '.pdf'],
+                                    ['label' => 'Surat Tugas', 'key' => 'surat_tugas', 'file_id' => $participant->surat_tugas_file_id, 'accept' => '.pdf']
                                 ];
                             @endphp
 
                             @foreach($docs as $doc)
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-4 mb-4"> {{-- Ubah ke col-md-4 agar 3 card sejajar --}}
                                 <div class="card border {{ $doc['file_id'] ? 'border-success bg-label-success' : 'border-dashed bg-label-secondary' }} h-100 shadow-none transition-all">
                                     <div class="card-body text-center py-4">
                                         
                                         @if($doc['file_id'])
                                             {{-- TAMPILAN JIKA SUDAH UPLOAD --}}
                                             <div class="avatar avatar-lg bg-success mx-auto mb-3 shadow">
-                                                <i class="bx bx-check-shield text-white h3 mb-0"></i>
+                                                <i class="bx {{ $doc['key'] == 'pas_foto' ? 'bx-image' : 'bx-check-shield' }} text-white h3 mb-0"></i>
                                             </div>
                                             <h6 class="fw-bold text-dark mb-1">{{ $doc['label'] }}</h6>
                                             <p class="small text-success fw-bold mb-3">BERKAS TERSIMPAN</p>
                                             
                                             @php $file = \App\Models\File::find($doc['file_id']); @endphp
                                             
-                                            <div class="d-grid gap-2 col-8 mx-auto">
+                                            <div class="d-grid gap-2 col-10 mx-auto">
                                                 <a href="{{ asset('storage/'.($file->file_path ?? '')) }}" target="_blank" class="btn btn-primary btn-sm">
                                                     <i class="bx bx-show me-1"></i> Lihat Berkas
                                                 </a>
@@ -124,26 +128,26 @@
 
                                             <div class="mt-4 p-2 bg-white rounded border border-success">
                                                 <small class="text-muted d-block italic">
-                                                    <i class="bx bx-lock-alt me-1"></i> Ingin mengganti berkas?
+                                                    <i class="bx bx-lock-alt me-1"></i> Terkunci.
                                                 </small>
-                                                <small class="fw-bold text-primary">Silakan hubungi Admin Bidang.</small>
+                                                <small class="fw-bold text-primary" style="font-size: 10px;">Hubungi Admin untuk ganti.</small>
                                             </div>
                                         @else
                                             {{-- TAMPILAN JIKA BELUM UPLOAD --}}
                                             <div class="avatar avatar-lg bg-secondary mx-auto mb-3">
-                                                <i class="bx bx-upload text-white h3 mb-0"></i>
+                                                <i class="bx {{ $doc['key'] == 'pas_foto' ? 'bx-camera' : 'bx-upload' }} text-white h3 mb-0"></i>
                                             </div>
                                             <h6 class="fw-bold text-dark mb-1">{{ $doc['label'] }}</h6>
-                                            <p class="small text-muted mb-4">Belum ada berkas yang diunggah</p>
+                                            <p class="small text-muted mb-4">{{ $doc['key'] == 'pas_foto' ? 'Format JPG/PNG' : 'Format PDF, Maks 5MB' }}</p>
 
                                             <form action="{{ route('participant.training.upload', $training->id) }}" method="POST" enctype="multipart/form-data" class="mt-2">
                                                 @csrf
                                                 <input type="hidden" name="type" value="{{ $doc['key'] }}">
                                                 <div class="mb-3">
-                                                    <input type="file" name="file" class="form-control form-control-sm" accept="application/pdf" required>
+                                                    <input type="file" name="file" class="form-control form-control-sm" accept="{{ $doc['accept'] }}" required>
                                                 </div>
                                                 <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                                    <i class="bx bx-cloud-upload me-1"></i> Unggah Sekarang
+                                                    <i class="bx bx-cloud-upload me-1"></i> Unggah
                                                 </button>
                                             </form>
                                         @endif
@@ -156,42 +160,89 @@
 
                     {{-- TAB 3: EVALUASI --}}
                     <div class="tab-pane fade" id="navs-pills-evaluasi" role="tabpanel">
+    
+                        {{-- BAGIAN A: LEVEL 1 (REAKSI) --}}
                         <div class="card shadow-none border mb-4">
-                            <div class="card-body text-center py-4">
-                                <h6 class="fw-bold text-start mb-3 text-primary"><i class="bx bx-star me-2"></i>A. Evaluasi Level 1 (Selama Pelatihan)</h6>
-                                <div class="list-group list-group-flush text-start">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bx bx-star me-2"></i>A. Evaluasi Selama Pelatihan (Level 1)</h6>
+                                
+                                <div class="list-group list-group-flush mt-3">
                                     @forelse($formsL1 as $form)
-                                        <a href="{{ route('public.evall1.form', ['training_id' => $training->id, 'type' => $form->type, 'sid' => $form->schedule_id]) }}" 
-                                           target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded mb-2 border shadow-sm">
-                                            <div>
-                                                <span class="fw-bold d-block">{{ $form->name }}</span>
-                                                <small class="text-muted">Objek: {{ $form->target_name }}</small>
+                                        @php
+                                            // Cek status pengisian per form
+                                            $isFilledL1 = $participant->hasFilledL1($form->id, $form->schedule_id);
+                                        @endphp
+                                        
+                                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded mb-2 border {{ $isFilledL1 ? 'border-info bg-label-info' : 'border-danger bg-label-danger' }} shadow-sm">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar flex-shrink-0 me-3">
+                                                    <span class="avatar-initial rounded bg-white {{ $isFilledL1 ? 'text-info' : 'text-danger' }}">
+                                                        <i class="bx {{ $isFilledL1 ? 'bx-check-circle' : 'bx-error-circle' }}"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold d-block text-dark">{{ $form->name }}</span>
+                                                    <small class="text-muted">Objek: {{ $form->target_name }}</small>
+                                                </div>
                                             </div>
-                                            <i class="bx bx-chevron-right text-primary"></i>
-                                        </a>
+
+                                            <div class="text-end">
+                                                @if($isFilledL1)
+                                                    <span class="badge bg-info mb-1">Sudah Mengisi</span>
+                                                    <button class="btn btn-xs btn-outline-info d-block w-100" disabled>Terkunci</button>
+                                                @else
+                                                    <span class="badge bg-danger mb-1">Belum Mengisi</span>
+                                                    <a href="{{ route('public.evall1.form', ['training_id' => $training->id, 'type' => $form->type, 'sid' => $form->schedule_id ?? 'null']) }}" 
+                                                    target="_blank" class="btn btn-xs btn-danger d-block w-100">
+                                                    Isi Sekarang
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
                                     @empty
-                                        <div class="bg-light p-3 rounded text-center">Belum ada evaluasi yang tersedia.</div>
+                                        <div class="bg-light p-3 rounded text-center">Belum ada instrumen evaluasi Level 1.</div>
                                     @endforelse
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card shadow-none border">
-                            <div class="card-body text-center py-4">
-                                <h6 class="fw-bold text-start mb-3 text-primary"><i class="bx bx-line-chart me-2"></i>B. Evaluasi Level 3 & 4 (Pasca Pelatihan)</h6>
+                        {{-- BAGIAN B: LEVEL 3 & 4 (DAMPAK) --}}
+                        @php
+                            $isFilledL34 = $participant->hasFilledL34Mandiri();
+                        @endphp
+                        <div class="card shadow-none border {{ $isFilledL34 ? 'border-info' : 'border-danger' }}">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bx bx-line-chart me-2"></i>B. Evaluasi Pasca Pelatihan (Level 3 & 4)</h6>
+                                
                                 @if($training->sisa_hari_sebar <= 0)
-                                    <div class="bg-label-success p-4 rounded mb-3 border border-success">
-                                        <h6 class="fw-bold mb-2">Evaluasi Dampak Telah Dibuka!</h6>
-                                        <p class="small mb-3">Silakan berikan penilaian Anda mengenai perubahan perilaku dan dampak pelatihan di tempat kerja.</p>
-                                        <a href="{{ route('public.l34.gateway', $training->id) }}" target="_blank" class="btn btn-success shadow-sm">
-                                            <i class="bx bx-paper-plane me-1"></i> Mulai Penilaian
-                                        </a>
+                                    {{-- Waktu sebar sudah tiba --}}
+                                    <div class="p-4 rounded border {{ $isFilledL34 ? 'bg-label-info border-info' : 'bg-label-danger border-danger' }}">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                            <div>
+                                                <h6 class="fw-bold {{ $isFilledL34 ? 'text-info' : 'text-danger' }} mb-1">
+                                                    {{ $isFilledL34 ? 'Evaluasi Dampak Selesai' : 'Waktunya Mengisi Evaluasi Dampak' }}
+                                                </h6>
+                                                <p class="small mb-0">Pengisian penilaian perubahan perilaku dan hasil pelatihan.</p>
+                                            </div>
+                                            
+                                            @if($isFilledL34)
+                                                <div class="text-center">
+                                                    <span class="badge bg-info d-block mb-2">Selesai</span>
+                                                    <i class="bx bxs-badge-check text-info h2 mb-0"></i>
+                                                </div>
+                                            @else
+                                                <a href="{{ route('public.l34.form', [$training->id, 'mandiri']) }}" class="btn btn-danger shadow-sm">
+                                                    <i class="bx bx-edit me-1"></i> Isi Evaluasi Sekarang
+                                                </a>
+                                            @endif
+                                        </div>
                                     </div>
                                 @else
-                                    <div class="bg-light p-4 rounded text-muted border border-dashed">
+                                    {{-- Belum waktunya --}}
+                                    <div class="bg-light p-4 rounded text-muted border border-dashed text-center">
                                         <i class="bx bx-lock-alt h2 d-block mb-2"></i>
-                                        <p class="mb-0">Kuesioner Dampak belum tersedia saat ini.</p>
-                                        <small>Akan dibuka pada: <strong>{{ $training->tgl_sebar_l34->translatedFormat('d F Y') }}</strong></small>
+                                        <p class="mb-0">Kuesioner Dampak (L3 & L4) belum tersedia.</p>
+                                        <small>Akan dibuka otomatis pada: <strong>{{ $training->tgl_sebar_l34->translatedFormat('d F Y') }}</strong></small>
                                     </div>
                                 @endif
                             </div>

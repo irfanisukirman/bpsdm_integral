@@ -13,14 +13,16 @@ class Participant extends Model
         'user_id', 
         'nip_nik', 
         'name', 
-        'gender', 
+        'gender',
+        'phone', 
         'jabatan', 
         'instansi',
         'provinsi', 
         'kabupaten_kota', 
         'status_kepegawaian',
-        'biodata_file_id',    // TAMBAHKAN INI
-        'surat_tugas_file_id' // TAMBAHKAN INI
+        'biodata_file_id',
+        'pas_foto_file_id',   
+        'surat_tugas_file_id' 
     ];
 
     /**
@@ -36,9 +38,12 @@ class Participant extends Model
     /**
      * Menghitung rata-rata skor Level 4 (Dampak)
      */
-    public function hasFilledL1()
+    public function hasFilledL1($formId, $scheduleId = null)
     {
-        return \App\Models\EvaluationResultL1::where('participant_id', $this->id)->exists();
+        return \App\Models\EvaluationResultL1::where('participant_id', $this->id)
+            ->where('training_id', $this->training_id)
+            ->where('schedule_id', $scheduleId)
+            ->exists();
     }
 
     public function training()
@@ -61,10 +66,10 @@ class Participant extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    public function hasFilledL34($role)
+    public function hasFilledL34Mandiri()
     {
         return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->where('evaluator_role', $role)
+            ->where('evaluator_role', 'mandiri')
             ->exists();
     }
 

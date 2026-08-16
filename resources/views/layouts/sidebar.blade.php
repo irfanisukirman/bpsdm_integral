@@ -153,6 +153,15 @@
                 </a>
             </li>
 
+            @if(Auth::user()->role !== 'participant')
+            <li class="menu-item {{ request()->routeIs('alumni.index') ? 'active' : '' }}">
+                <a href="{{ route('alumni.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                    <div>Kelola Alumni Pelatihan</div>
+                </a>
+            </li>
+            @endif
+
 
             <!-- 6. PENGATURAN (SUPERADMIN ONLY) -->
             @if(Auth::check() && Auth::user()->role == 'superadmin')

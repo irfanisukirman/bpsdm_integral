@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon; 
 use App\Models\Folder; 
 use App\Helpers\LogHelper;
+use App\Exports\ParticipantTemplateExport;
 
 
 class TrainingController extends Controller
@@ -94,6 +95,7 @@ class TrainingController extends Controller
             'nip_nik' => 'required|string|unique:participants,nip_nik,NULL,id,training_id,' . $id,
             'name' => 'required|string|max:255',
             'gender' => 'required',
+            'phone' => 'required|string|max:20',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
@@ -116,14 +118,25 @@ class TrainingController extends Controller
         return redirect()->back()->with('success', 'Peserta berhasil ditambahkan.');
     }
 
-    public function showParticipants($id)
+    public function showParticipants(Request $request, $id)
     {
         $training = Training::findOrFail($id);
         
-        // Ambil peserta yang terhubung dengan pelatihan ini saja
-        $participants = Participant::where('training_id', $id)->get();
+        // Tangkap input search dari URL (?search=...)
+        $search = $request->query('search');
+
+        // Ambil peserta yang terhubung dengan pelatihan ini dengan filter pencarian
+        $participants = \App\Models\Participant::where('training_id', $id)
+            ->when($search, function($query) use ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'LIKE', "%$search%")
+                    ->orWhere('nip_nik', 'LIKE', "%$search%")
+                    ->orWhere('instansi', 'LIKE', "%$search%");
+                });
+            })
+            ->get();
         
-        return view('trainings.participants', compact('training', 'participants'));
+        return view('trainings.participants', compact('training', 'participants', 'search'));
     }
 
     public function updateParticipant(Request $request, $id)
@@ -134,6 +147,7 @@ class TrainingController extends Controller
             'nip_nik' => 'required|string|unique:participants,nip_nik,' . $id . ',id,training_id,' . $participant->training_id,
             'name' => 'required|string|max:255',
             'gender' => 'required',
+            'phone' => 'required|string|max:20',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
@@ -145,6 +159,7 @@ class TrainingController extends Controller
             'nip_nik'            => ltrim($request->nip_nik, "'"),
             'name'               => $request->name,
             'gender'             => $request->gender,
+            'phone'              => $request->phone,
             'jabatan'            => $request->jabatan,
             'instansi'           => $request->instansi,
             'provinsi'           => $request->provinsi,
@@ -182,18 +197,10 @@ class TrainingController extends Controller
 
     public function downloadTemplate()
     {
-        // Header yang akan muncul di Excel
-         $header = [
-            ['nip_nik', 'nama_lengkap', 'gender', 'jabatan', 'instansi', 'provinsi', 'kabupaten_kota', 'status_kepegawaian'],
-            ["'19950101...", "Contoh Nama", "Laki-Laki", "Analis", "BPSDM", "Jawa Barat", "Bandung", "PNS"]
-        ];
-
-        // Menggunakan anonymous class untuk membuat file excel tanpa file fisik
-        return Excel::download(new class($header) implements FromArray {
-            private $data;
-            public function __construct($data) { $this->data = $data; }
-            public function array(): array { return $this->data; }
-        }, 'template_import_peserta.xlsx');
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new ParticipantTemplateExport(), 
+            'template_peserta_integral.xlsx'
+        );
     }
     /**
      * MENYIMPAN JADWAL BARU (Fungsi yang hilang)
@@ -360,5 +367,16 @@ class TrainingController extends Controller
         $training->update(['link_lms' => $request->link_lms]);
 
         return redirect()->back()->with('success', 'Link LMS berhasil diperbarui.');
+    }
+
+    public function manage($id)
+    {
+        // Eager load data untuk menghindari query berulang
+        $training = Training::withCount('participants')->with(['schedules'])->findOrFail($id);
+        
+        // Ambil data evaluasi L1 untuk pengecekan status di Hub jika diperlukan
+        $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
+
+        return view('trainings.manage', compact('training', 'formsL1'));
     }
 }

@@ -6,7 +6,7 @@ use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EvaluationLevel1Controller;
 use App\Http\Controllers\EvaluationLevel2Controller;
-use App\Http\Controllers\EvaluationLevel34Controller; // Pastikan ini ada
+use App\Http\Controllers\EvaluationLevel34Controller;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringIndicatorController;
 use App\Http\Controllers\DashboardController;
@@ -20,13 +20,18 @@ use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AlumniController;
 
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES (Akses Tanpa Login - Untuk Peserta, Narasumber, Atasan)
 |--------------------------------------------------------------------------
 */
-Auth::routes(['register' => false]);
+
+Route::get('/', function () {
+    return view('welcome');
+})->name('landing'); 
+
 Route::get('/search', [SearchController::class, 'index'])->name('global.search');
 
 Route::get('auth/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('auth.google');
@@ -57,6 +62,8 @@ Route::post('absen/harian/{training_id}/{date}', [AttendanceController::class, '
 | AUTHENTICATED ROUTES (Hanya untuk Admin & Superadmin)
 |--------------------------------------------------------------------------
 */
+
+Auth::routes(['register' => false]);
 
 Route::middleware(['auth'])->group(function () {
     
@@ -99,6 +106,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-l34', [EvaluationLevel34Controller::class, 'exportExcel'])->name('evall34.export');
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
+    Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');
     Route::delete('participants/{id}', [TrainingController::class, 'destroyParticipant'])->name('participants.destroy');
@@ -182,6 +190,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/complete-profile', [ParticipantController::class, 'completeProfile'])->name('participant.profile.complete');
     Route::post('/complete-profile', [ParticipantController::class, 'storeProfile'])->name('participant.profile.store');
 
+    //Kelola Alumni
+    Route::get('alumni-statistics/export', [AlumniController::class, 'exportExcel'])->name('alumni.export');
+    Route::get('alumni', [AlumniController::class, 'index'])->name('alumni.index');
+
+        
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
     Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
@@ -206,11 +219,11 @@ Route::middleware(['auth'])->group(function () {
 | AUTHENTICATION SYSTEM
 |--------------------------------------------------------------------------
 */
-// Redirect default Laravel
-Route::get('/home', function() {
-    return redirect()->route('dashboard');
-});
 Route::get('/logout', function () {
     Auth::logout();
-    return redirect('/login');
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    
+    // Ubah dari redirect('/login') menjadi redirect('/')
+    return redirect('/')->with('success', 'Anda telah berhasil keluar.');
 });

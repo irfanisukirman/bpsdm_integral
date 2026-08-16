@@ -17,12 +17,32 @@ class UserController extends Controller
         'Bidang Pengembangan Kompetensi Manajerial'
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        // Menampilkan SEMUA user (Superadmin & Admin Bidang)
-        $users = User::latest()->get();
-        $listBidang = self::$listBidang;
-        return view('users.index', compact('users', 'listBidang'));
+        $search = $request->query('search');
+
+        // Ambil data user dengan filter pencarian
+        $users = \App\Models\User::latest()
+            ->when($search, function($query) use ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'LIKE', "%$search%")
+                    ->orWhere('username', 'LIKE', "%$search%")
+                    ->orWhere('nip_nik', 'LIKE', "%$search%")
+                    ->orWhere('bidang', 'LIKE', "%$search%")
+                    ->orWhere('role', 'LIKE', "%$search%");
+                });
+            })
+            ->get();
+
+        // List bidang tetap dikirim untuk kebutuhan modal tambah/edit
+        $listBidang = [
+            'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan',
+            'Bidang Pengembangan Kompetensi Teknis Inti',
+            'Bidang Pengembangan Kompetensi Teknis Umum',
+            'Bidang Pengembangan Kompetensi Manajerial'
+        ];
+
+        return view('users.index', compact('users', 'listBidang', 'search'));
     }
 
     public function store(Request $request)
@@ -62,5 +82,24 @@ class UserController extends Controller
     {
         $user->update(['password' => Hash::make('password123')]);
         return redirect()->back()->with('success', "Password direset ke: password123");
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'role' => 'required|in:superadmin,admin_bidang,participant',
+            'whatsapp' => 'required|numeric',
+            'bidang' => 'required',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'role' => $request->role,
+            'whatsapp' => $request->whatsapp,
+            'bidang' => $request->bidang,
+        ]);
+
+        return redirect()->back()->with('success', 'Data user ' . $user->name . ' berhasil diperbarui.');
     }
 }

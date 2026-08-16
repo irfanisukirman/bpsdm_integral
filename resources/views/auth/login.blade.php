@@ -3,114 +3,174 @@
 @section('content')
 <div class="authentication-wrapper authentication-basic container-p-y">
     <div class="authentication-inner">
-        <!-- Register Card -->
-        <div class="card shadow-lg border-0">
-            <div class="card-body">
-                <!-- Logo -->
+        <!-- Login Card -->
+        <div class="card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px;">
+            <div class="card-body p-4 p-md-5">
+                <!-- Branding Logo -->
                 <div class="app-brand justify-content-center mb-4">
                     <a href="/" class="app-brand-link gap-2">
                         <span class="app-brand-logo demo">
-                            <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 50px;">
+                            <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 60px; filter: drop-shadow(0px 4px 10px rgba(105, 108, 255, 0.3));">
                         </span>
-                        <span class="app-brand-text demo text-body fw-bolder text-uppercase" style="font-size: 1.5rem; letter-spacing: 1px;">INTEGRAL</span>
                     </a>
                 </div>
-                <!-- /Logo -->
+                <div class="text-center mb-4">
+                    <h4 class="mb-1 fw-bold text-dark" style="letter-spacing: -0.5px;">Integral <span class="text-primary">Technology</span></h4>
+                    <p class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 1px;">Sistem Pengelolaan Terintegrasi</p>
+                </div>
                 
-                <h4 class="mb-2 fw-bold text-center">Selamat Datang! 👋</h4>
-                <p class="mb-4 text-center text-muted">Silakan masuk untuk mengakses sistem pelatihan Anda.</p>
-
-                {{-- Alert Error jika gagal --}}
+                {{-- Alert Error --}}
                 @if(session('error'))
-                    <div class="alert alert-danger border-0 small py-2 mb-3">
-                        <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
+                    <div class="alert alert-danger border-0 small d-flex align-items-center animate__animated animate__shakeX" role="alert">
+                        <i class="bx bx-error-circle me-2"></i>
+                        <div>{{ session('error') }}</div>
                     </div>
                 @endif
 
                 <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username / NIP</label>
-                        <input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Masukkan username" autofocus value="{{ old('username') }}" />
+                        <label for="username" class="form-label fw-bold">Username / NIP</label>
+                        <div class="input-group input-group-merge">
+                            <span class="input-group-text"><i class="bx bx-user"></i></span>
+                            <input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Masukkan ID Anda" autofocus value="{{ old('username') }}" style="border-left: none;" />
+                        </div>
                         @error('username')
-                            <span class="invalid-feedback">{{ $message }}</span>
+                            <small class="text-danger mt-1 d-block">{{ $message }}</small>
                         @enderror
                     </div>
+
                     <div class="mb-3 form-password-toggle">
                         <div class="d-flex justify-content-between">
-                            <label class="form-label" for="password">Password</label>
+                            <label class="form-label fw-bold" for="password">Password</label>
                             <a href="#">
-                                <small>Lupa Password?</small>
+                                <small class="text-primary fw-semibold">Lupa Password?</small>
                             </a>
                         </div>
-                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="••••••••" />
+                        <div class="input-group input-group-merge">
+                            <span class="input-group-text"><i class="bx bx-lock-alt"></i></span>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="••••••••" style="border-left: none; border-right: none;" />
+                            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                        </div>
                         @error('password')
-                            <span class="invalid-feedback">{{ $message }}</span>
+                            <small class="text-danger mt-1 d-block">{{ $message }}</small>
                         @enderror
                     </div>
-                    <div class="mb-3">
-                        <button class="btn btn-primary d-grid w-100 shadow-sm py-2" type="submit">Sign in</button>
+
+                    <div class="mb-4">
+                        <button class="btn btn-primary d-grid w-100 py-2 fw-bold shadow-sm btn-login" type="submit">
+                            MASUK KE SISTEM
+                        </button>
                     </div>
                 </form>
 
-                {{-- DIVIDER --}}
                 <div class="divider my-4">
-                    <div class="divider-text text-muted">Atau login melalui</div>
+                    <div class="divider-text text-muted small uppercase">Atau akses cepat</div>
                 </div>
 
-                {{-- TOMBOL GOOGLE --}}
+                {{-- TOMBOL GOOGLE MODERN --}}
                 <div class="d-flex justify-content-center">
-                    <a href="{{ route('auth.google') }}" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center py-2 google-btn">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width: 18px;" class="me-2">
-                        <span class="fw-semibold">Google Account</span>
+                    <a href="{{ route('auth.google') }}" class="btn btn-outline-white w-100 d-flex align-items-center justify-content-center py-2 google-btn">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width: 20px;" class="me-2">
+                        <span class="fw-bold text-dark">Google Account</span>
                     </a>
                 </div>
 
-                <p class="text-center mt-4 mb-0">
-                    <small class="text-muted">Sim-Pel &copy; {{ date('Y') }}</small>
-                </p>
+                <div class="text-center mt-5">
+                    <p class="mb-0 small text-muted">
+                        BPSDM Provinsi Jawa Barat &copy; {{ date('Y') }}
+                    </p>
+                    <small class="fw-bold text-primary" style="font-size: 10px; letter-spacing: 2px;">INTEGRAL TECH</small>
+                </div>
             </div>
         </div>
-        <!-- /Register Card -->
     </div>
 </div>
 
+<!-- Background Elements -->
+<div class="bg-shape-1"></div>
+<div class="bg-shape-2"></div>
+
 <style>
     body {
-        background: linear-gradient(135deg, #696cff 0%, #43459d 100%);
+        background-color: #f4f7ff;
+        background-image: radial-gradient(#696cff 0.5px, transparent 0.5px);
+        background-size: 30px 30px;
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
     }
-    .authentication-wrapper.authentication-basic .authentication-inner {
-        max-width: 420px;
+
+    /* Dekorasi Lingkaran di Background */
+    .bg-shape-1 {
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: linear-gradient(135deg, rgba(105, 108, 255, 0.2) 0%, rgba(105, 108, 255, 0) 100%);
+        border-radius: 50%;
+        z-index: -1;
     }
-    .card {
-        border-radius: 15px;
+
+    .bg-shape-2 {
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, rgba(3, 195, 236, 0.15) 0%, rgba(3, 195, 236, 0) 100%);
+        border-radius: 50%;
+        z-index: -1;
     }
-    .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
+
+    .authentication-inner {
+        max-width: 450px !important;
+        position: relative;
+        z-index: 10;
     }
-    .divider::before, .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #d9dee3;
-    }
-    .divider:not(:empty)::before {
-        margin-right: .5rem;
-    }
-    .divider:not(:empty)::after {
-        margin-left: .5rem;
-    }
-    .google-btn {
-        transition: all 0.2s;
+
+    /* Input Focus Styling */
+    .input-group-text {
+        background-color: #fcfcff;
         border-color: #d9dee3;
+        color: #696cff;
+    }
+    .form-control:focus, .form-control:focus + .input-group-text {
+        border-color: #696cff !important;
+    }
+
+    /* Button Login Animation */
+    .btn-login {
+        background: linear-gradient(45deg, #696cff, #43459d);
+        border: none;
+        transition: all 0.3s;
+    }
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(105, 108, 255, 0.3) !important;
+    }
+
+    /* Google Button */
+    .google-btn {
+        border: 1px solid #d9dee3;
+        background: white;
+        transition: all 0.2s;
     }
     .google-btn:hover {
         background-color: #f8f9fa !important;
         border-color: #696cff !important;
-        color: #696cff !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        transform: scale(1.02);
+    }
+
+    /* Divider */
+    .divider-text {
+        background-color: transparent !important;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    .divider::before, .divider::after {
+        border-color: #d9dee3 !important;
     }
 </style>
 @endsection
