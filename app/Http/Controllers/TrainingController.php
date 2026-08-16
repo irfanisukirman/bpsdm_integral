@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use App\Models\Folder; 
 use App\Helpers\LogHelper;
 use App\Exports\ParticipantTemplateExport;
+use App\Exports\ParticipantExport;
 
 
 class TrainingController extends Controller
@@ -243,11 +244,23 @@ class TrainingController extends Controller
         $schedules = $training->schedules()->orderBy('date')->orderBy('start_time')->get();
 
         $pdf = Pdf::loadView('trainings.pdf_schedule', compact('training', 'schedules'));
-        
-        // Set format kertas landscape agar muat banyak kolom
         $pdf->setPaper('a4', 'landscape');
 
-        return $pdf->download('Jadwal-Pelatihan-'.$training->id.'.pdf');
+        // --- PROSES AUTO ARCHIVE ---
+        $fileName = "JADWAL_PELATIHAN_" . str_replace(' ', '_', $training->nama_pelatihan) . ".pdf";
+        $fileContent = $pdf->output(); // Ambil string binary PDF
+
+        \App\Http\Controllers\DocumentController::archiveInternal(
+            $training->id, 
+            'JADWAL PELATIHAN', 
+            $fileName, 
+            $fileContent, 
+            'pdf'
+        );
+
+        return response()->streamDownload(function() use($fileContent) {
+            echo $fileContent;
+        }, $fileName);
     }
 
     public function edit($id)
@@ -320,17 +333,19 @@ class TrainingController extends Controller
 
         return redirect()->route('trainings.index')->with('success', 'Pelatihan berhasil dihapus dari sistem.');
     }
+
     public function exportEvaluation($id)
     {
         $training = Training::findOrFail($id);
-        
-        // Nama file yang rapi
-        $fileName = 'Hasil_Evaluasi_L1_L2_' . time() . '.xlsx';
+        $export = new \App\Exports\TrainingEvaluationExport($training);
+        $fileName = 'HASIL_EVALUASI_L1_L2_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\TrainingEvaluationExport($training), 
-            $fileName
-        );
+        // --- PROSES AUTO ARCHIVE ---
+        $fileContent = \Maatwebsite\Excel\Facades\Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'HASIL EVALUASI L1 L2', $fileName, $fileContent, 'xlsx');
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
     }
 
     public function updateSchedule(Request $request, $id)
@@ -378,5 +393,20 @@ class TrainingController extends Controller
         $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
 
         return view('trainings.manage', compact('training', 'formsL1'));
+    }
+
+    public function exportParticipants($id)
+    {
+        $training = Training::findOrFail($id);
+        $export = new ParticipantExport($id);
+        $fileName = 'DATA_PESERTA_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
+
+        // --- PROSES AUTO ARCHIVE ---
+        $fileContent = Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+        \App\Http\Controllers\DocumentController::archiveInternal($id, 'DATA PESERTA PELATIHAN', $fileName, $fileContent, 'xlsx');
+
+        return response()->streamDownload(function() use($fileContent) {
+            echo $fileContent;
+        }, $fileName);
     }
 }

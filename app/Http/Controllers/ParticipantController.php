@@ -236,4 +236,5 @@ class ParticipantController extends Controller
 
         return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
+    
 }

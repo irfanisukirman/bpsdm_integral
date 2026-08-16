@@ -9,8 +9,8 @@
             <span class="text-muted fw-light">Evaluasi /</span> Level 3 & 4: Perilaku & Dampak
         </h4>
         <div class="d-flex gap-2">
-            <a href="{{ route('evaluasi.l34') }}" class="btn btn-outline-secondary">
-                <i class="bx bx-arrow-back me-1"></i> Kembali
+            <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
             <div class="btn-group">
                 <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

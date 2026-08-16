@@ -20,8 +20,27 @@
                         </div>
                     </div>
                     <div class="col-sm-5 text-center text-sm-left">
-                        <div class="card-body pb-0 px-0 px-md-4">
-                            <img src="{{ $user->avatar ?? asset('assets/img/illustrations/man-with-laptop-light.png') }}" height="140" alt="Avatar" class="rounded-circle mb-3 shadow" />
+                        <div class="card-body pb-0 px-0 px-md-4 text-center">
+                            {{-- LOGIKA FOTO PROFIL SINKRON --}}
+                            <div class="mb-3">
+                                @if($user->profile_photo)
+                                    {{-- Jika ada foto yang diunggah manual --}}
+                                    <img src="{{ asset('storage/' . $user->profile_photo) }}" 
+                                         alt="Avatar" 
+                                         class="rounded-circle shadow-lg border border-3 border-white" 
+                                         style="width: 120px; height: 120px; object-fit: cover;" />
+                                @elseif($user->avatar)
+                                    {{-- Jika tidak ada unggahan manual, gunakan avatar Google --}}
+                                    <img src="{{ $user->avatar }}" 
+                                         alt="Avatar" 
+                                         class="rounded-circle shadow-lg border border-3 border-white" 
+                                         style="width: 120px; height: 120px; object-fit: cover;" />
+                                @else
+                                    {{-- Jika tidak ada keduanya, gunakan ilustrasi default Sneat --}}
+                                    <img src="{{ asset('assets/img/illustrations/man-with-laptop-light.png') }}" 
+                                         height="140" alt="Default Illustration" />
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -46,7 +65,7 @@
                     @php
                         $target = 20;
                         $percent = ($myJpThisYear / $target) * 100;
-                        if($percent > 100) $percent = 100; // Cap di 100% untuk visual
+                        if($percent > 100) $percent = 100; 
                     @endphp
 
                     <div class="mt-4">
@@ -112,6 +131,10 @@
     .hover-shadow:hover { 
         transform: translateY(-5px); 
         box-shadow: 0 10px 20px rgba(105, 108, 255, 0.1) !important;
+    }
+    /* Mencegah gambar lonjong jika aspek rasio tidak 1:1 */
+    .rounded-circle {
+        object-fit: cover;
     }
 </style>
 @endsection

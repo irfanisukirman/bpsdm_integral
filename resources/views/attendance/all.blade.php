@@ -6,6 +6,9 @@
 <h4 class="fw-bold py-3 mb-4">
     <span class="text-muted fw-light">Pelaksanaan /</span> Daftar Kehadiran Pelatihan
 </h4>
+<a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+    <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
+</a>
 
 <div class="card">
     <h5 class="card-header">Pilih Pelatihan untuk Kelola Absensi</h5>

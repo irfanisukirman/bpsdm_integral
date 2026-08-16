@@ -127,13 +127,13 @@ class MonitoringController extends Controller
     public function exportLaporan($id, Request $request)
     {
         $training = Training::with(['stages', 'summaries'])->findOrFail($id);
-        $stage_id = $request->query('stage_id'); // Kita ambil stage mana yang mau didownload
+        $stage_id = $request->query('stage_id'); 
         
         $stage = $training->stages->where('id', $stage_id)->first();
         $metode = $stage ? $stage->metode : $training->metode;
         $nama_tahapan = $stage ? $stage->nama_tahapan : 'Utama';
 
-        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
+        $templateProcessor = new TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
 
         // 1. Data Global
         $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
@@ -160,16 +160,32 @@ class MonitoringController extends Controller
             if ($manualEntry && !empty($manualEntry->conclusion)) {
                 $text = $manualEntry->conclusion;
             } else {
-                // Gunakan template standar jika kosong
                 $text = $this->getFallbackConclusion($dbCategory, $metode, $training->nama_pelatihan);
             }
-
             $templateProcessor->setValue($wordPlaceholder, $text);
         }
 
-        $fileName = "Laporan_Monitoring_" . str_replace(' ', '_', $training->nama_pelatihan) . "_$nama_tahapan.docx";
-        return response()->streamDownload(function() use($templateProcessor) {
-            $templateProcessor->saveAs('php://output');
+        // --- PROSES AUTO ARCHIVE ---
+        $fileName = "LAPORAN_MONITORING_" . str_replace(' ', '_', $training->nama_pelatihan) . "_$nama_tahapan.docx";
+        
+        // Simpan ke temp untuk ambil content
+        $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+        $templateProcessor->saveAs($tempFile);
+        $fileContent = file_get_contents($tempFile);
+
+        // Panggil fungsi arsip di DocumentController
+        \App\Http\Controllers\DocumentController::archiveInternal(
+            $training->id, 
+            'LAPORAN MONITORING', 
+            $fileName, 
+            $fileContent, 
+            'docx'
+        );
+
+        unlink($tempFile); // Hapus file temp
+
+        return response()->streamDownload(function() use($fileContent) {
+            echo $fileContent;
         }, $fileName);
     }
 
@@ -264,24 +280,34 @@ class MonitoringController extends Controller
         }
 
         // Simpan dan Download
-        $filename = "Laporan_Tindak_Lanjut_" . str_replace(' ', '_', $training->nama_pelatihan) . ".docx";
-        
-        return response()->streamDownload(function() use($templateProcessor) {
-            $templateProcessor->saveAs('php://output');
-        }, $filename);
+        $fileName = "LAPORAN_TINDAK_LANJUT_" . str_replace(' ', '_', $training->nama_pelatihan) . ".docx";
+        $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+        $templateProcessor->saveAs($tempFile);
+        $fileContent = file_get_contents($tempFile);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'LAPORAN TINDAK LANJUT', $fileName, $fileContent, 'docx');
+        unlink($tempFile);
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
     }
 
     public function exportCeklis($id)
     {
-        // Eager load data
-        $training = Training::with(['stages', 'monitoringResults', 'summaries'])->findOrFail($id);
+        $training = Training::with(['stages', 'monitoringResults.question', 'summaries'])->findOrFail($id);
+        
+        // Ambil data pendukung untuk export
+        $questions = \App\Models\Question::where('category', 'LIKE', 'Monitoring%')->orderBy('category')->get()->groupBy('category');
+        $stages = $training->model == 'standar' ? [(object)['id' => null, 'nama_tahapan' => 'Pelatihan', 'metode' => $training->metode, 'tgl_mulai' => $training->tgl_mulai, 'tgl_selesai' => $training->tgl_selesai]] : $training->stages;
 
-        $fileName = 'Rekap_Monitoring_' . $training->id . '.xlsx';
+        $export = new MonitoringCeklisExport($training, $questions, $stages);
+        $fileName = 'CEKLIS_MONITORING_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\MonitoringCeklisExport($training), 
-            $fileName
-        );
+        // --- PROSES AUTO ARCHIVE ---
+        $fileContent = Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+
+        \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'CEKLIS MONITORING', $fileName, $fileContent, 'xlsx');
+
+        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
     }
 
     private function getFallbackConclusion($category, $metode, $namaPelatihan)

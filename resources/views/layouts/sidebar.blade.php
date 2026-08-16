@@ -1,12 +1,14 @@
-<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme shadow-sm">
     <!-- Logo & Brand -->
-    <div class="app-brand demo">
+    <div class="app-brand demo" style="height: 75px;">
         <a href="{{ route('dashboard') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
-                {{-- LOGO INTEGRAL BARU --}}
-                <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Integral Logo" style="width: 35px;">
+                {{-- LOGO INTEGRAL --}}
+                <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" 
+                     alt="Integral Logo" 
+                     style="width: 32px; filter: drop-shadow(0px 2px 4px rgba(105, 108, 255, 0.3));">
             </span>
-            <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase">Integral</span>
+            <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="letter-spacing: 1px; font-size: 1.25rem;">Integral</span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
@@ -16,19 +18,20 @@
 
     <div class="menu-inner-shadow"></div>
 
-    <ul class="menu-inner py-1">
+    <ul class="menu-inner py-3">
+        {{-- MENU UNTUK ADMIN & SUPERADMIN --}}
         @if(Auth::user()->role !== 'participant')
             <li class="menu-item {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}">
                 <a href="{{ route('dashboard') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                    <div>Dashboard Admin</div>
+                    <div class="fw-bold">Dashboard Admin</div>
                 </a>
             </li>
 
-            <!-- 2. MANAJEMEN PELATIHAN (DATA INDUK) -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Manajemen Pelatihan</span>
             </li>
+            
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
                 <a href="{{ route('trainings.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-collection"></i>
@@ -36,7 +39,10 @@
                 </a>
             </li>
 
-            <!-- 3. BANK INSTRUMEN (SOAL & INDIKATOR) -->
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Kelola Instrumen</span>
+            </li>
+
             <li class="menu-item {{ request()->is('monitoring-indicators*') || request()->is('questions*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-book-content"></i>
@@ -56,96 +62,10 @@
                 </ul>
             </li>
 
-            <!-- 4. PELAKSANAAN (OPERASIONAL) -->
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Pelaksanaan Pelatihan</span>
-            </li>
-            <li class="menu-item {{ request()->is('*attendance*') ? 'active' : '' }}">
-                <a href="{{ route('attendance.all') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-user-check"></i>
-                    <div>Kehadiran Peserta</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->is('*monitoring*') && !request()->is('*indicators*') ? 'active' : '' }}">
-                <a href="{{ route('monitoring.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-desktop"></i>
-                    <div>Monitoring Tahapan</div>
-                </a>
+                <span class="menu-header-text">Kelola Dokumen</span>
             </li>
 
-            <!-- 5. EVALUASI & DAMPAK -->
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Evaluasi & Dampak</span>
-            </li>
-            
-            <!-- Tindak Lanjut dengan Notifikasi -->
-            @php
-                $countFollowUp = \App\Models\MonitoringResult::where('answer', 'tidak')
-                    ->where('is_resolved', false)
-                    ->when(Auth::user()->role !== 'superadmin', function($q) {
-                        return $q->where('follow_up_target', Auth::user()->bidang);
-                    })->count();
-            @endphp
-            <li class="menu-item {{ request()->is('follow-up*') ? 'active' : '' }}">
-                <a href="{{ route('followup.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-error-alt"></i>
-                    <div class="d-flex justify-content-between w-100">
-                        <div>Tindak Lanjut</div>
-                        @if($countFollowUp > 0)
-                            <span class="badge badge-center rounded-pill bg-danger animate__animated animate__heartBeat animate__infinite" style="width: 18px; height: 18px; font-size: 9px;">
-                                {{ $countFollowUp }}
-                            </span>
-                        @endif
-                    </div>
-                </a>
-            </li>
-
-            <!-- Dropdown Kirkpatrick -->
-            <li class="menu-item {{ request()->is('*evaluasi/l1*') || request()->is('*evaluasi/l2*') || request()->is('*evaluasi/l34*') ? 'active open' : '' }}">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
-                    <div>Evaluasi Kirkpatrick</div>
-                </a>
-                <ul class="menu-sub">
-                    <li class="menu-item {{ request()->is('*evaluasi/l1*') ? 'active' : '' }}">
-                        <a href="{{ route('evaluasi.l1') }}" class="menu-link"><div>Level 1: Reaksi</div></a>
-                    </li>
-                    <li class="menu-item {{ request()->is('*evaluasi/l2*') ? 'active' : '' }}">
-                        <a href="{{ route('evaluasi.l2') }}" class="menu-link"><div>Level 2: Learning</div></a>
-                    </li>
-                    <li class="menu-item {{ request()->is('*evaluasi/l34*') ? 'active' : '' }}">
-                        <a href="{{ route('evaluasi.l34') }}" class="menu-link"><div>Level 3 & 4: Dampak</div></a>
-                    </li>
-                </ul>
-            </li>
-        
-            @php
-                // Hitung berapa pelatihan yang sisa harinya <= 0 (Sudah harus sebar)
-                $allTrainings = \App\Models\Training::all();
-                if (Auth::user()->role !== 'superadmin') {
-                    $allTrainings = $allTrainings->where('bidang', Auth::user()->bidang);
-                }
-
-                $countReadyToDistribute = 0;
-                foreach($allTrainings as $tr) {
-                    if($tr->sisa_hari_sebar <= 0) {
-                        $countReadyToDistribute++;
-                    }
-                }
-            @endphp
-            <li class="menu-item {{ request()->is('*control-l34*') ? 'active' : '' }}">
-                <a href="{{ route('control_l34.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-stopwatch"></i>
-                    <div class="d-flex justify-content-between w-100">
-                        <div>Kontrol Evaluasi Pasca</div>
-                        @if($countReadyToDistribute > 0)
-                            <span class="badge badge-center rounded-pill bg-danger animate__animated animate__heartBeat animate__infinite" style="width: 20px; height: 20px; font-size: 10px;">
-                                {{ $countReadyToDistribute }}
-                            </span>
-                        @endif
-                    </div>
-                </a>
-            </li>
             <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
                 <a href="{{ route('documents.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-folder"></i>
@@ -153,17 +73,17 @@
                 </a>
             </li>
 
-            @if(Auth::user()->role !== 'participant')
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Manajemen Alumni</span>
+            </li>
+
             <li class="menu-item {{ request()->routeIs('alumni.index') ? 'active' : '' }}">
                 <a href="{{ route('alumni.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-user-pin"></i>
-                    <div>Kelola Alumni Pelatihan</div>
+                    <div>Kelola Alumni</div>
                 </a>
             </li>
-            @endif
 
-
-            <!-- 6. PENGATURAN (SUPERADMIN ONLY) -->
             @if(Auth::check() && Auth::user()->role == 'superadmin')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan Sistem</span>
@@ -175,47 +95,87 @@
                 </a>
             </li>
             @endif
-
-            @if(Auth::user()->role == 'superadmin')
-                <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring Sistem</span></li>
-                <li class="menu-item {{ request()->is('activity-logs*') ? 'active' : '' }}">
-                    <a href="#" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-history"></i>
-                        <div>Log Aktivitas Admin</div>
-                    </a>
-                </li>
-            @endif
         @endif
 
+        {{-- MENU KHUSUS PESERTA --}}
         @if(Auth::user()->role === 'participant')
-            {{-- Dashboard Peserta --}}
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}">
                 <a href="{{ route('participant.dashboard') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-home-alt"></i>
-                    <div data-i18n="Dashboard">Dashboard Saya</div>
+                    <div class="fw-bold">Dashboard Saya</div>
                 </a>
             </li>
 
-            {{-- Header Menu --}}
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Portal Peserta</span>
             </li>
 
-            {{-- Daftar Pelatihan --}}
             <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
                 <a href="{{ route('participant.trainings') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-list-ul"></i>
-                    <div data-i18n="Daftar Pelatihan">Daftar Pelatihan</div>
+                    <div>Daftar Pelatihan</div>
                 </a>
             </li>
 
-            {{-- Riwayat Pelatihan --}}
             <li class="menu-item {{ request()->routeIs('participant.history') ? 'active' : '' }}">
                 <a href="{{ route('participant.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
-                    <div data-i18n="Riwayat">Riwayat Pelatihan</div>
+                    <div>Riwayat Pelatihan</div>
                 </a>
             </li>
         @endif
     </ul>
 </aside>
+
+{{-- TAMBAHKAN CSS CUSTOM UNTUK INTERAKTIVITAS --}}
+@push('css')
+<style>
+    /* Transisi menu */
+    .menu-vertical .menu-item .menu-link {
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.375rem;
+        margin: 0.15rem 1rem;
+        padding-left: 1rem;
+    }
+
+    /* Efek Hover: Bergeser sedikit ke kanan dan warna background soft */
+    .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover {
+        background-color: rgba(105, 108, 255, 0.08) !important;
+        transform: translateX(5px);
+        color: #696cff !important;
+    }
+
+    .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover i {
+        color: #696cff !important;
+        transform: scale(1.1);
+    }
+
+    /* Mempercantik Menu Header */
+    .menu-header {
+        margin: 1.5rem 0 0.5rem 0 !important;
+        padding-left: 1.5rem;
+    }
+
+    .menu-header-text {
+        color: #a1acb8 !important;
+        font-weight: 700 !important;
+        letter-spacing: 1px;
+    }
+
+    /* Badge Active Glow */
+    .menu-vertical .menu-item.active > .menu-link {
+        box-shadow: 0px 4px 8px rgba(105, 108, 255, 0.25);
+        background: linear-gradient(72.47deg, #696cff 22.16%, rgba(105, 108, 255, 0.7) 76.47%) !important;
+        color: #fff !important;
+    }
+
+    .menu-vertical .menu-item.active > .menu-link i {
+        color: #fff !important;
+    }
+
+    /* Animasi Buka Dropdown */
+    .menu-sub {
+        transition: all 0.3s ease-in-out;
+    }
+</style>
+@endpush

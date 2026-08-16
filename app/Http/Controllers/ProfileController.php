@@ -44,20 +44,24 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request)
     {
+        // Hanya validasi password baru dan konfirmasinya
         $request->validate([
-            'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed',
+        ], [
+            'new_password.required' => 'Password baru wajib diisi.',
+            'new_password.min' => 'Password minimal 8 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password tidak cocok.'
         ]);
 
-        $user = User::findOrFail(Auth::id());
+        $user = \App\Models\User::findOrFail(Auth::id());
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return redirect()->back()->with('error', 'Password lama tidak sesuai.');
-        }
-
-        $user->password = Hash::make($request->new_password);
+        // Langsung update tanpa cek password lama
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->back()->with('success', 'Password berhasil diubah.');
+        // Catat log aktivitas jika diperlukan
+        \App\Helpers\LogHelper::record('User', 'Mengubah password profil mandiri');
+
+        return redirect()->back()->with('success', 'Password berhasil diperbarui.');
     }
 }

@@ -9,8 +9,8 @@
         <h4 class="fw-bold py-3 mb-0">
             <span class="text-muted fw-light">Monitoring /</span> Isi Instrumen
         </h4>
-        <a href="{{ route('monitoring.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
+        <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
         </a>
     </div>
 

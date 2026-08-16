@@ -17,8 +17,8 @@
             <a href="{{ route('attendance.pdf.all', $training->id) }}" class="btn btn-danger">
                 <i class="bx bxs-file-pdf me-1"></i> Download PDF
             </a>
-            <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-                <i class="bx bx-arrow-back me-1"></i> Kembali
+            <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
         </div>
     </div>

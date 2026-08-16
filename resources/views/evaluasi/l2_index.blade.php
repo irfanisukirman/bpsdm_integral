@@ -6,8 +6,8 @@
         <span class="text-muted fw-light">Evaluasi /</span> Level 2: Learning ({{ $training->nama_pelatihan }})
     </h4>
     <div class="d-flex gap-2">
-        <a href="{{ route('evaluasi.l2') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali
+        <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
         </a>
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportL2">
             <i class="bx bx-upload me-1"></i> Import Nilai
