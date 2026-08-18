@@ -26,9 +26,15 @@
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
+                        {{-- LOGIKA FOTO PROFIL NAVBAR --}}
                         @if(auth()->user()->profile_photo)
-                            <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt class="w-px-40 h-auto rounded-circle" />
+                            {{-- Prioritas 1: Foto yang diunggah manual --}}
+                            <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover; aspect-ratio: 1/1;" />
+                        @elseif(auth()->user()->avatar)
+                            {{-- Prioritas 2: Avatar dari Google Login --}}
+                            <img src="{{ auth()->user()->avatar }}" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover; aspect-ratio: 1/1;" />
                         @else
+                            {{-- Fallback: Inisial Nama --}}
                             <span class="avatar-initial rounded-circle bg-label-primary">
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </span>
@@ -41,9 +47,16 @@
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                            {{ substr(auth()->user()->name, 0, 1) }}
-                                        </span>
+                                        {{-- LOGIKA FOTO PROFIL DI DALAM MENU --}}
+                                        @if(auth()->user()->profile_photo)
+                                            <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover; aspect-ratio: 1/1;" />
+                                        @elseif(auth()->user()->avatar)
+                                            <img src="{{ auth()->user()->avatar }}" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover; aspect-ratio: 1/1;" />
+                                        @else
+                                            <span class="avatar-initial rounded-circle bg-label-primary">
+                                                {{ substr(auth()->user()->name, 0, 1) }}
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -65,15 +78,14 @@
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
-                    <!-- TOMBOL LOGOUT UTAMA -->
+                    <!-- TOMBOL LOGOUT -->
                     <li>
                         <a class="dropdown-item text-danger" href="{{ route('logout') }}"
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class='bx bx-power-off me-2'></i>
                             <span class="align-middle">Log Out</span>
                         </a>
 
-                        {{-- Form Tersembunyi untuk Keamanan --}}
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                             @csrf
                         </form>
