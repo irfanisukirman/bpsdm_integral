@@ -9,16 +9,18 @@ class Participant extends Model
     protected $table = 'participants';
 
     protected $fillable = [
-        'training_id', 
-        'user_id', 
-        'nip_nik', 
-        'name', 
-        'gender', 
+        'training_id',
+        'user_id',
+        'nip_nik',
+        'name',
+        'gender',
         'phone',
-        'jabatan', 
+        'jabatan',
         'instansi',
-        'provinsi', 
-        'kabupaten_kota', 
+        'provinsi',
+        'kota',
+        'kecamatan',
+        'kelurahan',
         'status_kepegawaian',
         'biodata_file_id',
         'surat_tugas_file_id',
@@ -88,8 +90,9 @@ class Participant extends Model
             ->avg('score') ?? 0;
     }
 
-    public function alumniProfile() {
+    public function alumniProfile()
+    {
         return $this->hasOne(AlumniProfile::class);
     }
-    
+
 }

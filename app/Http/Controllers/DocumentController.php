@@ -30,12 +30,12 @@ class DocumentController extends Controller
                 ->select('bidang')
                 ->distinct()
                 ->get();
-            
+
             // Ambil Folder Global (yang dibuat superadmin di halaman depan)
             $globalFolders = Folder::where('bidang', 'Semua Bidang')
                 ->where('parent_id', null)
                 ->get();
-                
+
             return view('documents.index', compact('listBidang', 'globalFolders'));
         }
 
@@ -46,7 +46,7 @@ class DocumentController extends Controller
 
         // 3. QUERY DATA FOLDER (Bidang Terkait + Folder Global)
         $folders = Folder::where('parent_id', $parentId)
-            ->where(function($query) use ($currentBidang) {
+            ->where(function ($query) use ($currentBidang) {
                 $query->where('bidang', $currentBidang)
                     ->orWhere('bidang', 'Semua Bidang');
             })
@@ -56,7 +56,7 @@ class DocumentController extends Controller
 
         // 4. QUERY DATA FILE (Hanya dalam folder yang sedang dibuka)
         $files = $parentId ? File::where('folder_id', $parentId)->get() : collect();
-        
+
         // Data pendukung breadcrumb & navigasi
         $currentFolder = $parentId ? Folder::with('parent')->findOrFail($parentId) : null;
 
@@ -73,11 +73,18 @@ class DocumentController extends Controller
             'bidang' => 'required|string'
         ]);
 
+        // Cek status parent jika folder dibuat di dalam folder lain
+        $isPublic = false;
+        if ($request->parent_id) {
+            $parentFolder = Folder::find($request->parent_id);
+            $isPublic = $parentFolder ? $parentFolder->is_public : false;
+        }
+
         $folder = Folder::create([
-            'name'      => $request->name,
+            'name' => $request->name,
             'parent_id' => $request->parent_id ?: null,
-            'bidang'    => $request->bidang,    // 'Semua Bidang' atau nama bidang spesifik
-            'user_id'   => Auth::id(),
+            'bidang' => $request->bidang,    // 'Semua Bidang' atau nama bidang spesifik
+            'user_id' => Auth::id(),
             'is_public' => false
         ]);
 
@@ -100,14 +107,14 @@ class DocumentController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('documents', 'public');
-                
+
                 File::create([
-                    'folder_id'    => $request->folder_id,
+                    'folder_id' => $request->folder_id,
                     'display_name' => $file->getClientOriginalName(),
-                    'file_path'    => $path,
-                    'file_type'    => $file->getClientOriginalExtension(),
-                    'file_size'    => $file->getSize(),
-                    'user_id'      => Auth::id()
+                    'file_path' => $path,
+                    'file_type' => $file->getClientOriginalExtension(),
+                    'file_size' => $file->getSize(),
+                    'user_id' => Auth::id()
                 ]);
                 $uploadedCount++;
             }
@@ -124,17 +131,38 @@ class DocumentController extends Controller
     public function togglePrivacy($id)
     {
         $folder = Folder::findOrFail($id);
-        
+
         // KEAMANAN: Cek apakah user adalah Superadmin atau Pemilik Folder
         if (Auth::user()->role !== 'superadmin' && $folder->user_id !== Auth::id()) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah privasi folder ini.');
         }
 
-        $folder->is_public = !$folder->is_public;
+        $newStatus = !$folder->is_public;
+
+        $folder->is_public = $newStatus;
         $folder->share_token = $folder->is_public ? Str::random(40) : null;
         $folder->save();
 
+        $this->updateChildrenPrivacy($folder->id, $newStatus);
+
+        $pesan = $newStatus ? 'Folder dan seluruh isinya berhasil dibuat Publik.' : 'Folder dan seluruh isinya berhasil dibuat Private.';
         return redirect()->back()->with('success', 'Privasi folder diperbarui.');
+    }
+
+    private function updateChildrenPrivacy($parentId, $isPublic)
+    {
+        // Ambil semua folder turunan langsung dari parentId
+        $children = Folder::where('parent_id', $parentId)->get();
+
+        foreach ($children as $child) {
+            $child->is_public = $isPublic;
+            // Jika public buat token baru (atau pertahankan jika sudah ada), jika private hapus token
+            $child->share_token = $isPublic ? ($child->share_token ?? Str::random(40)) : null;
+            $child->save();
+
+            // Panggil kembali fungsi ini untuk mengecek jika ada subfolder di dalam child
+            $this->updateChildrenPrivacy($child->id, $isPublic);
+        }
     }
 
     /**
@@ -143,12 +171,12 @@ class DocumentController extends Controller
     public function destroyFile($id)
     {
         $file = File::findOrFail($id);
-        
+
         // Hapus fisik file
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
-        
+
         $file->delete();
         LogHelper::record('Dokumen', 'Menghapus file: ' . $file->display_name);
 
@@ -183,7 +211,7 @@ class DocumentController extends Controller
     {
         // Cari folder yang tokennya cocok dan statusnya memang publik
         $folder = Folder::where('share_token', $token)->firstOrFail();
-        
+
         return view('documents.public_share', compact('folder'));
     }
 
@@ -191,7 +219,7 @@ class DocumentController extends Controller
     {
         // 1. Cari Folder Utama Pelatihan tersebut
         $parentFolder = Folder::where('training_id', $trainingId)->whereNull('parent_id')->first();
-        
+
         // Jika belum ada folder utamanya (backup), buat otomatis
         if (!$parentFolder) {
             $training = \App\Models\Training::find($trainingId);
