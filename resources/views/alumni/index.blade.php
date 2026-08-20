@@ -71,6 +71,11 @@
                             </label>
                         </div>
 
+                        <!-- Tombol ganti tema peta -->
+                        <button type="button" id="btnTema" class="btn btn-sm btn-outline-secondary mb-2">
+                            <i class="bx bx-sun"></i> Mode Terang
+                        </button>
+
                         <!-- Peta Sebaran Alumni -->
                         <div id="mapAlumni" style="height: 400px; width: 100%; border-radius: 8px;"></div>
                     </div>
