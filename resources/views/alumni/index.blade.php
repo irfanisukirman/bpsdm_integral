@@ -93,6 +93,24 @@
 
     @push('css')
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            /* Label jumlah alumni di tengah zona */
+            .label-kabupaten {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                color: #ffffff;
+                font-weight: 600;
+                text-align: center;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+                white-space: nowrap;
+            }
+
+            /* buang panah kecil bawaan tooltip */
+            .label-kabupaten::before {
+                display: none;
+            }
+        </style>
     @endpush
 
     @push('js')
@@ -173,11 +191,10 @@
             // 6. Peta Sebaran Alumni
             const map = L.map('mapAlumni').setView([-2.5, 118.0], 5);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
             }).addTo(map);
-
 
             // 7. Data koordinat provinsi (untuk memindahkan peta)
             const provinsiData = {
@@ -258,6 +275,84 @@
                     .bindPopup('<b>' + nama + '</b>')
                     .openPopup();
             });
+
+
+            // Data jumlah alumni per kabupaten (dari controller, dinamis)
+            const kabupatenStats = {!! json_encode($kabupatenStats) !!};
+
+            // Kamus koordinat kabupaten (statis, ditambah bertahap sesuai data)
+            // PENTING: nama kunci harus SAMA PERSIS dengan di database (huruf kapital)
+            const kabupatenKoordinat = {
+                "KOTA CIREBON": [-6.7063, 108.5571],
+                "KOTA BANDUNG": [-6.9175, 107.6191],
+                "KABUPATEN BANDUNG": [-7.0250, 107.5688]
+            };
+
+
+            // Daftar daerah 3T dari controller (statis), disamakan jadi HURUF BESAR biar cocok
+            const list3T = {!! json_encode($list3T) !!}.map(function(nama) {
+                return nama.toUpperCase();
+            });
+
+            // Kumpulan zona, supaya labelnya bisa diatur muncul/sembunyi
+            const zonaList = [];
+
+            // Gambar marker untuk tiap kabupaten yang ada datanya
+            Object.keys(kabupatenStats).forEach(function(nama) {
+                const koordinat = kabupatenKoordinat[nama];
+
+                // Lewati kalau koordinat kabupaten ini belum ada di kamus
+                if (!koordinat) {
+                    console.warn('Koordinat belum ada untuk:', nama);
+                    return;
+                }
+
+                const jumlah = kabupatenStats[nama];
+                const is3T = list3T.includes(nama.toUpperCase());
+                const warna = is3T ? '#ff3e1d' : '#696cff'; // merah = 3T, biru = non-3T
+
+                // Zona wilayah (lingkaran berwarna, radius dalam meter)
+                const zona = L.circle(koordinat, {
+                        radius: 8000, // 8 km
+                        color: warna,
+                        weight: 2,
+                        fillColor: warna,
+                        fillOpacity: 0.35
+                    }).addTo(map)
+                    .bindPopup(
+                        '<b>' + nama + '</b><br>' +
+                        'Jumlah Alumni: ' + jumlah + '<br>' +
+                        (is3T ? '<span style="color:#ff3e1d;">Wilayah 3T</span>' : 'Non-3T')
+                    )
+                    .bindTooltip(
+                        '<b>' + jumlah + '</b> alumni<br>' + (is3T ? '3T' : 'Non-3T'), {
+                            permanent: true,
+                            direction: 'center',
+                            className: 'label-kabupaten'
+                        }
+                    );
+
+                // Simpan zona ke wadah
+                zonaList.push(zona);
+            });
+
+
+            // === Opsi 2: label hanya muncul saat zoom cukup dekat ===
+            const ZOOM_LABEL_MIN = 9; // makin besar angkanya = makin dekat baru label muncul
+
+            function aturLabel() {
+                const tampilkan = map.getZoom() >= ZOOM_LABEL_MIN;
+                zonaList.forEach(function(zona) {
+                    if (tampilkan) {
+                        zona.openTooltip(); // munculkan label
+                    } else {
+                        zona.closeTooltip(); // sembunyikan label
+                    }
+                });
+            }
+
+            map.on('zoomend', aturLabel); // tiap selesai zoom, cek ulang
+            aturLabel(); // jalankan sekali saat halaman dibuka
         </script>
     @endpush
 @endsection

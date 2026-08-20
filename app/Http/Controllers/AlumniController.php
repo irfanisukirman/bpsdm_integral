@@ -18,7 +18,7 @@ class AlumniController extends Controller
 
         // Filter Bidang untuk Admin Bidang
         if ($user->role !== 'superadmin') {
-            $query->whereHas('training', function($q) use ($user) {
+            $query->whereHas('training', function ($q) use ($user) {
                 $q->where('bidang', $user->bidang);
             });
         }
@@ -43,18 +43,27 @@ class AlumniController extends Controller
         // 3. Sebaran Provinsi
         $provinsiStats = $alumni->groupBy('provinsi')->map->count();
 
+        // 3b. Sebaran per Kabupaten/Kota (untuk peta)
+        $kabupatenStats = $alumni->groupBy('kabupaten_kota')->map->count();
+
         // 4. Data Pendidikan (Dari Alumni Profile L34)
         $eduStats = AlumniProfile::whereIn('participant_id', $alumni->pluck('id'))
-                    ->select('edu_current', DB::raw('count(*) as total'))
-                    ->groupBy('edu_current')
-                    ->get();
+            ->select('edu_current', DB::raw('count(*) as total'))
+            ->groupBy('edu_current')
+            ->get();
 
         // 5. Status Kepegawaian
         $statusStats = $alumni->groupBy('status_kepegawaian')->map->count();
 
         return view('alumni.index', compact(
-            'totalAlumni', 'genderStats', 'stats3T', 
-            'provinsiStats', 'eduStats', 'statusStats'
+            'totalAlumni',
+            'genderStats',
+            'stats3T',
+            'provinsiStats',
+            'eduStats',
+            'statusStats',
+            'kabupatenStats',
+            'list3T'
         ));
     }
 
@@ -67,7 +76,7 @@ class AlumniController extends Controller
         $fileName = 'Data_Alumni_INTEGRAL_' . date('Ymd_His') . '.xlsx';
 
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\AlumniExport($bidang, $isSuperadmin), 
+            new \App\Exports\AlumniExport($bidang, $isSuperadmin),
             $fileName
         );
     }
