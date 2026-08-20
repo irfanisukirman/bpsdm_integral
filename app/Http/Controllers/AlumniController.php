@@ -34,7 +34,10 @@ class AlumniController extends Controller
 
         // 2. Data Wilayah 3T (Terdepan, Terluar, Tertinggal)
         // Logika: Membandingkan kabupaten_kota dengan list daerah 3T di Indonesia
-        $list3T = ['Kepulauan Meranti', 'Nias', 'Sumba Timur', 'Donggala', 'Nabire', 'Asmat', 'Merauke']; // Contoh list
+        $list3T = $list3T = array_unique(array_merge(
+            config('wilayah.tertinggal'),
+            config('wilayah.perbatasan')
+        ));
         $stats3T = [
             'Wilayah 3T' => $alumni->filter(fn($a) => in_array($a->kabupaten_kota, $list3T))->count(),
             'Non-3T' => $alumni->filter(fn($a) => !in_array($a->kabupaten_kota, $list3T))->count(),
@@ -55,6 +58,9 @@ class AlumniController extends Controller
         // 5. Status Kepegawaian
         $statusStats = $alumni->groupBy('status_kepegawaian')->map->count();
 
+        $koordinatKabupaten = config('wilayah.koordinat_kota_kabupaten');
+        $koordinatProvinsi = config('wilayah.koordinat_provinsi');
+
         return view('alumni.index', compact(
             'totalAlumni',
             'genderStats',
@@ -63,7 +69,9 @@ class AlumniController extends Controller
             'eduStats',
             'statusStats',
             'kabupatenStats',
-            'list3T'
+            'list3T',
+            'koordinatKabupaten',
+            'koordinatProvinsi',
         ));
     }
 

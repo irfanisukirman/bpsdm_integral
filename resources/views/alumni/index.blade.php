@@ -63,18 +63,24 @@
                         <h5 class="card-title mb-0">Sebaran Alumni Seluruh Indonesia</h5>
                     </div>
                     <div class="card-body mt-3">
-                        <div class="mb-3">
-                            <label for="filterProvinsi" class="form-label">Pilih Provinsi</label>
-                            <select id="filterProvinsi" class="form-select" onchange="filterProvinsi(this.value)">
-                                <option value="">-- Semua Provinsi --</option>
-                            </select>
-                            </label>
+                        <div class="d-flex align-items-end gap-3 mb-3">
+                            <div class="flex-grow-1">
+                                <label for="filterProvinsi" class="form-label">Pilih Provinsi</label>
+                                <select id="filterProvinsi" class="form-select" onchange="filterProvinsi(this.value)">
+                                    <option value="">-- Semua Provinsi --</option>
+                                </select>
+                                </label>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="height: 38px; width: 64px;" title="Ganti tema peta">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="btnTema"
+                                        style="cursor: pointer;">
+                                    <label class="form-check-label" for="btnTema" id="labelTema"><i
+                                            class="bx bx-moon"></i></label>
+                                </div>
+                            </div>
                         </div>
-
-                        <!-- Tombol ganti tema peta -->
-                        <button type="button" id="btnTema" class="btn btn-sm btn-outline-secondary mb-2">
-                            <i class="bx bx-sun"></i> Mode Terang
-                        </button>
 
                         <!-- Peta Sebaran Alumni -->
                         <div id="mapAlumni" style="height: 400px; width: 100%; border-radius: 8px;"></div>
@@ -202,42 +208,7 @@
             }).addTo(map);
 
             // 7. Data koordinat provinsi (untuk memindahkan peta)
-            const provinsiData = {
-                "Aceh": [4.695135, 96.749397],
-                "Sumatera Utara": [2.115354, 99.545097],
-                "Sumatera Barat": [-0.739940, 100.800005],
-                "Riau": [0.293347, 101.706829],
-                "Kepulauan Riau": [3.945651, 108.142867],
-                "Jambi": [-1.610123, 103.613121],
-                "Sumatera Selatan": [-3.319437, 103.914398],
-                "Bangka Belitung": [-2.741051, 106.440587],
-                "Bengkulu": [-3.792845, 102.260765],
-                "Lampung": [-4.558585, 105.406807],
-                "DKI Jakarta": [-6.208763, 106.845599],
-                "Jawa Barat": [-6.914744, 107.609810],
-                "Banten": [-6.405817, 106.064018],
-                "Jawa Tengah": [-7.150975, 110.140259],
-                "DI Yogyakarta": [-7.797068, 110.370529],
-                "Jawa Timur": [-7.536064, 112.238402],
-                "Bali": [-8.409518, 115.188919],
-                "Nusa Tenggara Barat": [-8.652933, 117.361648],
-                "Nusa Tenggara Timur": [-8.657382, 121.079370],
-                "Kalimantan Barat": [-0.278781, 111.475285],
-                "Kalimantan Tengah": [-1.681488, 113.382355],
-                "Kalimantan Selatan": [-3.092642, 115.283758],
-                "Kalimantan Timur": [0.538659, 116.419389],
-                "Kalimantan Utara": [3.073030, 116.041887],
-                "Sulawesi Utara": [0.624693, 123.975002],
-                "Gorontalo": [0.699944, 122.446724],
-                "Sulawesi Tengah": [-1.430025, 121.445618],
-                "Sulawesi Barat": [-2.844137, 119.232078],
-                "Sulawesi Selatan": [-3.668800, 119.974053],
-                "Sulawesi Tenggara": [-4.144910, 122.174605],
-                "Maluku": [-3.238462, 130.145273],
-                "Maluku Utara": [1.570999, 127.808769],
-                "Papua Barat": [-1.336115, 133.174716],
-                "Papua": [-4.269928, 138.080353]
-            };
+            const provinsiData = {!! json_encode($koordinatProvinsi) !!};
 
             // Isi dropdown dari data di atas
             const dropdown = document.getElementById('filterProvinsi');
@@ -247,7 +218,6 @@
                 opt.textContent = nama;
                 dropdown.appendChild(opt);
             });
-
 
             // 8. Marker aktif (biar bisa dihapus saat ganti provinsi)
             let markerAktif = null;
@@ -281,18 +251,12 @@
                     .openPopup();
             });
 
-
             // Data jumlah alumni per kabupaten (dari controller, dinamis)
             const kabupatenStats = {!! json_encode($kabupatenStats) !!};
 
             // Kamus koordinat kabupaten (statis, ditambah bertahap sesuai data)
             // PENTING: nama kunci harus SAMA PERSIS dengan di database (huruf kapital)
-            const kabupatenKoordinat = {
-                "KOTA CIREBON": [-6.7063, 108.5571],
-                "KOTA BANDUNG": [-6.9175, 107.6191],
-                "KABUPATEN BANDUNG": [-7.0250, 107.5688]
-            };
-
+						const kabupatenKotaKoordinat = {!! json_encode($koordinatKabupaten) !!};
 
             // Daftar daerah 3T dari controller (statis), disamakan jadi HURUF BESAR biar cocok
             const list3T = {!! json_encode($list3T) !!}.map(function(nama) {
@@ -304,7 +268,7 @@
 
             // Gambar marker untuk tiap kabupaten yang ada datanya
             Object.keys(kabupatenStats).forEach(function(nama) {
-                const koordinat = kabupatenKoordinat[nama];
+                const koordinat = kabupatenKotaKoordinat[nama];
 
                 // Lewati kalau koordinat kabupaten ini belum ada di kamus
                 if (!koordinat) {
@@ -341,7 +305,6 @@
                 zonaList.push(zona);
             });
 
-
             // === Opsi 2: label hanya muncul saat zoom cukup dekat ===
             const ZOOM_LABEL_MIN = 9; // makin besar angkanya = makin dekat baru label muncul
 
@@ -358,6 +321,23 @@
 
             map.on('zoomend', aturLabel); // tiap selesai zoom, cek ulang
             aturLabel(); // jalankan sekali saat halaman dibuka
+
+            // Toggle tema: layer terang ditumpuk di atas peta gelap
+            const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            });
+
+            const labelTema = document.getElementById('labelTema');
+            document.getElementById('btnTema').addEventListener('change', function() {
+                if (this.checked) {
+                    tileLight.addTo(map); // tampilkan terang (menutup gelap)
+                    labelTema.innerHTML = '<i class="bx bx-sun"></i>';
+                } else {
+                    map.removeLayer(tileLight); // lepas terang -> gelap muncul lagi
+                    labelTema.innerHTML = '<i class="bx bx-moon"></i>';
+                }
+            });
         </script>
     @endpush
 @endsection

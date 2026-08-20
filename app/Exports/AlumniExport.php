@@ -71,10 +71,10 @@ class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvent
 
         $rows[] = [''];
         $rows[] = ['TINGKAT PENDIDIKAN (Data Evaluasi Pasca)'];
-        
+
         $eduStats = AlumniProfile::whereIn('participant_id', $alumni->pluck('id'))
-                    ->select('edu_current', \DB::raw('count(*) as total'))
-                    ->groupBy('edu_current')->get();
+            ->select('edu_current', \DB::raw('count(*) as total'))
+            ->groupBy('edu_current')->get();
 
         foreach ($eduStats as $edu) {
             $rows[] = [$edu->edu_current, $edu->total, $this->perc($edu->total, $total)];
@@ -83,7 +83,8 @@ class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvent
         return $rows;
     }
 
-    private function perc($part, $total) {
+    private function perc($part, $total)
+    {
         return $total > 0 ? round(($part / $total) * 100, 1) . '%' : '0%';
     }
 
@@ -98,16 +99,16 @@ class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvent
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 $sheet->mergeCells('A1:C1');
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                
+
                 // Bold semua sub-judul
-                $rows = [8, 12, 16, 20]; 
-                foreach($rows as $r) {
-                    $sheet->getStyle('A'.$r)->getFont()->setBold(true);
-                    $sheet->getStyle('A'.$r.':C'.$r)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('EBEDEF');
+                $rows = [8, 12, 16, 20];
+                foreach ($rows as $r) {
+                    $sheet->getStyle('A' . $r)->getFont()->setBold(true);
+                    $sheet->getStyle('A' . $r . ':C' . $r)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('EBEDEF');
                 }
             },
         ];
