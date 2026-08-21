@@ -66,10 +66,9 @@
                         <div class="d-flex align-items-end gap-3 mb-3">
                             <div class="flex-grow-1">
                                 <label for="filterProvinsi" class="form-label">Pilih Provinsi</label>
-                                <select id="filterProvinsi" class="form-select" onchange="filterProvinsi(this.value)">
+                                <select id="filterProvinsi" class="form-select">
                                     <option value="">-- Semua Provinsi --</option>
                                 </select>
-                                </label>
                             </div>
                             <div class="d-flex align-items-center justify-content-center flex-shrink-0"
                                 style="height: 38px; width: 64px;" title="Ganti tema peta">
@@ -158,23 +157,7 @@
                 }
             });
 
-            // 3. Chart Provinsi
-            new Chart(document.getElementById('chartProvinsi'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($provinsiStats->keys()) !!},
-                    datasets: [{
-                        label: 'Jumlah Alumni',
-                        data: {!! json_encode($provinsiStats->values()) !!},
-                        backgroundColor: '#03c3ec'
-                    }]
-                },
-                options: {
-                    indexAxis: 'y'
-                }
-            });
-
-            // 4. Chart Pendidikan
+            // 3. Chart Pendidikan
             new Chart(document.getElementById('chartEdu'), {
                 type: 'polarArea',
                 data: {
@@ -186,7 +169,7 @@
                 }
             });
 
-            // 5. Chart Status
+            // 4. Chart Status
             new Chart(document.getElementById('chartStatus'), {
                 type: 'bar',
                 data: {
@@ -199,18 +182,23 @@
                 }
             });
 
-            // 6. Peta Sebaran Alumni
+            // =========================================================
+            // PETA SEBARAN ALUMNI
+            // =========================================================
+
+            // Inisialisasi peta
             const map = L.map('mapAlumni').setView([-2.5, 118.0], 5);
 
+            // Tema dasar: gelap
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
             }).addTo(map);
 
-            // 7. Data koordinat provinsi (untuk memindahkan peta)
+            // Data koordinat provinsi (dari config)
             const provinsiData = {!! json_encode($koordinatProvinsi) !!};
 
-            // Isi dropdown dari data di atas
+            // Isi dropdown dari data provinsi
             const dropdown = document.getElementById('filterProvinsi');
             Object.keys(provinsiData).forEach(function(nama) {
                 const opt = document.createElement('option');
@@ -219,46 +207,88 @@
                 dropdown.appendChild(opt);
             });
 
-            // 8. Marker aktif (biar bisa dihapus saat ganti provinsi)
+            // Marker & batas provinsi aktif
             let markerAktif = null;
+            let batasProvinsi = null;
+            let geojsonProvinsi = null;
 
-            // 9. Saat dropdown provinsi dipilih
+            // Muat file GeoJSON provinsi sekali saat halaman dibuka
+            fetch("{{ asset('geojson/indonesia-38-provinces.geojson') }}")
+                .then(function(res) {
+                    return res.json();
+                })
+                .then(function(data) {
+                    geojsonProvinsi = data;
+                    // BANTUAN: lihat nama properti & ejaan provinsi di file kamu
+                    console.log('Contoh properties:', data.features[0].properties);
+                })
+                .catch(function(err) {
+                    console.error('Gagal memuat GeoJSON:', err);
+                });
+
+            // Saat dropdown provinsi dipilih
             dropdown.addEventListener('change', function() {
                 const nama = this.value;
 
-                // Kalau pilih "Semua Provinsi" -> kembali ke tampilan Indonesia
+                // Pilih "Semua Provinsi" -> kembali ke tampilan Indonesia
                 if (nama === '') {
                     map.setView([-2.5, 118.0], 5);
                     if (markerAktif) {
                         map.removeLayer(markerAktif);
                         markerAktif = null;
                     }
+                    if (batasProvinsi) {
+                        map.removeLayer(batasProvinsi);
+                        batasProvinsi = null;
+                    }
                     return;
                 }
 
-                // Ambil koordinat provinsi terpilih
+                // Pindahkan peta + pasang marker
                 const koordinat = provinsiData[nama];
-
-                // Pindahkan peta ke provinsi itu (zoom lebih dekat)
                 map.setView(koordinat, 8);
 
-                // Hapus marker lama kalau ada, lalu pasang marker baru
                 if (markerAktif) {
                     map.removeLayer(markerAktif);
                 }
                 markerAktif = L.marker(koordinat).addTo(map)
                     .bindPopup('<b>' + nama + '</b>')
                     .openPopup();
+
+                // Hapus batas lama, gambar batas provinsi terpilih
+                if (batasProvinsi) {
+                    map.removeLayer(batasProvinsi);
+                    batasProvinsi = null;
+                }
+
+                if (geojsonProvinsi) {
+                    const fitur = geojsonProvinsi.features.filter(function(f) {
+                        // GANTI 'Propinsi' sesuai nama properti di file GeoJSON-mu
+                        const namaGeo = (f.properties.Propinsi || f.properties.PROVINSI || f.properties.state ||
+                            '');
+                        return namaGeo.toUpperCase() === nama.toUpperCase();
+                    });
+
+                    if (fitur.length) {
+                        batasProvinsi = L.geoJSON(fitur, {
+                            style: {
+                                color: '#ffab00',
+                                weight: 3,
+                                fill: false
+                            } // outline saja
+                        }).addTo(map);
+                        map.fitBounds(batasProvinsi.getBounds()); // pas-kan zoom ke provinsi
+                    }
+                }
             });
 
             // Data jumlah alumni per kabupaten (dari controller, dinamis)
             const kabupatenStats = {!! json_encode($kabupatenStats) !!};
 
-            // Kamus koordinat kabupaten (statis, ditambah bertahap sesuai data)
-            // PENTING: nama kunci harus SAMA PERSIS dengan di database (huruf kapital)
-						const kabupatenKotaKoordinat = {!! json_encode($koordinatKabupaten) !!};
+            // Kamus koordinat kabupaten/kota (dari config)
+            const kabupatenKotaKoordinat = {!! json_encode($koordinatKabupaten) !!};
 
-            // Daftar daerah 3T dari controller (statis), disamakan jadi HURUF BESAR biar cocok
+            // Daftar daerah 3T dari controller, disamakan jadi HURUF BESAR biar cocok
             const list3T = {!! json_encode($list3T) !!}.map(function(nama) {
                 return nama.toUpperCase();
             });
@@ -266,7 +296,7 @@
             // Kumpulan zona, supaya labelnya bisa diatur muncul/sembunyi
             const zonaList = [];
 
-            // Gambar marker untuk tiap kabupaten yang ada datanya
+            // Gambar zona untuk tiap kabupaten yang ada datanya
             Object.keys(kabupatenStats).forEach(function(nama) {
                 const koordinat = kabupatenKotaKoordinat[nama];
 
@@ -280,7 +310,6 @@
                 const is3T = list3T.includes(nama.toUpperCase());
                 const warna = is3T ? '#ff3e1d' : '#696cff'; // merah = 3T, biru = non-3T
 
-                // Zona wilayah (lingkaran berwarna, radius dalam meter)
                 const zona = L.circle(koordinat, {
                         radius: 8000, // 8 km
                         color: warna,
@@ -301,26 +330,25 @@
                         }
                     );
 
-                // Simpan zona ke wadah
                 zonaList.push(zona);
             });
 
-            // === Opsi 2: label hanya muncul saat zoom cukup dekat ===
-            const ZOOM_LABEL_MIN = 9; // makin besar angkanya = makin dekat baru label muncul
+            // Label hanya muncul saat zoom cukup dekat (anti-tumpuk)
+            const ZOOM_LABEL_MIN = 9; // makin besar = makin dekat baru label muncul
 
             function aturLabel() {
                 const tampilkan = map.getZoom() >= ZOOM_LABEL_MIN;
                 zonaList.forEach(function(zona) {
                     if (tampilkan) {
-                        zona.openTooltip(); // munculkan label
+                        zona.openTooltip();
                     } else {
-                        zona.closeTooltip(); // sembunyikan label
+                        zona.closeTooltip();
                     }
                 });
             }
 
-            map.on('zoomend', aturLabel); // tiap selesai zoom, cek ulang
-            aturLabel(); // jalankan sekali saat halaman dibuka
+            map.on('zoomend', aturLabel);
+            aturLabel();
 
             // Toggle tema: layer terang ditumpuk di atas peta gelap
             const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
