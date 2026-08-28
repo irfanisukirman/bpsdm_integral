@@ -12,7 +12,9 @@ return new class extends Migration {
     {
         Schema::table('users', function (Blueprint $table) {
             $table->renameColumn('kabupaten_kota', 'kota');
-            $table->string('kecamatan')->nullable()->after('kota');
+            if (!Schema::hasColumn('users', 'kecamatan')) {
+                $table->string('kecamatan')->nullable()->after('kota');
+            }
             $table->string('kelurahan')->nullable()->after('kecamatan');
         });
     }

@@ -551,4 +551,21 @@ class TrainingController extends Controller
 
         return view('pengajar.history', compact('trainings', 'user', 'search', 'totalJpRiwayat'));
     }
+
+
+    public function approveParticipant($id)
+    {
+            $participant = \App\Models\Participant::findOrFail($id);
+            $participant->update(['registration_status' => 'approved']);
+
+            return redirect()->back()->with('success', 'Pendaftaran ' . $participant->name . ' telah disetujui.');
+    }   
+
+    public function rejectParticipant($id)
+    {
+        $participant = \App\Models\Participant::findOrFail($id);
+        $participant->update(['registration_status' => 'rejected']);
+
+        return redirect()->back()->with('success', 'Pendaftaran ' . $participant->name . ' telah ditolak.');
+    }
 }

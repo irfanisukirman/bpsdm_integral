@@ -27,6 +27,7 @@
                     </div>
                 </form>
 
+<<<<<<< HEAD
                 <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
                 </a>
@@ -36,6 +37,197 @@
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
                     <i class="bx bx-file me-1"></i> Import
                 </button>
+=======
+            <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdd">
+                <i class="bx bx-plus me-1"></i> Tambah
+            </button>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
+                <i class="bx bx-file me-1"></i> Import
+            </button>
+        </div>
+    </div>
+    @if($search)
+        <div class="mb-3 animate__animated animate__fadeIn">
+            <small class="text-muted">Menampilkan hasil pencarian untuk: <span class="fw-bold text-primary">"{{ $search }}"</span></small>
+        </div>
+    @endif
+
+    <!-- Alert Notifikasi -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bx bx-check-circle me-2"></i>
+                <div>{{ session('success') }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible border-0 shadow-sm" role="alert">
+            <div class="d-flex">
+                <i class="bx bx-error-circle me-2"></i>
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <!-- Tabel Peserta Modern -->
+    <div class="card shadow-sm">
+        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Daftar Peserta Pelatihan</h5>
+            <span class="badge bg-label-primary">{{ count($participants) }} ORANG</span>
+        </div>
+        
+        <div class="card shadow-none border">
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover" style="table-layout: fixed; width: 100%;">
+                    <thead>
+                        <tr class="text-nowrap bg-light">
+                            <th style="width: 170px;" class="fw-bold">NIP / NIK</th>
+                            <th style="width: 220px;" class="fw-bold">NAMA LENGKAP</th>
+                            <th style="width: 140px;" class="fw-bold">GENDER/STATUS</th>
+                            <th style="width: 180px;" class="fw-bold">JABATAN</th>
+                            <th style="width: 200px;" class="fw-bold">INSTANSI & WILAYAH</th>
+                            <th style="width: 140px;" class="fw-bold">KONTAK</th>
+                            <th style="width: 120px;">STATUS DAFTAR</th>
+                            <th style="width: 100px;" class="text-center fw-bold">AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @forelse($participants as $p)
+                        <tr class="participant-row">
+                            <!-- Kolom NIP dengan fitur Copy -->
+                            <td class="align-top">
+                                <div class="d-flex align-items-center">
+                                    <code class="fw-bold text-danger me-2" id="nip-{{ $p->id }}" style="font-size: 0.8rem;">{{ $p->nip_nik }}</code>
+                                    <button class="btn btn-xs btn-icon btn-outline-secondary border-0" 
+                                            onclick="copyToClipboard('{{ $p->nip_nik }}', this)" 
+                                            title="Salin NIP">
+                                        <i class="bx bx-copy"></i>
+                                    </button>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Nama dengan Avatar Inisial -->
+                            <td class="align-top text-wrap">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-xs me-2">
+                                        <span class="avatar-initial rounded-circle bg-label-primary" style="font-size: 10px;">
+                                            {{ substr($p->name, 0, 1) }}
+                                        </span>
+                                    </div>
+                                    <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ strtoupper($p->name) }}</span>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Gender & Status Dinamis -->
+                            <td class="align-top">
+                                <small class="d-block mb-1 text-muted">
+                                    <i class="bx {{ $p->gender == 'Laki-Laki' ? 'bx-male-sign text-info' : 'bx-female-sign text-danger' }} me-1"></i>{{ $p->gender }}
+                                </small>
+                                @php
+                                    $statusColor = 'bg-label-secondary';
+                                    if(str_contains(strtoupper($p->status_kepegawaian), 'PNS')) $statusColor = 'bg-label-success';
+                                    if(str_contains(strtoupper($p->status_kepegawaian), 'PPPK')) $statusColor = 'bg-label-warning';
+                                    if(str_contains(strtoupper($p->status_kepegawaian), 'ASN')) $statusColor = 'bg-label-primary';
+                                @endphp
+                                <span class="badge {{ $statusColor }} btn-xs fw-bold" style="font-size: 0.6rem;">
+                                    {{ $p->status_kepegawaian }}
+                                </span>
+                            </td>
+                            
+                            <!-- Kolom Jabatan -->
+                            <td class="align-top text-wrap">
+                                <div style="line-height: 1.3; font-size: 0.8rem;" class="text-dark">
+                                    {{ $p->jabatan }}
+                                </div>
+                            </td>
+
+                            <!-- Kolom Instansi & Wilayah -->
+                            <td class="align-top text-wrap">
+                                <div class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">{{ $p->instansi }}</div>
+                                <small class="text-muted" style="font-size: 0.7rem;">
+                                    <i class="bx bx-map-pin me-1" style="font-size: 9px;"></i>{{ $p->kabupaten_kota }}, {{ $p->provinsi }}
+                                </small>
+                            </td>
+
+                            <!-- Kolom WhatsApp -->
+                            <td class="align-top">
+                                @if($p->phone)
+                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $p->phone) }}" 
+                                    target="_blank" 
+                                    class="btn btn-sm btn-outline-success rounded-pill px-3 w-100"
+                                    style="font-size: 0.7rem;">
+                                        <i class="bx bxl-whatsapp me-1"></i> WhatsApp
+                                    </a>
+                                @else
+                                    <span class="text-light small italic">N/A</span>
+                                @endif
+                            </td>
+                            <td class="align-top">
+                                @if($p->registration_status == 'pending')
+                                    <span class="badge bg-label-warning animate__animated animate__flash animate__infinite">Menunggu</span>
+                                @elseif($p->registration_status == 'approved')
+                                    <span class="badge bg-label-success">Disetujui</span>
+                                @else
+                                    <span class="badge bg-label-danger">Ditolak</span>
+                                @endif
+                            </td>
+
+                            <!-- Kolom Aksi -->
+                            <td class="align-top text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                     @if($p->registration_status == 'pending')
+                                        <form action="{{ route('participants.approve', $p->id) }}" method="POST">
+                                            @csrf @method('PUT')
+                                            <button type="submit" class="btn btn-xs btn-icon btn-success" title="Setujui">
+                                                <i class="bx bx-check"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('participants.reject', $p->id) }}" method="POST">
+                                            @csrf @method('PUT')
+                                            <button type="submit" class="btn btn-xs btn-icon btn-danger" title="Tolak">
+                                                <i class="bx bx-x"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <button class="btn btn-sm btn-icon btn-label-warning" 
+                                        onclick="editParticipant({{ json_encode($p) }})"
+                                        data-bs-toggle="modal" data-bs-target="#modalEdit"
+                                        title="Ubah Data">
+                                        <i class="bx bx-edit"></i>
+                                    </button>
+
+                                    <form action="{{ route('participants.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini?')">
+                                        @csrf 
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-icon btn-label-danger" title="Hapus">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <img src="{{ asset('assets/img/illustrations/empty-box.png') }}" width="100" class="mb-3 opacity-50">
+                                <p class="text-muted fw-light">Belum ada data peserta yang terdaftar.</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+>>>>>>> afe4abe4f0ecd901dac2b05ee19acf60f25067fe
             </div>
         </div>
         @if ($search)
