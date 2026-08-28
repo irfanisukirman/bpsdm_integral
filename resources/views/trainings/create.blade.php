@@ -21,14 +21,42 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Penyelenggara Pelatihan</label>
-                        <select name="bidang" class="form-select" required>
-                            <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan">Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Inti">Bidang Pengembangan Kompetensi Teknis Inti</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Umum">Bidang Pengembangan Kompetensi Teknis Umum</option>
-                            <option value="Bidang Pengembangan Kompetensi Manajerial">Bidang Pengembangan Kompetensi Manajerial</option>
-                        </select>
-                    </div>
+    <label class="form-label">Penyelenggara Pelatihan</label>
+    @php
+        // Ambil data user yang sedang login
+        $user = auth()->user();
+    @endphp
+    
+    <!-- Jika bukan superadmin, kita kunci dropdownnya menggunakan CSS (pointer-events:none) agar nilainya tetap terkirim saat disubmit -->
+    <select name="bidang" class="form-select" required {{ $user->role !== 'superadmin' ? 'style=pointer-events:none;background-color:#eceef1;' : '' }}>
+        <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan" 
+            {{ $user->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan' ? 'selected' : '' }}>
+            Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan
+        </option>
+        
+        <option value="Bidang Pengembangan Kompetensi Teknis Inti" 
+            {{ $user->bidang === 'Bidang Pengembangan Kompetensi Teknis Inti' ? 'selected' : '' }}>
+            Bidang Pengembangan Kompetensi Teknis Inti
+        </option>
+        
+        <option value="Bidang Pengembangan Kompetensi Teknis Umum" 
+            {{ $user->bidang === 'Bidang Pengembangan Kompetensi Teknis Umum' ? 'selected' : '' }}>
+            Bidang Pengembangan Kompetensi Teknis Umum
+        </option>
+        
+        <option value="Bidang Pengembangan Kompetensi Manajerial" 
+            {{ $user->bidang === 'Bidang Pengembangan Kompetensi Manajerial' ? 'selected' : '' }}>
+            Bidang Pengembangan Kompetensi Manajerial
+        </option>
+    </select>
+
+    <!-- Beri keterangan tambahan jika user bukan superadmin -->
+    @if($user->role !== 'superadmin')
+        <div class="form-text text-primary small">
+            <i class="bx bx-lock-alt me-1"></i>Penyelenggara otomatis disesuaikan dengan hak akses bidang Anda.
+        </div>
+    @endif
+</div>
 
                     @if($model === 'standar')
                     <!-- KHUSUS STANDAR: Pilih Metode Langsung -->
