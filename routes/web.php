@@ -21,6 +21,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AlumniController;
+use App\Http\Controllers\PengajarSetupController; // <-- TAMBAHAN CONTROLLER PENGAJAR
 
 /*
 |--------------------------------------------------------------------------
@@ -35,15 +36,6 @@ use App\Http\Controllers\AlumniController;
 */
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
-// Route::get('/', function () {
-//     // Jika user sudah login, saat dia buka halaman depan, 
-//     // otomatis dialihkan ke dashboard aplikasi
-//     if (Auth::check()) {
-//         return redirect()->route('dashboard');
-//     }
-//     return view('welcome');
-// })->name('landing');
-
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 
 // Search Global (Hanya hasil, aksi di dalam auth)
@@ -55,6 +47,9 @@ Route::get('auth/google/callback', [App\Http\Controllers\Auth\LoginController::c
 
 // Document Share
 Route::get('share/folder/{token}', [DocumentController::class, 'share'])->name('documents.public');
+// Tambahan Document Action (Download/View File)
+Route::get('/documents/file/{id}/view', [DocumentController::class, 'viewFile'])->name('documents.file.view');
+Route::get('/documents/file/{id}/download', [DocumentController::class, 'downloadFile'])->name('documents.file.download');
 
 // Absensi Publik
 Route::get('absen/{schedule_id}', [AttendanceController::class, 'publicShow'])->name('public.attendance.show');
@@ -76,9 +71,12 @@ Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Cont
 |--------------------------------------------------------------------------
 */
 Auth::routes(['register' => false]);
+
 Route::get('/logout', function() {
     Auth::logout();
-    return redirect('/');
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/')->with('success', 'Anda telah berhasil keluar.');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -86,21 +84,34 @@ Route::middleware(['auth'])->group(function () {
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
      
-
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
         Route::resource('users', UserController::class);
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 
+    // --- PENGATURAN PROFIL UMUM ---
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
+    // =========================================================================
+    // --- SETUP PROFIL PENGAJAR (Wajib saat pertama kali Pengajar login) ---
+    // =========================================================================
+    Route::get('/pengajar/setup-profil', [PengajarSetupController::class, 'index'])->name('pengajar.setup');
+    Route::post('/pengajar/setup-profil', [PengajarSetupController::class, 'store'])->name('pengajar.setup.store');
+
+    // --- SETUP PROFIL PESERTA ---
+    Route::get('/complete-profile', [ParticipantController::class, 'completeProfile'])->name('participant.profile.complete');
+    Route::post('/complete-profile', [ParticipantController::class, 'storeProfile'])->name('participant.profile.store');
+
+    // Rute Menu Jadwal Mengajar (Hanya untuk Pengajar)
+    Route::get('/pengajar/jadwal-mengajar', [\App\Http\Controllers\TrainingController::class, 'pengajarSchedules'])->name('pengajar.schedule');
+
     // --- 03 & 04. KELOLA PELATIHAN ---
     Route::resource('trainings', TrainingController::class);
 
-    //Kelola Dokumen & Folder
+    // Kelola Dokumen & Folder
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('documents/folder', [DocumentController::class, 'createFolder'])->name('documents.folder.create');
     Route::post('documents/upload', [DocumentController::class, 'uploadFiles'])->name('documents.upload');
@@ -133,13 +144,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{id}/schedules', [TrainingController::class, 'storeSchedule'])->name('schedules.store');
     Route::put('trainings/{id}/set-lms', [TrainingController::class, 'setLmsLink'])->name('trainings.set_lms');
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
-    Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus
+    Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy');
     
-
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
+    
+    // Peserta Join Pelatihan (Tampaknya ada duplikat di bawah, tapi dibiarkan sesuai request)
     Route::post('participant/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
     Route::get('participant/training/{id}', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
     Route::post('participant/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload');  
+    
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
@@ -147,13 +160,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
     Route::get('trainings/{id}/evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
-    Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Controller::class, 'publicStore'])
-    ->name('public.l34.store');
+    
     Route::get('evaluasi-l1/export/{form_id}', [EvaluationLevel1Controller::class, 'exportExcel'])->name('evall1.export');
     
     // Rute Admin Kehadiran Harian
     Route::get('attendance/detail/{id}/{date}', [AttendanceController::class, 'showDetailDaily'])->name('attendance.detail.daily');
-    Route::get('attendance/pdf-harian/{id}/{date}', [AttendanceController::class, 'downloadPdfDaily'])->name('attendance.pdf.daily');
     Route::get('attendance/pdf-harian/{id}/{date}', [AttendanceController::class, 'downloadPdfDaily'])->name('attendance.pdf.daily');
     
     // --- 07. KEHADIRAN (Monitoring Admin) ---
@@ -185,6 +196,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('participants/download-template', [TrainingController::class, 'downloadTemplate'])->name('participants.template');
     Route::get('follow-up', [FollowUpController::class, 'index'])->name('followup.index');
     Route::put('follow-up/{id}/resolve', [FollowUpController::class, 'resolve'])->name('followup.resolve');
+
+    // Export & Import Jadwal Pelatihan
+    Route::get('schedules/download-template', [\App\Http\Controllers\TrainingController::class, 'downloadScheduleTemplate'])->name('schedules.template');
+    Route::post('trainings/{id}/schedules/import', [\App\Http\Controllers\TrainingController::class, 'importSchedules'])->name('schedules.import');
+
+    // RUTE RIWAYAT PELATIHAN PENGAJAR
+    Route::get('/pengajar/riwayat-pelatihan', [\App\Http\Controllers\TrainingController::class, 'pengajarHistory'])->name('pengajar.history');
+
     
     // --- EVALUASI KIRKPATRICK (Admin View) ---
 
@@ -194,6 +213,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/evaluasi-l1', [EvaluationLevel1Controller::class, 'index'])->name('evall1.index'); // Detail L1
     Route::get('evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
     Route::get('evaluasi-l34/download-template', [EvaluationLevel34Controller::class, 'downloadTemplate'])->name('evall34.template');
+    
     // Level 2: Learning
     Route::get('evaluasi/l2', [EvaluationLevel2Controller::class, 'indexAll'])->name('evaluasi.l2'); // List Pelatihan L2
     Route::get('trainings/{id}/evaluasi-l2', [EvaluationLevel2Controller::class, 'index'])->name('evall2.index'); // Detail L2
@@ -204,13 +224,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
     Route::get('trainings/{id}/evaluasi-l34', [EvaluationLevel34Controller::class, 'index'])->name('evall34.index'); // Detail L34
 
-    Route::get('/complete-profile', [ParticipantController::class, 'completeProfile'])->name('participant.profile.complete');
-    Route::post('/complete-profile', [ParticipantController::class, 'storeProfile'])->name('participant.profile.store');
-
-    //Kelola Alumni
+    // Kelola Alumni
     Route::get('alumni-statistics/export', [AlumniController::class, 'exportExcel'])->name('alumni.export');
     Route::get('alumni', [AlumniController::class, 'index'])->name('alumni.index');
-
         
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
     Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
@@ -218,30 +234,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
     
         // Proses Daftar (Join)
-        Route::post('/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
-        Route::post('/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])
-            ->name('participant.training.upload');
-        // Detail Pelatihan (Halaman 4 Bar)
-        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+        Route::post('/training/{id}/join-enroll', [ParticipantController::class, 'enroll'])->name('participant.training.join_enroll');
+        Route::post('/training/{id}/upload-req', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload_req');
+        
+        // Detail Pelatihan
+        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.detail');
         
         // Riwayat
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
     });
 
-});
-
-
-
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATION SYSTEM
-|--------------------------------------------------------------------------
-*/
-Route::get('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    
-    // Ubah dari redirect('/login') menjadi redirect('/')
-    return redirect('/')->with('success', 'Anda telah berhasil keluar.');
 });

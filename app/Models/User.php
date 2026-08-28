@@ -16,7 +16,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'bidang', 
         'nip_nik', 'gender', 'jabatan', 'instansi', 'provinsi', 
-        'kabupaten_kota', 'status_kepegawaian', 'password'
+        'kabupaten_kota', 'kecamatan', 'kelurahan', 'status_kepegawaian', 'password'
     ];
 
     /**
@@ -42,5 +42,9 @@ class User extends Authenticatable
     public function trainingHistories()
     {
         return $this->hasMany(Participant::class, 'nip_nik', 'username');
+    }
+    public function pengajar()
+    {
+        return $this->hasOne(Pengajar::class);
     }
 }

@@ -96,6 +96,8 @@ class ParticipantController extends Controller
             'instansi' => 'required',
             'provinsi' => 'required',
             'kabupaten_kota' => 'required',
+            'kecamatan' => 'required',
+            'kelurahan' => 'required',
             'status_kepegawaian' => 'required',
             'whatsapp' => 'required'
         ]);
@@ -130,6 +132,8 @@ class ParticipantController extends Controller
                 'instansi'           => $user->instansi,
                 'provinsi'           => $user->provinsi,
                 'kabupaten_kota'     => $user->kabupaten_kota,
+                'kecamatan'          => $user->kecamatan,
+                'kelurahan'          => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,
             ]
         );
