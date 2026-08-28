@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Training;  
-use App\Models\Schedule;    
-use App\Models\Participant; 
+use App\Models\Training;
+use App\Models\Schedule;
+use App\Models\Participant;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ParticipantImport;
 use App\Exports\TrainingEvaluationExport;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon; 
-use App\Models\Folder; 
+use Carbon\Carbon;
+use App\Models\Folder;
 use App\Helpers\LogHelper;
 use App\Exports\ParticipantTemplateExport;
 use App\Exports\ParticipantExport;
@@ -25,7 +25,7 @@ class TrainingController extends Controller
     public function index()
     {
         $query = Training::with('schedules');
-        
+
         // Jika bukan superadmin, filter berdasarkan bidang user
         if (Auth::user()->role !== 'superadmin') {
             $query->where('bidang', Auth::user()->bidang);
@@ -43,7 +43,7 @@ class TrainingController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validasi Input (Seperti sebelumnya)
+        // 1. Validasi Input
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang' => 'required',
@@ -55,10 +55,14 @@ class TrainingController extends Controller
             'tgl_mulai' => 'required|date',
             'tgl_selesai' => 'required|date',
         ];
-        if ($request->model === 'standar') { $rules['metode'] = 'required'; }
+        if ($request->model === 'standar') {
+            $rules['metode'] = 'required';
+        }
         $data = $request->validate($rules);
 
-        if ($request->model === 'blended') { $data['metode'] = 'blended'; }
+        if ($request->model === 'blended') {
+            $data['metode'] = 'blended';
+        }
 
         // 2. Simpan Data Pelatihan
         $training = Training::create($data);
@@ -66,11 +70,11 @@ class TrainingController extends Controller
         // 3. LOGIKA OTOMATIS: BUAT FOLDER DOKUMEN
         Folder::create([
             'training_id' => $training->id,
-            'name'        => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan,
-            'bidang'      => $training->bidang,
-            'user_id'     => Auth::id(),
-            'parent_id'   => null, // Jadi folder utama di bidang tersebut
-            'is_public'   => false, // Default private
+            'name' => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan,
+            'bidang' => $training->bidang,
+            'user_id' => Auth::id(),
+            'parent_id' => null, // Jadi folder utama di bidang tersebut
+            'is_public' => false, // Default private
         ]);
 
         // 4. Simpan Tahapan (Jika Blended)
@@ -100,19 +104,24 @@ class TrainingController extends Controller
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kabupaten_kota' => 'required',
+            'kota' => 'required', // Disesuaikan
+            'kecamatan' => 'required', // Ditambahkan
+            'kelurahan' => 'required', // Ditambahkan
             'status_kepegawaian' => 'required',
         ]);
 
         \App\Models\Participant::create([
-            'training_id'        => $id,
-            'nip_nik'            => ltrim($request->nip_nik, "'"),
-            'name'               => $request->name,
-            'gender'             => $request->gender,
-            'jabatan'            => $request->jabatan,
-            'instansi'           => $request->instansi,
-            'provinsi'           => $request->provinsi,
-            'kabupaten_kota'     => $request->kabupaten_kota,
+            'training_id' => $id,
+            'nip_nik' => ltrim($request->nip_nik, "'"),
+            'name' => $request->name,
+            'gender' => $request->gender,
+            'phone' => $request->phone,
+            'jabatan' => $request->jabatan,
+            'instansi' => $request->instansi,
+            'provinsi' => $request->provinsi,
+            'kota' => $request->kota, // Disesuaikan
+            'kecamatan' => $request->kecamatan, // Ditambahkan
+            'kelurahan' => $request->kelurahan, // Ditambahkan
             'status_kepegawaian' => $request->status_kepegawaian,
         ]);
 
@@ -122,21 +131,21 @@ class TrainingController extends Controller
     public function showParticipants(Request $request, $id)
     {
         $training = Training::findOrFail($id);
-        
+
         // Tangkap input search dari URL (?search=...)
         $search = $request->query('search');
 
         // Ambil peserta yang terhubung dengan pelatihan ini dengan filter pencarian
         $participants = \App\Models\Participant::where('training_id', $id)
-            ->when($search, function($query) use ($search) {
-                $query->where(function($q) use ($search) {
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%")
-                    ->orWhere('nip_nik', 'LIKE', "%$search%")
-                    ->orWhere('instansi', 'LIKE', "%$search%");
+                        ->orWhere('nip_nik', 'LIKE', "%$search%")
+                        ->orWhere('instansi', 'LIKE', "%$search%");
                 });
             })
             ->get();
-        
+
         return view('trainings.participants', compact('training', 'participants', 'search'));
     }
 
@@ -152,33 +161,37 @@ class TrainingController extends Controller
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kabupaten_kota' => 'required',
+            'kota' => 'required', // Disesuaikan
+            'kecamatan' => 'required', // Ditambahkan
+            'kelurahan' => 'required', // Ditambahkan
             'status_kepegawaian' => 'required',
         ]);
 
         $participant->update([
-            'nip_nik'            => ltrim($request->nip_nik, "'"),
-            'name'               => $request->name,
-            'gender'             => $request->gender,
-            'phone'              => $request->phone,
-            'jabatan'            => $request->jabatan,
-            'instansi'           => $request->instansi,
-            'provinsi'           => $request->provinsi,
-            'kabupaten_kota'     => $request->kabupaten_kota,
+            'nip_nik' => ltrim($request->nip_nik, "'"),
+            'name' => $request->name,
+            'gender' => $request->gender,
+            'phone' => $request->phone,
+            'jabatan' => $request->jabatan,
+            'instansi' => $request->instansi,
+            'provinsi' => $request->provinsi,
+            'kota' => $request->kota, // Disesuaikan
+            'kecamatan' => $request->kecamatan, // Ditambahkan
+            'kelurahan' => $request->kelurahan, // Ditambahkan
             'status_kepegawaian' => $request->status_kepegawaian,
         ]);
 
         return redirect()->back()->with('success', 'Data peserta berhasil diperbarui.');
     }
 
-    // Tambahkan juga fungsi hapus jika belum ada
     public function destroyParticipant($id)
     {
         Participant::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Peserta berhasil dihapus.');
     }
 
-    public function showSchedules($id) {
+    public function showSchedules($id)
+    {
         $training = Training::findOrFail($id);
         $schedules = Schedule::where('training_id', $id)->orderBy('date')->get();
         return view('trainings.schedules', compact('training', 'schedules'));
@@ -199,36 +212,33 @@ class TrainingController extends Controller
     public function downloadTemplate()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new ParticipantTemplateExport(), 
+            new ParticipantTemplateExport(),
             'template_peserta_integral.xlsx'
         );
     }
-    /**
-     * MENYIMPAN JADWAL BARU (Fungsi yang hilang)
-     */
 
-    // 1. Update fungsi simpan
     public function storeSchedule(Request $request, $id)
     {
         $request->validate([
-            'date'       => 'required|date',
+            'date' => 'required|date',
             'start_time' => 'required',
-            'end_time'   => 'required',
-            'activity'   => 'required|string|max:255',
-            'pic'        => 'required|string|max:255', // Penanggung Jawab
+            'end_time' => 'required',
+            'activity' => 'required|string|max:255',
+            'pic' => 'required|string|max:255', // Penanggung Jawab
         ]);
 
         Schedule::create([
             'training_id' => $id,
-            'date'        => $request->date,
-            'start_time'  => $request->start_time,
-            'end_time'    => $request->end_time,
-            'activity'    => $request->activity,
-            'pic'         => $request->pic,
+            'date' => $request->date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'activity' => $request->activity,
+            'pic' => $request->pic,
         ]);
 
         return redirect()->back()->with('success', 'Sesi jadwal berhasil ditambahkan.');
     }
+
     public function destroySchedule($id)
     {
         $schedule = Schedule::findOrFail($id);
@@ -237,7 +247,6 @@ class TrainingController extends Controller
         return redirect()->back()->with('success', 'Sesi jadwal berhasil dihapus.');
     }
 
-    // 2. Tambah fungsi download PDF
     public function downloadSchedulePdf($id)
     {
         $training = Training::with('schedules')->findOrFail($id);
@@ -251,14 +260,14 @@ class TrainingController extends Controller
         $fileContent = $pdf->output(); // Ambil string binary PDF
 
         \App\Http\Controllers\DocumentController::archiveInternal(
-            $training->id, 
-            'JADWAL PELATIHAN', 
-            $fileName, 
-            $fileContent, 
+            $training->id,
+            'JADWAL PELATIHAN',
+            $fileName,
+            $fileContent,
             'pdf'
         );
 
-        return response()->streamDownload(function() use($fileContent) {
+        return response()->streamDownload(function () use ($fileContent) {
             echo $fileContent;
         }, $fileName);
     }
@@ -272,9 +281,6 @@ class TrainingController extends Controller
         return view('trainings.edit', compact('training', 'model'));
     }
 
-    /**
-     * Memproses Update Data Pelatihan
-     */
     public function update(Request $request, $id)
     {
         $training = Training::findOrFail($id);
@@ -298,7 +304,7 @@ class TrainingController extends Controller
 
         // Update data utama
         $training->update($request->all());
-        
+
         Folder::where('training_id', $training->id)->update([
             'name' => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan
         ]);
@@ -320,13 +326,10 @@ class TrainingController extends Controller
         return redirect()->route('trainings.index')->with('success', 'Data pelatihan berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus Pelatihan (Fungsi yang tadi Missing)
-     */
     public function destroy($id)
     {
         $training = Training::findOrFail($id);
-        
+
         // Karena kita pakai onDelete('cascade') di migration, 
         // maka jadwal, peserta, dan tahapan akan terhapus otomatis.
         $training->delete();
@@ -345,17 +348,18 @@ class TrainingController extends Controller
 
         \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'HASIL EVALUASI L1 L2', $fileName, $fileContent, 'xlsx');
 
-        return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
+        return response()->streamDownload(function () use ($fileContent) {
+            echo $fileContent; }, $fileName);
     }
 
     public function updateSchedule(Request $request, $id)
     {
         $request->validate([
-            'date'       => 'required|date',
+            'date' => 'required|date',
             'start_time' => 'required',
-            'end_time'   => 'required',
-            'activity'   => 'required|string|max:255',
-            'pic'        => 'required|string|max:255',
+            'end_time' => 'required',
+            'activity' => 'required|string|max:255',
+            'pic' => 'required|string|max:255',
         ]);
 
         $schedule = Schedule::findOrFail($id);
@@ -364,7 +368,8 @@ class TrainingController extends Controller
         return redirect()->back()->with('success', 'Jadwal berhasil diperbarui.');
     }
 
-    public function generateNewCode($id) {
+    public function generateNewCode($id)
+    {
         $training = Training::findOrFail($id);
         $training->update(['invitation_code' => strtoupper(\Illuminate\Support\Str::random(6))]);
         return redirect()->back()->with('success', 'Kode Undangan diperbarui: ' . $training->invitation_code);
@@ -388,7 +393,7 @@ class TrainingController extends Controller
     {
         // Eager load data untuk menghindari query berulang
         $training = Training::withCount('participants')->with(['schedules'])->findOrFail($id);
-        
+
         // Ambil data evaluasi L1 untuk pengecekan status di Hub jika diperlukan
         $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
 
@@ -405,7 +410,7 @@ class TrainingController extends Controller
         $fileContent = Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
         \App\Http\Controllers\DocumentController::archiveInternal($id, 'DATA PESERTA PELATIHAN', $fileName, $fileContent, 'xlsx');
 
-        return response()->streamDownload(function() use($fileContent) {
+        return response()->streamDownload(function () use ($fileContent) {
             echo $fileContent;
         }, $fileName);
     }
