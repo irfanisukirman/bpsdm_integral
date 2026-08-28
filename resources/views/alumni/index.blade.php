@@ -12,7 +12,7 @@
                 <a href="{{ route('alumni.export') }}" class="btn btn-success shadow-sm">
                     <i class="bx bxs-file-export me-1"></i> Export Statistik Excel
                 </a>
-                <span class="badge bg-primary">Total: {{ $totalAlumni }} Alumni</span>
+                <span class="badge bg-primary"><br>Total: {{ $totalAlumni }} Alumni</span>
             </div>
         </div>
 
