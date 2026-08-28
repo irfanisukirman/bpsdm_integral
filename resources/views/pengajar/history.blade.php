@@ -37,7 +37,7 @@
             </p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('pengajar.schedules') }}" class="btn btn-outline-primary btn-sm shadow-sm">
+            <a href="{{ route('pengajar.schedule') }}" class="btn btn-outline-primary btn-sm shadow-sm">
                 <i class="bx bx-calendar me-1"></i> Lihat Jadwal Aktif
             </a>
         </div>

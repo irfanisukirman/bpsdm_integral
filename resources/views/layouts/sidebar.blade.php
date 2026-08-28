@@ -135,8 +135,8 @@
                     <div>Bahan Ajar & Dokumen</div>
                 </a>
             </li>
-             <li class="menu-item {{ request()->routeIs('') ? 'active' : '' }}">
-                <a href="{{ route('') }}" class="menu-link">
+             <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Riwayat Pelatihan</div>
                 </a>
