@@ -96,43 +96,37 @@ class ParticipantController extends Controller
     {
         $user = \App\Models\User::findOrFail(auth()->id());
 
-        // PERBAIKAN: Pastikan 'kabupaten_kota' yang divalidasi, bukan 'kota'
         $request->validate([
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
-            'whatsapp' => 'required|numeric',
+            'whatsapp' => 'required',
             'gender' => 'required',
-            'status_kepegawaian' => 'required',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kabupaten_kota' => 'required', // Ganti dari 'kota' menjadi 'kabupaten_kota'
+            'kota' => 'required', // <--- Gunakan 'kota'
             'kecamatan' => 'required',
             'kelurahan' => 'required',
-        ], [
-            // Custom message agar lebih user-friendly
-            'kabupaten_kota.required' => 'Kabupaten / Kota wajib dipilih.',
-            'nip_nik.unique' => 'NIP/NIK ini sudah terdaftar di sistem.',
+            'status_kepegawaian' => 'required',
         ]);
 
-        // Simpan ke tabel users
         $user->update([
             'nip_nik' => $request->nip_nik,
             'whatsapp' => $request->whatsapp,
             'gender' => $request->gender,
-            'status_kepegawaian' => $request->status_kepegawaian,
             'jabatan' => $request->jabatan,
             'instansi' => $request->instansi,
+            'status_kepegawaian' => $request->status_kepegawaian,
             'provinsi' => $request->provinsi,
-            'kabupaten_kota' => $request->kabupaten_kota,
+            'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
             'kecamatan' => $request->kecamatan,
             'kelurahan' => $request->kelurahan,
         ]);
 
-        // Auto-sync data ke tabel participants (jika NIP sudah ada di import admin)
+        // Sinkronisasi ke tabel participants
         \App\Models\Participant::where('nip_nik', $user->nip_nik)
             ->update(['user_id' => $user->id]);
 
-        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil dilengkapi.');
+        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil disimpan.');
     }
 
     // Proses Daftar dengan Kode

@@ -38,6 +38,11 @@ class Participant extends Model
             ->exists();
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     /**
      * Menghitung rata-rata skor Level 4 (Dampak)
      */

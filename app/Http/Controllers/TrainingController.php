@@ -135,15 +135,16 @@ class TrainingController extends Controller
         $training = Training::findOrFail($id);
         $search = $request->query('search');
 
-        $participants = Participant::where('training_id', $id)
+        $participants = \App\Models\Participant::with('user')
             ->when($search, function($query) use ($search) {
                 $query->where(function($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%")
-                        ->orWhere('nip_nik', 'LIKE', "%$search%")
-                        ->orWhere('instansi', 'LIKE', "%$search%");
+                    ->orWhere('nip_nik', 'LIKE', "%$search%")
+                    ->orWhere('instansi', 'LIKE', "%$search%");
                 });
             })
-            ->get();
+            ->latest()
+            ->paginate(10); // <--- UBAH DARI get() MENJADI paginate(10)
 
         return view('trainings.participants', compact('training', 'participants', 'search'));
     }

@@ -103,38 +103,28 @@
             </div>
 
             <div class="row">
-                <!-- Provinsi -->
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Provinsi <span class="required-star">*</span></label>
-                    <select id="provinsi" name="provinsi" class="form-select select2-wilayah" required>
-                        <option value="">Memuat Provinsi...</option>
-                    </select>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Provinsi</label>
+                        <select id="provinsi" name="provinsi" class="form-select" required>
+                            <option value="">-- Pilih Provinsi --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kabupaten / Kota</label>
+                        {{-- NAMA INPUT HARUS 'kota' --}}
+                        <select id="kabupaten" name="kota" class="form-select" required disabled>
+                            <option value="">Pilih Provinsi Dahulu</option>
+                        </select>
+                    </div>
                 </div>
-
-                <!-- Kabupaten / Kota -->
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Kabupaten / Kota <span class="required-star">*</span></label>
-                    <select id="kabupaten" name="kabupaten_kota" class="form-select select2-wilayah" required disabled>
-                        <option value="">Pilih Provinsi Terlebih Dahulu</option>
-                    </select>
+                    <label class="form-label">Kecamatan</label>
+                    <select id="kecamatan" name="kecamatan" class="form-select border-primary" required disabled></select>
                 </div>
-            </div>
-
-            <div class="row">
-                <!-- Kecamatan -->
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Kecamatan <span class="required-star">*</span></label>
-                    <select id="kecamatan" name="kecamatan" class="form-select select2-wilayah" required disabled>
-                        <option value="">Pilih Kabupaten Terlebih Dahulu</option>
-                    </select>
-                </div>
-
-                <!-- Kelurahan / Desa -->
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Kelurahan / Desa <span class="required-star">*</span></label>
-                    <select id="kelurahan" name="kelurahan" class="form-select select2-wilayah" required disabled>
-                        <option value="">Pilih Kecamatan Terlebih Dahulu</option>
-                    </select>
+                    <label class="form-label">Kelurahan / Desa</label>
+                    <select id="kelurahan" name="kelurahan" class="form-select border-primary" required disabled></select>
                 </div>
             </div>
         </div>

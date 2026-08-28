@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        
         \Illuminate\Support\Facades\Gate::define('superadmin-only', function ($user) {
             return $user->role === 'superadmin';
         });
@@ -26,5 +27,7 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Gate::define('isParticipant', function ($user) {
             return $user->role === 'participant';
         });
+
+        \Illuminate\Pagination\Paginator::useBootstrapFive(); 
     }
 }

@@ -30,19 +30,25 @@ class ProfileController extends Controller
     {
         $user = User::findOrFail(Auth::id());
 
-        // Aturan validasi dasar
+        // 1. Aturan validasi dasar (Ditambahkan field wilayah & kepegawaian)
         $rules = [
-            'name'          => 'required|string|max:255',
-            'whatsapp'      => 'required|numeric',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'name'               => 'required|string|max:255',
+            'whatsapp'           => 'required|numeric',
+            'profile_photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'gender'             => 'required',
+            'status_kepegawaian' => 'required',
+            'nip_nik'            => 'required|string|max:50',
+            'jabatan'            => 'required|string|max:255',
+            'instansi'           => 'required|string|max:255',
+            'provinsi'           => 'required|string',
+            'kota'               => 'required|string',
+            'kecamatan'          => 'required|string',
+            'kelurahan'          => 'required|string',
         ];
 
-        // Tambahan validasi jika user adalah Pengajar dan sedang mengubah data pengajar
-        if ($user->role === 'pengajar' && $request->has('nip_nik')) {
+        // Tambahan validasi khusus jika role adalah Pengajar
+        if ($user->role === 'pengajar' && $request->has('pangkat_golongan')) {
             $rules = array_merge($rules, [
-                'nip_nik'            => 'required|string|max:50',
-                'jabatan'            => 'required|string|max:255',
-                'instansi'           => 'required|string|max:255',
                 'pangkat_golongan'   => 'required|string|max:100',
                 'npwp'               => 'nullable|string|max:50',
                 'nomor_rekening'     => 'required|numeric',
@@ -56,14 +62,11 @@ class ProfileController extends Controller
 
         $request->validate($rules, [
             'file_cv.mimes'          => 'Berkas CV harus berformat PDF.',
-            'file_cv.max'            => 'Ukuran berkas CV maksimal 5MB.',
             'file_sertifikat.mimes'  => 'Berkas Sertifikat harus berformat PDF.',
-            'file_sertifikat.max'    => 'Ukuran berkas Sertifikat maksimal 5MB.',
             'file_surat_tugas.mimes' => 'Berkas Surat Tugas harus berformat PDF.',
-            'file_surat_tugas.max'   => 'Ukuran berkas Surat Tugas maksimal 5MB.',
         ]);
 
-        // 1. Update Foto Profil
+        // 2. Update Foto Profil
         if ($request->hasFile('profile_photo')) {
             if ($user->profile_photo) {
                 Storage::disk('public')->delete($user->profile_photo);
@@ -71,38 +74,37 @@ class ProfileController extends Controller
             $user->profile_photo = $request->file('profile_photo')->store('avatars', 'public');
         }
 
-        $user->name = $request->name;
-        $user->whatsapp = $request->whatsapp;
+        // 3. Simpan Data Profil Umum ke tabel Users
+        $user->name               = $request->name;
+        $user->whatsapp           = $request->whatsapp;
+        $user->nip_nik           = $request->nip_nik;
+        $user->gender             = $request->gender;
+        $user->jabatan            = $request->jabatan;
+        $user->instansi           = $request->instansi;
+        $user->status_kepegawaian = $request->status_kepegawaian;
+        
+        // BAGIAN PENTING: Simpan Data Wilayah
+        $user->provinsi           = $request->provinsi;
+        $user->kota               = $request->kota;
+        $user->kecamatan          = $request->kecamatan;
+        $user->kelurahan          = $request->kelurahan;
 
-        // 2. Update Data Khusus Pengajar & Berkas Dokumen
-        if ($user->role === 'pengajar' && $request->has('nip_nik')) {
-            $user->nip_nik = $request->nip_nik;
-            $user->jabatan = $request->jabatan;
-            $user->instansi = $request->instansi;
+        // 4. Update Data Khusus Pengajar & Berkas Dokumen (Jika ada)
+        if ($user->role === 'pengajar' && $request->has('pangkat_golongan')) {
+            $pengajar = $user->pengajar ?? new \App\Models\Pengajar(['user_id' => $user->id]);
 
-            $pengajar = $user->pengajar ?? new Pengajar(['user_id' => $user->id]);
-
-            // Upload CV jika ada berkas baru
             if ($request->hasFile('file_cv')) {
-                if ($pengajar->cv_path) {
-                    Storage::disk('public')->delete($pengajar->cv_path);
-                }
+                if ($pengajar->cv_path) Storage::disk('public')->delete($pengajar->cv_path);
                 $pengajar->cv_path = $request->file('file_cv')->store('pengajar/cv', 'public');
             }
 
-            // Upload Sertifikat jika ada berkas baru
             if ($request->hasFile('file_sertifikat')) {
-                if ($pengajar->sertifikat_path) {
-                    Storage::disk('public')->delete($pengajar->sertifikat_path);
-                }
+                if ($pengajar->sertifikat_path) Storage::disk('public')->delete($pengajar->sertifikat_path);
                 $pengajar->sertifikat_path = $request->file('file_sertifikat')->store('pengajar/sertifikat', 'public');
             }
 
-            // Upload Surat Tugas jika ada berkas baru
             if ($request->hasFile('file_surat_tugas')) {
-                if ($pengajar->surat_tugas_path) {
-                    Storage::disk('public')->delete($pengajar->surat_tugas_path);
-                }
+                if ($pengajar->surat_tugas_path) Storage::disk('public')->delete($pengajar->surat_tugas_path);
                 $pengajar->surat_tugas_path = $request->file('file_surat_tugas')->store('pengajar/surat_tugas', 'public');
             }
 
@@ -117,11 +119,21 @@ class ProfileController extends Controller
 
         $user->save();
 
-        $message = ($user->role === 'pengajar' && $request->has('nip_nik'))
-            ? 'Profil, data rekening, dan berkas pengajar berhasil diperbarui.'
-            : 'Profil berhasil diperbarui.';
+        // 5. Otomatis Update tabel Participants (Sinkronisasi NIP)
+        \App\Models\Participant::where('user_id', $user->id)->update([
+            'nip_nik'            => $user->nip_nik,
+            'name'               => $user->name,
+            'gender'             => $user->gender,
+            'jabatan'            => $user->jabatan,
+            'instansi'           => $user->instansi,
+            'provinsi'           => $user->provinsi,
+            'kota'               => $user->kota,
+            'kecamatan'          => $user->kecamatan,
+            'kelurahan'          => $user->kelurahan,
+            'status_kepegawaian' => $user->status_kepegawaian,
+        ]);
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->back()->with('success', 'Profil dan data wilayah berhasil diperbarui.');
     }
 
     /**
