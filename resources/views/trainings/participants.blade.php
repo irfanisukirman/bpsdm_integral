@@ -86,6 +86,7 @@
                             <th style="width: 180px;" class="fw-bold">JABATAN</th>
                             <th style="width: 200px;" class="fw-bold">INSTANSI & WILAYAH</th>
                             <th style="width: 140px;" class="fw-bold">KONTAK</th>
+                            <th style="width: 120px;">STATUS DAFTAR</th>
                             <th style="width: 100px;" class="text-center fw-bold">AKSI</th>
                         </tr>
                     </thead>
@@ -160,10 +161,33 @@
                                     <span class="text-light small italic">N/A</span>
                                 @endif
                             </td>
+                            <td class="align-top">
+                                @if($p->registration_status == 'pending')
+                                    <span class="badge bg-label-warning animate__animated animate__flash animate__infinite">Menunggu</span>
+                                @elseif($p->registration_status == 'approved')
+                                    <span class="badge bg-label-success">Disetujui</span>
+                                @else
+                                    <span class="badge bg-label-danger">Ditolak</span>
+                                @endif
+                            </td>
 
                             <!-- Kolom Aksi -->
                             <td class="align-top text-center">
                                 <div class="d-flex justify-content-center gap-1">
+                                     @if($p->registration_status == 'pending')
+                                        <form action="{{ route('participants.approve', $p->id) }}" method="POST">
+                                            @csrf @method('PUT')
+                                            <button type="submit" class="btn btn-xs btn-icon btn-success" title="Setujui">
+                                                <i class="bx bx-check"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('participants.reject', $p->id) }}" method="POST">
+                                            @csrf @method('PUT')
+                                            <button type="submit" class="btn btn-xs btn-icon btn-danger" title="Tolak">
+                                                <i class="bx bx-x"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     <button class="btn btn-sm btn-icon btn-label-warning" 
                                         onclick="editParticipant({{ json_encode($p) }})"
                                         data-bs-toggle="modal" data-bs-target="#modalEdit"

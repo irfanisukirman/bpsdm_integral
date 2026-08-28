@@ -135,9 +135,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus
     
-
+    Route::put('participants/{id}/approve', [TrainingController::class, 'approveParticipant'])->name('participants.approve');
+    Route::put('participants/{id}/reject', [TrainingController::class, 'rejectParticipant'])->name('participants.reject');
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
     Route::post('participant/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
+    Route::get('/participant/training/{id}/detail', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+
+    
     Route::get('participant/training/{id}', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
     Route::post('participant/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload');  
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
@@ -218,7 +222,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
     
         // Proses Daftar (Join)
-        Route::post('/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
+        Route::post('/join-training', [ParticipantController::class, 'enrollByCode'])->name('participant.training.join_by_code');
         Route::post('/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])
             ->name('participant.training.upload');
         // Detail Pelatihan (Halaman 4 Bar)

@@ -51,26 +51,39 @@ class ParticipantController extends Controller
     /**
      * Menu: Daftar Pelatihan (Melihat semua pelatihan yang dibuka oleh Bidang)
      */
-    public function availableTrainings(Request $request)
+    public function availableTrainings()
     {
-        $search = $request->query('search');
+        $user = auth()->user();
 
-        // Mengambil semua pelatihan dengan hitungan peserta
-        $trainings = \App\Models\Training::withCount('participants')
-            // Filter Pencarian jika ada
-            ->when($search, function($query) use ($search) {
-                $query->where(function($q) use ($search) {
-                    $q->where('nama_pelatihan', 'LIKE', "%$search%")
-                    ->orWhere('bidang', 'LIKE', "%$search%")
-                    ->orWhere('lokasi', 'LIKE', "%$search%");
-                });
+        // Ambil pelatihan yang diikuti user
+        $myTrainings = \App\Models\Training::with(['participants', 'stages'])
+            ->whereHas('participants', function($q) use ($user) {
+                $q->where('user_id', $user->id);
             })
-            // Urutan: Active (tgl_selesai >= hari ini) di atas, Selesai di bawah
-            ->orderByRaw("tgl_selesai < '" . now()->toDateString() . "' ASC")
-            ->orderBy('tgl_mulai', 'desc')
-            ->get();
+            ->get()
+            ->filter(function($t) use ($user) {
+                $participant = $t->participants->where('user_id', $user->id)->first();
+                // KUNCI: Hanya tampilkan jika belum menyelesaikan semua kewajiban
+                // Jika sudah selesai semua (L1-L4 & Berkas), maka card hilang (pindah ke riwayat)
+                return !$participant->is_all_finished;
+            });
 
-        return view('participant.available_trainings', compact('trainings', 'search'));
+        return view('participant.available_trainings', compact('myTrainings'));
+    }
+
+    public function enrollByCode(Request $request)
+    {
+        $request->validate(['invitation_code' => 'required|string']);
+        
+        // Cari pelatihan berdasarkan kode
+        $training = \App\Models\Training::where('invitation_code', strtoupper($request->invitation_code))->first();
+
+        if (!$training) {
+            return redirect()->back()->with('error', 'Kode Undangan tidak valid atau pelatihan tidak ditemukan.');
+        }
+
+        // Gunakan fungsi enroll yang sudah kita buat sebelumnya (Tinggal panggil logikanya)
+        return $this->enroll($request, $training->id);
     }
 
     /**
@@ -124,6 +137,7 @@ class ParticipantController extends Controller
             ],
             [
                 'user_id'            => $user->id,
+                'registration_status' => 'pending',
                 'name'               => $user->name,
                 'gender'             => $user->gender,
                 'jabatan'            => $user->jabatan,
@@ -142,13 +156,30 @@ class ParticipantController extends Controller
     {
         $training = Training::with(['stages', 'schedules'])->findOrFail($id);
         $user = Auth::user();
-        
-        // Ambil record participant milik user ini di pelatihan ini
-        $participant = Participant::where('training_id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
 
-        // Ambil semua form L1 yang telah dibuat Admin
+        // Cari data peserta yang sinkron dengan User Login
+        $participant = Participant::where('training_id', $id)
+            ->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                ->orWhere('nip_nik', $user->nip_nik);
+            })->first();
+
+        // 1. Jika data peserta tidak ditemukan sama sekali
+        if (!$participant) {
+            return redirect()->route('participant.trainings')->with('error', 'Akses ditolak. Anda belum terdaftar di pelatihan ini.');
+        }
+
+        // 2. Jika status masih PENDING, jangan biarkan masuk detail
+        if ($participant->registration_status === 'pending') {
+            return redirect()->route('participant.trainings')->with('error', 'Pendaftaran Anda sedang menunggu persetujuan (Approval) dari Admin Bidang.');
+        }
+
+        // 3. Jika status REJECTED
+        if ($participant->registration_status === 'rejected') {
+            return redirect()->route('participant.trainings')->with('error', 'Maaf, pendaftaran Anda ditolak oleh Admin.');
+        }
+
+        // Ambil form evaluasi
         $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
 
         return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user'));
@@ -156,11 +187,17 @@ class ParticipantController extends Controller
 
     public function myHistory()
     {
-        $user = Auth::user();
-        // Mengambil semua data dari tabel participant yang NIP-nya sama dengan user login
-        $history = Participant::with('training')
-            ->where('nip_nik', $user->nip_nik)
-            ->get();
+        $user = auth()->user();
+        
+        $history = \App\Models\Training::whereHas('participants', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->get()
+            ->filter(function($t) use ($user) {
+                $participant = $t->participants->where('user_id', $user->id)->first();
+                // KUNCI: Muncul di Riwayat HANYA JIKA sudah selesai semua
+                return $participant->is_all_finished;
+            });
 
         return view('participant.history', compact('history'));
     }

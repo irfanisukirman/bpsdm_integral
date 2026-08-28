@@ -9,8 +9,8 @@
             <span class="text-muted fw-light">Evaluasi /</span> Level 1: Reaksi ({{ $training->nama_pelatihan }})
         </h4>
         <div class="d-flex gap-2">
-            <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-                <i class="bx bx-arrow-back me-1"></i> Kembali
+            <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateL1">
                 <i class="bx bx-plus me-1"></i> Buat Form Evaluasi
