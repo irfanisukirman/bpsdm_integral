@@ -44,6 +44,8 @@ class ProfileController extends Controller
             'kota'               => 'required|string',
             'kecamatan'          => 'required|string',
             'kelurahan'          => 'required|string',
+            'latitude'           => 'nullable|numeric|between:-90,90|required_with:longitude',
+            'longitude'          => 'nullable|numeric|between:-180,180|required_with:latitude',
         ];
 
         // Tambahan validasi khusus jika role adalah Pengajar
@@ -88,6 +90,8 @@ class ProfileController extends Controller
         $user->kota               = $request->kota;
         $user->kecamatan          = $request->kecamatan;
         $user->kelurahan          = $request->kelurahan;
+        $user->latitude           = $request->latitude;
+        $user->longitude          = $request->longitude;
 
         // 4. Update Data Khusus Pengajar & Berkas Dokumen (Jika ada)
         if ($user->role === 'pengajar' && $request->has('pangkat_golongan')) {

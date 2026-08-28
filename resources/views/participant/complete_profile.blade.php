@@ -92,6 +92,22 @@
                            required>
                 </div>
             </div>
+
+            <div class="mt-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <div>
+                        <label class="form-label mb-0">Titik Lokasi Desa/Kelurahan <span class="required-star">*</span></label>
+                        <div class="form-text">Klik lokasi domisili pada peta atau gunakan lokasi perangkat.</div>
+                    </div>
+                    <button type="button" id="useCurrentLocation" class="btn btn-sm btn-outline-primary">
+                        <i class="bx bx-current-location me-1"></i>Gunakan Lokasi Saya
+                    </button>
+                </div>
+                <div id="profileLocationMap" class="rounded border" style="height: 360px;"></div>
+                <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', auth()->user()->latitude) }}" required>
+                <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', auth()->user()->longitude) }}" required>
+                <div id="coordinateStatus" class="small mt-2 text-muted">Belum ada titik dipilih.</div>
+            </div>
         </div>
     </div>
 
@@ -132,8 +148,13 @@
 
 @endsection
 
+@push('form_css')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endpush
+
 {{-- SCRIPT FETCH API + SELECT2 SEARCH WILAYAH INDONESIA --}}
 @push('form_js')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
     
@@ -142,6 +163,53 @@ $(document).ready(function() {
     const $kabSelect = $('#kabupaten');
     const $kecSelect = $('#kecamatan');
     const $kelSelect = $('#kelurahan');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const coordinateStatus = document.getElementById('coordinateStatus');
+    const initialLat = parseFloat(latitudeInput.value);
+    const initialLng = parseFloat(longitudeInput.value);
+    const hasInitialPoint = Number.isFinite(initialLat) && Number.isFinite(initialLng);
+    const locationMap = L.map('profileLocationMap').setView(hasInitialPoint ? [initialLat, initialLng] : [-2.5, 118], hasInitialPoint ? 15 : 5);
+    let locationMarker = null;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(locationMap);
+
+    function setLocationPoint(lat, lng, zoom = true) {
+        const point = [Number(lat), Number(lng)];
+        latitudeInput.value = point[0].toFixed(7);
+        longitudeInput.value = point[1].toFixed(7);
+        if (locationMarker) locationMarker.setLatLng(point);
+        else locationMarker = L.marker(point, { draggable: true }).addTo(locationMap);
+        locationMarker.off('dragend').on('dragend', function(event) {
+            const position = event.target.getLatLng();
+            setLocationPoint(position.lat, position.lng, false);
+        });
+        if (zoom) locationMap.setView(point, 16);
+        coordinateStatus.className = 'small mt-2 text-success';
+        coordinateStatus.innerHTML = `<i class="bx bx-check-circle me-1"></i>Titik tersimpan: ${latitudeInput.value}, ${longitudeInput.value}`;
+    }
+
+    locationMap.on('click', event => setLocationPoint(event.latlng.lat, event.latlng.lng, false));
+    if (hasInitialPoint) setLocationPoint(initialLat, initialLng, false);
+
+    document.getElementById('useCurrentLocation').addEventListener('click', function() {
+        if (!navigator.geolocation) return alert('Browser tidak mendukung deteksi lokasi.');
+        this.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                setLocationPoint(position.coords.latitude, position.coords.longitude);
+                this.disabled = false;
+            },
+            () => {
+                alert('Lokasi tidak dapat dibaca. Izinkan akses lokasi atau klik titik pada peta.');
+                this.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
 
     // Inisialisasi Select2 ke semua dropdown wilayah
     function initSelect2(element, placeholderText) {

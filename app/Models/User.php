@@ -16,7 +16,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'bidang',
         'nip_nik', 'gender', 'jabatan', 'instansi', 
-        'provinsi', 'kota', 'kecamatan', 'kelurahan', // Sesuai Nama Kolom DB Anda
+        'provinsi', 'kota', 'kecamatan', 'kelurahan', 'latitude', 'longitude',
         'status_kepegawaian', 'password', 'profile_photo'
     ];
 
@@ -34,6 +34,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     /**

@@ -136,6 +136,22 @@
                             </div>
                         </div>
 
+                        <div class="mt-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div>
+                                    <label class="form-label fw-bold mb-0">Titik Lokasi Desa/Kelurahan</label>
+                                    <div class="form-text">Klik titik domisili pada peta agar sebaran alumni tampil lebih akurat.</div>
+                                </div>
+                                <button type="button" id="useCurrentLocation" class="btn btn-sm btn-outline-primary">
+                                    <i class="bx bx-current-location me-1"></i>Gunakan Lokasi Saya
+                                </button>
+                            </div>
+                            <div id="profileEditLocationMap" class="rounded border" style="height: 360px;"></div>
+                            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $user->latitude) }}">
+                            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $user->longitude) }}">
+                            <div id="coordinateStatus" class="small mt-2 text-muted">Belum ada titik lokasi tersimpan.</div>
+                        </div>
+
                         <div class="mt-4 pt-3 border-top">
                             <button type="submit" class="btn btn-primary me-2 shadow-sm">SIMPAN PERUBAHAN PROFIL</button>
                             <button type="reset" class="btn btn-outline-secondary">BATAL</button>
@@ -175,13 +191,66 @@
     </div>
 </div>
 
+@push('css')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endpush
+
 @push('js')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const baseUrl = "https://www.emsifa.com/api-wilayah-indonesia/api/";
     const userProv = "{{ $user->provinsi }}";
     const userKota = "{{ $user->kota }}";
     const userKec = "{{ $user->kecamatan }}";
     const userKel = "{{ $user->kelurahan }}";
+
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const coordinateStatus = document.getElementById('coordinateStatus');
+    const initialLat = Number.parseFloat(latitudeInput.value);
+    const initialLng = Number.parseFloat(longitudeInput.value);
+    const hasInitialPoint = Number.isFinite(initialLat) && Number.isFinite(initialLng);
+    const locationMap = L.map('profileEditLocationMap').setView(hasInitialPoint ? [initialLat, initialLng] : [-2.5, 118], hasInitialPoint ? 15 : 5);
+    let locationMarker = null;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(locationMap);
+
+    function setLocationPoint(lat, lng, zoom = true) {
+        const point = [Number(lat), Number(lng)];
+        latitudeInput.value = point[0].toFixed(7);
+        longitudeInput.value = point[1].toFixed(7);
+        if (locationMarker) locationMarker.setLatLng(point);
+        else locationMarker = L.marker(point, { draggable: true }).addTo(locationMap);
+        locationMarker.off('dragend').on('dragend', event => {
+            const position = event.target.getLatLng();
+            setLocationPoint(position.lat, position.lng, false);
+        });
+        if (zoom) locationMap.setView(point, 16);
+        coordinateStatus.className = 'small mt-2 text-success';
+        coordinateStatus.innerHTML = '<i class="bx bx-check-circle me-1"></i>Titik tersimpan: ' + latitudeInput.value + ', ' + longitudeInput.value;
+    }
+
+    locationMap.on('click', event => setLocationPoint(event.latlng.lat, event.latlng.lng, false));
+    if (hasInitialPoint) setLocationPoint(initialLat, initialLng, false);
+
+    document.getElementById('useCurrentLocation').addEventListener('click', function() {
+        if (!navigator.geolocation) return alert('Browser tidak mendukung deteksi lokasi.');
+        this.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                setLocationPoint(position.coords.latitude, position.coords.longitude);
+                this.disabled = false;
+            },
+            () => {
+                alert('Lokasi tidak dapat dibaca. Izinkan akses lokasi atau klik titik pada peta.');
+                this.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
 
     $(document).ready(function() {
         // --- 1. Load Provinsi Awal ---

@@ -64,6 +64,8 @@ class AlumniController extends Controller
                 'kota' => $normalizedKota ?: 'BELUM DIISI',
                 'kecamatan' => $normalizeWilayah($kecamatan) ?: 'BELUM DIISI',
                 'kelurahan' => $normalizeWilayah($kelurahan) ?: 'BELUM DIISI',
+                'latitude' => $participant->user?->latitude,
+                'longitude' => $participant->user?->longitude,
                 'kategori_3t' => $kategori3T,
                 'is_3t' => count($kategori3T) > 0,
             ];

@@ -123,6 +123,8 @@ class ParticipantController extends Controller
             'kecamatan' => 'required',
             'kelurahan' => 'required',
             'status_kepegawaian' => 'required',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
 
         $user->update([
@@ -136,6 +138,8 @@ class ParticipantController extends Controller
             'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
             'kecamatan' => $request->kecamatan,
             'kelurahan' => $request->kelurahan,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         // Sinkronisasi ke tabel participants

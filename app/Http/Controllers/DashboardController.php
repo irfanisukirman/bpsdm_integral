@@ -12,6 +12,8 @@ use App\Models\MonitoringResult;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 use DB;
+use App\Models\File;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -75,40 +77,41 @@ class DashboardController extends Controller
             ));
         }
 
-        // ==========================================
-        // 3. JIKA ROLE ADALAH SUPERADMIN / ADMIN BIDANG
-        // ==========================================
         $query = Training::query();
-
-        // Role Filter (Admin Bidang hanya melihat bidangnya sendiri)
         if ($user->role !== 'superadmin') {
             $query->where('bidang', $user->bidang);
         }
 
-        $trainingIds = $query->pluck('id');
+        $trainings = $query
+            ->withCount(['participants', 'schedules'])
+            ->orderByDesc('tgl_mulai')
+            ->get();
+        $trainingIds = $trainings->pluck('id');
+        $today = Carbon::today('Asia/Jakarta');
 
-        // ==========================================
-        // 3. JIKA ROLE ADALAH SUPERADMIN / ADMIN BIDANG
-        // ==========================================
-        $query = Training::query();
+        $participantsQuery = Participant::whereIn('training_id', $trainingIds);
+        $attendanceQuery = Attendance::whereHas('schedule', fn ($q) => $q->whereIn('training_id', $trainingIds));
+        $attendanceTotal = (clone $attendanceQuery)->count();
+        $attendancePresent = (clone $attendanceQuery)->where('status', 'hadir')->count();
 
-        // Role Filter (Admin Bidang hanya melihat bidangnya sendiri)
-        if ($user->role !== 'superadmin') {
-            $query->where('bidang', $user->bidang);
-        }
-
-        $trainingIds = $query->pluck('id');
-
-        // 1. STATISTIK UTAMA
         $stats = [
-            'total_training' => $query->count(),
-            'total_participants' => Participant::whereIn('training_id', $trainingIds)->count(),
-            'avg_attendance' => Attendance::whereHas('schedule', function($q) use ($trainingIds){
-                                    $q->whereIn('training_id', $trainingIds);
-                                })->where('status', 'hadir')->count(),
-            'total_attendance_logs' => Attendance::whereHas('schedule', function($q) use ($trainingIds){
-                                    $q->whereIn('training_id', $trainingIds);
-                                })->count(),
+            'total_training' => $trainings->count(),
+            'ongoing_training' => $trainings->filter(fn ($item) =>
+                Carbon::parse($item->tgl_mulai)->startOfDay()->lte($today) &&
+                Carbon::parse($item->tgl_selesai)->endOfDay()->gte($today)
+            )->count(),
+            'upcoming_training' => $trainings->filter(fn ($item) => Carbon::parse($item->tgl_mulai)->startOfDay()->gt($today))->count(),
+            'completed_training' => $trainings->filter(fn ($item) => Carbon::parse($item->tgl_selesai)->endOfDay()->lt($today))->count(),
+            'total_participants' => (clone $participantsQuery)->count(),
+            'approved_participants' => (clone $participantsQuery)->where('registration_status', 'approved')->count(),
+            'pending_participants' => (clone $participantsQuery)->where('registration_status', 'pending')->count(),
+            'attendance_present' => $attendancePresent,
+            'attendance_total' => $attendanceTotal,
+            'attendance_rate' => $attendanceTotal > 0 ? round(($attendancePresent / $attendanceTotal) * 100, 1) : 0,
+            'total_jp' => (int) Schedule::whereIn('training_id', $trainingIds)->sum('jp'),
+            'total_documents' => File::when($user->role !== 'superadmin', function ($q) use ($user) {
+                $q->whereHas('folder', fn ($folder) => $folder->where('bidang', $user->bidang));
+            })->count(),
         ];
 
         // 2. KIRKPATRICK LEVEL 1 (Reaction)
@@ -126,16 +129,23 @@ class DashboardController extends Controller
         $avgL3 = EvaluationResultL34::whereIn('training_id', $trainingIds)->where('evaluator_role', '!=', 'mandiri')->avg('score') ?? 0;
         $avgL4 = EvaluationResultL34::whereIn('training_id', $trainingIds)->avg('score') ?? 0; // Agregat seluruhnya
 
-        // 5. MONITORING SUMMARY (Compliance)
         $monYa = MonitoringResult::whereIn('training_id', $trainingIds)->where('answer', 'ya')->count();
         $monTidak = MonitoringResult::whereIn('training_id', $trainingIds)->where('answer', 'tidak')->count();
+        $monitoringRate = ($monYa + $monTidak) > 0 ? round(($monYa / ($monYa + $monTidak)) * 100, 1) : 0;
 
-        // 6. PELATIHAN TERBARU
-        $latestTrainings = Training::with('schedules')->whereIn('id', $trainingIds)->latest()->take(5)->get();
+        $latestTrainings = $trainings->take(6);
+        $year = $today->year;
+        $monthlyTrainings = collect(range(1, 12))->map(fn ($month) =>
+            $trainings->filter(fn ($item) =>
+                Carbon::parse($item->tgl_mulai)->year === $year &&
+                Carbon::parse($item->tgl_mulai)->month === $month
+            )->count()
+        )->values();
 
-        // Tampilkan Dashboard Admin
         return view('dashboard.index', compact(
-            'stats', 'avgL1', 'avgL2Pre', 'avgL2Post', 'avgL3', 'avgL4', 'monYa', 'monTidak', 'latestTrainings'
+            'stats', 'avgL1', 'avgL2Pre', 'avgL2Post', 'avgL3', 'avgL4',
+            'monYa', 'monTidak', 'monitoringRate', 'latestTrainings',
+            'monthlyTrainings', 'year'
         ));
     }
 }

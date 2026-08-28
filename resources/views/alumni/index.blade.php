@@ -160,6 +160,14 @@
                 display: none;
             }
 
+            .tooltip-provinsi {
+                border: 0;
+                border-radius: 10px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+                padding: 10px 12px;
+                color: #233446;
+            }
+
             .wilayah-table-wrapper {
                 max-height: 420px;
                 overflow-y: auto;
@@ -238,6 +246,7 @@
 
             // Inisialisasi peta
             const map = L.map('mapAlumni').setView([-2.5, 118.0], 5);
+            const detailMarkerLayer = L.layerGroup().addTo(map);
 
             // Tema dasar: gelap
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -285,7 +294,9 @@
             function renderWilayahTable() {
                 const rows = filteredWilayahRows();
                 const total3T = rows.filter(row => row.is_3t).length;
-                wilayahSummary.textContent = `${rows.length} alumni ditemukan${total3T ? ` · ${total3T} dari wilayah 3T` : ''}`;
+                const totalBertitik = rows.filter(hasExactCoordinate).length;
+                wilayahSummary.textContent = `${rows.length} alumni ditemukan · ${totalBertitik} memiliki titik lokasi${total3T ? ` · ${total3T} dari wilayah 3T` : ''}`;
+                renderDetailMarkers(rows);
 
                 if (!rows.length) {
                     wilayahTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data alumni pada wilayah ini.</td></tr>';
@@ -308,6 +319,40 @@
                 }).join('');
             }
 
+            function hasExactCoordinate(row) {
+                return row.latitude !== null && row.latitude !== '' &&
+                    row.longitude !== null && row.longitude !== '' &&
+                    Number.isFinite(Number(row.latitude)) && Number.isFinite(Number(row.longitude));
+            }
+
+            function renderDetailMarkers(rows) {
+                detailMarkerLayer.clearLayers();
+                const groups = new Map();
+                rows.filter(hasExactCoordinate).forEach(row => {
+                    const lat = Number(row.latitude);
+                    const lng = Number(row.longitude);
+                    const key = lat.toFixed(5) + '|' + lng.toFixed(5) + '|' + row.kelurahan;
+                    if (!groups.has(key)) groups.set(key, { lat, lng, rows: [] });
+                    groups.get(key).rows.push(row);
+                });
+
+                groups.forEach(group => {
+                    const sample = group.rows[0];
+                    const count = group.rows.length;
+                    const content = '<div style="min-width:190px"><strong>' + escapeHtml(sample.kelurahan) +
+                        '</strong><br><span>' + escapeHtml(sample.kecamatan) + ', ' + escapeHtml(sample.kota) +
+                        '</span><br><span style="font-size:17px;font-weight:700;color:#696cff">' + count +
+                        '</span> alumni</div>';
+                    L.circleMarker([group.lat, group.lng], {
+                        radius: Math.min(7 + count, 15),
+                        color: '#ffffff',
+                        weight: 2,
+                        fillColor: '#03c3ec',
+                        fillOpacity: 0.9
+                    }).bindTooltip(content, { direction: 'top' }).bindPopup(content).addTo(detailMarkerLayer);
+                });
+            }
+
             fillSelect(dropdown, uniqueValues(wilayahData, 'provinsi'), '-- Semua Provinsi --');
             renderWilayahTable();
 
@@ -327,6 +372,7 @@
                 fillSelect(kecamatanDropdown, uniqueValues(rows, 'kecamatan'), '-- Semua Kecamatan --');
                 fillSelect(kelurahanDropdown, [], '-- Semua Kelurahan/Desa --');
                 renderWilayahTable();
+                updateProvinsiTooltip();
             });
 
             kecamatanDropdown.addEventListener('change', function() {
@@ -337,9 +383,13 @@
                 );
                 fillSelect(kelurahanDropdown, uniqueValues(rows, 'kelurahan'), '-- Semua Kelurahan/Desa --');
                 renderWilayahTable();
+                updateProvinsiTooltip();
             });
 
-            kelurahanDropdown.addEventListener('change', renderWilayahTable);
+            kelurahanDropdown.addEventListener('change', function() {
+                renderWilayahTable();
+                updateProvinsiTooltip();
+            });
 
             document.getElementById('resetWilayah').addEventListener('click', function() {
                 dropdown.value = '';
@@ -350,6 +400,33 @@
             let markerAktif = null;
             let batasProvinsi = null;
             let geojsonProvinsi = null;
+
+            function provinsiTooltipContent() {
+                const namaProvinsi = dropdown.value || 'SEMUA PROVINSI';
+                const jumlah = filteredWilayahRows().length;
+                return `<div class="text-center">
+                    <strong>${escapeHtml(namaProvinsi)}</strong><br>
+                    <span style="font-size:18px;font-weight:700;color:#696cff;">${jumlah}</span>
+                    <span> peserta</span>
+                </div>`;
+            }
+
+            function updateProvinsiTooltip() {
+                const content = provinsiTooltipContent();
+                if (batasProvinsi) {
+                    batasProvinsi.bindTooltip(content, {
+                        sticky: true,
+                        direction: 'top',
+                        className: 'tooltip-provinsi'
+                    });
+                }
+                if (markerAktif) {
+                    markerAktif.bindPopup(content).bindTooltip(content, {
+                        direction: 'top',
+                        className: 'tooltip-provinsi'
+                    });
+                }
+            }
 
             // Muat file GeoJSON provinsi sekali saat halaman dibuka
             fetch("{{ asset('geojson/indonesia-38-provinces.geojson') }}")
@@ -394,7 +471,11 @@
                         map.removeLayer(markerAktif);
                     }
                     markerAktif = L.marker(koordinat).addTo(map)
-                        .bindPopup('<b>' + nama + '</b>')
+                        .bindPopup(provinsiTooltipContent())
+                        .bindTooltip(provinsiTooltipContent(), {
+                            direction: 'top',
+                            className: 'tooltip-provinsi'
+                        })
                         .openPopup();
                 }
 
@@ -419,7 +500,12 @@
                                 weight: 3,
                                 fill: false
                             } // outline saja
-                        }).addTo(map);
+                        }).addTo(map)
+                            .bindTooltip(provinsiTooltipContent(), {
+                                sticky: true,
+                                direction: 'top',
+                                className: 'tooltip-provinsi'
+                            });
                         map.fitBounds(batasProvinsi.getBounds()); // pas-kan zoom ke provinsi
                     }
                 }
