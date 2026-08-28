@@ -23,8 +23,14 @@
                 </div>
             </form>
 
+            <!-- TOMBOL TAMBAH PENGAJAR -->
+            <button type="button" class="btn btn-info shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddPengajar">
+                <i class="bx bx-chalkboard me-1"></i> Tambah Pengajar
+            </button>
+
+            <!-- TOMBOL TAMBAH USER (ADMIN/SUPERADMIN) -->
             <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddUser">
-                <i class="bx bx-user-plus me-1"></i> Tambah User
+                <i class="bx bx-user-plus me-1"></i> Tambah Admin
             </button>
         </div>
     </div>
@@ -32,6 +38,13 @@
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm alert-dismissible" role="alert">
             <i class="bx bx-check-circle me-1"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger border-0 shadow-sm alert-dismissible" role="alert">
+            <i class="bx bx-x-circle me-1"></i> {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -60,7 +73,7 @@
                         <td>
                             <div class="d-flex justify-content-start align-items-center">
                                 <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded-circle bg-label-{{ $user->role == 'superadmin' ? 'danger' : ($user->role == 'admin_bidang' ? 'primary' : 'success') }}">
+                                    <span class="avatar-initial rounded-circle bg-label-{{ $user->role == 'superadmin' ? 'danger' : ($user->role == 'admin_bidang' ? 'primary' : ($user->role == 'pengajar' ? 'info' : 'success')) }}">
                                         {{ substr($user->name, 0, 1) }}
                                     </span>
                                 </div>
@@ -72,7 +85,7 @@
                         </td>
                         <td class="text-wrap">
                             <small class="text-muted" style="font-size: 11px; line-height: 1.2; display: block; max-width: 250px;">
-                                {{ $user->bidang ?? 'Tidak Terikat Bidang' }}
+                                {{ $user->bidang ?? 'Tidak Terikat Bidang (Luar)' }}
                             </small>
                         </td>
                         <td>
@@ -99,10 +112,10 @@
                                     </a>
                                     <form action="{{ route('users.reset-password', $user->id) }}" method="POST">
                                         @csrf @method('PUT')
-                                        <button class="dropdown-item"><i class="bx bx-refresh me-1"></i> Reset Password</button>
+                                        <button class="dropdown-item" onclick="return confirm('Reset password menjadi password123?')"><i class="bx bx-refresh me-1"></i> Reset Password</button>
                                     </form>
                                     <div class="dropdown-divider"></div>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini beserta seluruh datanya?')">
                                         @csrf @method('DELETE')
                                         <button class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i> Hapus</button>
                                     </form>
@@ -124,14 +137,84 @@
     </div>
 </div>
 
-<!-- Modal Tambah User -->
+<!-- ==============================================
+     MODAL KHUSUS TAMBAH PENGAJAR 
+     ============================================== -->
+<div class="modal fade" id="modalAddPengajar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{{ route('users.store') }}" method="POST">
+                @csrf
+                <!-- Role diset otomatis ke pengajar -->
+                <input type="hidden" name="role" value="pengajar">
+                
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white">Tambah Akun Pengajar Baru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 small mb-4">
+                        <i class="bx bx-info-circle me-1"></i> Pengajar akan diminta melengkapi Profil Keuangan & mengubah password saat pertama kali login.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nama Lengkap (Beserta Gelar) <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required />
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">NIP / NIK <span class="text-danger">*</span></label>
+                            <input type="text" name="nip_nik" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nomor WA <span class="text-danger">*</span></label>
+                            <input type="number" name="whatsapp" class="form-control" placeholder="628..." required />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Asal Instansi/Bidang <small>(Opsional)</small></label>
+                        <select name="bidang" class="form-select">
+                            <option value="">Luar BPSDM / Tidak Terikat</option>
+                            @foreach($listBidang as $b)
+                                <option value="{{ $b }}">{{ $b }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-info"><i class="bx bx-lock-alt me-1"></i> Data Login Default</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="text" name="password" class="form-control" value="password123" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info text-white w-100">Buatkan Akun Pengajar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==============================================
+     MODAL TAMBAH USER (ADMIN/SUPERADMIN) 
+     ============================================== -->
 <div class="modal fade" id="modalAddUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="{{ route('users.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Pengguna Baru</h5>
+                    <h5 class="modal-title">Tambah Admin / Superadmin</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -179,6 +262,9 @@
     </div>
 </div>
 
+<!-- ==============================================
+     MODAL EDIT USER (GLOBAL)
+     ============================================== -->
 <div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form action="" method="POST" id="formEditUser" class="modal-content">
@@ -194,9 +280,20 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">USERNAME</label>
+                        <input type="text" name="username" id="edit_username" class="form-control" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">NIP / NIK</label>
+                        <input type="text" name="nip_nik" id="edit_nip_nik" class="form-control" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">ROLE / HAK AKSES</label>
                         <select name="role" id="edit_role" class="form-select" required>
                             <option value="participant">Participant (Peserta)</option>
+                            <option value="pengajar">Pengajar</option>
                             <option value="admin_bidang">Admin Bidang</option>
                             <option value="superadmin">Superadmin</option>
                         </select>
@@ -208,15 +305,15 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">PENYELENGGARA / BIDANG</label>
-                    <select name="bidang" id="edit_bidang" class="form-select" required>
-                        <option value="Luar BPSDM">Bukan Admin Bidang (Luar BPSDM)</option>
+                    <select name="bidang" id="edit_bidang" class="form-select">
+                        <option value="">Tidak Terikat Bidang (Luar BPSDM)</option>
                         @foreach($listBidang as $b)
                             <option value="{{ $b }}">{{ $b }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="alert alert-info py-2 mb-0">
-                    <small><i class="bx bx-info-circle me-1"></i> Username dan Password tidak dapat diubah di sini. Gunakan fitur Reset Password jika diperlukan.</small>
+                    <small><i class="bx bx-info-circle me-1"></i> Gunakan fitur tombol Dropdown -> <strong>Reset Password</strong> pada tabel jika pengguna lupa passwordnya.</small>
                 </div>
             </div>
             <div class="modal-footer border-top">
@@ -231,18 +328,26 @@
 @push('js')
 <script>
     /**
-     * Fungsi untuk mengisi data ke Modal Edit
+     * Fungsi untuk mengisi data ke Modal Edit secara Dinamis
      */
     function editUser(data) {
-        // Set URL Form Action
+        // Set URL Form Action untuk metode PUT
         const url = "{{ url('users') }}/" + data.id;
         $('#formEditUser').attr('action', url);
 
-        // Isi field input
+        // Isi field input dengan data dari database
         $('#edit_name').val(data.name);
+        $('#edit_username').val(data.username);
+        $('#edit_nip_nik').val(data.nip_nik);
         $('#edit_role').val(data.role);
         $('#edit_whatsapp').val(data.whatsapp);
-        $('#edit_bidang').val(data.bidang ? data.bidang : 'Luar BPSDM');
+        
+        // Handle select bidang (jika null, pilih yang value-nya kosong)
+        if(data.bidang) {
+            $('#edit_bidang').val(data.bidang);
+        } else {
+            $('#edit_bidang').val('');
+        }
     }
 </script>
 @endpush

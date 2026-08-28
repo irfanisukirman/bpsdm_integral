@@ -120,11 +120,11 @@
                             <ul class="dropdown-menu dropdown-menu-end shadow">
                                 @if($canManage)
                                     <li>
-                                        <form action="{{ route('documents.folder.privacy', $folder->id) }}" method="POST">
-                                            @csrf @method('PUT')
+                                         <form action="{{ route('documents.folder.privacy', $folder->id) }}" method="POST" onsubmit="return confirm('Yakin ingin mengatur folder ini menjadi {{ $folder->is_public ? 'Private' : 'Public' }}? \n\nPERINGATAN: Seluruh file dan sub-folder di dalamnya akan ikut menjadi {{ $folder->is_public ? 'Private' : 'Public' }}!')">
+                                         @csrf @method('PUT')
                                             <button class="dropdown-item">
                                                 <i class="bx {{ $folder->is_public ? 'bx-lock text-danger' : 'bx-globe text-success' }} me-2"></i>
-                                                Set {{ $folder->is_public ? 'Private' : 'Public' }}
+                                                  Set {{ $folder->is_public ? 'Private' : 'Public' }}
                                             </button>
                                         </form>
                                     </li>

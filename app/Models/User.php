@@ -57,4 +57,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Participant::class, 'nip_nik', 'username');
     }
+    public function pengajar()
+    {
+        return $this->hasOne(Pengajar::class);
+    }
 }
