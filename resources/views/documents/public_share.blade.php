@@ -4,8 +4,18 @@
 <div class="container-xxl py-5">
     <div class="row justify-content-center">
         <div class="col-md-11 col-lg-9">
+            
+            {{-- Breadcrumb Sederhana (Jika ini sub-folder dari suatu folder) --}}
+            @if($folder->parent)
+                <div class="mb-3">
+                    <a href="{{ route('documents.public', $folder->parent->share_token ?? '') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                        <i class="bx bx-arrow-back me-1"></i> Kembali ke {{ $folder->parent->name }}
+                    </a>
+                </div>
+            @endif
+
             <div class="card shadow-lg border-0 overflow-hidden">
-                <!-- Header Dokumen dengan Animasi Warna -->
+                <!-- Header Dokumen -->
                 <div class="card-header {{ $folder->is_public ? 'bg-primary' : 'bg-danger' }} text-white py-4 position-relative">
                     <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
                         <div class="d-flex align-items-center">
@@ -28,27 +38,43 @@
                             </span>
                         </div>
                     </div>
-                    <!-- Dekorasi Background -->
                     <div class="header-shape"></div>
                 </div>
 
                 <div class="card-body p-4 bg-white">
                     @if($folder->is_public)
-                        {{-- TAMPILAN JIKA FOLDER PUBLIK --}}
-                        <div class="row mb-4 align-items-center">
-                            <div class="col-md-8">
-                                <h5 class="mb-1 text-dark fw-bold">Daftar Berkas Dokumen</h5>
-                                <p class="text-muted small">Silakan lihat atau unduh dokumen resmi yang tersedia di bawah ini.</p>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <div class="text-muted small">
-                                    Total: <span class="fw-bold text-primary">{{ $folder->files->count() }} Berkas</span>
+                        
+                        {{-- MENAMPILKAN SUB-FOLDER JIKA ADA --}}
+                        @if($folder->children->count() > 0)
+                            <h6 class="mb-3 text-dark fw-bold border-bottom pb-2"><i class="bx bx-folder-open me-2 text-warning"></i>Sub-Folder</h6>
+                            <div class="row g-3 mb-5">
+                                @foreach($folder->children->where('is_public', true) as $sub)
+                                <div class="col-md-4 col-sm-6">
+                                    <a href="{{ route('documents.public', $sub->share_token) }}" class="text-decoration-none">
+                                        <div class="card shadow-sm border folder-card-public h-100">
+                                            <div class="card-body p-3 d-flex align-items-center">
+                                                <i class="bx bxs-folder text-warning fs-1 me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0 text-dark fw-bold text-truncate" style="max-width: 140px;" title="{{ $sub->name }}">{{ $sub->name }}</h6>
+                                                    <small class="text-muted">{{ $sub->files->count() }} Berkas</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
                                 </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- MENAMPILKAN FILE --}}
+                        <div class="row mb-3 align-items-center mt-2">
+                            <div class="col-md-8">
+                                <h6 class="mb-0 text-dark fw-bold border-bottom pb-2"><i class="bx bx-file-blank me-2 text-primary"></i>Daftar Berkas Dokumen</h6>
                             </div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
+                        <div class="table-responsive border rounded">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 50%;">Nama Berkas</th>
@@ -79,14 +105,11 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group">
-                                                {{-- Tombol Lihat (Hanya untuk PDF & Gambar) --}}
                                                 @if(in_array(strtolower($file->file_type), ['pdf', 'jpg', 'jpeg', 'png']))
                                                     <a href="{{ asset('storage/'.$file->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Berkas">
                                                         <i class="bx bx-show-alt"></i>
                                                     </a>
                                                 @endif
-                                                
-                                                {{-- Tombol Download --}}
                                                 <a href="{{ asset('storage/'.$file->file_path) }}" download="{{ $file->display_name }}" class="btn btn-sm btn-primary" title="Unduh Berkas">
                                                     <i class="bx bx-download"></i>
                                                 </a>
@@ -97,7 +120,7 @@
                                     <tr>
                                         <td colspan="3" class="text-center py-5">
                                             <img src="{{ asset('assets/img/illustrations/empty-folder.png') }}" width="100" class="mb-3 opacity-50">
-                                            <p class="text-muted">Folder ini belum memiliki dokumen.</p>
+                                            <p class="text-muted">Tidak ada dokumen di folder ini.</p>
                                         </td>
                                     </tr>
                                     @endforelse
@@ -105,7 +128,7 @@
                             </table>
                         </div>
                     @else
-                        {{-- TAMPILAN JIKA FOLDER PRIVATE (NO PERMISSION) --}}
+                        {{-- TAMPILAN JIKA FOLDER PRIVATE --}}
                         <div class="text-center py-5 animate__animated animate__headShake">
                             <div class="lock-container mb-4">
                                 <i class='bx bxs-lock-open text-danger lock-icon-main'></i>
@@ -117,11 +140,6 @@
                             </p>
                             <div class="alert bg-label-danger d-inline-block border-0 px-4">
                                 <i class="bx bx-info-circle me-1"></i> Hubungi <strong>Bidang Penyelenggara</strong> terkait untuk mendapatkan akses dokumen kembali.
-                            </div>
-                            <div class="mt-5">
-                                <a href="/" class="btn btn-outline-secondary">
-                                    <i class="bx bx-home-alt me-1"></i> Kembali ke Beranda
-                                </a>
                             </div>
                         </div>
                     @endif
@@ -150,16 +168,16 @@
     .file-row { transition: all 0.2s; }
     .file-row:hover { background-color: #f8f9ff !important; transform: scale(1.01); }
 
+    .folder-card-public { transition: all 0.2s ease-in-out; }
+    .folder-card-public:hover { transform: translateY(-3px); border-color: #ffab00 !important; box-shadow: 0 4px 15px rgba(255, 171, 0, 0.15) !important; }
+
     .file-icon-box {
         width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
         background-color: #f0f2ff; border-radius: 10px; color: #696cff;
     }
 
     .lock-icon-main { font-size: 8rem; filter: drop-shadow(0 10px 15px rgba(255, 62, 29, 0.3)); position: relative; z-index: 2; }
-
     .btn-group .btn { padding: 0.4375rem 0.75rem; }
-
-    /* File Type Colors */
     .text-danger { color: #ff3e1d !important; }
     .text-primary { color: #696cff !important; }
     .text-success { color: #71dd37 !important; }
@@ -167,9 +185,6 @@
 @endsection
 
 @php
-/**
- * Helper internal untuk icon file (Sama dengan di index)
- */
 function getFileIcon($ext) {
     $ext = strtolower($ext);
     if(in_array($ext, ['jpg','jpeg','png','gif'])) return 'bx-image-alt text-success';
@@ -180,9 +195,6 @@ function getFileIcon($ext) {
     return 'bx-file text-secondary';
 }
 
-/**
- * Helper internal untuk format size
- */
 function formatSizeUnits($bytes) {
     if ($bytes >= 1073741824) { $bytes = number_format($bytes / 1073741824, 2) . ' GB'; }
     elseif ($bytes >= 1048576) { $bytes = number_format($bytes / 1048576, 2) . ' MB'; }

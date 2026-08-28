@@ -96,6 +96,7 @@ class ParticipantController extends Controller
             'instansi' => 'required',
             'provinsi' => 'required',
             'kota' => 'required',
+            'kabupaten_kota' => 'required',
             'kecamatan' => 'required',
             'kelurahan' => 'required',
             'status_kepegawaian' => 'required',
@@ -125,15 +126,15 @@ class ParticipantController extends Controller
                 'nip_nik' => $user->nip_nik // Kunci utama pencocokan
             ],
             [
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'gender' => $user->gender,
-                'jabatan' => $user->jabatan,
-                'instansi' => $user->instansi,
-                'provinsi' => $user->provinsi,
-                'kota' => $user->kota,
-                'kecamatan' => $user->kecamatan,
-                'kelurahan' => $user->kelurahan,
+                'user_id'            => $user->id,
+                'name'               => $user->name,
+                'gender'             => $user->gender,
+                'jabatan'            => $user->jabatan,
+                'instansi'           => $user->instansi,
+                'provinsi'           => $user->provinsi,
+                'kabupaten_kota'     => $user->kabupaten_kota,
+                'kecamatan'          => $user->kecamatan,
+                'kelurahan'          => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,
             ]
         );
@@ -274,5 +275,4 @@ class ParticipantController extends Controller
 
         return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
-
 }
