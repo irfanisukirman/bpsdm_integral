@@ -8,8 +8,10 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Str; 
 use App\Models\User;
-use Laravel\Socialite\Facades\Socialite; 
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Illuminate\Support\Facades\Auth; // Penting untuk Auth::login
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class LoginController extends Controller implements HasMiddleware
@@ -62,8 +64,18 @@ class LoginController extends Controller implements HasMiddleware
      */
     public function handleGoogleCallback() {
         try {
-            $user = Socialite::driver('google')->user();
-            
+            try {
+                $user = Socialite::driver('google')->user();
+            } catch (InvalidStateException $e) {
+                // "state" dari session hilang saat kembali dari Google.
+                // Umumnya terjadi bila cookie session tidak tersimpan di
+                // perangkat/browser tertentu (mode privasi ketat, blokir
+                // cookie, atau jam sistem tidak sinkron). Ulangi tanpa
+                // memvalidasi state agar login tetap bisa dilanjutkan.
+                Log::warning('Google login: InvalidStateException, mencoba mode stateless.');
+                $user = Socialite::driver('google')->stateless()->user();
+            }
+
             // Cari user berdasarkan google_id atau email (username)
             $finduser = User::where('google_id', $user->id)
                             ->orWhere('username', $user->email)
@@ -103,8 +115,8 @@ class LoginController extends Controller implements HasMiddleware
             return redirect()->intended($this->redirectTo);
 
         } catch (\Exception $e) {
-            // Log error untuk debug jika diperlukan: \Log::error($e->getMessage());
-            //dd($e->getMessage()); 
+            // Catat penyebab asli agar bug seperti ini bisa didiagnosis dari log.
+            Log::error('Google login gagal: ' . $e->getMessage(), ['exception' => $e]);
             return redirect('/login')->with('error', 'Gagal login via Google. Silakan coba lagi.');
         }
     }
