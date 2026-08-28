@@ -3,52 +3,118 @@
 @section('title', 'Dashboard Monitoring & Evaluasi')
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <div class="row">
-        <!-- WELCOME & KPI -->
-        <div class="col-lg-8 mb-4 order-0">
-            <div class="card bg-primary text-white">
-                <div class="d-flex align-items-end row">
-                    <div class="col-sm-7">
-                        <div class="card-body">
-                            <h5 class="card-title text-white">Halo, {{ Auth::user()->name }}! 🎉</h5>
-                            <p class="mb-4">
-                                Saat ini terdapat <span class="fw-bold">{{ $stats['total_training'] }}</span> pelatihan terpantau di bidang Anda. 
-                                Pantau dampak pelatihan secara real-time melalui sistem Kirkpatrick.
-                            </p>
-                            <a href="{{ route('trainings.index') }}" class="btn btn-sm btn-outline-white border-white text-white">Lihat Detail Pelatihan</a>
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="row">
+            <!-- WELCOME -->
+            <div class="col-lg-8 col-md-7 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="d-flex align-items-center row h-100">
+                        <div class="col-sm-7">
+                            <div class="card-body">
+                                <h5 class="card-title text-white">
+                                    Halo, {{ Auth::user()->name }}! 🎉
+                                </h5>
+
+                                <p class="mb-4">
+                                    Saat ini terdapat
+                                    <span class="fw-bold">
+                                        {{ $stats['total_training'] }}
+                                    </span>
+                                    pelatihan terpantau di bidang Anda.
+                                    Pantau dampak pelatihan secara real-time
+                                    melalui sistem Kirkpatrick.
+                                </p>
+
+                                <a href="{{ route('trainings.index') }}"
+                                    class="btn btn-sm btn-outline-white border-white text-white">
+                                    Lihat Detail Pelatihan
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-sm-5 text-center text-sm-left">
-                        <div class="card-body pb-0 px-0 px-md-4">
-                            <img src="{{ asset('assets/img/illustrations/man-with-laptop-light.png') }}" height="140" alt="View Badge User" />
+
+                        <div class="col-sm-5 text-center">
+                            <div class="card-body pb-0">
+                                <img src="{{ asset('assets/img/illustrations/man-with-laptop-light.png') }}" height="140"
+                                    alt="Ilustrasi dashboard" class="img-fluid" />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-4 col-md-4 order-1">
-            <div class="row">
-                <div class="col-lg-6 col-md-12 col-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <span class="fw-semibold d-block mb-1 text-muted">Total Peserta</span>
-                            <h3 class="card-title mb-2">{{ $stats['total_participants'] }}</h3>
-                            <small class="text-success fw-semibold"><i class="bx bx-user me-1"></i>Orang</small>
+
+            <!-- KPI -->
+            <div class="col-lg-4 col-md-5 mb-4">
+                <div class="row g-3">
+
+                    <!-- TOTAL PESERTA -->
+                    <div class="col-6 col-md-12">
+                        <div class="card h-100">
+                            <div class="card-body d-flex align-items-center">
+
+                                <div class="avatar flex-shrink-0 me-3">
+                                    <span class="avatar-initial rounded bg-label-primary">
+                                        <i class="bx bx-group"></i>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <span class="fw-semibold d-block text-muted">
+                                        Total Peserta
+                                    </span>
+
+                                    <h3 class="card-title mb-1">
+                                        {{ $stats['total_participants'] }}
+                                    </h3>
+
+                                    <small class="text-primary fw-semibold">
+                                        <i class="bx bx-user me-1"></i>
+                                        Orang
+                                    </small>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-6 col-md-12 col-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <span class="fw-semibold d-block mb-1 text-muted">Kehadiran</span>
-                            @php 
-                                $attRate = $stats['total_attendance_logs'] > 0 ? round(($stats['avg_attendance'] / $stats['total_attendance_logs']) * 100) : 0;
-                            @endphp
-                            <h3 class="card-title mb-2">{{ $attRate }}%</h3>
-                            <small class="text-info fw-semibold"><i class="bx bx-check-double me-1"></i>Rata-rata</small>
+
+                    <!-- KEHADIRAN -->
+                    <div class="col-6 col-md-12">
+                        @php
+                            $attRate = $stats['total_attendance_logs'] > 0
+                                ? round(
+                                    ($stats['avg_attendance'] /
+                                        $stats['total_attendance_logs']) * 100
+                                )
+                                : 0;
+                        @endphp
+
+                        <div class="card h-100">
+                            <div class="card-body d-flex align-items-center">
+
+                                <div class="avatar flex-shrink-0 me-3">
+                                    <span class="avatar-initial rounded bg-label-success">
+                                        <i class="bx bx-check-double"></i>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <span class="fw-semibold d-block text-muted">
+                                        Kehadiran
+                                    </span>
+
+                                    <h3 class="card-title mb-1">
+                                        {{ $attRate }}%
+                                    </h3>
+
+                                    <small class="text-success fw-semibold">
+                                        <i class="bx bx-bar-chart-alt-2 me-1"></i>
+                                        Rata-rata
+                                    </small>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -124,28 +190,29 @@
                         </thead>
                         <tbody>
                             @foreach($latestTrainings as $lt)
-                            <tr>
-                                <td>
-                                    <span class="fw-bold">{{ $lt->nama_pelatihan }}</span><br>
-                                    <small class="text-muted">Angkatan {{ $lt->angkatan }}</small>
-                                </td>
-                                <td><span class="badge bg-label-info">{{ $lt->metode }}</span></td>
-                                <td>
-                                    @php $nowAct = $lt->current_activity; @endphp
-                                    @if($nowAct)
-                                        <small class="text-success fw-bold"><i class="bx bx-play me-1"></i> {{ $nowAct->activity }}</small>
-                                    @else
-                                        <small class="text-muted">Tidak ada jadwal saat ini</small>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($lt->sisa_hari < 0)
-                                        <span class="badge bg-label-danger">Selesai</span>
-                                    @else
-                                        <span class="badge bg-label-success">Aktif ({{ $lt->sisa_hari }} Hari lagi)</span>
-                                    @endif
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">{{ $lt->nama_pelatihan }}</span><br>
+                                        <small class="text-muted">Angkatan {{ $lt->angkatan }}</small>
+                                    </td>
+                                    <td><span class="badge bg-label-info">{{ $lt->metode }}</span></td>
+                                    <td>
+                                        @php $nowAct = $lt->current_activity; @endphp
+                                        @if($nowAct)
+                                            <small class="text-success fw-bold"><i class="bx bx-play me-1"></i>
+                                                {{ $nowAct->activity }}</small>
+                                        @else
+                                            <small class="text-muted">Tidak ada jadwal saat ini</small>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($lt->sisa_hari < 0)
+                                            <span class="badge bg-label-danger">Selesai</span>
+                                        @else
+                                            <span class="badge bg-label-success">Aktif ({{ $lt->sisa_hari }} Hari lagi)</span>
+                                        @endif
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -182,67 +249,67 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // 1. Radar Chart Kirkpatrick
-    const ctxRadar = document.getElementById('radarKirkpatrick').getContext('2d');
-    new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-            labels: ['L1: Reaksi', 'L3: Perilaku', 'L4: Hasil'],
-            datasets: [{
-                label: 'Skor Agregat',
-                data: [{{ round($avgL1) }}, {{ round($avgL3) }}, {{ round($avgL4) }}],
-                backgroundColor: 'rgba(105, 108, 255, 0.2)',
-                borderColor: '#696cff',
-                pointBackgroundColor: '#696cff',
-            }]
-        },
-        options: {
-            scales: { r: { beginAtZero: true, max: 100 } },
-            plugins: { legend: { display: false } }
-        }
-    });
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 1. Radar Chart Kirkpatrick
+        const ctxRadar = document.getElementById('radarKirkpatrick').getContext('2d');
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['L1: Reaksi', 'L3: Perilaku', 'L4: Hasil'],
+                datasets: [{
+                    label: 'Skor Agregat',
+                    data: [{{ round($avgL1) }}, {{ round($avgL3) }}, {{ round($avgL4) }}],
+                    backgroundColor: 'rgba(105, 108, 255, 0.2)',
+                    borderColor: '#696cff',
+                    pointBackgroundColor: '#696cff',
+                }]
+            },
+            options: {
+                scales: { r: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
 
-    // 2. Bar Chart Learning
-    const ctxBar = document.getElementById('barLearning').getContext('2d');
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: ['Pre-Test', 'Post-Test'],
-            datasets: [{
-                label: 'Nilai',
-                data: [{{ round($avgL2Pre) }}, {{ round($avgL2Post) }}],
-                backgroundColor: ['#ffab00', '#71dd37'],
-                borderRadius: 5
-            }]
-        },
-        options: {
-            scales: { y: { beginAtZero: true, max: 100 } },
-            plugins: { legend: { display: false } }
-        }
-    });
+        // 2. Bar Chart Learning
+        const ctxBar = document.getElementById('barLearning').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Pre-Test', 'Post-Test'],
+                datasets: [{
+                    label: 'Nilai',
+                    data: [{{ round($avgL2Pre) }}, {{ round($avgL2Post) }}],
+                    backgroundColor: ['#ffab00', '#71dd37'],
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
 
-    // 3. Pie Chart Monitoring
-    const ctxPie = document.getElementById('pieMonitoring').getContext('2d');
-    new Chart(ctxPie, {
-        type: 'doughnut',
-        data: {
-            labels: ['YA', 'TIDAK'],
-            datasets: [{
-                data: [{{ $monYa }}, {{ $monTidak }}],
-                backgroundColor: ['#71dd37', '#ff3e1d'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            cutout: '70%',
-            plugins: { legend: { display: false } }
-        }
-    });
-</script>
+        // 3. Pie Chart Monitoring
+        const ctxPie = document.getElementById('pieMonitoring').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['YA', 'TIDAK'],
+                datasets: [{
+                    data: [{{ $monYa }}, {{ $monTidak }}],
+                    backgroundColor: ['#71dd37', '#ff3e1d'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
 @endpush

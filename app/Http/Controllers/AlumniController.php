@@ -13,10 +13,11 @@ class AlumniController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+       $user = Auth::user();
+        
+        // --- 1. HITUNG ALUMNI SESUAI HAK AKSES ---
         $query = Participant::query()->with('training');
 
-        // Filter Bidang untuk Admin Bidang
         if ($user->role !== 'superadmin') {
             $query->whereHas('training', function ($q) use ($user) {
                 $q->where('bidang', $user->bidang);
@@ -24,45 +25,51 @@ class AlumniController extends Controller
         }
 
         $alumni = $query->get();
-        $totalAlumni = $alumni->count();
+        $totalAlumni = $alumni->count(); // Total alumni untuk tabel & chart (terfilter)
 
-        // 1. Data Gender
+        // --- 2. HITUNG ALUMNI KESELURUHAN (Khusus Superadmin) ---
+        $totalAlumniAll = 0;
+        if ($user->role === 'superadmin') {
+            // Jika superadmin, totalAlumni dan totalAlumniAll sama nilainya
+            $totalAlumniAll = Participant::count(); 
+        }
+
+        // 3. Data Gender
         $genderStats = [
             'Laki-Laki' => $alumni->where('gender', 'Laki-Laki')->count(),
             'Perempuan' => $alumni->where('gender', 'Perempuan')->count(),
         ];
 
-        // 2. Data Wilayah 3T (Terdepan, Terluar, Tertinggal)
-        // Logika: Membandingkan kabupaten_kota dengan list daerah 3T di Indonesia
-        $list3T = $list3T = array_unique(array_merge(
-            config('wilayah.tertinggal'),
-            config('wilayah.perbatasan')
+        // 4. Data Wilayah 3T
+        $list3T = array_unique(array_merge(
+            config('wilayah.tertinggal', []),
+            config('wilayah.perbatasan', [])
         ));
+        
         $stats3T = [
-            'Wilayah 3T' => $alumni->filter(fn($a) => in_array($a->kabupaten_kota, $list3T))->count(),
-            'Non-3T' => $alumni->filter(fn($a) => !in_array($a->kabupaten_kota, $list3T))->count(),
+            'Wilayah 3T' => $alumni->filter(fn($a) => in_array($a->kota, $list3T))->count(), // Gunakan $a->kota
+            'Non-3T' => $alumni->filter(fn($a) => !in_array($a->kota, $list3T))->count(),   // Gunakan $a->kota
         ];
 
-        // 3. Sebaran Provinsi
+        // 5. Sebaran Provinsi & Kabupaten
         $provinsiStats = $alumni->groupBy('provinsi')->map->count();
+        $kabupatenStats = $alumni->groupBy('kota')->map->count(); // Gunakan 'kota'
 
-        // 3b. Sebaran per Kabupaten/Kota (untuk peta)
-        $kabupatenStats = $alumni->groupBy('kabupaten_kota')->map->count();
-
-        // 4. Data Pendidikan (Dari Alumni Profile L34)
+        // 6. Data Pendidikan (Dari Alumni Profile L34)
         $eduStats = AlumniProfile::whereIn('participant_id', $alumni->pluck('id'))
             ->select('edu_current', DB::raw('count(*) as total'))
             ->groupBy('edu_current')
             ->get();
 
-        // 5. Status Kepegawaian
+        // 7. Status Kepegawaian
         $statusStats = $alumni->groupBy('status_kepegawaian')->map->count();
 
-        $koordinatKabupaten = config('wilayah.koordinat_kota_kabupaten');
-        $koordinatProvinsi = config('wilayah.koordinat_provinsi');
+        $koordinatKabupaten = config('wilayah.koordinat_kota_kabupaten', []);
+        $koordinatProvinsi = config('wilayah.koordinat_provinsi', []);
 
         return view('alumni.index', compact(
             'totalAlumni',
+            'totalAlumniAll', // Kirim data tambahan ini
             'genderStats',
             'stats3T',
             'provinsiStats',
