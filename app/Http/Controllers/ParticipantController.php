@@ -94,25 +94,45 @@ class ParticipantController extends Controller
      */
     public function storeProfile(Request $request)
     {
-        $user = \App\Models\User::findOrFail(Auth::id());
+        $user = \App\Models\User::findOrFail(auth()->id());
 
+        // PERBAIKAN: Pastikan 'kabupaten_kota' yang divalidasi, bukan 'kota'
         $request->validate([
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
+            'whatsapp' => 'required|numeric',
             'gender' => 'required',
+            'status_kepegawaian' => 'required',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kota' => 'required',
-            'kabupaten_kota' => 'required',
+            'kabupaten_kota' => 'required', // Ganti dari 'kota' menjadi 'kabupaten_kota'
             'kecamatan' => 'required',
             'kelurahan' => 'required',
-            'status_kepegawaian' => 'required',
-            'whatsapp' => 'required'
+        ], [
+            // Custom message agar lebih user-friendly
+            'kabupaten_kota.required' => 'Kabupaten / Kota wajib dipilih.',
+            'nip_nik.unique' => 'NIP/NIK ini sudah terdaftar di sistem.',
         ]);
 
-        $user->update($request->all());
+        // Simpan ke tabel users
+        $user->update([
+            'nip_nik' => $request->nip_nik,
+            'whatsapp' => $request->whatsapp,
+            'gender' => $request->gender,
+            'status_kepegawaian' => $request->status_kepegawaian,
+            'jabatan' => $request->jabatan,
+            'instansi' => $request->instansi,
+            'provinsi' => $request->provinsi,
+            'kabupaten_kota' => $request->kabupaten_kota,
+            'kecamatan' => $request->kecamatan,
+            'kelurahan' => $request->kelurahan,
+        ]);
 
-        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil diperbarui.');
+        // Auto-sync data ke tabel participants (jika NIP sudah ada di import admin)
+        \App\Models\Participant::where('nip_nik', $user->nip_nik)
+            ->update(['user_id' => $user->id]);
+
+        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil dilengkapi.');
     }
 
     // Proses Daftar dengan Kode

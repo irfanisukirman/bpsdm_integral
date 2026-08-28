@@ -4,18 +4,17 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
+    public function up(): void {
         Schema::table('users', function (Blueprint $table) {
-            $table->renameColumn('kabupaten_kota', 'kota');
             if (!Schema::hasColumn('users', 'kecamatan')) {
-                $table->string('kecamatan')->nullable()->after('kota');
+                $table->string('kecamatan')->nullable()->after('kabupaten_kota');
+                $table->string('kelurahan')->nullable()->after('kecamatan');
             }
-            $table->string('kelurahan')->nullable()->after('kecamatan');
         });
     }
 
