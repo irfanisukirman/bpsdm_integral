@@ -20,6 +20,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Penyelenggara Pelatihan</label>
+                        @if(auth()->user()->role === 'admin_bidang')
+                        <input type="hidden" name="bidang" value="{{ auth()->user()->bidang }}">
+                        <input type="text" class="form-control bg-light" value="{{ auth()->user()->bidang }}" readonly>
+                        <div class="form-text">Penyelenggara mengikuti bidang pada akun Anda.</div>
+                        @else
                         <select name="bidang" class="form-select" required>
                             @php
                                 $bidangs = [
@@ -33,6 +38,7 @@
                                 <option value="{{ $b }}" {{ $training->bidang == $b ? 'selected' : '' }}>{{ $b }}</option>
                             @endforeach
                         </select>
+                        @endif
                     </div>
 
                     @if($training->model === 'standar')

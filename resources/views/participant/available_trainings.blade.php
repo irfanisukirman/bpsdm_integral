@@ -5,11 +5,13 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header Section -->
-        <div class="mb-5 animate__animated animate__fadeInLeft">
-            <h4 class="fw-bold mb-1">
-                <span class="text-muted fw-light">Portal Peserta /</span> Pelatihan Aktif
-            </h4>
-            <p class="text-muted mb-0">Pantau progres dan tuntaskan kewajiban evaluasi Anda.</p>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h4 class="fw-bold mb-1">
+                    <span class="text-muted fw-light">Portal Peserta /</span> Pelatihan Aktif
+                </h4>
+                <p class="text-muted mb-0">Pantau progres dan tuntaskan kewajiban evaluasi Anda.</p>
+            </div>
         </div>
 
         @if (session('success'))
@@ -23,7 +25,7 @@
             </div>
         @endif
 
-        <div class="row justify-content-center">
+        <div class="row justify-content-center g-4">
             @if($myTrainings->isNotEmpty())
                 {{-- KONDISI: JIKA ADA PELATIHAN (DAFTAR CARD) --}}
                 @foreach($myTrainings as $t)
@@ -41,7 +43,7 @@
                         $hasL34 = $isApproved && $p->hasFilledL34Mandiri();
                     @endphp
 
-                    <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="col-12 col-xl-6">
                         <div class="card h-100 shadow-sm border-0 transition-all 
                             {{ $isPending ? 'border-top border-warning border-3' : ($isExpired ? 'border-top border-danger border-3' : 'border-top border-primary border-3') }} 
                             hover-shadow-lg">
@@ -49,7 +51,7 @@
                             <div class="card-header pb-2 d-flex justify-content-between align-items-center">
                                 <div>
                                     @if ($isPending)
-                                        <span class="badge bg-label-warning animate__animated animate__flash animate__infinite">MENUNGGU APPROVAL</span>
+                                        <span class="badge bg-label-warning">MENUNGGU APPROVAL</span>
                                     @elseif($isRejected)
                                         <span class="badge bg-label-danger">DITOLAK</span>
                                     @elseif($isExpired)
@@ -62,7 +64,13 @@
                             </div>
 
                             <div class="card-body">
-                                <h5 class="card-title fw-extrabold text-dark mb-3" style="min-height: 50px;">{{ $t->nama_pelatihan }}</h5>
+                                <h5 class="card-title fw-extrabold text-dark mb-3">{{ $t->nama_pelatihan }}</h5>
+
+                                <div class="training-meta mb-3">
+                                    <span><i class="bx bx-map me-1"></i>{{ $t->lokasi ?? 'Lokasi belum ditentukan' }}</span>
+                                    <span><i class="bx bx-book-open me-1"></i>{{ ucfirst($t->metode ?? $t->model ?? '-') }}</span>
+                                    <span><i class="bx bx-time-five me-1"></i>{{ $t->jp ?? 0 }} JP</span>
+                                </div>
 
                                 <div class="mb-4 p-3 rounded-3 {{ $isExpired ? 'bg-label-danger' : 'bg-label-primary' }} text-center">
                                     @if ($isExpired)
@@ -79,21 +87,23 @@
                                 @if ($isApproved)
                                     <div class="task-section p-3 border rounded-3 bg-white">
                                         <h6 class="small fw-bold text-muted mb-3 text-uppercase border-bottom pb-2">Checklist Kewajiban:</h6>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="task-grid">
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <small>1. Kelengkapan Berkas</small>
-                                            <i class="bx {{ $hasDocs ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger animate__animated animate__heartBeat animate__infinite' }} fs-5"></i>
+                                            <i class="bx {{ $hasDocs ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger' }} fs-5"></i>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <small>2. Evaluasi Level 1</small>
-                                            <i class="bx {{ $hasL1 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger animate__animated animate__heartBeat animate__infinite' }} fs-5"></i>
+                                            <i class="bx {{ $hasL1 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger' }} fs-5"></i>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <small>3. Evaluasi Level 2</small>
                                             <i class="bx {{ $hasL2 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger' }} fs-5"></i>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small>4. Evaluasi Dampak (L3&4)</small>
-                                            <i class="bx {{ $hasL34 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger animate__animated animate__heartBeat animate__infinite' }} fs-5"></i>
+                                            <i class="bx {{ $hasL34 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger' }} fs-5"></i>
+                                        </div>
                                         </div>
                                     </div>
                                 @elseif($isPending)
@@ -189,6 +199,30 @@
 
         .task-section {
             background-color: #fcfcfd;
+        }
+
+        .training-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .65rem 1.25rem;
+            color: #697a8d;
+            font-size: .875rem;
+        }
+
+        .training-meta span {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem 1.5rem;
+        }
+
+        @media (max-width: 575.98px) {
+            .task-grid { grid-template-columns: 1fr; }
+            .card-header { align-items: flex-start !important; gap: .75rem; }
         }
         
         .bg-label-primary { background-color: #f0f0ff !important; }

@@ -33,12 +33,12 @@
                 <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title m-0">Wilayah 3T vs Non-3T</h5>
-                        <small class="text-muted">Ref: Kota Cimahi</small>
+                        <small class="text-muted">Berdasarkan kabupaten/kota</small>
                     </div>
                     <div class="card-body">
                         <canvas id="chart3T" height="250"></canvas>
                         <div class="mt-3 text-center small text-muted">
-                            Berdasarkan domisili peserta terhadap indeks wilayah terpencil.
+                            Kategori Tertinggal, Terdepan, dan Terluar mengikuti daftar pada konfigurasi wilayah.
                         </div>
                     </div>
                 </div>
@@ -63,26 +63,65 @@
                         <h5 class="card-title mb-0">Sebaran Alumni Seluruh Indonesia</h5>
                     </div>
                     <div class="card-body mt-3">
-                        <div class="d-flex align-items-end gap-3 mb-3">
-                            <div class="flex-grow-1">
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-md-6 col-xl-3">
                                 <label for="filterProvinsi" class="form-label">Pilih Provinsi</label>
                                 <select id="filterProvinsi" class="form-select">
                                     <option value="">-- Semua Provinsi --</option>
                                 </select>
                             </div>
-                            <div class="d-flex align-items-center justify-content-center flex-shrink-0"
-                                style="height: 38px; width: 64px;" title="Ganti tema peta">
-                                <div class="form-check form-switch mb-0">
+                            <div class="col-md-6 col-xl-3">
+                                <label for="filterKota" class="form-label">Kabupaten/Kota</label>
+                                <select id="filterKota" class="form-select" disabled>
+                                    <option value="">-- Semua Kabupaten/Kota --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-xl-3">
+                                <label for="filterKecamatan" class="form-label">Kecamatan</label>
+                                <select id="filterKecamatan" class="form-select" disabled>
+                                    <option value="">-- Semua Kecamatan --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-xl-3">
+                                <label for="filterKelurahan" class="form-label">Kelurahan/Desa</label>
+                                <select id="filterKelurahan" class="form-select" disabled>
+                                    <option value="">-- Semua Kelurahan/Desa --</option>
+                                </select>
+                            </div>
+                            <div class="col-12 d-flex justify-content-between align-items-center">
+                                <small id="wilayahSummary" class="text-muted"></small>
+                                <div class="d-flex align-items-center gap-3">
+                                    <button type="button" id="resetWilayah" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bx bx-reset me-1"></i> Reset Filter
+                                    </button>
+                                    <div class="form-check form-switch mb-0" title="Ganti tema peta">
                                     <input class="form-check-input" type="checkbox" role="switch" id="btnTema"
                                         style="cursor: pointer;">
                                     <label class="form-check-label" for="btnTema" id="labelTema"><i
                                             class="bx bx-moon"></i></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Peta Sebaran Alumni -->
                         <div id="mapAlumni" style="height: 400px; width: 100%; border-radius: 8px;"></div>
+
+                        <div class="table-responsive mt-4 wilayah-table-wrapper">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Peserta</th>
+                                        <th>Provinsi</th>
+                                        <th>Kabupaten/Kota</th>
+                                        <th>Kecamatan</th>
+                                        <th>Kelurahan/Desa</th>
+                                        <th>Status 3T</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wilayahTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,6 +158,17 @@
             /* buang panah kecil bawaan tooltip */
             .label-kabupaten::before {
                 display: none;
+            }
+
+            .wilayah-table-wrapper {
+                max-height: 420px;
+                overflow-y: auto;
+            }
+
+            .wilayah-table-wrapper thead th {
+                position: sticky;
+                top: 0;
+                z-index: 1;
             }
         </style>
     @endpush
@@ -197,14 +247,103 @@
 
             // Data koordinat provinsi (dari config)
             const provinsiData = {!! json_encode($koordinatProvinsi) !!};
+            const wilayahData = {!! json_encode($wilayahRows->values()) !!};
 
-            // Isi dropdown dari data provinsi
             const dropdown = document.getElementById('filterProvinsi');
-            Object.keys(provinsiData).forEach(function(nama) {
-                const opt = document.createElement('option');
-                opt.value = nama;
-                opt.textContent = nama;
-                dropdown.appendChild(opt);
+            const kotaDropdown = document.getElementById('filterKota');
+            const kecamatanDropdown = document.getElementById('filterKecamatan');
+            const kelurahanDropdown = document.getElementById('filterKelurahan');
+            const wilayahTableBody = document.getElementById('wilayahTableBody');
+            const wilayahSummary = document.getElementById('wilayahSummary');
+
+            function uniqueValues(rows, key) {
+                return [...new Set(rows.map(row => row[key]).filter(Boolean))]
+                    .sort((a, b) => a.localeCompare(b, 'id'));
+            }
+
+            function fillSelect(select, values, placeholder) {
+                select.innerHTML = `<option value="">${placeholder}</option>`;
+                values.forEach(value => select.add(new Option(value, value)));
+                select.disabled = values.length === 0;
+            }
+
+            function escapeHtml(value) {
+                const div = document.createElement('div');
+                div.textContent = value ?? '';
+                return div.innerHTML;
+            }
+
+            function filteredWilayahRows() {
+                return wilayahData.filter(row =>
+                    (!dropdown.value || row.provinsi === dropdown.value) &&
+                    (!kotaDropdown.value || row.kota === kotaDropdown.value) &&
+                    (!kecamatanDropdown.value || row.kecamatan === kecamatanDropdown.value) &&
+                    (!kelurahanDropdown.value || row.kelurahan === kelurahanDropdown.value)
+                );
+            }
+
+            function renderWilayahTable() {
+                const rows = filteredWilayahRows();
+                const total3T = rows.filter(row => row.is_3t).length;
+                wilayahSummary.textContent = `${rows.length} alumni ditemukan${total3T ? ` · ${total3T} dari wilayah 3T` : ''}`;
+
+                if (!rows.length) {
+                    wilayahTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data alumni pada wilayah ini.</td></tr>';
+                    return;
+                }
+
+                wilayahTableBody.innerHTML = rows.map(row => {
+                    const status3T = row.is_3t
+                        ? row.kategori_3t.map(item => `<span class="badge bg-label-danger me-1">${escapeHtml(item)}</span>`).join('')
+                        : '<span class="badge bg-label-success">Non-3T</span>';
+
+                    return `<tr>
+                        <td><strong>${escapeHtml(row.nama)}</strong><br><small class="text-muted">${escapeHtml(row.nip_nik)}</small></td>
+                        <td>${escapeHtml(row.provinsi)}</td>
+                        <td>${escapeHtml(row.kota)}</td>
+                        <td>${escapeHtml(row.kecamatan)}</td>
+                        <td>${escapeHtml(row.kelurahan)}</td>
+                        <td>${status3T}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            fillSelect(dropdown, uniqueValues(wilayahData, 'provinsi'), '-- Semua Provinsi --');
+            renderWilayahTable();
+
+            dropdown.addEventListener('change', function() {
+                const rows = wilayahData.filter(row => !this.value || row.provinsi === this.value);
+                fillSelect(kotaDropdown, uniqueValues(rows, 'kota'), '-- Semua Kabupaten/Kota --');
+                fillSelect(kecamatanDropdown, [], '-- Semua Kecamatan --');
+                fillSelect(kelurahanDropdown, [], '-- Semua Kelurahan/Desa --');
+                renderWilayahTable();
+            });
+
+            kotaDropdown.addEventListener('change', function() {
+                const rows = wilayahData.filter(row =>
+                    (!dropdown.value || row.provinsi === dropdown.value) &&
+                    (!this.value || row.kota === this.value)
+                );
+                fillSelect(kecamatanDropdown, uniqueValues(rows, 'kecamatan'), '-- Semua Kecamatan --');
+                fillSelect(kelurahanDropdown, [], '-- Semua Kelurahan/Desa --');
+                renderWilayahTable();
+            });
+
+            kecamatanDropdown.addEventListener('change', function() {
+                const rows = wilayahData.filter(row =>
+                    (!dropdown.value || row.provinsi === dropdown.value) &&
+                    (!kotaDropdown.value || row.kota === kotaDropdown.value) &&
+                    (!this.value || row.kecamatan === this.value)
+                );
+                fillSelect(kelurahanDropdown, uniqueValues(rows, 'kelurahan'), '-- Semua Kelurahan/Desa --');
+                renderWilayahTable();
+            });
+
+            kelurahanDropdown.addEventListener('change', renderWilayahTable);
+
+            document.getElementById('resetWilayah').addEventListener('click', function() {
+                dropdown.value = '';
+                dropdown.dispatchEvent(new Event('change'));
             });
 
             // Marker & batas provinsi aktif
@@ -245,15 +384,19 @@
                 }
 
                 // Pindahkan peta + pasang marker
-                const koordinat = provinsiData[nama];
-                map.setView(koordinat, 8);
+                const provinsiKey = Object.keys(provinsiData)
+                    .find(key => key.toUpperCase() === nama.toUpperCase());
+                const koordinat = provinsiKey ? provinsiData[provinsiKey] : null;
 
-                if (markerAktif) {
-                    map.removeLayer(markerAktif);
+                if (koordinat) {
+                    map.setView(koordinat, 8);
+                    if (markerAktif) {
+                        map.removeLayer(markerAktif);
+                    }
+                    markerAktif = L.marker(koordinat).addTo(map)
+                        .bindPopup('<b>' + nama + '</b>')
+                        .openPopup();
                 }
-                markerAktif = L.marker(koordinat).addTo(map)
-                    .bindPopup('<b>' + nama + '</b>')
-                    .openPopup();
 
                 // Hapus batas lama, gambar batas provinsi terpilih
                 if (batasProvinsi) {

@@ -34,9 +34,10 @@
                 
                 @foreach($dates as $date)
                     @php
-                        $attendance = \App\Models\Attendance::whereHas('schedule', function($q) use ($date, $training) {
-                                        $q->where('training_id', $training->id)->where('date', $date);
-                                    })->where('participant_id', $p->id)->first();
+                        $attendance = $training->schedules
+                            ->where('date', $date)
+                            ->flatMap->attendances
+                            ->firstWhere('participant_id', $p->id);
                         
                         $status = "-";
                         if($attendance) {

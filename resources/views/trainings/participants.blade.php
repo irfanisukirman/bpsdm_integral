@@ -32,9 +32,6 @@
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdd">
                     <i class="bx bx-plus me-1"></i> Tambah
                 </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
-                    <i class="bx bx-file me-1"></i> Import
-                </button>
             </div>
         </div>
 
@@ -45,6 +42,13 @@
                     <i class="bx bx-check-circle me-2"></i>
                     <div>{{ session('success') }}</div>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible border-0 shadow-sm mb-4" role="alert">
+                <i class="bx bx-error-circle me-2"></i>{{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
@@ -231,13 +235,44 @@
         </div>
     </div>
 
-    <!-- Include Modals (Add & Import) -->
-    {{-- @include('trainings.partials.modal_add_participant') --}}
-    {{-- @include('trainings.partials.modal_import_participant') --}}
-
+    <!-- Modal tambah peserta dari database user -->
+    <div class="modal fade" id="modalAdd" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="{{ route('participants.store', $training->id) }}" method="POST" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Peserta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-bold">Cari Nama atau NIP/NIK</label>
+                    <select name="user_id" id="participant-user-search" class="form-select" required>
+                        <option value=""></option>
+                        @foreach($availableUsers as $candidate)
+                            <option value="{{ $candidate->id }}">
+                                {{ $candidate->name }} — {{ $candidate->nip_nik }}{{ $candidate->instansi ? ' · '.$candidate->instansi : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text mt-2">Data peserta diambil otomatis dari database user.</div>
+                    @if($availableUsers->isEmpty())
+                        <div class="alert alert-info mt-3 mb-0">Semua user participant yang memiliki NIP/NIK sudah terdaftar pada pelatihan ini.</div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" {{ $availableUsers->isEmpty() ? 'disabled' : '' }}>
+                        <i class="bx bx-plus me-1"></i>Tambah Peserta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('css')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <style>
         .table-responsive {
             overflow-x: auto !important;
@@ -259,7 +294,18 @@
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $(document).ready(function () {
+        $('#participant-user-search').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#modalAdd'),
+            placeholder: 'Ketik nama atau NIP/NIK...',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+
     /**
      * Fungsi Copy NIP ke Clipboard
      */

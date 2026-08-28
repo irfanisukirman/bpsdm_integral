@@ -3,28 +3,51 @@
 @section('title', 'Detail Pelatihan')
 
 @section('content')
+@php
+    $activeTab = in_array(request('tab'), ['info', 'kelengkapan', 'evaluasi', 'sertifikat'])
+        ? request('tab')
+        : 'info';
+    $completedDocuments = collect([$participant->pas_foto_file_id, $participant->biodata_file_id, $participant->surat_tugas_file_id])->filter()->count();
+@endphp
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">
-        <span class="text-muted fw-light">Pelatihan Saya /</span> {{ $training->nama_pelatihan }}
-    </h4>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{{ route('participant.trainings') }}" class="small text-muted text-decoration-none"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pelatihan Saya</a>
+            <h4 class="fw-bold mt-2 mb-1">{{ $training->nama_pelatihan }}</h4>
+            <div class="d-flex flex-wrap gap-2 text-muted small">
+                <span><i class="bx bx-calendar me-1"></i>{{ \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d M') }} - {{ \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d M Y') }}</span>
+                <span><i class="bx bx-map me-1"></i>{{ $training->lokasi }}</span>
+                <span><i class="bx bx-time-five me-1"></i>{{ $training->jp }} JP</span>
+            </div>
+        </div>
+        <div class="text-md-end">
+            <span class="badge {{ $completedDocuments === 3 ? 'bg-label-success' : 'bg-label-warning' }} px-3 py-2">
+                Kelengkapan {{ $completedDocuments }}/3
+            </span>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible"><i class="bx bx-check-circle me-1"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
+    @if(session('error') || $errors->any())
+        <div class="alert alert-danger alert-dismissible"><i class="bx bx-error-circle me-1"></i>{{ session('error') ?? $errors->first() }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
 
     <div class="row">
         <div class="col-md-12">
             <div class="nav-align-top mb-4">
                 {{-- 4 BAR MENU (TAB) --}}
-                <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+                <ul class="nav nav-pills training-tabs mb-3 flex-nowrap" role="tablist">
                     <li class="nav-item">
-                        <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-info">
-                            <i class="bx bx-info-circle me-1"></i> 1. INFO UMUM
+                        <button type="button" class="nav-link {{ $activeTab === 'info' ? 'active' : '' }}" role="tab" data-tab="info" data-bs-toggle="tab" data-bs-target="#navs-pills-info">
+                            <i class="bx bx-info-circle me-1"></i> Ringkasan
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#kelengkapan">
-                            <i class="bx bx-file me-1"></i> 2. KELENGKAPAN 
-                            @php
-                                $isComplete = $participant->biodata_file_id && $participant->surat_tugas_file_id;
-                            @endphp
-                            @if(!$isComplete)
+                        <button type="button" class="nav-link {{ $activeTab === 'kelengkapan' ? 'active' : '' }}" role="tab" data-tab="kelengkapan" data-bs-toggle="tab" data-bs-target="#kelengkapan">
+                            <i class="bx bx-file me-1"></i> Kelengkapan
+                            @if($completedDocuments < 3)
                                 <span class="badge badge-dot bg-danger ms-1"></span>
                             @else
                                 <i class="bx bxs-check-circle text-success ms-1"></i>
@@ -32,20 +55,20 @@
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-evaluasi">
-                            <i class="bx bx-bar-chart-alt-2 me-1"></i> 3. EVALUASI
+                        <button type="button" class="nav-link {{ $activeTab === 'evaluasi' ? 'active' : '' }}" role="tab" data-tab="evaluasi" data-bs-toggle="tab" data-bs-target="#navs-pills-evaluasi">
+                            <i class="bx bx-bar-chart-alt-2 me-1"></i> Evaluasi
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-sertifikat">
-                            <i class="bx bx-medal me-1"></i> 4. SERTIFIKAT
+                        <button type="button" class="nav-link {{ $activeTab === 'sertifikat' ? 'active' : '' }}" role="tab" data-tab="sertifikat" data-bs-toggle="tab" data-bs-target="#navs-pills-sertifikat">
+                            <i class="bx bx-medal me-1"></i> Sertifikat
                         </button>
                     </li>
                 </ul>
 
                 <div class="tab-content shadow-sm border-0 p-4 bg-white rounded">
                     {{-- TAB 1: INFO UMUM --}}
-                    <div class="tab-pane fade show active" id="navs-pills-info" role="tabpanel">
+                    <div class="tab-pane fade {{ $activeTab === 'info' ? 'show active' : '' }}" id="navs-pills-info" role="tabpanel">
                         <div class="row">
                             <div class="col-md-7">
                                 <h5 class="fw-bold text-primary mb-3">Informasi Pelatihan</h5>
@@ -85,7 +108,7 @@
                     </div>
 
                     {{-- TAB 2: KELENGKAPAN (LOGIKA TERKUNCI & USER FRIENDLY) --}}
-                    <div class="tab-pane fade" id="kelengkapan" role="tabpanel">
+                    <div class="tab-pane fade {{ $activeTab === 'kelengkapan' ? 'show active' : '' }}" id="kelengkapan" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Unggah Berkas Administrasi</h5>
                             @php
@@ -140,7 +163,7 @@
                                             <h6 class="fw-bold text-dark mb-1">{{ $doc['label'] }}</h6>
                                             <p class="small text-muted mb-4">{{ $doc['key'] == 'pas_foto' ? 'Format JPG/PNG' : 'Format PDF, Maks 5MB' }}</p>
 
-                                            <form action="{{ route('participant.training.upload', $training->id) }}" method="POST" enctype="multipart/form-data" class="mt-2">
+                                            <form action="{{ route('participant.training.upload', ['id' => $training->id, 'tab' => 'kelengkapan']) }}" method="POST" enctype="multipart/form-data" class="mt-2">
                                                 @csrf
                                                 <input type="hidden" name="type" value="{{ $doc['key'] }}">
                                                 <div class="mb-3">
@@ -159,7 +182,7 @@
                     </div>
 
                     {{-- TAB 3: EVALUASI --}}
-                    <div class="tab-pane fade" id="navs-pills-evaluasi" role="tabpanel">
+                    <div class="tab-pane fade {{ $activeTab === 'evaluasi' ? 'show active' : '' }}" id="navs-pills-evaluasi" role="tabpanel">
     
                         {{-- BAGIAN A: LEVEL 1 (REAKSI) --}}
                         <div class="card shadow-none border mb-4">
@@ -250,7 +273,7 @@
                     </div>
 
                     {{-- TAB 4: SERTIFIKAT --}}
-                    <div class="tab-pane fade" id="navs-pills-sertifikat" role="tabpanel">
+                    <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
                         <div class="text-center py-5 bg-light rounded border border-dashed">
                             <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
                                 <i class="bx bx-medal" style="font-size: 50px;"></i>
@@ -269,6 +292,19 @@
 <style>
     body { background-color: #f5f5f9; }
     .nav-pills .nav-link.active { box-shadow: 0 2px 10px rgba(105, 108, 255, 0.4); }
+    .training-tabs {
+        gap: .5rem;
+        overflow-x: auto;
+        padding: .25rem;
+        scrollbar-width: thin;
+    }
+    .training-tabs .nav-item { flex: 1 0 auto; }
+    .training-tabs .nav-link {
+        width: 100%;
+        min-width: 145px;
+        white-space: nowrap;
+        padding: .8rem 1rem;
+    }
     .card { transition: all 0.3s ease; }
     .bg-label-success { background-color: #eafbea !important; }
     .transition-all:hover { transform: translateY(-3px); }
@@ -280,6 +316,14 @@
 @push('js')
 <script>
     $(document).ready(function() {
+        document.querySelectorAll('.training-tabs [data-bs-toggle="tab"]').forEach(function (tabButton) {
+            tabButton.addEventListener('shown.bs.tab', function (event) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', event.target.dataset.tab);
+                window.history.replaceState({}, '', url);
+            });
+        });
+
         @if(session('success_enroll'))
             Swal.fire({
                 title: 'Selamat Bergabung!',

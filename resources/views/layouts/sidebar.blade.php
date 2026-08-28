@@ -100,52 +100,6 @@
             @endif
         @endif
 
-        <!-- ========================================================= -->
-        <!-- 2. MENU KHUSUS TENAGA PENGAJAR                            -->
-        <!-- ========================================================= -->
-        @if(Auth::user()->role === 'pengajar')
-            <li class="menu-item {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}">
-                <a href="{{ route('dashboard') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                    <div class="fw-bold">Dashboard Pengajar</div>
-                </a>
-            </li>
-
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Portal Pengajar</span>
-            </li>
-
-            <li class="menu-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-                <a href="{{ route('profile.edit') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-id-card"></i>
-                    <div>Profil & Keuangan</div>
-                </a>
-            </li>
-
-            <li class="menu-item {{ request()->routeIs('pengajar.schedule') ? 'active' : '' }}">
-                <a href="{{ route('pengajar.schedule') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
-                    <div>Daftar Pelatihan Saya</div>
-                </a>
-            </li>
-
-            <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
-                <a href="{{ route('documents.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-folder-open"></i>
-                    <div>Bahan Ajar & Dokumen</div>
-                </a>
-            </li>
-             <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
-                <a href="{{ route('pengajar.history') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-history"></i>
-                    <div>Riwayat Pelatihan</div>
-                </a>
-            </li>
-        @endif
-
-        <!-- ========================================================= -->
-        <!-- 3. MENU KHUSUS PESERTA (PARTICIPANT)                      -->
-        <!-- ========================================================= -->
         @if(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}">
                 <a href="{{ route('participant.dashboard') }}" class="menu-link">
@@ -153,6 +107,18 @@
                     <div class="fw-bold">Dashboard Saya</div>
                 </a>
             </li>
+
+            @if(Auth::user()->hasTeachingAssignment())
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Portal Pengajar</span>
+                </li>
+                <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
+                    <a href="{{ route('pengajar.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                        <div>Pengajar</div>
+                    </a>
+                </li>
+            @endif
 
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Portal Peserta</span>
@@ -169,6 +135,26 @@
                 <a href="{{ route('participant.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Riwayat Pelatihan</div>
+                </a>
+            </li>
+        @elseif(Auth::user()->role === 'pengajar')
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Portal Pengajar</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                    <div>Pengajar</div>
+                </a>
+            </li>
+        @elseif(Auth::user()->hasTeachingAssignment())
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Portal Pengajar</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                    <div>Pengajar</div>
                 </a>
             </li>
         @endif

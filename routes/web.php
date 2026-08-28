@@ -22,6 +22,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AlumniController;
 use App\Http\Controllers\PengajarSetupController; // <-- TAMBAHAN CONTROLLER PENGAJAR
+use App\Http\Controllers\PengajarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -107,6 +108,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Rute Menu Jadwal Mengajar (Hanya untuk Pengajar)
     Route::get('/pengajar/jadwal-mengajar', [\App\Http\Controllers\TrainingController::class, 'pengajarSchedules'])->name('pengajar.schedule');
+    Route::get('/pengajar', [PengajarController::class, 'index'])->name('pengajar.index');
+    Route::get('/pengajar/pelatihan/{training}', [PengajarController::class, 'manage'])->name('pengajar.manage');
+    Route::put('/pengajar/profil', [PengajarController::class, 'updateProfile'])->name('pengajar.profile.update');
+    Route::post('/pengajar/pelatihan/{training}/kelengkapan', [PengajarController::class, 'uploadRequirements'])->name('pengajar.requirements.upload');
+    Route::post('/pengajar/sesi/{schedule}/dokumen', [PengajarController::class, 'uploadSession'])->name('pengajar.session.upload');
 
     // --- 03 & 04. KELOLA PELATIHAN ---
     Route::resource('trainings', TrainingController::class);
@@ -149,14 +155,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('participants/{id}/approve', [TrainingController::class, 'approveParticipant'])->name('participants.approve');
     Route::put('participants/{id}/reject', [TrainingController::class, 'rejectParticipant'])->name('participants.reject');
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
-    
-    // Peserta Join Pelatihan (Tampaknya ada duplikat di bawah, tapi dibiarkan sesuai request)
-    Route::post('participant/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
-    Route::get('/participant/training/{id}/detail', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
-
-    
-    Route::get('participant/training/{id}', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
-    Route::post('participant/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload');  
     
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
@@ -238,18 +236,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [ParticipantController::class, 'index'])->name('participant.dashboard');
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
     
-        // Proses Daftar (Join)
-        Route::post('/training/{id}/join-enroll', [ParticipantController::class, 'enroll'])->name('participant.training.join_enroll');
-        Route::post('/training/{id}/upload-req', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload_req');
-        
-        // Detail Pelatihan
-        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.detail');
+        // Detail pelatihan dan kelengkapan peserta
+        Route::get('/training/{id}/detail', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
         Route::post('/join-training', [ParticipantController::class, 'enrollByCode'])->name('participant.training.join_by_code');
-        Route::post('/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])
+        Route::post('/training/{id}/detail/upload', [ParticipantController::class, 'uploadRequirement'])
             ->name('participant.training.upload');
-
-        // Detail Pelatihan (Halaman 4 Bar)
-        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
         
         // Riwayat
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');

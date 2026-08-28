@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
 use App\Models\File;
+use App\Models\Schedule;
 
 class ParticipantController extends Controller
 {
@@ -39,7 +40,22 @@ class ParticipantController extends Controller
                 return $p->training->jp;
             });
 
-        return view('participant.dashboard', compact('user', 'totalFollowed', 'myJpThisYear'));
+        // Akun participant dapat sekaligus ditugaskan menjadi pengajar tanpa perubahan role.
+        $isPengajar = Schedule::where('pengajar_id', $user->id)->exists();
+        $teachingJpTotal = $isPengajar
+            ? (int) Schedule::where('pengajar_id', $user->id)->sum('jp')
+            : 0;
+        $teachingJpThisYear = $isPengajar
+            ? (int) Schedule::where('pengajar_id', $user->id)->whereYear('date', $currentYear)->sum('jp')
+            : 0;
+        $teachingCount = $isPengajar
+            ? Schedule::where('pengajar_id', $user->id)->distinct('training_id')->count('training_id')
+            : 0;
+
+        return view('participant.dashboard', compact(
+            'user', 'totalFollowed', 'myJpThisYear', 'isPengajar',
+            'teachingJpTotal', 'teachingJpThisYear', 'teachingCount'
+        ));
     }
 
     /**
@@ -161,7 +177,7 @@ class ParticipantController extends Controller
             ]
         );
 
-        return redirect()->route('participant.training.show', $id)
+        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
             ->with('success_enroll', 'Pendaftaran Berhasil! Data profil Anda telah disinkronkan ke pelatihan ini.');
     }
 
@@ -237,7 +253,8 @@ class ParticipantController extends Controller
 
         // Jika tidak ditemukan juga, beri pesan error yang jelas 
         if (!$participant) {
-            return redirect()->back()->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+            return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+                ->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
         }
 
         // Pastikan user_id terhubung jika sebelumnya kosong
@@ -254,7 +271,8 @@ class ParticipantController extends Controller
 
         // Jika tidak ditemukan juga, baru kita beri pesan error yang jelas (bukan 404)
         if (!$participant) {
-            return redirect()->back()->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+            return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+                ->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
         }
 
         // Pastikan user_id terhubung jika sebelumnya kosong
@@ -280,24 +298,12 @@ class ParticipantController extends Controller
             'bidang' => $training->bidang
         ], ['user_id' => Auth::id() ?? 1]);
 
-        // 1. Dapatkan/Buat Folder Utama Pelatihan
-
-        $parentFolder = Folder::firstOrCreate(
-            ['training_id' => $id],
-            [
-                'name' => $training->nama_pelatihan,
-                'bidang' => $training->bidang,
-                'user_id' => Auth::id()
-            ]
-        );
-
-        // 2. Dapatkan/Buat Sub-Folder "KELENGKAPAN PESERTA"
-        $subFolder = Folder::firstOrCreate([
-            'name' => 'KELENGKAPAN PESERTA',
-            'parent_id' => $training->folder->id,
+        $participantFolder = Folder::firstOrCreate([
+            'name' => strtoupper($participant->name),
+            'parent_id' => $subFolder->id,
             'training_id' => $id,
-            'bidang' => $training->bidang
-        ], ['user_id' => Auth::id()]);
+            'bidang' => $training->bidang,
+        ], ['user_id' => $user->id]);
 
         // 3. Simpan File
         $extension = $request->file('file')->getClientOriginalExtension();
@@ -306,7 +312,7 @@ class ParticipantController extends Controller
 
         // 4. Catat ke tabel Files
         $fileRecord = File::create([
-            'folder_id' => $subFolder->id,
+            'folder_id' => $participantFolder->id,
             'display_name' => $fileName,
             'file_path' => $path,
             'file_type' => $extension,
@@ -318,6 +324,7 @@ class ParticipantController extends Controller
         $column = $request->type . '_file_id';
         $participant->update([$column => $fileRecord->id]);
 
-        return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
+        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+            ->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
 }

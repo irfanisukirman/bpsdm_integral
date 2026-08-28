@@ -135,6 +135,8 @@
 {{-- SCRIPT FETCH API + SELECT2 SEARCH WILAYAH INDONESIA --}}
 @push('form_js')
 <script>
+
+    
 $(document).ready(function() {
     const $provSelect = $('#provinsi');
     const $kabSelect = $('#kabupaten');
@@ -157,42 +159,37 @@ $(document).ready(function() {
     initSelect2($kelSelect, 'Pilih Kecamatan Terlebih Dahulu');
 
     // 1. Load Semua Provinsi
+    // 1. Load Provinsi
     fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json`)
-        .then(response => response.json())
-        .then(provinces => {
-            let options = '<option value="">-- Pilih / Cari Provinsi --</option>';
-            provinces.forEach(item => {
-                options += `<option data-id="${item.id}" value="${item.name}">${item.name}</option>`;
-            });
-            $provSelect.html(options).trigger('change.select2');
-        })
-        .catch(err => {
-            console.error('Gagal memuat provinsi:', err);
-            $provSelect.html('<option value="">Gagal Memuat Provinsi</option>').trigger('change.select2');
+    .then(r => r.json())
+    .then(data => {
+        data.forEach(item => {
+            let opt = document.createElement('option');
+            opt.value = item.name; // Simpan Nama
+            opt.dataset.id = item.id; // Simpan ID untuk fetch berikutnya
+            opt.innerHTML = item.name;
+            provSelect.appendChild(opt);
         });
+    });
 
-    // 2. Event saat Provinsi Dipilih
-    $provSelect.on('change', function() {
-        const provinceId = $(this).find(':selected').attr('data-id');
-        
-        // Reset dropdown anak-anaknya
-        $kabSelect.html('<option value="">Pilih Provinsi Terlebih Dahulu</option>').prop('disabled', true).trigger('change.select2');
-        $kecSelect.html('<option value="">Pilih Kabupaten Terlebih Dahulu</option>').prop('disabled', true).trigger('change.select2');
-        $kelSelect.html('<option value="">Pilih Kecamatan Terlebih Dahulu</option>').prop('disabled', true).trigger('change.select2');
+    // 2. Load Kota saat Provinsi Berubah
+    provSelect.addEventListener('change', function() {
+        const provId = this.options[this.selectedIndex].dataset.id;
+        kabSelect.innerHTML = '<option value="">Memuat...</option>';
+        kabSelect.disabled = false;
 
-        if (provinceId) {
-            $kabSelect.html('<option value="">Memuat Kabupaten/Kota...</option>').trigger('change.select2');
-            
-            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`)
-                .then(response => response.json())
-                .then(regencies => {
-                    let options = '<option value="">-- Pilih / Cari Kabupaten/Kota --</option>';
-                    regencies.forEach(item => {
-                        options += `<option data-id="${item.id}" value="${item.name}">${item.name}</option>`;
-                    });
-                    $kabSelect.html(options).prop('disabled', false).trigger('change.select2');
-                });
-        }
+        fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`)
+        .then(r => r.json())
+        .then(data => {
+            kabSelect.innerHTML = '<option value="">-- Pilih Kota --</option>';
+            data.forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item.name; // <--- KUNCI: Value adalah NAMA, bukan ID
+                opt.dataset.id = item.id;
+                opt.innerHTML = item.name;
+                kabSelect.appendChild(opt);
+            });
+        });
     });
 
     // 3. Event saat Kabupaten/Kota Dipilih

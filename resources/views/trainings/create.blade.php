@@ -22,12 +22,18 @@
                     
                     <div class="mb-3">
                         <label class="form-label">Penyelenggara Pelatihan</label>
-                        <select name="bidang" class="form-select" required>
-                            <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan">Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Inti">Bidang Pengembangan Kompetensi Teknis Inti</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Umum">Bidang Pengembangan Kompetensi Teknis Umum</option>
-                            <option value="Bidang Pengembangan Kompetensi Manajerial">Bidang Pengembangan Kompetensi Manajerial</option>
-                        </select>
+                        @if(auth()->user()->role === 'admin_bidang')
+                            <input type="hidden" name="bidang" value="{{ auth()->user()->bidang }}">
+                            <input type="text" class="form-control bg-light" value="{{ auth()->user()->bidang }}" readonly>
+                            <div class="form-text">Penyelenggara mengikuti bidang pada akun Anda.</div>
+                        @else
+                            <select name="bidang" class="form-select" required>
+                                <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan">Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</option>
+                                <option value="Bidang Pengembangan Kompetensi Teknis Inti">Bidang Pengembangan Kompetensi Teknis Inti</option>
+                                <option value="Bidang Pengembangan Kompetensi Teknis Umum">Bidang Pengembangan Kompetensi Teknis Umum</option>
+                                <option value="Bidang Pengembangan Kompetensi Manajerial">Bidang Pengembangan Kompetensi Manajerial</option>
+                            </select>
+                        @endif
                     </div>
 
                     @if($model === 'standar')

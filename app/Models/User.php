@@ -14,7 +14,7 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 
+        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'bidang',
         'nip_nik', 'gender', 'jabatan', 'instansi', 
         'provinsi', 'kota', 'kecamatan', 'kelurahan', // Sesuai Nama Kolom DB Anda
         'status_kepegawaian', 'password', 'profile_photo'
@@ -47,5 +47,15 @@ class User extends Authenticatable
     public function pengajar()
     {
         return $this->hasOne(Pengajar::class);
+    }
+
+    public function teachingSchedules()
+    {
+        return $this->hasMany(Schedule::class, 'pengajar_id');
+    }
+
+    public function hasTeachingAssignment(): bool
+    {
+        return $this->role === 'pengajar' || $this->teachingSchedules()->exists();
     }
 }

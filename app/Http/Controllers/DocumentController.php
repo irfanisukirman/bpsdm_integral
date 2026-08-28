@@ -44,11 +44,26 @@ class DocumentController extends Controller
         // Jika Superadmin, ambil dari parameter URL ?bidang=...
         $currentBidang = ($user->role === 'superadmin') ? $targetBidang : $user->bidang;
 
+        // Admin bidang hanya boleh membuka folder bidangnya, folder miliknya,
+        // atau folder global. Superadmin tetap dapat membuka seluruh folder.
+        if ($parentId && $user->role !== 'superadmin') {
+            $requestedFolder = Folder::findOrFail($parentId);
+            $isAllowed = $requestedFolder->bidang === 'Semua Bidang'
+                || ($currentBidang && $requestedFolder->bidang === $currentBidang)
+                || (int) $requestedFolder->user_id === (int) $user->id;
+            abort_unless($isAllowed, 403);
+        }
+
         // 3. QUERY DATA FOLDER (Bidang Terkait + Folder Global)
         $folders = Folder::where('parent_id', $parentId)
-            ->where(function ($query) use ($currentBidang) {
-                $query->where('bidang', $currentBidang)
-                    ->orWhere('bidang', 'Semua Bidang');
+            ->when($user->role !== 'superadmin', function ($query) use ($currentBidang, $user) {
+                $query->where(function ($scope) use ($currentBidang, $user) {
+                    $scope->where('bidang', 'Semua Bidang')
+                        ->orWhere('user_id', $user->id);
+                    if ($currentBidang) {
+                        $scope->orWhere('bidang', $currentBidang);
+                    }
+                });
             })
             ->orderBy('training_id', 'desc') // Folder pelatihan terbaru muncul duluan
             ->orderBy('name', 'asc')

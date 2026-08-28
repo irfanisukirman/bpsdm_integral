@@ -14,7 +14,7 @@ class AlumniController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $query = Participant::query()->with('training');
+        $query = Participant::query()->with(['training', 'user']);
 
         // Filter Bidang untuk Admin Bidang
         if ($user->role !== 'superadmin') {
@@ -32,22 +32,54 @@ class AlumniController extends Controller
             'Perempuan' => $alumni->where('gender', 'Perempuan')->count(),
         ];
 
+        // Gunakan data peserta sebagai sumber utama dan profil user sebagai fallback.
+        $normalizeWilayah = static function ($value) {
+            return preg_replace('/\s+/', ' ', strtoupper(trim((string) $value)));
+        };
+
+        $wilayah3T = collect([
+            'Tertinggal' => config('wilayah.tertinggal', []),
+            'Terdepan' => config('wilayah.terdepan', config('wilayah.perbatasan', [])),
+            'Terluar' => config('wilayah.terluar', []),
+        ])->map(fn ($items) => collect($items)->map($normalizeWilayah)->values());
+
+        $list3T = $wilayah3T->flatten()->unique()->values()->all();
+        $wilayahRows = $alumni->map(function ($participant) use ($normalizeWilayah, $wilayah3T) {
+            $provinsi = $participant->provinsi ?: $participant->user?->provinsi;
+            $kota = $participant->kota ?: $participant->user?->kota;
+            $kecamatan = $participant->kecamatan ?: $participant->user?->kecamatan;
+            $kelurahan = $participant->kelurahan ?: $participant->user?->kelurahan;
+            $normalizedKota = $normalizeWilayah($kota);
+            $kategori3T = $wilayah3T
+                ->filter(fn ($items) => $items->contains($normalizedKota))
+                ->keys()
+                ->values()
+                ->all();
+
+            return [
+                'id' => $participant->id,
+                'nama' => $participant->user?->name ?: $participant->name,
+                'nip_nik' => $participant->nip_nik,
+                'provinsi' => $normalizeWilayah($provinsi) ?: 'BELUM DIISI',
+                'kota' => $normalizedKota ?: 'BELUM DIISI',
+                'kecamatan' => $normalizeWilayah($kecamatan) ?: 'BELUM DIISI',
+                'kelurahan' => $normalizeWilayah($kelurahan) ?: 'BELUM DIISI',
+                'kategori_3t' => $kategori3T,
+                'is_3t' => count($kategori3T) > 0,
+            ];
+        });
+
         // 2. Data Wilayah 3T (Terdepan, Terluar, Tertinggal)
-        // Logika: Membandingkan kabupaten_kota dengan list daerah 3T di Indonesia
-        $list3T = $list3T = array_unique(array_merge(
-            config('wilayah.tertinggal'),
-            config('wilayah.perbatasan')
-        ));
         $stats3T = [
-            'Wilayah 3T' => $alumni->filter(fn($a) => in_array($a->kabupaten_kota, $list3T))->count(),
-            'Non-3T' => $alumni->filter(fn($a) => !in_array($a->kabupaten_kota, $list3T))->count(),
+            'Wilayah 3T' => $wilayahRows->where('is_3t', true)->count(),
+            'Non-3T' => $wilayahRows->where('is_3t', false)->count(),
         ];
 
         // 3. Sebaran Provinsi
-        $provinsiStats = $alumni->groupBy('provinsi')->map->count();
+        $provinsiStats = $wilayahRows->groupBy('provinsi')->map->count();
 
         // 3b. Sebaran per Kabupaten/Kota (untuk peta)
-        $kabupatenStats = $alumni->groupBy('kabupaten_kota')->map->count();
+        $kabupatenStats = $wilayahRows->groupBy('kota')->map->count();
 
         // 4. Data Pendidikan (Dari Alumni Profile L34)
         $eduStats = AlumniProfile::whereIn('participant_id', $alumni->pluck('id'))
@@ -72,6 +104,7 @@ class AlumniController extends Controller
             'list3T',
             'koordinatKabupaten',
             'koordinatProvinsi',
+            'wilayahRows',
         ));
     }
 

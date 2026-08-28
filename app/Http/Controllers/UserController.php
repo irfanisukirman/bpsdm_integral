@@ -50,7 +50,7 @@ class UserController extends Controller
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
             'role'     => 'required|in:superadmin,admin_bidang,pengajar,participant',
-            'bidang'   => ['nullable', Rule::in(self::$listBidang)],
+            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(self::$listBidang)],
             'password' => 'required|min:6',
         ]);
 
@@ -91,7 +91,7 @@ class UserController extends Controller
             'nip_nik'  => 'nullable|string|max:50',
             'role'     => 'required|in:superadmin,admin_bidang,pengajar,participant',
             'whatsapp' => 'required|numeric',
-            'bidang'   => ['nullable', Rule::in(self::$listBidang)],
+            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(self::$listBidang)],
         ]);
 
         $user->update([

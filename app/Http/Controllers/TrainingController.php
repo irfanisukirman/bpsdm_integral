@@ -63,6 +63,12 @@ class TrainingController extends Controller
         }
         $data = $request->validate($rules);
 
+        // Pelatihan yang dibuat Admin Bidang selalu mengikuti bidang akunnya.
+        if (Auth::user()->role === 'admin_bidang') {
+            abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
+            $data['bidang'] = Auth::user()->bidang;
+        }
+
         if ($request->model === 'blended') {
             $data['metode'] = 'blended';
         }
@@ -99,32 +105,33 @@ class TrainingController extends Controller
 
     public function storeParticipant(Request $request, $id)
     {
-        $request->validate([
-            'nip_nik' => 'required|string|unique:participants,nip_nik,NULL,id,training_id,' . $id,
-            'name' => 'required|string|max:255',
-            'gender' => 'required',
-            'phone' => 'required|string|max:20',
-            'jabatan' => 'required',
-            'instansi' => 'required',
-            'provinsi' => 'required',
-            'kota' => 'required', // Disesuaikan
-            'kecamatan' => 'required', // Ditambahkan
-            'kelurahan' => 'required', // Ditambahkan
-            'status_kepegawaian' => 'required',
-        ]);
+        $data = $request->validate(['user_id' => 'required|exists:users,id']);
+        $user = User::where('role', 'participant')->findOrFail($data['user_id']);
 
-        \App\Models\Participant::create([
+        $alreadyRegistered = Participant::where('training_id', $id)
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('nip_nik', $user->nip_nik);
+            })->exists();
+        if ($alreadyRegistered) {
+            return back()->with('error', 'User tersebut sudah terdaftar pada pelatihan ini.');
+        }
+
+        Participant::create([
             'training_id' => $id,
-            'nip_nik' => ltrim($request->nip_nik, "'"),
-            'name' => $request->name,
-            'gender' => $request->gender,
-            'phone' => $request->phone,
-            'jabatan' => $request->jabatan,
-            'instansi' => $request->instansi,
-            'provinsi' => $request->provinsi,
-            'kota' => $request->kota, // Disesuaikan
-            'kecamatan' => $request->kecamatan, // Ditambahkan
-            'kelurahan' => $request->kelurahan, // Ditambahkan
+            'user_id' => $user->id,
+            'nip_nik' => $user->nip_nik,
+            'name' => $user->name,
+            'gender' => $user->gender,
+            'phone' => $user->whatsapp,
+            'jabatan' => $user->jabatan,
+            'instansi' => $user->instansi,
+            'provinsi' => $user->provinsi,
+            'kota' => $user->kota,
+            'kecamatan' => $user->kecamatan,
+            'kelurahan' => $user->kelurahan,
+            'status_kepegawaian' => $user->status_kepegawaian,
+            'registration_status' => 'approved',
         ]);
 
         return redirect()->back()->with('success', 'Peserta berhasil ditambahkan.');
@@ -135,7 +142,8 @@ class TrainingController extends Controller
         $training = Training::findOrFail($id);
         $search = $request->query('search');
 
-        $participants = \App\Models\Participant::with('user')
+        $participants = Participant::with('user')
+            ->where('training_id', $id)
             ->when($search, function($query) use ($search) {
                 $query->where(function($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%")
@@ -146,7 +154,15 @@ class TrainingController extends Controller
             ->latest()
             ->paginate(10); // <--- UBAH DARI get() MENJADI paginate(10)
 
-        return view('trainings.participants', compact('training', 'participants', 'search'));
+        $registeredUserIds = Participant::where('training_id', $id)->whereNotNull('user_id')->pluck('user_id');
+        $registeredNips = Participant::where('training_id', $id)->whereNotNull('nip_nik')->pluck('nip_nik');
+        $availableUsers = User::where('role', 'participant')
+            ->whereNotNull('nip_nik')->where('nip_nik', '!=', '')
+            ->whereNotIn('id', $registeredUserIds)
+            ->whereNotIn('nip_nik', $registeredNips)
+            ->orderBy('name')->get(['id', 'name', 'nip_nik', 'instansi']);
+
+        return view('trainings.participants', compact('training', 'participants', 'search', 'availableUsers'));
     }
 
     public function updateParticipant(Request $request, $id)
@@ -204,8 +220,8 @@ class TrainingController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
 
-        // Ambil daftar user dengan role pengajar
-        $pengajars = User::where('role', 'pengajar')->orderBy('name', 'asc')->get();
+        // Semua akun dapat ditugaskan tanpa mengubah role utama akun.
+        $pengajars = User::orderBy('name', 'asc')->get();
 
         return view('trainings.schedules', compact('training', 'schedules', 'pengajars'));
     }
@@ -387,7 +403,12 @@ class TrainingController extends Controller
 
         $data = $request->validate($rules);
 
-        $training->update($request->all());
+        if (Auth::user()->role === 'admin_bidang') {
+            abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
+            $data['bidang'] = Auth::user()->bidang;
+        }
+
+        $training->update($data);
 
         Folder::where('training_id', $training->id)->update([
             'name' => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan

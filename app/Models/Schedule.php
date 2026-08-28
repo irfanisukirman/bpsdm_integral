@@ -32,4 +32,14 @@ class Schedule extends Model
     {
         return $this->belongsTo(Training::class);
     }
+
+    public function pengajarDocuments()
+    {
+        return $this->hasOne(PengajarScheduleDocument::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }
