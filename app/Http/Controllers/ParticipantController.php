@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
-use App\Models\File; 
+use App\Models\File;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\LogHelper;
 use App\Models\EvaluationFormL1;
@@ -36,12 +36,12 @@ class ParticipantController extends Controller
         // 2. Hitung Total JP Tahun Ini
         // Mengambil data dari tabel participant -> join ke training -> ambil kolom JP -> filter tahun berjalan
         $myJpThisYear = \App\Models\Participant::where('nip_nik', $user->nip_nik)
-            ->whereHas('training', function($q) use ($currentYear) {
+            ->whereHas('training', function ($q) use ($currentYear) {
                 $q->whereYear('tgl_mulai', $currentYear);
             })
             ->with('training')
             ->get()
-            ->sum(function($p) {
+            ->sum(function ($p) {
                 return $p->training->jp;
             });
 
@@ -58,11 +58,11 @@ class ParticipantController extends Controller
         // Mengambil semua pelatihan dengan hitungan peserta
         $trainings = \App\Models\Training::withCount('participants')
             // Filter Pencarian jika ada
-            ->when($search, function($query) use ($search) {
-                $query->where(function($q) use ($search) {
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('nama_pelatihan', 'LIKE', "%$search%")
-                    ->orWhere('bidang', 'LIKE', "%$search%")
-                    ->orWhere('lokasi', 'LIKE', "%$search%");
+                        ->orWhere('bidang', 'LIKE', "%$search%")
+                        ->orWhere('lokasi', 'LIKE', "%$search%");
                 });
             })
             // Urutan: Active (tgl_selesai >= hari ini) di atas, Selesai di bawah
@@ -95,7 +95,9 @@ class ParticipantController extends Controller
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kabupaten_kota' => 'required',
+            'kota' => 'required',
+            'kecamatan' => 'required',
+            'kelurahan' => 'required',
             'status_kepegawaian' => 'required',
             'whatsapp' => 'required'
         ]);
@@ -120,16 +122,18 @@ class ParticipantController extends Controller
         \App\Models\Participant::updateOrCreate(
             [
                 'training_id' => $id,
-                'nip_nik'     => $user->nip_nik // Kunci utama pencocokan
+                'nip_nik' => $user->nip_nik // Kunci utama pencocokan
             ],
             [
-                'user_id'            => $user->id,
-                'name'               => $user->name,
-                'gender'             => $user->gender,
-                'jabatan'            => $user->jabatan,
-                'instansi'           => $user->instansi,
-                'provinsi'           => $user->provinsi,
-                'kabupaten_kota'     => $user->kabupaten_kota,
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'gender' => $user->gender,
+                'jabatan' => $user->jabatan,
+                'instansi' => $user->instansi,
+                'provinsi' => $user->provinsi,
+                'kota' => $user->kota,
+                'kecamatan' => $user->kecamatan,
+                'kelurahan' => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,
             ]
         );
@@ -142,7 +146,7 @@ class ParticipantController extends Controller
     {
         $training = Training::with(['stages', 'schedules'])->findOrFail($id);
         $user = Auth::user();
-        
+
         // Ambil record participant milik user ini di pelatihan ini
         $participant = Participant::where('training_id', $id)
             ->where('user_id', $user->id)
@@ -169,19 +173,35 @@ class ParticipantController extends Controller
     public function uploadRequirement(Request $request, $id)
     {
         $allowedMimes = ($request->type == 'pas_foto') ? 'jpeg,png,jpg' : 'pdf';
-        
+
         $request->validate([
             'file' => "required|mimes:$allowedMimes|max:5120",
             'type' => 'required|in:biodata,surat_tugas,pas_foto'
         ]);
-           
+
         $user = Auth::user();
-        $participant = Participant::where('training_id', $id)->where('user_id', $user->id)->firstOrFail();
         $training = Training::with('folder')->findOrFail($id);
+
+        // PERBAIKAN: Pencarian data peserta agar tidak langsung menampilkan 404
+        $participant = Participant::where('training_id', $id)
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('nip_nik', $user->nip_nik);
+            })->first();
+
+        // Jika tidak ditemukan juga, beri pesan error yang jelas 
+        if (!$participant) {
+            return redirect()->back()->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+        }
+
+        // Pastikan user_id terhubung jika sebelumnya kosong
+        if (empty($participant->user_id)) {
+            $participant->update(['user_id' => $user->id]);
+        }
 
         // PERBAIKAN: Cari peserta berdasarkan training_id DAN (user_id ATAU nip_nik)
         $participant = Participant::where('training_id', $id)
-            ->where(function($query) use ($user) {
+            ->where(function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->orWhere('nip_nik', $user->nip_nik);
             })->first();
@@ -197,7 +217,25 @@ class ParticipantController extends Controller
         }
 
         // 1. Dapatkan/Buat Folder Utama Pelatihan
-        
+        $parentFolder = Folder::firstOrCreate(
+            ['training_id' => $id, 'parent_id' => null],
+            [
+                'name' => $training->nama_pelatihan,
+                'bidang' => $training->bidang,
+                'user_id' => Auth::id() ?? 1
+            ]
+        );
+
+        // 2. Dapatkan/Buat Sub-Folder "KELENGKAPAN PESERTA"
+        $subFolder = Folder::firstOrCreate([
+            'name' => 'KELENGKAPAN PESERTA',
+            'parent_id' => $parentFolder->id, // <--- PERBAIKI INI: Gunakan $parentFolder->id
+            'training_id' => $id,
+            'bidang' => $training->bidang
+        ], ['user_id' => Auth::id() ?? 1]);
+
+        // 1. Dapatkan/Buat Folder Utama Pelatihan
+
         $parentFolder = Folder::firstOrCreate(
             ['training_id' => $id],
             [
@@ -236,5 +274,5 @@ class ParticipantController extends Controller
 
         return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
-    
+
 }

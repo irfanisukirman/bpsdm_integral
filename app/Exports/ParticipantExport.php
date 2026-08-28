@@ -16,7 +16,19 @@ class ParticipantExport implements FromArray, WithHeadings, ShouldAutoSize
     }
 
     public function headings(): array {
-        return ['NIP/NIK', 'NAMA LENGKAP', 'NOMOR WA', 'GENDER', 'STATUS', 'JABATAN', 'INSTANSI', 'PROVINSI', 'KABUPATEN/KOTA'];
+        return [
+            'NIP/NIK', 
+            'NAMA LENGKAP', 
+            'NOMOR WA', 
+            'GENDER', 
+            'STATUS', 
+            'JABATAN', 
+            'INSTANSI', 
+            'PROVINSI', 
+            'KOTA', 
+            'KECAMATAN', 
+            'KELURAHAN'
+        ];
     }
 
     public function array(): array {
@@ -32,7 +44,9 @@ class ParticipantExport implements FromArray, WithHeadings, ShouldAutoSize
                     $p->jabatan,
                     $p->instansi,
                     $p->provinsi,
-                    $p->kabupaten_kota
+                    $p->kota, // Disesuaikan
+                    $p->kecamatan, // Ditambahkan
+                    $p->kelurahan // Ditambahkan
                 ];
             })->toArray();
     }
