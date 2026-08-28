@@ -12,6 +12,12 @@
             </h4>
             <p class="text-muted mb-0">Kelola pendaftaran dan tuntaskan kewajiban evaluasi Anda.</p>
         </div>
+        
+        <div class="animate__animated animate__fadeInRight">
+            <button class="btn btn-primary btn-lg shadow-md px-4 pulse-button" data-bs-toggle="modal" data-bs-target="#modalJoinGlobal">
+                <i class="bx bx-plus-circle me-2 fs-4"></i> IKUTI PELATIHAN BARU
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
