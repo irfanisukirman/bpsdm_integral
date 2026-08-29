@@ -8,6 +8,7 @@
         ? request('tab')
         : 'info';
     $completedDocuments = collect([$participant->pas_foto_file_id, $participant->biodata_file_id, $participant->surat_tugas_file_id])->filter()->count();
+    $forumUnread = app(\App\Services\NotificationCenter::class)->unreadCountForTraining(auth()->user(), $training);
 @endphp
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
@@ -21,6 +22,12 @@
             </div>
         </div>
         <div class="text-md-end">
+            <a href="{{ route('training.forum.index', $training) }}" class="btn btn-primary me-2 position-relative">
+                <i class="bx bx-conversation me-1"></i> Forum Pelatihan
+                @if($forumUnread > 0)
+                    <span class="badge rounded-pill bg-danger ms-1">{{ $forumUnread > 99 ? '99+' : $forumUnread }}</span>
+                @endif
+            </a>
             <span class="badge {{ $completedDocuments === 3 ? 'bg-label-success' : 'bg-label-warning' }} px-3 py-2">
                 Kelengkapan {{ $completedDocuments }}/3
             </span>
@@ -102,6 +109,53 @@
                                             </p>
                                         </div>
                                     @endif
+                                </div>
+                            </div>
+                            <div class="col-md-5 mt-4 mt-md-0">
+                                <div class="card border shadow-none h-100">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="fw-bold mb-1"><i class="bx bx-calendar-check text-primary me-2"></i>Presensi Kehadiran</h6>
+                                        <small class="text-muted">Presensi dicatat satu kali untuk setiap hari pelatihan.</small>
+                                    </div>
+                                    <div class="card-body">
+                                        @forelse($attendanceDays as $day)
+                                            @php
+                                                $attendance = $day['attendance'];
+                                                $isFilled = $attendance !== null;
+                                                $dateLabel = \Carbon\Carbon::parse($day['date'])->translatedFormat('l, d F Y');
+                                                $statusLabel = $isFilled ? ucfirst($attendance->status) : 'Belum Presensi';
+                                            @endphp
+                                            <div class="border rounded p-3 mb-3 {{ $isFilled ? 'border-success bg-label-success' : 'border-danger bg-label-danger' }}">
+                                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                    <div>
+                                                        <small class="text-muted d-block">Tanggal Presensi</small>
+                                                        <span class="fw-bold text-dark">{{ $dateLabel }}</span>
+                                                    </div>
+                                                    <i class="bx {{ $isFilled ? 'bxs-check-circle text-success' : 'bx-error-circle text-danger' }} fs-4"></i>
+                                                </div>
+
+                                                @if($isFilled)
+                                                    <button type="button" class="btn btn-success btn-sm w-100" disabled>
+                                                        <i class="bx bx-check-double me-1"></i>
+                                                        Sudah Presensi - {{ $statusLabel }}
+                                                        @if($attendance->check_in_at)
+                                                            ({{ \Carbon\Carbon::parse($attendance->check_in_at)->format('H:i') }})
+                                                        @endif
+                                                    </button>
+                                                @else
+                                                    <a href="{{ route('public.attendance.daily', ['training_id' => $training->id, 'date' => $day['date'], 'participant_id' => $participant->id]) }}"
+                                                       class="btn btn-danger btn-sm w-100" target="_blank">
+                                                        <i class="bx bx-fingerprint me-1"></i> Belum Presensi - Isi Sekarang
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="text-center text-muted py-4">
+                                                <i class="bx bx-calendar-x fs-1 d-block mb-2"></i>
+                                                Jadwal pelatihan belum tersedia.
+                                            </div>
+                                        @endforelse
+                                    </div>
                                 </div>
                             </div>
                         </div>

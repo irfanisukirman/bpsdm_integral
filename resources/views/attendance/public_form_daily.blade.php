@@ -11,6 +11,20 @@
                 </div>
 
                 <div class="card-body p-4">
+                    @if($errors->any())
+                        <div class="alert alert-danger d-flex align-items-start" role="alert">
+                            <i class="bx bx-error-circle fs-4 me-2"></i>
+                            <div>
+                                <strong>Presensi belum tersimpan.</strong>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @endif
+
                     @if($status == 'not_set')
                         <div class="text-center py-4">
                             <i class="bx bx-error-circle text-warning mb-3" style="font-size: 5rem;"></i>
@@ -61,7 +75,9 @@
                                             <select name="participant_id" class="form-select form-select-lg border-primary" required>
                                                 <option value="">-- Cari Nama --</option>
                                                 @foreach($notAttended as $p)
-                                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                                    <option value="{{ $p->id }}" @selected((int) old('participant_id', $selectedParticipantId ?? 0) === (int) $p->id)>
+                                                        {{ $p->name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -148,6 +164,8 @@
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
         document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
 
         // Deteksi Zona Waktu berdasarkan Offset Menit
@@ -163,7 +181,7 @@
         document.getElementById('timezone_label').value = label;
         
         // Masukkan waktu real-time ke hidden input
-        document.getElementById('local_checkin_time').value = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${hours}:${minutes}:${seconds}`;
+        document.getElementById('local_checkin_time').value = `${now.getFullYear()}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
     setInterval(updateClock, 1000);

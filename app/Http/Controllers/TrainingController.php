@@ -74,6 +74,7 @@ class TrainingController extends Controller
         }
 
         // 2. Simpan Data Pelatihan
+        $data['created_by'] = Auth::id();
         $training = Training::create($data);
 
         // 3. LOGIKA OTOMATIS: BUAT FOLDER DOKUMEN
@@ -479,7 +480,19 @@ class TrainingController extends Controller
         $training = Training::withCount('participants')->with(['schedules'])->findOrFail($id);
         // Ambil data evaluasi L1 untuk pengecekan status di Hub jika diperlukan
         $formsL1 = EvaluationFormL1::where('training_id', $id)->get();
-        return view('trainings.manage', compact('training', 'formsL1'));
+        $monitoringFindings = \App\Models\MonitoringResult::where('training_id', $id)
+            ->where('answer', 'tidak')
+            ->get();
+        $monitoringStats = [
+            'total' => $monitoringFindings->count(),
+            'open' => $monitoringFindings->whereIn('workflow_status', ['open', 'in_progress', 'rejected'])->count(),
+            'submitted' => $monitoringFindings->where('workflow_status', 'submitted')->count(),
+            'verified' => $monitoringFindings->where('workflow_status', 'verified')->count(),
+            'overdue' => $monitoringFindings->filter(fn ($item) =>
+                $item->workflow_status !== 'verified' && $item->due_date && $item->due_date->isPast()
+            )->count(),
+        ];
+        return view('trainings.manage', compact('training', 'formsL1', 'monitoringStats'));
     }
 
     public function exportParticipants($id)

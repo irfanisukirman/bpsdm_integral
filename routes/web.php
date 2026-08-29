@@ -24,6 +24,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AlumniController;
 use App\Http\Controllers\PengajarSetupController; // <-- TAMBAHAN CONTROLLER PENGAJAR
 use App\Http\Controllers\PengajarController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TrainingForumController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +84,11 @@ Route::get('/logout', function() {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/trainings/{training}/forum', [TrainingForumController::class, 'index'])->name('training.forum.index');
+    Route::get('/trainings/{training}/forum/messages', [TrainingForumController::class, 'messages'])->name('training.forum.messages');
+    Route::post('/trainings/{training}/forum/messages', [TrainingForumController::class, 'store'])->name('training.forum.store');
+    Route::delete('/trainings/{training}/forum/messages/{message}', [TrainingForumController::class, 'destroy'])->name('training.forum.destroy');
     
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -202,6 +209,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('monitoring/{id}/export-rekap', [MonitoringController::class, 'exportCeklis'])->name('monitoring.export.rekap');
     Route::get('participants/download-template', [TrainingController::class, 'downloadTemplate'])->name('participants.template');
     Route::get('follow-up', [FollowUpController::class, 'index'])->name('followup.index');
+    Route::put('follow-up/{id}/start', [FollowUpController::class, 'start'])->name('followup.start');
     Route::put('follow-up/{id}/resolve', [FollowUpController::class, 'resolve'])->name('followup.resolve');
     Route::put('follow-up/{id}/verify', [FollowUpController::class, 'verify'])->name('followup.verify');
 

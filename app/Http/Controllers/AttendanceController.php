@@ -65,7 +65,7 @@ class AttendanceController extends Controller
     /**
      * SISI PUBLIK: Form Absen Harian
      */
-    public function publicShowDaily($training_id, $date)
+    public function publicShowDaily(Request $request, $training_id, $date)
     {
         $training = Training::findOrFail($training_id);
         $setup = Schedule::where('training_id', $training_id)->where('date', $date)->first();
@@ -97,6 +97,13 @@ class AttendanceController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        // Jika form dibuka dari halaman detail peserta, pilih otomatis nama
+        // peserta tersebut selama ia memang terdaftar dan belum presensi.
+        $selectedParticipantId = $request->integer('participant_id');
+        if (!$notAttended->contains('id', $selectedParticipantId)) {
+            $selectedParticipantId = null;
+        }
+
         // Peserta yang SUDAH absen (untuk Daftar Progres)
         $attended = Participant::where('training_id', $training_id)
             ->whereIn('id', $attendedIds)
@@ -104,7 +111,7 @@ class AttendanceController extends Controller
             ->get();
 
         $status = 'open';
-        return view('attendance.public_form_daily', compact('training', 'date', 'notAttended', 'attended', 'status', 'setup'));
+        return view('attendance.public_form_daily', compact('training', 'date', 'notAttended', 'attended', 'status', 'setup', 'selectedParticipantId'));
     }
 
     /**
@@ -113,19 +120,22 @@ class AttendanceController extends Controller
     public function publicStoreDaily(Request $request, $training_id, $date)
     {
         $request->validate([
-            'participant_id' => 'required',
-            'status' => 'required',
-            'local_checkin_time' => 'required',
-            'timezone_label' => 'required'
+            'participant_id' => 'required|integer',
+            'status' => 'required|in:hadir,izin,sakit',
+            'local_checkin_time' => 'required|date_format:Y-m-d H:i:s',
+            'timezone_label' => 'required|string|max:20'
         ]);
 
+        $participant = Participant::where('training_id', $training_id)
+            ->findOrFail($request->integer('participant_id'));
+
         // Sesuai probis harian: absen dicatat ke sesi pertama di hari tersebut
-        $firstSchedule = Schedule::where('training_id', $training_id)->where('date', $date)->first();
+        $firstSchedule = Schedule::where('training_id', $training_id)->where('date', $date)->firstOrFail();
 
         Attendance::updateOrCreate(
             [
                 'schedule_id' => $firstSchedule->id, 
-                'participant_id' => $request->participant_id
+                'participant_id' => $participant->id
             ],
             [
                 'status' => $request->status,

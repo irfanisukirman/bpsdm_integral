@@ -82,6 +82,20 @@ class FollowUpController extends Controller
         return redirect()->back()->with('success', 'Tindak lanjut berhasil diajukan untuk verifikasi.');
     }
 
+    public function start($id)
+    {
+        $result = MonitoringResult::findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin' || ($user->role === 'admin_bidang' && $result->follow_up_target === $user->bidang),
+            403
+        );
+        abort_unless(in_array($result->workflow_status, ['open', 'rejected'], true), 422, 'Temuan tidak dapat mulai dikerjakan pada status saat ini.');
+        $result->update(['workflow_status' => 'in_progress', 'is_resolved' => false]);
+
+        return back()->with('success', 'Temuan ditandai sedang dikerjakan.');
+    }
+
     public function verify(Request $request, $id)
     {
         $data = $request->validate([

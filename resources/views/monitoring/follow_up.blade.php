@@ -118,7 +118,9 @@
                                 </span>
                                 <div class="small mt-2 {{ $isOverdue ? 'text-danger fw-bold' : 'text-muted' }}">
                                     <i class="bx bx-calendar me-1"></i>{{ optional($fu->due_date)->translatedFormat('d F Y') ?? 'Tanpa tenggat' }}
-                                    @if($isOverdue)<br>TERLAMBAT@endif
+                                    @if($isOverdue)
+                                        <br>TERLAMBAT
+                                    @endif
                                 </div>
                             </td>
                             <td style="min-width:150px">
@@ -142,6 +144,14 @@
                                 @endif
                             </td>
                             <td class="text-end" style="min-width:150px">
+                                @if($canResolve && in_array($fu->workflow_status, ['open', 'rejected']))
+                                    <form action="{{ route('followup.start', $fu->id) }}" method="POST" class="d-inline">
+                                        @csrf @method('PUT')
+                                        <button class="btn btn-sm btn-outline-primary mb-1">
+                                            <i class="bx bx-play me-1"></i>Mulai
+                                        </button>
+                                    </form>
+                                @endif
                                 @if($canResolve && in_array($fu->workflow_status, ['open', 'in_progress', 'rejected']))
                                     <button class="btn btn-sm btn-primary mb-1" data-bs-toggle="modal" data-bs-target="#resolve-{{ $fu->id }}">
                                         <i class="bx bx-upload me-1"></i>Ajukan Bukti

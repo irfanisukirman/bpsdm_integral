@@ -11,6 +11,7 @@ class Attendance extends Model
         'participant_id', 
         'status', 
         'check_in_at', 
+        'timezone_label',
         'keterangan'
     ];
 

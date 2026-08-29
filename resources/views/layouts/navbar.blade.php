@@ -22,6 +22,51 @@
             </div>
         </form>
         <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item navbar-dropdown dropdown me-2">
+                <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i class="bx bx-bell fs-4"></i>
+                    @if($navbarNotifications->isNotEmpty())
+                        <span class="badge rounded-pill bg-danger badge-notifications">{{ $navbarNotifications->count() > 99 ? '99+' : $navbarNotifications->count() }}</span>
+                    @endif
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width:min(380px, 92vw);">
+                    <li class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Notifikasi</h6>
+                            <small class="text-muted">{{ $navbarNotifications->count() }} perlu ditindaklanjuti</small>
+                        </div>
+                        <i class="bx bx-bell-ring fs-4 text-primary"></i>
+                    </li>
+                    <li>
+                        <div style="max-height:390px;overflow-y:auto;">
+                            @forelse($navbarNotifications->take(6) as $notification)
+                                <a class="dropdown-item px-3 py-3 border-bottom text-wrap" href="{{ $notification['url'] }}">
+                                    <div class="d-flex gap-3">
+                                        <span class="avatar avatar-sm flex-shrink-0">
+                                            <span class="avatar-initial rounded-circle bg-label-{{ $notification['level'] }}">
+                                                <i class="bx {{ $notification['icon'] }}"></i>
+                                            </span>
+                                        </span>
+                                        <span>
+                                            <span class="d-block fw-semibold text-dark">{{ $notification['title'] }}</span>
+                                            <small class="text-muted d-block" style="line-height:1.35">{{ $notification['message'] }}</small>
+                                        </span>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center px-4 py-5">
+                                    <i class="bx bx-check-circle text-success fs-1"></i>
+                                    <p class="fw-semibold mb-0 mt-2">Semua sudah selesai</p>
+                                    <small class="text-muted">Tidak ada tugas baru.</small>
+                                </div>
+                            @endforelse
+                        </div>
+                    </li>
+                    <li class="p-2">
+                        <a class="btn btn-primary btn-sm w-100" href="{{ route('notifications.index') }}">Lihat Semua Notifikasi</a>
+                    </li>
+                </ul>
+            </li>
             <!-- User Profile Dropdown -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">

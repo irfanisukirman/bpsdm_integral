@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
 use App\Models\File;
 use App\Models\Schedule;
+use App\Models\Attendance;
 
 class ParticipantController extends Controller
 {
@@ -214,8 +215,24 @@ class ParticipantController extends Controller
 
         // Ambil form evaluasi
         $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
+        $participantAttendances = Attendance::with('schedule')
+            ->where('participant_id', $participant->id)
+            ->whereHas('schedule', fn ($query) => $query->where('training_id', $training->id))
+            ->get()
+            ->keyBy(fn ($attendance) => (string) $attendance->schedule->date);
+        $attendanceDays = $training->schedules
+            ->groupBy(fn ($schedule) => (string) $schedule->date)
+            ->map(function ($schedules, $date) use ($participantAttendances) {
+                return [
+                    'date' => $date,
+                    'setup' => $schedules->first(),
+                    'attendance' => $participantAttendances->get($date),
+                ];
+            })
+            ->sortBy('date')
+            ->values();
 
-        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user'));
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays'));
     }
 
     public function myHistory()

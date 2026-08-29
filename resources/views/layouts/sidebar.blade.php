@@ -31,6 +31,13 @@
                 </a>
             </li>
 
+            <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
+                <a href="{{ route('followup.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-task"></i>
+                    <div>Rekomendasi Monitoring</div>
+                </a>
+            </li>
+
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Manajemen Pelatihan</span>
             </li>

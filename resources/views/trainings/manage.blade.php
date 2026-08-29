@@ -3,14 +3,23 @@
 @section('title', 'Kelola Pelatihan')
 
 @section('content')
+@php
+    $forumUnread = app(\App\Services\NotificationCenter::class)->unreadCountForTraining(auth()->user(), $training);
+@endphp
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold py-3 mb-0">
             <span class="text-muted fw-light">Pelatihan /</span> Kelola Data
         </h4>
-        <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('training.forum.index', $training) }}" class="btn btn-primary position-relative">
+                <i class="bx bx-conversation me-1"></i>Forum
+                @if($forumUnread > 0)
+                    <span class="badge rounded-pill bg-danger ms-1">{{ $forumUnread > 99 ? '99+' : $forumUnread }}</span>
+                @endif
+            </a>
+            <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Daftar</a>
+        </div>
     </div>
 
     <!-- Banner Info Pelatihan -->
@@ -110,6 +119,20 @@
                         <a href="{{ route('monitoring.fill', $training->id) }}" class="btn btn-info shadow-sm mb-2">
                             <i class="bx bx-edit-alt me-1"></i> ISI INSTRUMEN MONITORING
                         </a>
+                        <a href="{{ route('followup.index', ['training_id' => $training->id]) }}" class="btn btn-sm btn-outline-warning text-start d-flex justify-content-between align-items-center">
+                            <span><i class="bx bx-task me-2"></i> Rekomendasi Monitoring</span>
+                            <span>
+                                @if($monitoringStats['overdue'] > 0)
+                                    <span class="badge bg-danger">{{ $monitoringStats['overdue'] }} terlambat</span>
+                                @endif
+                                <span class="badge bg-warning text-dark">{{ $monitoringStats['open'] }} perlu aksi</span>
+                            </span>
+                        </a>
+                        @if($monitoringStats['total'] > 0)
+                            <div class="small text-muted px-1 mb-1">
+                                {{ $monitoringStats['submitted'] }} menunggu verifikasi · {{ $monitoringStats['verified'] }} selesai
+                            </div>
+                        @endif
                         <a href="{{ route('monitoring.export.laporan', $training->id) }}" class="btn btn-sm btn-outline-secondary text-start">
                             <i class="bx bxs-file-doc me-2 text-primary"></i> Download Laporan Monitoring
                         </a>
@@ -117,7 +140,7 @@
                             <i class="bx bxs-file-doc me-2 text-warning"></i> Download Laporan Tindak Lanjut
                         </a>
                         <a href="{{ route('monitoring.export.rekap', $training->id) }}" class="btn btn-sm btn-outline-secondary text-start">
-                            <i class="bx bxs-spreadsheet me-2 text-success"></i> Download Ceklis Harian (Excel)
+                            <i class="bx bxs-spreadsheet me-2 text-success"></i> Download Checklist Monitoring (Excel)
                         </a>
                     </div>
                 </div>
