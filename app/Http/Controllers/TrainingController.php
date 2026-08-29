@@ -474,81 +474,21 @@ class TrainingController extends Controller
         }, $fileName);
     }
 
-    /**
-     * Menampilkan daftar pelatihan dan jadwal sesi yang diajar oleh Pengajar yang login
-     */
-    public function pengajarSchedules()
+
+    public function approveParticipant($id)
     {
-        $user = Auth::user();
+            $participant = \App\Models\Participant::findOrFail($id);
+            $participant->update(['registration_status' => 'approved']);
 
-        // Ambil semua pelatihan di mana user ini ditugaskan sebagai pengajar pada sesinya
-        $myTrainings = Training::whereHas('schedules', function($q) use ($user) {
-            $q->where('pengajar_id', $user->id);
-        })->with(['schedules' => function($q) use ($user) {
-            $q->where('pengajar_id', $user->id)->orderBy('date', 'asc')->orderBy('start_time', 'asc');
-        }])->latest()->get();
+            return redirect()->back()->with('success', 'Pendaftaran ' . $participant->name . ' telah disetujui.');
+    }   
 
-        return view('pengajar.schedule', compact('myTrainings', 'user'));
-    }
-
-    /**
-     * Download Template Excel Jadwal Pelatihan
-     */
-    public function downloadScheduleTemplate()
+    public function rejectParticipant($id)
     {
-        return Excel::download(new ScheduleTemplateExport(), 'template_jadwal_pelatihan.xlsx');
-    }
+        $participant = \App\Models\Participant::findOrFail($id);
+        $participant->update(['registration_status' => 'rejected']);
 
-    /**
-     * Import Jadwal Pelatihan dari Excel
-     */
-    public function importSchedules(Request $request, $id)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:5120'
-        ], [
-            'file.required' => 'Silakan pilih file Excel terlebih dahulu.', 
-            'file.mimes'    => 'Format file harus berupa (.xlsx atau .xls).',
-            'file.max'      => 'Ukuran file maksimal 5MB.'
-        ]);
-
-        Excel::import(new ScheduleImport($id), $request->file('file'));
-
-        return redirect()->back()->with('success', 'Jadwal pelatihan berhasil diimport.');
-    }
-    /**
-     * Menampilkan riwayat pelatihan yang telah selesai diajar oleh Pengajar
-     */
-    public function pengajarHistory(Request $request)
-    {
-        $user = Auth::user();
-        $search = $request->query('search');
-
-        // Ambil pelatihan yang SUDAH SELESAI (tgl_selesai < sekarang) dan pernah diajar oleh user ini
-        $trainings = Training::whereHas('schedules', function($q) use ($user) {
-                $q->where('pengajar_id', $user->id);
-            })
-            ->where('tgl_selesai', '<', now()) // Hanya pelatihan yang sudah selesai
-            ->when($search, function($q) use ($search) {
-                $q->where(function($query) use ($search) {
-                    $query->where('nama_pelatihan', 'LIKE', "%{$search}%")
-                          ->orWhere('bidang', 'LIKE', "%{$search}%")
-                          ->orWhere('lokasi', 'LIKE', "%{$search}%");
-                });
-            })
-            ->with(['schedules' => function($q) use ($user) {
-                $q->where('pengajar_id', $user->id)->orderBy('date', 'asc')->orderBy('start_time', 'asc');
-            }])
-            ->latest('tgl_selesai')
-            ->get();
-
-        // Total akumulasi JP dari seluruh riwayat pelatihan yang selesai
-        $totalJpRiwayat = Schedule::where('pengajar_id', $user->id)
-            ->whereHas('training', function($q) {
-                $q->where('tgl_selesai', '<', now());
-            })
-            ->sum('jp');
-
-        return view('pengajar.history', compact('trainings', 'user', 'search', 'totalJpRiwayat'));
+        return redirect()->back()->with('success', 'Pendaftaran ' . $participant->name . ' telah ditolak.');
     }
 }
+

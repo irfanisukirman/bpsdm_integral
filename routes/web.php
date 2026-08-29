@@ -146,10 +146,17 @@ Route::middleware(['auth'])->group(function () {
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy');
     
+
+    Route::put('participants/{id}/approve', [TrainingController::class, 'approveParticipant'])->name('participants.approve');
+    Route::put('participants/{id}/reject', [TrainingController::class, 'rejectParticipant'])->name('participants.reject');
+
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
     
     // Peserta Join Pelatihan (Tampaknya ada duplikat di bawah, tapi dibiarkan sesuai request)
     Route::post('participant/training/{id}/join', [ParticipantController::class, 'enroll'])->name('participant.training.join');
+    Route::get('/participant/training/{id}/detail', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+
+    
     Route::get('participant/training/{id}', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
     Route::post('participant/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload');  
     
@@ -234,11 +241,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/trainings', [ParticipantController::class, 'availableTrainings'])->name('participant.trainings');
     
         // Proses Daftar (Join)
-        Route::post('/training/{id}/join-enroll', [ParticipantController::class, 'enroll'])->name('participant.training.join_enroll');
-        Route::post('/training/{id}/upload-req', [ParticipantController::class, 'uploadRequirement'])->name('participant.training.upload_req');
-        
-        // Detail Pelatihan
-        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.detail');
+
+        Route::post('/join-training', [ParticipantController::class, 'enrollByCode'])->name('participant.training.join_by_code');
+        Route::post('/training/{id}/upload', [ParticipantController::class, 'uploadRequirement'])
+            ->name('participant.training.upload');
+        // Detail Pelatihan (Halaman 4 Bar)
+        Route::get('/training/{id}/show', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+
         
         // Riwayat
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
