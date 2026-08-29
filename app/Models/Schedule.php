@@ -18,7 +18,9 @@ class Schedule extends Model
         'jp',
         'link_zoom',
         'pic',
-        'pengajar_id' 
+        'pengajar_id',
+        'venue_type',
+        'external_place'
     ];
 
     // Relasi ke User Pengajar
@@ -41,5 +43,10 @@ class Schedule extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function bookings()
+    {
+        return $this->morphMany(AssetBooking::class, 'bookable');
     }
 }

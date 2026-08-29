@@ -225,8 +225,9 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Role</label>
-                            <select name="role" class="form-select" required>
+                            <select name="role" id="create_role" class="form-select" required>
                                 <option value="admin_bidang">Admin Bidang</option>
+                                <option value="admin_aset">Admin Pengelola Aset</option>
                                 <option value="superadmin">Superadmin</option>
                             </select>
                         </div>
@@ -237,7 +238,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Penyelenggara / Bidang</label>
-                        <select name="bidang" class="form-select" required>
+                        <select name="bidang" id="create_bidang" class="form-select" required>
+                            <option value="Pengelola Aset" data-asset-only>Pengelola Aset</option>
                             @foreach($listBidang as $b)
                                 <option value="{{ $b }}">{{ $b }}</option>
                             @endforeach
@@ -295,6 +297,7 @@
                             <option value="participant">Participant (Peserta)</option>
                             <option value="pengajar">Pengajar</option>
                             <option value="admin_bidang">Admin Bidang</option>
+                            <option value="admin_aset">Admin Pengelola Aset</option>
                             <option value="superadmin">Superadmin</option>
                         </select>
                     </div>
@@ -305,11 +308,12 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">PENYELENGGARA / BIDANG</label>
-                    <select name="bidang" id="edit_bidang" class="form-select">
-                        <option value="">Tidak Terikat Bidang (Luar BPSDM)</option>
+                        <select name="bidang" id="edit_bidang" class="form-select">
+                            <option value="">Tidak Terikat Bidang (Luar BPSDM)</option>
+                            <option value="Pengelola Aset" data-asset-only>Pengelola Aset</option>
                         @foreach($listBidang as $b)
                             <option value="{{ $b }}">{{ $b }}</option>
-                        @endforeach
+@endforeach
                     </select>
                 </div>
                 <div class="alert alert-info py-2 mb-0">
@@ -327,6 +331,35 @@
 
 @push('js')
 <script>
+    function syncBidangByRole(roleSelector, bidangSelector) {
+        const role = $(roleSelector).val();
+        const bidang = $(bidangSelector);
+        const assetOption = bidang.find('option[value="Pengelola Aset"]');
+        const regularOptions = bidang.find('option').not(assetOption);
+
+        if (role === 'admin_aset') {
+            regularOptions.prop('disabled', true).prop('hidden', true);
+            assetOption.prop('disabled', false).prop('hidden', false);
+            bidang.val('Pengelola Aset');
+        } else {
+            assetOption.prop('disabled', true).prop('hidden', true);
+            regularOptions.prop('disabled', false).prop('hidden', false);
+            if (bidang.val() === 'Pengelola Aset') {
+                bidang.val(role === 'admin_bidang' ? bidang.find('option:not([data-asset-only])').first().val() : '');
+            }
+        }
+    }
+
+    $(function () {
+        syncBidangByRole('#create_role', '#create_bidang');
+        $('#create_role').on('change', function () {
+            syncBidangByRole('#create_role', '#create_bidang');
+        });
+        $('#edit_role').on('change', function () {
+            syncBidangByRole('#edit_role', '#edit_bidang');
+        });
+    });
+
     /**
      * Fungsi untuk mengisi data ke Modal Edit secara Dinamis
      */
@@ -340,6 +373,7 @@
         $('#edit_username').val(data.username);
         $('#edit_nip_nik').val(data.nip_nik);
         $('#edit_role').val(data.role);
+        syncBidangByRole('#edit_role', '#edit_bidang');
         $('#edit_whatsapp').val(data.whatsapp);
         
         // Handle select bidang (jika null, pilih yang value-nya kosong)

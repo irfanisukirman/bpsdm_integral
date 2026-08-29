@@ -32,11 +32,18 @@ class DocumentController extends Controller
                 ->get();
 
             // Ambil Folder Global (yang dibuat superadmin di halaman depan)
-            $globalFolders = Folder::where('bidang', 'Semua Bidang')
+            $globalFolders = Folder::with(['user'])->withCount(['files', 'children'])->where('bidang', 'Semua Bidang')
                 ->where('parent_id', null)
                 ->get();
 
-            return view('documents.index', compact('listBidang', 'globalFolders'));
+            $documentStats = [
+                'folders' => Folder::count(),
+                'files' => File::count(),
+                'size' => (int) File::sum('file_size'),
+                'public' => Folder::where('is_public', true)->count(),
+                'bidang' => $listBidang->count(),
+            ];
+            return view('documents.index', compact('listBidang', 'globalFolders', 'documentStats'));
         }
 
         // 2. TENTUKAN BIDANG YANG SEDANG DIKELOLA
@@ -55,7 +62,7 @@ class DocumentController extends Controller
         }
 
         // 3. QUERY DATA FOLDER (Bidang Terkait + Folder Global)
-        $folders = Folder::where('parent_id', $parentId)
+        $folders = Folder::with(['user'])->withCount(['files', 'children'])->where('parent_id', $parentId)
             ->when($user->role !== 'superadmin', function ($query) use ($currentBidang, $user) {
                 $query->where(function ($scope) use ($currentBidang, $user) {
                     $scope->where('bidang', 'Semua Bidang')
@@ -70,12 +77,18 @@ class DocumentController extends Controller
             ->get();
 
         // 4. QUERY DATA FILE (Hanya dalam folder yang sedang dibuka)
-        $files = $parentId ? File::where('folder_id', $parentId)->get() : collect();
+        $files = $parentId ? File::with('user')->where('folder_id', $parentId)->latest()->get() : collect();
 
         // Data pendukung breadcrumb & navigasi
         $currentFolder = $parentId ? Folder::with('parent')->findOrFail($parentId) : null;
 
-        return view('documents.index', compact('folders', 'files', 'currentFolder', 'currentBidang'));
+        $documentStats = [
+            'folders' => $folders->count(),
+            'files' => $files->count(),
+            'size' => (int) $files->sum('file_size'),
+            'public' => $folders->where('is_public', true)->count(),
+        ];
+        return view('documents.index', compact('folders', 'files', 'currentFolder', 'currentBidang', 'documentStats'));
     }
 
     /**
@@ -228,6 +241,45 @@ class DocumentController extends Controller
         $folder = Folder::where('share_token', $token)->firstOrFail();
 
         return view('documents.public_share', compact('folder'));
+    }
+
+    public function viewFile($id)
+    {
+        $file = File::with('folder')->findOrFail($id);
+        $this->authorizeFileAccess($file);
+        abort_unless(Storage::disk('public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
+
+        return response()->file(Storage::disk('public')->path($file->file_path), [
+            'Content-Disposition' => 'inline; filename="' . addslashes($file->display_name) . '"',
+        ]);
+    }
+
+    public function downloadFile($id)
+    {
+        $file = File::with('folder')->findOrFail($id);
+        $this->authorizeFileAccess($file);
+        abort_unless(Storage::disk('public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
+
+        return Storage::disk('public')->download($file->file_path, $file->display_name);
+    }
+
+    private function authorizeFileAccess(File $file): void
+    {
+        $folder = $file->folder;
+        abort_unless($folder, 404);
+
+        if ($folder->is_public) {
+            return;
+        }
+
+        $user = Auth::user();
+        abort_unless($user, 403);
+        abort_unless(
+            $user->role === 'superadmin'
+            || (int) $folder->user_id === (int) $user->id
+            || ($user->bidang && in_array($folder->bidang, [$user->bidang, 'Semua Bidang'], true)),
+            403
+        );
     }
 
     public static function archiveInternal($trainingId, $categoryName, $fileName, $content, $extension)

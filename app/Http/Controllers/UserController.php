@@ -14,7 +14,8 @@ class UserController extends Controller
         'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan',
         'Bidang Pengembangan Kompetensi Teknis Inti',
         'Bidang Pengembangan Kompetensi Teknis Umum',
-        'Bidang Pengembangan Kompetensi Manajerial'
+        'Bidang Pengembangan Kompetensi Manajerial',
+        'Sekretariat'
     ];
 
     public function index(Request $request)
@@ -44,13 +45,16 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->role !== 'admin_aset' && $request->bidang === 'Pengelola Aset') {
+            throw \Illuminate\Validation\ValidationException::withMessages(['bidang' => 'Bidang Pengelola Aset hanya untuk role Admin Pengelola Aset.']);
+        }
         $request->validate([
             'name'     => 'required|string|max:255',
             'nip_nik'  => 'nullable|string|max:50',
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
-            'role'     => 'required|in:superadmin,admin_bidang,pengajar,participant',
-            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(self::$listBidang)],
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant',
+            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
             'password' => 'required|min:6',
         ]);
 
@@ -60,7 +64,7 @@ class UserController extends Controller
             'username' => $request->username,
             'whatsapp' => $request->whatsapp,
             'role'     => $request->role,
-            'bidang'   => $request->bidang,
+            'bidang'   => $request->role === 'admin_aset' ? 'Pengelola Aset' : $request->bidang,
             'password' => Hash::make($request->password),
         ]);
 
@@ -84,14 +88,17 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if ($request->role !== 'admin_aset' && $request->bidang === 'Pengelola Aset') {
+            throw \Illuminate\Validation\ValidationException::withMessages(['bidang' => 'Bidang Pengelola Aset hanya untuk role Admin Pengelola Aset.']);
+        }
         $request->validate([
             'name'     => 'required|string|max:255',
             // Update username ditambahkan, dengan validasi ignore ID agar tidak error "sudah dipakai" oleh dirinya sendiri
             'username' => 'required|string|unique:users,username,' . $user->id,
             'nip_nik'  => 'nullable|string|max:50',
-            'role'     => 'required|in:superadmin,admin_bidang,pengajar,participant',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant',
             'whatsapp' => 'required|numeric',
-            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(self::$listBidang)],
+            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
         ]);
 
         $user->update([
@@ -100,7 +107,7 @@ class UserController extends Controller
             'nip_nik'  => $request->nip_nik,
             'role'     => $request->role,
             'whatsapp' => $request->whatsapp,
-            'bidang'   => $request->bidang,
+            'bidang'   => $request->role === 'admin_aset' ? 'Pengelola Aset' : $request->bidang,
         ]);
 
         return redirect()->back()->with('success', 'Data user ' . $user->name . ' berhasil diperbarui.');

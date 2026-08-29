@@ -93,6 +93,25 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label fw-bold">Tempat / Ruangan</label>
+                        <select name="venue_type" id="create_venue_type" class="form-select mb-2">
+                            <option value="internal">Internal BPSDM</option>
+                            <option value="external">Eksternal</option>
+                        </select>
+                        <div id="create_internal">
+                            <select name="asset_ids[]" class="form-select select2-assets" multiple>
+                                @foreach($assets as $asset)
+                                    <option value="{{ $asset->id }}">{{ $asset->name }} — {{ $asset->location }} ({{ $asset->capacity ?: '-' }} orang)</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Bisa memilih beberapa ruangan/aset. Bentrok diperiksa saat disimpan.</small>
+                        </div>
+                        <div id="create_external" class="d-none">
+                            <input name="external_place" class="form-control" placeholder="Nama dan alamat tempat eksternal">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label fw-bold text-primary">Penanggung Jawab (PIC) <span class="text-danger">*</span></label>
                         <input type="text" name="pic" class="form-control" placeholder="Nama PIC Kelas / Panitia" value="{{ old('pic', auth()->user()->name) }}" required>
                     </div>
@@ -150,6 +169,14 @@
                                             </a>
                                         @endif
                                     </div>
+                                    <small class="text-primary">
+                                        <i class="bx bx-map me-1"></i>
+                                        @if($s->venue_type === 'internal')
+                                            {{ $s->bookings->pluck('asset.name')->filter()->join(', ') ?: 'Aset internal belum dipilih' }}
+                                        @else
+                                            {{ $s->external_place ?: 'Lokasi eksternal belum diisi' }}
+                                        @endif
+                                    </small>
                                 </div>
                             </td>
                             <td>
@@ -276,6 +303,24 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label fw-bold">Tempat / Ruangan</label>
+                    <select name="venue_type" id="edit_venue_type" class="form-select mb-2">
+                        <option value="internal">Internal BPSDM</option>
+                        <option value="external">Eksternal</option>
+                    </select>
+                    <div id="edit_internal">
+                        <select name="asset_ids[]" id="edit_asset_ids" class="form-select select2-edit-assets" multiple>
+                            @foreach($assets as $asset)
+                                <option value="{{ $asset->id }}">{{ $asset->name }} — {{ $asset->location }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div id="edit_external" class="d-none">
+                        <input name="external_place" id="edit_external_place" class="form-control" placeholder="Tempat eksternal">
+                    </div>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label fw-bold text-primary">Penanggung Jawab (PIC) <span class="text-danger">*</span></label>
                     <input type="text" name="pic" id="edit_pic" class="form-control" required>
                 </div>
@@ -307,6 +352,16 @@
             allowClear: true,
             width: '100%'
         });
+        $('.select2-assets').select2({ theme: 'bootstrap-5', placeholder: 'Pilih aset/ruangan', width: '100%' });
+        $('.select2-edit-assets').select2({ theme: 'bootstrap-5', dropdownParent: $('#modalEditSchedule'), placeholder: 'Pilih aset/ruangan', width: '100%' });
+        function toggleVenue(prefix) {
+            const internal = $('#' + prefix + '_venue_type').val() === 'internal';
+            $('#' + prefix + '_internal').toggleClass('d-none', !internal);
+            $('#' + prefix + '_external').toggleClass('d-none', internal);
+        }
+        $('#create_venue_type').on('change', () => toggleVenue('create'));
+        $('#edit_venue_type').on('change', () => toggleVenue('edit'));
+        toggleVenue('create');
     });
 
     function editSchedule(data) {
@@ -321,6 +376,12 @@
         $('#edit_link_zoom').val(data.link_zoom); // <-- Bind Link Zoom
         $('#edit_pic').val(data.pic);
         $('#edit_pengajar_id').val(data.pengajar_id).trigger('change');
+        $('#edit_venue_type').val(data.venue_type || 'external');
+        $('#edit_external_place').val(data.external_place || '');
+        $('#edit_asset_ids').val((data.bookings || []).map(item => String(item.asset_id))).trigger('change');
+        const internal = $('#edit_venue_type').val() === 'internal';
+        $('#edit_internal').toggleClass('d-none', !internal);
+        $('#edit_external').toggleClass('d-none', internal);
     }
 </script>
 @endpush

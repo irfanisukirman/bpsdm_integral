@@ -26,6 +26,8 @@ use App\Http\Controllers\PengajarSetupController; // <-- TAMBAHAN CONTROLLER PEN
 use App\Http\Controllers\PengajarController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TrainingForumController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AgendaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +86,19 @@ Route::get('/logout', function() {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
+    Route::get('assets/monitoring', [AssetController::class, 'monitoring'])->name('assets.monitoring');
+    // Jangan gunakan URI tepat /assets karena bertabrakan dengan folder public/assets.
+    Route::get('assets/kelola', [AssetController::class, 'index'])->name('assets.index');
+    Route::post('assets/kelola', [AssetController::class, 'store'])->name('assets.store');
+    Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
+    Route::get('agendas', [AgendaController::class, 'index'])->name('agendas.index');
+    Route::get('agendas/create', [AgendaController::class, 'create'])->name('agendas.create');
+    Route::get('agendas-availability', [AgendaController::class, 'availability'])->name('agendas.availability');
+    Route::post('agendas', [AgendaController::class, 'store'])->name('agendas.store');
+    Route::get('agendas/{agenda}/edit', [AgendaController::class, 'edit'])->name('agendas.edit');
+    Route::put('agendas/{agenda}', [AgendaController::class, 'update'])->name('agendas.update');
+    Route::delete('agendas/{agenda}', [AgendaController::class, 'destroy'])->name('agendas.destroy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/trainings/{training}/forum', [TrainingForumController::class, 'index'])->name('training.forum.index');
     Route::get('/trainings/{training}/forum/messages', [TrainingForumController::class, 'messages'])->name('training.forum.messages');

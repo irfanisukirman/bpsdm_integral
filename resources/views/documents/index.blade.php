@@ -1,14 +1,19 @@
 @extends('layouts.master')
 
+@section('title', 'Manajemen Dokumen')
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
-        <h4 class="fw-bold py-3 mb-0">
-            <span class="text-muted fw-light">INTEGRAL /</span> Pengelolaan Dokumen
+    <div class="document-hero d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+        <div>
+            <div class="text-uppercase small fw-bold text-primary mb-2"><i class="bx bx-folder-open me-1"></i>Ruang Dokumen INTEGRAL</div>
+            <h3 class="fw-bold mb-1">
+                Manajemen Dokumen
             @if(isset($currentBidang))
-                <span class="text-primary small"> / {{ $currentBidang }}</span>
+                <span class="text-primary">— {{ $currentBidang }}</span>
             @endif
-        </h4>
+            </h3>
+            <p class="text-muted mb-0">Kelola folder pelatihan, berkas administrasi, dan tautan berbagi dalam satu tempat.</p>
+        </div>
         
         <div class="d-flex gap-2">
             @if(isset($currentBidang))
@@ -29,6 +34,21 @@
             @endif
         </div>
     </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-warning"><i class="bx bxs-folder"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['folders'] ?? 0) }}</h4><small class="text-muted">Folder</small></div></div></div></div>
+        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-primary"><i class="bx bx-file"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['files'] ?? 0) }}</h4><small class="text-muted">Berkas</small></div></div></div></div>
+        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-info"><i class="bx bx-data"></i></span><div><h4 class="mb-0 fw-bold">{{ formatSizeUnits($documentStats['size'] ?? 0) }}</h4><small class="text-muted">Ukuran Data</small></div></div></div></div>
+        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-success"><i class="bx bx-globe"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['public'] ?? 0) }}</h4><small class="text-muted">Folder Publik</small></div></div></div></div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-body py-3">
+        <div class="input-group">
+            <span class="input-group-text border-0 bg-transparent"><i class="bx bx-search"></i></span>
+            <input type="search" id="documentSearch" class="form-control border-0 shadow-none" placeholder="Cari nama bidang, folder, atau berkas...">
+            <span class="input-group-text border-0 bg-transparent text-muted small" id="searchResultInfo">Ketik untuk mencari</span>
+        </div>
+    </div></div>
     
 
     {{-- KONDISI 1: LANDING PAGE SUPERADMIN (DAFTAR BIDANG) --}}
@@ -36,7 +56,7 @@
     <h5 class="mb-3">Folder Global (Terlihat di Semua Bidang)</h5>
         <div class="row g-4 mb-5">
             @foreach($globalFolders as $folder)
-                <div class="col-md-3 col-6">
+                <div class="col-md-3 col-6 document-search-item" data-search="{{ strtolower($folder->name) }} global">
                     <div class="card shadow-none border text-center h-100 folder-card border-primary">
                         <div class="card-body position-relative">
                             {{-- Dropdown aksi hapus/privacy tetap sama --}}
@@ -61,7 +81,7 @@
         <h5 class="mb-3">Daftar Dokumen Per Bidang</h5>
         <div class="row g-4">
             @foreach($listBidang as $b)
-            <div class="col-md-4 col-lg-3">
+            <div class="col-md-4 col-lg-3 document-search-item" data-search="{{ strtolower($b->bidang) }}">
                 <div class="card shadow-none border text-center h-100 folder-card">
                     <div class="card-body py-5">
                         <div class="avatar avatar-xl bg-label-primary mx-auto mb-3">
@@ -104,7 +124,7 @@
         <!-- Grid Folder -->
         <div class="row g-4 mb-5">
             @forelse($folders as $folder)
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-xl-3 col-6 document-search-item" data-search="{{ strtolower($folder->name.' '.$folder->bidang.' '.($folder->user?->name ?? '')) }}">
                 <div class="card shadow-none border text-center h-100 folder-card position-relative">
                     <div class="card-body">
                         @php
@@ -153,7 +173,8 @@
                         </div>
                         <a href="{{ route('documents.index', ['folder' => $folder->id, 'bidang' => $currentBidang]) }}" class="text-body d-block mt-2">
                             <i class="bx bxs-folder {{ $folder->bidang == 'Semua Bidang' ? 'text-primary' : 'text-warning' }} mb-2 animate-folder" style="font-size: 4.5rem;"></i>
-                            <h6 class="fw-bold mb-1 text-truncate px-2">{{ $folder->name }}</h6>
+                            <h6 class="fw-bold mb-1 text-truncate px-2" title="{{ $folder->name }}">{{ $folder->name }}</h6>
+                            <small class="text-muted d-block mb-2">{{ $folder->children_count }} subfolder · {{ $folder->files_count }} file</small>
                             @if($folder->bidang == 'Semua Bidang')
                                 <span class="badge bg-primary btn-xs">GLOBAL</span>
                                 <small class="text-muted d-block" style="font-size: 10px;">Dibuat oleh: {{ $folder->user->name }}</small>
@@ -189,25 +210,28 @@
                         <tr>
                             <th>Nama File</th>
                             <th>Ukuran</th>
-                            <th>Diunggah Pada</th>
+                            <th>Informasi Upload</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($files as $file)
-                        <tr>
+                        <tr class="document-search-item" data-search="{{ strtolower($file->display_name.' '.$file->file_type.' '.($file->user?->name ?? '')) }}">
                             <td>
                                 <div class="d-flex align-items-center">
                                     <i class="bx {{ getFileIcon($file->file_type) }} h4 mb-0 me-2 text-primary"></i>
-                                    <span class="fw-semibold">{{ $file->display_name }}</span>
+                                    <div><span class="fw-semibold d-block">{{ $file->display_name }}</span><small class="text-muted text-uppercase">{{ $file->file_type ?: 'file' }}</small></div>
                                 </div>
                             </td>
                             
                             <td><small class="text-muted">{{ formatSizeUnits($file->file_size) }}</small></td>
-                            <td><small>{{ $file->created_at->format('d M Y, H:i') }}</small></td>
+                            <td><small class="d-block">{{ $file->created_at->translatedFormat('d M Y, H:i') }}</small><small class="text-muted">oleh {{ $file->user?->name ?? 'Sistem' }}</small></td>
                             <td class="text-center">
                                 <div class="btn-group">
-                                    <a href="{{ asset('storage/'.$file->file_path) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-primary" title="Download">
+                                    <a href="{{ route('documents.file.view', $file->id) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-primary" title="Lihat file">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{{ route('documents.file.download', $file->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Download file">
                                         <i class="bx bx-download"></i>
                                     </a>
                                     <form action="{{ route('documents.file.destroy', $file->id) }}" method="POST" onsubmit="return confirm('Hapus file ini?')">
@@ -316,6 +340,32 @@
         font-size: 12px;
         color: #a1acb8;
     }
+    .document-hero {
+        padding: 1.5rem;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, rgba(105,108,255,.10), rgba(3,195,236,.06));
+        border: 1px solid rgba(105,108,255,.14);
+    }
+    .document-stat {
+        border: 0;
+        box-shadow: 0 .25rem 1rem rgba(67,89,113,.08);
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex: 0 0 48px;
+    }
+    .document-search-item {
+        transition: opacity .2s ease, transform .2s ease;
+    }
+    .document-search-item.is-filtered {
+        display: none !important;
+    }
 </style>
 
 @endsection
@@ -368,6 +418,23 @@ function showToast() {
     var toast = new bootstrap.Toast(toastEl);
     toast.show();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('documentSearch');
+    const info = document.getElementById('searchResultInfo');
+    if (!input) return;
+    input.addEventListener('input', function () {
+        const keyword = this.value.trim().toLowerCase();
+        const items = Array.from(document.querySelectorAll('.document-search-item'));
+        let visible = 0;
+        items.forEach(function (item) {
+            const matched = !keyword || (item.dataset.search || '').includes(keyword);
+            item.classList.toggle('is-filtered', !matched);
+            if (matched) visible++;
+        });
+        info.textContent = keyword ? visible + ' hasil ditemukan' : 'Ketik untuk mencari';
+    });
+});
 </script>
 @endpush
 

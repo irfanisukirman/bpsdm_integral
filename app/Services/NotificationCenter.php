@@ -13,6 +13,8 @@ use App\Models\Training;
 use App\Models\TrainingForumRead;
 use App\Models\TrainingMessage;
 use App\Models\User;
+use App\Models\AssetBooking;
+use App\Models\AgendaSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +47,9 @@ class NotificationCenter
 
         if (in_array($user->role, ['superadmin', 'admin_bidang'], true)) {
             $items = $items->merge($this->adminItems($user));
+        }
+        if (in_array($user->role, ['superadmin', 'admin_aset', 'admin_bidang'], true)) {
+            $items = $items->merge($this->assetAgendaItems($user));
         }
 
         $items = $items->merge($this->forumItems($user));
@@ -359,5 +364,45 @@ class NotificationCenter
                 'Buka forum'
             );
         })->filter()->values();
+    }
+
+    private function assetAgendaItems(User $user): Collection
+    {
+        $items = collect();
+        $until = now('Asia/Jakarta')->addDay();
+
+        if (in_array($user->role, ['superadmin', 'admin_aset'], true)) {
+            $bookings = AssetBooking::with('asset')
+                ->whereBetween('starts_at', [now('Asia/Jakarta'), $until])
+                ->orderBy('starts_at')->get();
+            if ($bookings->isNotEmpty()) {
+                $first = $bookings->first();
+                $items->push($this->item(
+                    'asset-usage-upcoming-'.$user->id,
+                    'Pemakaian aset akan dimulai',
+                    $bookings->count().' reservasi dalam 24 jam. Terdekat: '.$first->asset->name.' pukul '.$first->starts_at->format('H:i').'.',
+                    'info', 'bx-calendar-check', route('assets.monitoring', ['date' => $first->starts_at->toDateString()]), 'Lihat timeline',
+                    $first->starts_at->format('Y-m-d H:i:s')
+                ));
+            }
+        }
+
+        if ($user->role === 'admin_bidang') {
+            $schedules = AgendaSchedule::with('agenda')
+                ->whereHas('agenda', fn ($query) => $query->where('bidang', $user->bidang))
+                ->whereBetween('starts_at', [now('Asia/Jakarta'), $until])
+                ->orderBy('starts_at')->get();
+            if ($schedules->isNotEmpty()) {
+                $first = $schedules->first();
+                $items->push($this->item(
+                    'agenda-upcoming-'.$user->id,
+                    'Agenda bidang akan dimulai',
+                    $schedules->count().' jadwal dalam 24 jam. Terdekat: '.$first->agenda->name.' pukul '.$first->starts_at->format('H:i').'.',
+                    'info', 'bx-calendar-event', route('agendas.index'), 'Buka agenda',
+                    $first->starts_at->format('Y-m-d H:i:s')
+                ));
+            }
+        }
+        return $items;
     }
 }

@@ -20,6 +20,9 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if ($user->role === 'admin_aset') {
+            return redirect()->route('assets.dashboard');
+        }
 
         // ==========================================
         // 1. JIKA ROLE ADALAH PARTICIPANT (PESERTA)

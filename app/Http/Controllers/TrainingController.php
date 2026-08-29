@@ -11,6 +11,8 @@ use App\Models\Folder;
 use App\Helpers\LogHelper; 
 use App\Models\User; 
 use App\Models\EvaluationFormL1;
+use App\Models\Asset;
+use App\Models\AssetBooking;
 use App\Exports\ParticipantTemplateExport;
 use App\Exports\ParticipantExport;
 use App\Exports\ScheduleTemplateExport;
@@ -215,7 +217,7 @@ class TrainingController extends Controller
         $training = Training::findOrFail($id);
         
         // Eager load data relasi pengajar
-        $schedules = Schedule::with('pengajar')
+        $schedules = Schedule::with(['pengajar', 'bookings.asset'])
             ->where('training_id', $id)
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc')
@@ -223,8 +225,9 @@ class TrainingController extends Controller
 
         // Semua akun dapat ditugaskan tanpa mengubah role utama akun.
         $pengajars = User::orderBy('name', 'asc')->get();
+        $assets = Asset::where('is_active', true)->orderBy('name')->get();
 
-        return view('trainings.schedules', compact('training', 'schedules', 'pengajars'));
+        return view('trainings.schedules', compact('training', 'schedules', 'pengajars', 'assets'));
     }
 
     public function importParticipants(Request $request, $id)
@@ -262,9 +265,14 @@ class TrainingController extends Controller
             'link_zoom'   => 'nullable|string|max:500',
             'pic'         => 'required|string|max:255',
             'pengajar_id' => 'nullable|exists:users,id',
+            'venue_type' => 'required|in:internal,external',
+            'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
+            'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
+            'asset_ids.*' => 'integer|exists:assets,id',
         ]);
 
-        Schedule::create([
+        DB::transaction(function () use ($request, $id) {
+        $schedule = Schedule::create([
             'training_id' => $id,
             'date'        => $request->date,
             'start_time'  => $request->start_time,
@@ -274,7 +282,11 @@ class TrainingController extends Controller
             'link_zoom'   => $request->link_zoom,
             'pic'         => $request->pic,
             'pengajar_id' => $request->pengajar_id,
+            'venue_type' => $request->venue_type,
+            'external_place' => $request->venue_type === 'external' ? $request->external_place : null,
         ]);
+        $this->syncScheduleAssets($schedule, $request->input('asset_ids', []));
+        });
 
         return redirect()->back()->with('success', 'Sesi jadwal berhasil ditambahkan.');
     }
@@ -293,9 +305,14 @@ class TrainingController extends Controller
             'link_zoom'   => 'nullable|string|max:500',
             'pic'         => 'required|string|max:255',
             'pengajar_id' => 'nullable|exists:users,id',
+            'venue_type' => 'required|in:internal,external',
+            'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
+            'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
+            'asset_ids.*' => 'integer|exists:assets,id',
         ]);
 
         $schedule = Schedule::findOrFail($id);
+        DB::transaction(function () use ($request, $schedule) {
         $schedule->update([
             'date'        => $request->date,
             'start_time'  => $request->start_time,
@@ -305,7 +322,11 @@ class TrainingController extends Controller
             'link_zoom'   => $request->link_zoom,
             'pic'         => $request->pic,
             'pengajar_id' => $request->pengajar_id,
+            'venue_type' => $request->venue_type,
+            'external_place' => $request->venue_type === 'external' ? $request->external_place : null,
         ]);
+        $this->syncScheduleAssets($schedule, $request->input('asset_ids', []));
+        });
 
         return redirect()->back()->with('success', 'Jadwal berhasil diperbarui.');
     }
@@ -313,9 +334,29 @@ class TrainingController extends Controller
     public function destroySchedule($id)
     {
         $schedule = Schedule::findOrFail($id);
+        $schedule->bookings()->delete();
         $schedule->delete();
 
         return redirect()->back()->with('success', 'Sesi jadwal berhasil dihapus.');
+    }
+
+    private function syncScheduleAssets(Schedule $schedule, array $assetIds): void
+    {
+        $assetIds = $schedule->venue_type === 'internal' ? array_values(array_unique($assetIds)) : [];
+        $start = $schedule->date.' '.$schedule->start_time;
+        $end = $schedule->date.' '.$schedule->end_time;
+        foreach ($assetIds as $assetId) {
+            if (AssetBooking::hasConflict((int) $assetId, $start, $end, Schedule::class, $schedule->id)) {
+                $asset = Asset::find($assetId);
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'asset_ids' => 'Aset '.$asset?->name.' sudah digunakan oleh kegiatan lain pada waktu tersebut.',
+                ]);
+            }
+        }
+        $schedule->bookings()->delete();
+        foreach ($assetIds as $assetId) {
+            $schedule->bookings()->create(['asset_id' => $assetId, 'starts_at' => $start, 'ends_at' => $end, 'created_by' => Auth::id()]);
+        }
     }
 
     public function downloadSchedulePdf($id)
