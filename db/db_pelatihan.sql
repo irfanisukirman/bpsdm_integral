@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Agu 2026 pada 05.13
+-- Waktu pembuatan: 29 Agu 2026 pada 08.49
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -96,6 +96,13 @@ CREATE TABLE `attendances` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `timezone_label` varchar(5) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `attendances`
+--
+
+INSERT INTO `attendances` (`id`, `schedule_id`, `participant_id`, `status`, `check_in_at`, `keterangan`, `created_at`, `updated_at`, `timezone_label`) VALUES
+(2, 3, 12, 'hadir', '2026-08-29 06:19:25', NULL, '2026-08-29 06:19:26', '2026-08-29 06:19:26', 'WIB');
 
 -- --------------------------------------------------------
 
@@ -914,7 +921,13 @@ INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`
 (65, 29, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6881, 5, '2026-08-29 02:18:44', '2026-08-29 02:18:44'),
 (68, 35, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13282, 2, '2026-08-29 02:31:28', '2026-08-29 02:31:28'),
 (71, 35, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13625, 5, '2026-08-29 02:41:04', '2026-08-29 02:41:04'),
-(72, 36, 'LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Utama.docx', 'documents/LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Utama.docx', 'docx', 10856499, 2, '2026-08-29 02:45:22', '2026-08-29 02:45:22');
+(72, 36, 'LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Utama.docx', 'documents/LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Utama.docx', 'docx', 10856499, 2, '2026-08-29 02:45:22', '2026-08-29 02:45:22'),
+(77, 40, 'BUKTI_TINDAK_LANJUT_4_20260829_125512.pdf', 'documents/BUKTI_TINDAK_LANJUT_4_20260829_125512.pdf', 'pdf', 3191, 5, '2026-08-29 05:55:12', '2026-08-29 05:55:12'),
+(78, 36, 'LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11026, 5, '2026-08-29 05:55:58', '2026-08-29 05:55:58'),
+(79, 41, 'LAPORAN_TINDAK_LANJUT_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_TINDAK_LANJUT_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 9320, 5, '2026-08-29 05:56:53', '2026-08-29 05:56:53'),
+(80, 42, 'CEKLIS_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/CEKLIS_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 9509, 5, '2026-08-29 05:57:02', '2026-08-29 05:57:02'),
+(83, 36, 'LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Keseluruhan.docx', 'documents/LAPORAN_MONITORING_Pelatihan_Pengkajian_Kebutuhan_Pascabencana_Keseluruhan.docx', 'docx', 10856322, 5, '2026-08-29 06:03:57', '2026-08-29 06:03:57'),
+(84, 41, 'LAPORAN_TINDAK_LANJUT_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_TINDAK_LANJUT_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 4135167, 2, '2026-08-29 06:05:15', '2026-08-29 06:05:15');
 
 -- --------------------------------------------------------
 
@@ -946,7 +959,10 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (31, 4, 'LAPORAN AKHIR DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 5, 0, NULL, '2026-08-29 01:50:19', '2026-08-29 01:50:19'),
 (32, 4, 'SURAT UNDANGAN EVALUASI', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 5, 0, NULL, '2026-08-29 01:52:16', '2026-08-29 01:52:16'),
 (35, 4, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 2, 0, NULL, '2026-08-29 02:31:28', '2026-08-29 02:31:28'),
-(36, 4, 'LAPORAN MONITORING', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 2, 0, NULL, '2026-08-29 02:45:22', '2026-08-29 02:45:22');
+(36, 4, 'LAPORAN MONITORING', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 2, 0, NULL, '2026-08-29 02:45:22', '2026-08-29 02:45:22'),
+(40, 4, 'BUKTI TINDAK LANJUT MONITORING', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 5, 0, NULL, '2026-08-29 05:55:12', '2026-08-29 05:55:12'),
+(41, 4, 'LAPORAN TINDAK LANJUT', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 5, 0, NULL, '2026-08-29 05:56:53', '2026-08-29 05:56:53'),
+(42, 4, 'CEKLIS MONITORING', 'Bidang Pengembangan Kompetensi Teknis Umum', 28, 5, 0, NULL, '2026-08-29 05:57:02', '2026-08-29 05:57:02');
 
 -- --------------------------------------------------------
 
@@ -1072,7 +1088,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (70, '2026_08_28_220000_add_coordinates_to_users_table', 6),
 (71, '2026_08_29_090000_add_bidang_to_evaluation_questions_table', 7),
 (72, '2026_08_29_150000_classify_legacy_l34_questions', 8),
-(73, '2026_08_29_170000_sync_mandiri_l34_questions_to_peer_roles', 9);
+(73, '2026_08_29_170000_sync_mandiri_l34_questions_to_peer_roles', 9),
+(74, '2026_08_29_100000_expand_monitoring_follow_up_workflow', 10),
+(75, '2026_08_29_210000_create_training_forum_tables', 11);
 
 -- --------------------------------------------------------
 
@@ -1084,18 +1102,61 @@ CREATE TABLE `monitoring_results` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `training_id` bigint(20) UNSIGNED NOT NULL,
   `training_stage_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `monitoring_date` date DEFAULT NULL,
   `question_id` bigint(20) UNSIGNED NOT NULL,
   `category` varchar(255) DEFAULT NULL,
   `answer` enum('ya','tidak') NOT NULL,
   `notes` text DEFAULT NULL,
+  `recommendation` text DEFAULT NULL,
   `follow_up_target` varchar(255) DEFAULT NULL,
+  `priority` varchar(20) NOT NULL DEFAULT 'sedang',
+  `due_date` date DEFAULT NULL,
+  `workflow_status` varchar(30) NOT NULL DEFAULT 'open',
   `is_resolved` tinyint(1) NOT NULL DEFAULT 0,
   `resolution_notes` text DEFAULT NULL,
   `evidence_file` varchar(255) DEFAULT NULL,
+  `submitted_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  `verified_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `verified_at` timestamp NULL DEFAULT NULL,
+  `verification_notes` text DEFAULT NULL,
   `status` enum('open','resolved') NOT NULL DEFAULT 'open',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `monitoring_results`
+--
+
+INSERT INTO `monitoring_results` (`id`, `training_id`, `training_stage_id`, `monitoring_date`, `question_id`, `category`, `answer`, `notes`, `recommendation`, `follow_up_target`, `priority`, `due_date`, `workflow_status`, `is_resolved`, `resolution_notes`, `evidence_file`, `submitted_by`, `submitted_at`, `verified_by`, `verified_at`, `verification_notes`, `status`, `created_at`, `updated_at`) VALUES
+(4, 4, NULL, '2026-08-29', 521, 'Monitoring Penyelenggara', 'tidak', 'kurang ini', 'tolong perbaiki', 'Bidang Pengembangan Kompetensi Teknis Umum', 'sedang', '2026-08-31', 'verified', 1, 'dasdad dasjd asgdas fgjkasf gaska sfjasf', 'evidence_monitoring/fFVNgddEKIvgsRGUDvBVeP8PW0Z52vAu3pk4aHgM.pdf', 5, '2026-08-29 05:55:12', 2, '2026-08-29 05:55:35', 'sudah setuju dan bagus', 'open', '2026-08-29 05:54:24', '2026-08-29 05:55:35'),
+(5, 4, NULL, '2026-08-29', 522, 'Monitoring Penyelenggara', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(6, 4, NULL, '2026-08-29', 523, 'Monitoring Penyelenggara', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(7, 4, NULL, '2026-08-29', 524, 'Monitoring Penyelenggara', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(8, 4, NULL, '2026-08-29', 525, 'Monitoring Penyelenggara', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(9, 4, NULL, '2026-08-29', 526, 'Monitoring Penyelenggara', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(10, 4, NULL, '2026-08-29', 527, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(11, 4, NULL, '2026-08-29', 528, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(12, 4, NULL, '2026-08-29', 529, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(13, 4, NULL, '2026-08-29', 530, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(14, 4, NULL, '2026-08-29', 531, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(15, 4, NULL, '2026-08-29', 532, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(16, 4, NULL, '2026-08-29', 533, 'Monitoring Peserta', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(17, 4, NULL, '2026-08-29', 534, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(18, 4, NULL, '2026-08-29', 535, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(19, 4, NULL, '2026-08-29', 536, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(20, 4, NULL, '2026-08-29', 537, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(21, 4, NULL, '2026-08-29', 538, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(22, 4, NULL, '2026-08-29', 539, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(23, 4, NULL, '2026-08-29', 540, 'Monitoring Tenaga Kediklatan', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(24, 4, NULL, '2026-08-29', 541, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(25, 4, NULL, '2026-08-29', 542, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(26, 4, NULL, '2026-08-29', 543, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(27, 4, NULL, '2026-08-29', 544, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(28, 4, NULL, '2026-08-29', 545, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(29, 4, NULL, '2026-08-29', 546, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(30, 4, NULL, '2026-08-29', 547, 'Monitoring Sarana Prasarana', 'ya', NULL, NULL, NULL, 'sedang', NULL, 'not_required', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'open', '2026-08-29 05:54:24', '2026-08-29 05:54:24');
 
 -- --------------------------------------------------------
 
@@ -1112,6 +1173,17 @@ CREATE TABLE `monitoring_summaries` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `monitoring_summaries`
+--
+
+INSERT INTO `monitoring_summaries` (`id`, `training_id`, `training_stage_id`, `category`, `conclusion`, `created_at`, `updated_at`) VALUES
+(3, 4, NULL, 'Monitoring Penyelenggara', 'dasdsadasdas', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(4, 4, NULL, 'Monitoring Peserta', 'dasdasdsaddas', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(5, 4, NULL, 'Monitoring Tenaga Kediklatan', 'dasdasdasdasd', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(6, 4, NULL, 'Monitoring Sarana Prasarana', 'dasdasdasdas', '2026-08-29 05:54:24', '2026-08-29 05:54:24'),
+(7, 4, NULL, 'STAGE_FINAL_SUMMARY', 'dajsdbajskdbas daskf asjkfbaskf aksfaf', '2026-08-29 05:54:24', '2026-08-29 05:54:24');
 
 -- --------------------------------------------------------
 
@@ -1255,7 +1327,7 @@ CREATE TABLE `schedules` (
 --
 
 INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `jp`, `link_zoom`, `pic`, `pengajar_id`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`) VALUES
-(3, 4, '2026-08-29', '05:00:00', '10:00:00', 'Matei I untuk kegiatan itu', 4, NULL, 'Super Administrator', 1, '2026-08-28 22:51:21', '2026-08-28 22:51:21', NULL, NULL);
+(3, 4, '2026-08-29', '05:00:00', '10:00:00', 'Matei I untuk kegiatan itu', 4, NULL, 'Super Administrator', 1, '2026-08-28 22:51:21', '2026-08-29 06:06:29', '07:30:00', '16:00:00');
 
 -- --------------------------------------------------------
 
@@ -1265,6 +1337,7 @@ INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, 
 
 CREATE TABLE `trainings` (
   `id` bigint(20) UNSIGNED NOT NULL,
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
   `bidang` varchar(255) NOT NULL,
   `nama_pelatihan` varchar(255) NOT NULL,
   `invitation_code` varchar(10) DEFAULT NULL,
@@ -1289,8 +1362,56 @@ CREATE TABLE `trainings` (
 -- Dumping data untuk tabel `trainings`
 --
 
-INSERT INTO `trainings` (`id`, `bidang`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
-(4, 'Bidang Pengembangan Kompetensi Teknis Umum', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '9TBNOP', NULL, 'standar', 'full learning', 'Zoom', NULL, NULL, '1', 40, 55, '2026-08-28', '2026-08-31', NULL, NULL, '2026-08-28 13:31:14', '2026-08-28 13:31:14');
+INSERT INTO `trainings` (`id`, `created_by`, `bidang`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
+(4, 5, 'Bidang Pengembangan Kompetensi Teknis Umum', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '9TBNOP', NULL, 'standar', 'full learning', 'Zoom', NULL, NULL, '1', 40, 55, '2026-08-28', '2026-08-31', NULL, NULL, '2026-08-28 13:31:14', '2026-08-28 13:31:14');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_forum_reads`
+--
+
+CREATE TABLE `training_forum_reads` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `last_read_message_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_forum_reads`
+--
+
+INSERT INTO `training_forum_reads` (`id`, `training_id`, `user_id`, `last_read_message_id`, `created_at`, `updated_at`) VALUES
+(2, 4, 1, 6, '2026-08-29 06:41:32', '2026-08-29 06:45:35'),
+(3, 4, 2, 6, '2026-08-29 06:42:16', '2026-08-29 06:46:04'),
+(5, 4, 5, 6, '2026-08-29 06:46:40', '2026-08-29 06:46:40');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_messages`
+--
+
+CREATE TABLE `training_messages` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_messages`
+--
+
+INSERT INTO `training_messages` (`id`, `training_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
+(3, 4, 1, 'ini bagaimana yaah', '2026-08-29 06:41:46', '2026-08-29 06:41:46'),
+(4, 4, 2, 'itumah diperbaharui saja sebagaimana adanya', '2026-08-29 06:42:29', '2026-08-29 06:42:29'),
+(6, 4, 1, 'okhays syiap terimakasih yah', '2026-08-29 06:45:35', '2026-08-29 06:45:35');
 
 -- --------------------------------------------------------
 
@@ -1488,7 +1609,9 @@ ALTER TABLE `monitoring_results`
   ADD PRIMARY KEY (`id`),
   ADD KEY `monitoring_results_training_id_foreign` (`training_id`),
   ADD KEY `monitoring_results_question_id_foreign` (`question_id`),
-  ADD KEY `monitoring_results_training_stage_id_foreign` (`training_stage_id`);
+  ADD KEY `monitoring_results_training_stage_id_foreign` (`training_stage_id`),
+  ADD KEY `monitoring_results_submitted_by_foreign` (`submitted_by`),
+  ADD KEY `monitoring_results_verified_by_foreign` (`verified_by`);
 
 --
 -- Indeks untuk tabel `monitoring_summaries`
@@ -1551,7 +1674,24 @@ ALTER TABLE `schedules`
 -- Indeks untuk tabel `trainings`
 --
 ALTER TABLE `trainings`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `trainings_created_by_foreign` (`created_by`);
+
+--
+-- Indeks untuk tabel `training_forum_reads`
+--
+ALTER TABLE `training_forum_reads`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `training_forum_reads_training_id_user_id_unique` (`training_id`,`user_id`),
+  ADD KEY `training_forum_reads_user_id_foreign` (`user_id`);
+
+--
+-- Indeks untuk tabel `training_messages`
+--
+ALTER TABLE `training_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `training_messages_user_id_foreign` (`user_id`),
+  ADD KEY `training_messages_training_id_id_index` (`training_id`,`id`);
 
 --
 -- Indeks untuk tabel `training_stages`
@@ -1587,7 +1727,7 @@ ALTER TABLE `alumni_profiles`
 -- AUTO_INCREMENT untuk tabel `attendances`
 --
 ALTER TABLE `attendances`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_forms`
@@ -1629,13 +1769,13 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT untuk tabel `jobs`
@@ -1647,19 +1787,19 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
 --
 ALTER TABLE `monitoring_results`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_summaries`
 --
 ALTER TABLE `monitoring_summaries`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `participants`
@@ -1702,6 +1842,18 @@ ALTER TABLE `schedules`
 --
 ALTER TABLE `trainings`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT untuk tabel `training_forum_reads`
+--
+ALTER TABLE `training_forum_reads`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT untuk tabel `training_messages`
+--
+ALTER TABLE `training_messages`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_stages`
@@ -1795,8 +1947,10 @@ ALTER TABLE `folders`
 --
 ALTER TABLE `monitoring_results`
   ADD CONSTRAINT `monitoring_results_question_id_foreign` FOREIGN KEY (`question_id`) REFERENCES `evaluation_questions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `monitoring_results_submitted_by_foreign` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `monitoring_results_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`),
-  ADD CONSTRAINT `monitoring_results_training_stage_id_foreign` FOREIGN KEY (`training_stage_id`) REFERENCES `training_stages` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `monitoring_results_training_stage_id_foreign` FOREIGN KEY (`training_stage_id`) REFERENCES `training_stages` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `monitoring_results_verified_by_foreign` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Ketidakleluasaan untuk tabel `monitoring_summaries`
@@ -1834,6 +1988,26 @@ ALTER TABLE `pengajar_schedule_documents`
 ALTER TABLE `schedules`
   ADD CONSTRAINT `schedules_pengajar_id_foreign` FOREIGN KEY (`pengajar_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `schedules_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `trainings`
+--
+ALTER TABLE `trainings`
+  ADD CONSTRAINT `trainings_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `training_forum_reads`
+--
+ALTER TABLE `training_forum_reads`
+  ADD CONSTRAINT `training_forum_reads_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `training_forum_reads_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `training_messages`
+--
+ALTER TABLE `training_messages`
+  ADD CONSTRAINT `training_messages_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `training_messages_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `training_stages`
