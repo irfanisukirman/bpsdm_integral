@@ -19,8 +19,11 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-3">
-        {{-- MENU UNTUK ADMIN & SUPERADMIN --}}
-        @if(Auth::user()->role !== 'participant')
+        
+        <!-- ========================================================= -->
+        <!-- 1. MENU KHUSUS ADMIN BIDANG & SUPERADMIN                  -->
+        <!-- ========================================================= -->
+        @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
             <li class="menu-item {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}">
                 <a href="{{ route('dashboard') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-home-circle"></i>
@@ -84,7 +87,7 @@
                 </a>
             </li>
 
-            @if(Auth::check() && Auth::user()->role == 'superadmin')
+            @if(Auth::user()->role === 'superadmin')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan Sistem</span>
             </li>
@@ -97,7 +100,52 @@
             @endif
         @endif
 
-        {{-- MENU KHUSUS PESERTA --}}
+        <!-- ========================================================= -->
+        <!-- 2. MENU KHUSUS TENAGA PENGAJAR                            -->
+        <!-- ========================================================= -->
+        @if(Auth::user()->role === 'pengajar')
+            <li class="menu-item {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                    <div class="fw-bold">Dashboard Pengajar</div>
+                </a>
+            </li>
+
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Portal Pengajar</span>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                <a href="{{ route('profile.edit') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-id-card"></i>
+                    <div>Profil & Keuangan</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->routeIs('pengajar.schedule') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.schedule') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                    <div>Daftar Pelatihan Saya</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
+                <a href="{{ route('documents.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-folder-open"></i>
+                    <div>Bahan Ajar & Dokumen</div>
+                </a>
+            </li>
+             <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.history') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i>
+                    <div>Riwayat Pelatihan</div>
+                </a>
+            </li>
+        @endif
+
+        <!-- ========================================================= -->
+        <!-- 3. MENU KHUSUS PESERTA (PARTICIPANT)                      -->
+        <!-- ========================================================= -->
         @if(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}">
                 <a href="{{ route('participant.dashboard') }}" class="menu-link">
@@ -124,10 +172,11 @@
                 </a>
             </li>
         @endif
+
     </ul>
 </aside>
 
-{{-- TAMBAHKAN CSS CUSTOM UNTUK INTERAKTIVITAS --}}
+{{-- CSS CUSTOM UNTUK INTERAKTIVITAS --}}
 @push('css')
 <style>
     /* Transisi menu */
@@ -138,7 +187,7 @@
         padding-left: 1rem;
     }
 
-    /* Efek Hover: Bergeser sedikit ke kanan dan warna background soft */
+    /* Efek Hover */
     .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover {
         background-color: rgba(105, 108, 255, 0.08) !important;
         transform: translateX(5px);
@@ -173,7 +222,7 @@
         color: #fff !important;
     }
 
-    /* Animasi Buka Dropdown */
+    /* Animasi Dropdown */
     .menu-sub {
         transition: all 0.3s ease-in-out;
     }
