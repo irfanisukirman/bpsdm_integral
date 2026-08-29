@@ -6,6 +6,7 @@ use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EvaluationLevel1Controller;
 use App\Http\Controllers\EvaluationLevel2Controller;
+use App\Http\Controllers\EvaluationLevel12ReportController;
 use App\Http\Controllers\EvaluationLevel34Controller;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringIndicatorController;
@@ -128,6 +129,8 @@ Route::middleware(['auth'])->group(function () {
     // Kelola Pertanyaan
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
     Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
+    Route::post('questions/duplicate-bundle', [QuestionController::class, 'duplicateBundle'])->name('questions.duplicate-bundle');
+    Route::post('questions/{question}/duplicate', [QuestionController::class, 'duplicateQuestion'])->name('questions.duplicate');
     Route::resource('questions', QuestionController::class);
     Route::get('questions', [QuestionController::class, 'index'])->name('questions.index');
     Route::post('questions', [QuestionController::class, 'store'])->name('questions.store');
@@ -139,6 +142,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-invitation-l34', [EvaluationLevel34Controller::class, 'exportInvitation'])->name('evall34.export_invitation');
     Route::get('trainings/{id}/export-l34', [EvaluationLevel34Controller::class, 'exportExcel'])->name('evall34.export');
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
+    Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
@@ -199,6 +203,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('participants/download-template', [TrainingController::class, 'downloadTemplate'])->name('participants.template');
     Route::get('follow-up', [FollowUpController::class, 'index'])->name('followup.index');
     Route::put('follow-up/{id}/resolve', [FollowUpController::class, 'resolve'])->name('followup.resolve');
+    Route::put('follow-up/{id}/verify', [FollowUpController::class, 'verify'])->name('followup.verify');
 
     // Export & Import Jadwal Pelatihan
     Route::get('schedules/download-template', [\App\Http\Controllers\TrainingController::class, 'downloadScheduleTemplate'])->name('schedules.template');

@@ -29,8 +29,17 @@ class EvaluationLevel1Controller extends Controller
 
     public function index($id)
     {
-        $training = Training::with(['schedules', 'participants'])->findOrFail($id);
-        $forms = EvaluationFormL1::where('training_id', $id)->get();
+        $training = Training::with([
+            'schedules' => fn ($query) => $query
+                ->whereNotNull('pengajar_id')
+                ->with('pengajar')
+                ->orderBy('date')
+                ->orderBy('start_time'),
+            'participants',
+        ])->findOrFail($id);
+        $forms = EvaluationFormL1::with('schedule.pengajar')
+            ->where('training_id', $id)
+            ->get();
         
         // Mengambil data hasil evaluasi untuk menghitung progres di tabel
         $results = EvaluationResultL1::where('training_id', $id)
@@ -44,8 +53,9 @@ class EvaluationLevel1Controller extends Controller
     public function storeForm(Request $request, $id)
     {
         $request->validate([
-            'type' => 'required',
-            'name' => 'required',
+            'type' => 'required|in:penyelenggara,narasumber',
+            'name' => 'required|string',
+            'schedule_id' => 'required_if:type,narasumber|nullable|exists:schedules,id',
         ]);
 
         $data = [
@@ -55,9 +65,12 @@ class EvaluationLevel1Controller extends Controller
         ];
 
         if ($request->type == 'narasumber') {
-            $schedule = Schedule::findOrFail($request->schedule_id);
+            $schedule = Schedule::with('pengajar')
+                ->where('training_id', $id)
+                ->whereNotNull('pengajar_id')
+                ->findOrFail($request->schedule_id);
             $data['schedule_id'] = $schedule->id;
-            $data['target_name'] = $schedule->pic;
+            $data['target_name'] = $schedule->pengajar->name;
             $data['materi'] = $schedule->activity;
         } else {
             $data['target_name'] = $request->instansi_penyelenggara;
@@ -91,7 +104,9 @@ class EvaluationLevel1Controller extends Controller
         $schedule_id = ($sid_param === 'null' || $sid_param === '') ? null : $sid_param;
         
         // Cari data jadwal jika sid tidak null
-        $schedule = $schedule_id ? Schedule::find($schedule_id) : null;
+        $schedule = $schedule_id
+            ? Schedule::with('pengajar')->where('training_id', $id)->findOrFail($schedule_id)
+            : null;
 
         // Ambil ID peserta yang sudah mengisi
         $filledParticipantIds = EvaluationResultL1::where('training_id', $id)
@@ -108,6 +123,7 @@ class EvaluationLevel1Controller extends Controller
     {
         $training = Training::findOrFail($id);
         $type = $request->query('type');
+        abort_unless(in_array($type, ['penyelenggara', 'narasumber'], true), 404);
         $schedule_id = $request->query('sid');
         
         // Pastikan schedule_id diproses sebagai null jika itu penyelenggara
@@ -127,11 +143,15 @@ class EvaluationLevel1Controller extends Controller
                         ->whereIn('id', $filledIds)->orderBy('name')->get();
 
         $category = ($type == 'penyelenggara') ? 'l1_penyelenggara' : 'l1_narasumber';
-        $questions = Question::where('category', $category)->get();
+        $questions = Question::forTraining($training, $category)->orderBy('id')->get();
         $schedule = null;
         if ($type == 'narasumber' && $sid && $sid !== 'null') {
-            $schedule = Schedule::find($sid);
+            $schedule = Schedule::with('pengajar')
+                ->where('training_id', $id)
+                ->whereNotNull('pengajar_id')
+                ->findOrFail($sid);
         }
+        abort_if($type === 'narasumber' && !$schedule, 404);
 
         return view('evaluasi.l1_public_form', compact('training', 'participants', 'alreadyFilled', 'questions', 'type', 'schedule', 'sid'));
     }
@@ -140,20 +160,48 @@ class EvaluationLevel1Controller extends Controller
     {
         // Cek apakah data sampai di sini
         $request->validate([
-            'participant_id' => 'required',
+            'participant_id' => 'required|exists:participants,id',
             'answers' => 'required|array',
         ]);
 
         $sid = ($request->schedule_id && $request->schedule_id !== '') ? $request->schedule_id : null;
+        $training = Training::findOrFail($id);
+        Participant::where('training_id', $id)->findOrFail($request->participant_id);
+
+        if ($sid) {
+            Schedule::where('training_id', $id)->findOrFail($sid);
+        }
+
+        $category = $sid ? 'l1_narasumber' : 'l1_penyelenggara';
+        $applicableQuestions = Question::forTraining($training, $category)->get();
+        $allowedQuestions = $applicableQuestions
+            ->whereIn('id', array_keys($request->answers))
+            ->pluck('id')
+            ->mapWithKeys(fn ($questionId) => [(string) $questionId => true]);
+
+        foreach ($applicableQuestions->where('type', 'checkbox') as $checkboxQuestion) {
+            if (empty($request->input('answers.' . $checkboxQuestion->id, []))) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'answers.' . $checkboxQuestion->id => 'Pilih minimal satu jawaban pada pertanyaan checkbox.',
+                ]);
+            }
+        }
 
         foreach ($request->answers as $q_id => $value) {
+            if (!$allowedQuestions->has((string) $q_id)) {
+                continue;
+            }
+            $isMultipleChoice = is_array($value);
+            $storedValue = $isMultipleChoice
+                ? json_encode(array_values(array_filter($value)), JSON_UNESCAPED_UNICODE)
+                : $value;
             EvaluationResultL1::create([
                 'training_id'    => $id,
                 'participant_id' => $request->participant_id,
                 'question_id'    => $q_id,
                 'schedule_id'    => $sid,
-                'score'          => is_numeric($value) ? $value : null,
-                'note'           => !is_numeric($value) ? $value : null,
+                'score'          => !$isMultipleChoice && is_numeric($storedValue) ? $storedValue : null,
+                'note'           => $isMultipleChoice || !is_numeric($storedValue) ? $storedValue : null,
             ]);
         }
 
@@ -179,7 +227,11 @@ class EvaluationLevel1Controller extends Controller
 
     public function exportExcel($form_id)
     {
-        $form = \App\Models\EvaluationFormL1::with(['training', 'schedule'])->findOrFail($form_id);
+        $form = \App\Models\EvaluationFormL1::with(['training', 'schedule.pengajar'])->findOrFail($form_id);
+        if ($form->type === 'narasumber' && $form->schedule?->pengajar) {
+            // Menjaga form lama yang target_name-nya masih berisi PIC.
+            $form->target_name = $form->schedule->pengajar->name;
+        }
         $export = new \App\Exports\EvaluationL1Export($form);
         
         $prefix = ($form->type == 'penyelenggara') ? 'REKAP_L1_PENYELENGGARA_' : 'REKAP_L1_NARASUMBER_';

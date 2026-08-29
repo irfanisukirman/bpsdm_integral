@@ -9,7 +9,7 @@
             <span class="text-muted fw-light">Evaluasi / Progres /</span> 
             {{-- Cek jika schedule ada (Narasumber) atau tidak (Penyelenggara) --}}
             @if($schedule)
-                Narasumber: {{ $schedule->pic }}
+                Narasumber: {{ $schedule->pengajar?->name ?? 'Pengajar belum ditentukan' }}
             @else
                 Penyelenggara Diklat
             @endif

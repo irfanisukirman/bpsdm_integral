@@ -49,8 +49,28 @@
                                         <p class="text-muted">Semua alumni telah dinilai untuk peran <strong>{{ strtoupper($role) }}</strong>.</p>
                                     </div>
                                 @else
-                                    <form action="{{ route('public.l34.store', [$training->id, $role]) }}" method="POST">
+                                    @php
+                                        $roleLabel = match($role) {
+                                            'rekan' => 'Rekan Kerja',
+                                            'atasan' => 'Atasan Langsung',
+                                            default => 'Mandiri',
+                                        };
+                                    @endphp
+                                    <form action="{{ route('public.l34.store', [$training->id, $role]) }}" method="POST" id="l34WizardForm">
                                         @csrf
+
+                                        <div class="wizard-progress mb-4">
+                                            @foreach([1 => 'Data Diri', 2 => 'Penempatan', 3 => 'Perilaku', 4 => 'Dampak'] as $step => $label)
+                                                <div class="wizard-progress-item {{ $step === 1 ? 'active' : '' }}" data-indicator="{{ $step }}">
+                                                    <span>{{ $step }}</span><small>{{ $label }}</small>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        <section class="wizard-step" data-step="1">
+                                            <h5 class="section-heading">
+                                                1. Data Diri Alumni (Status <span id="participantStatus">-</span>)
+                                            </h5>
                                         
                                         {{-- 1. DATA PROFIL --}}
                                         <div class="card bg-label-primary border-0 mb-5 shadow-none">
@@ -61,10 +81,10 @@
                                                 
                                                 <div class="mb-4">
                                                     <label class="form-label fw-bold">PILIH NAMA ALUMNI</label>
-                                                    <select name="participant_id" class="form-select form-select-lg border-primary" required>
+                                                    <select name="participant_id" id="participantSelect" class="form-select form-select-lg border-primary" required>
                                                         <option value="">-- Cari Nama / NIP --</option>
                                                         @foreach($participants as $p)
-                                                            <option value="{{ $p->id }}">{{ $p->name }} - (NIP: {{ $p->nip_nik }})</option>
+                                                            <option value="{{ $p->id }}" data-status="{{ strtoupper($p->status_kepegawaian ?: $p->user?->status_kepegawaian ?: 'BELUM DIISI') }}">{{ $p->name }} - (NIP: {{ $p->nip_nik }})</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -95,10 +115,12 @@
                                                                 @foreach(['I/a','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c'] as $gol) <option value="{{ $gol }}">{{ $gol }}</option> @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-6"><label class="form-label small fw-bold">JABATAN (DULU)</label><input type="text" name="pos_before" class="form-control"></div>
-                                                        <div class="col-md-6"><label class="form-label small fw-bold">JABATAN (SKRG)</label><input type="text" name="pos_after" class="form-control"></div>
-                                                        <div class="col-md-6"><label class="form-label small fw-bold">UNIT KERJA (DULU)</label><input type="text" name="unit_before" class="form-control"></div>
-                                                        <div class="col-md-6"><label class="form-label small fw-bold">UNIT KERJA (SKRG)</label><input type="text" name="unit_after" class="form-control"></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">JABATAN (DULU)</label><input type="text" name="pos_before" class="form-control" value="{{ old('pos_before') }}" required></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">JABATAN (SKRG)</label><input type="text" name="pos_after" class="form-control" value="{{ old('pos_after') }}" required></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">UNIT KERJA (DULU)</label><input type="text" name="unit_before" class="form-control" value="{{ old('unit_before') }}" required></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">UNIT KERJA (SKRG)</label><input type="text" name="unit_after" class="form-control" value="{{ old('unit_after') }}" required></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">PERANGKAT DAERAH (SAAT PELATIHAN)</label><input type="text" name="dept_before" class="form-control" value="{{ old('dept_before') }}" required></div>
+                                                        <div class="col-md-6"><label class="form-label small fw-bold">PERANGKAT DAERAH (SAAT INI)</label><input type="text" name="dept_after" class="form-control" value="{{ old('dept_after') }}" required></div>
                                                     </div>
                                                 @else
                                                     <div class="row g-3">
@@ -111,73 +133,53 @@
                                             </div>
                                         </div>
 
-                                        {{-- 2. PENEMPATAN TUGAS --}}
-                                        <div class="mb-5 p-2">
-                                            <h5 class="fw-bold border-bottom pb-2 text-primary text-uppercase"><i class="bx bx-transfer-alt me-2"></i>Penempatan Tugas & Transfer Ilmu</h5>
-                                            @php $tasks = [
-                                                '1. Apakah saat ini Ybs sedang bertugas yang berkaitan dengan pelatihan?',
-                                                '2. Bila jawaban nomor 1 adalah Iya, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?',
-                                                '3. Bila jawaban nomor 1 adalah Tidak, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?',
-                                                '4. Bila jawaban nomor 1 adalah Tidak, apakah pelatihan memiliki keterkaitan dengan bidang tugas Ybs?',
-                                                '5. Apakah Ybs sudah melakukan transfer learning hasil pelatihan pada rekan kerja?'
-                                            ]; @endphp
-                                            @foreach($tasks as $i => $task)
-                                            <div class="mb-4">
-                                                <label class="form-label d-block small fw-bold">{{ $task }}</label>
-                                                <div class="d-flex gap-4">
-                                                    <div class="form-check custom-option custom-option-basic">
-                                                        <label class="form-check-label custom-option-content" for="t-y-{{$i}}">
-                                                            <input class="form-check-input" type="radio" name="task[{{$i}}]" value="Ya" id="t-y-{{$i}}" checked>
-                                                            <span class="custom-option-header"><span class="h6 mb-0">Ya / Sudah</span></span>
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-check custom-option custom-option-basic">
-                                                        <label class="form-check-label custom-option-content" for="t-t-{{$i}}">
-                                                            <input class="form-check-input" type="radio" name="task[{{$i}}]" value="Tidak" id="t-t-{{$i}}">
-                                                            <span class="custom-option-header"><span class="h6 mb-0 text-danger">Tidak / Belum</span></span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @endforeach
+                                        @include('evaluasi.partials.l34_questions', ['items' => $questionSections['profile']])
+                                        <div class="d-flex justify-content-end mb-4">
+                                            <button type="button" class="btn btn-primary wizard-next">Lanjut <i class="bx bx-right-arrow-alt ms-1"></i></button>
                                         </div>
+                                        </section>
+
+                                        {{-- 2. PENEMPATAN TUGAS --}}
+                                        <section class="wizard-step d-none" data-step="2">
+                                        <div class="mb-5 p-2">
+                                            <h5 class="section-heading">2. Penempatan Tugas dan Transfer Learning ({{ $roleLabel }})</h5>
+                                            @include('evaluasi.partials.l34_questions', ['items' => $questionSections['placement']])
+                                            @if($questionSections['placement']->isEmpty())
+                                                <div class="alert alert-warning">Pertanyaan Penempatan Tugas belum tersedia untuk bidang dan peran ini.</div>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-4">
+                                            <button type="button" class="btn btn-outline-secondary wizard-prev"><i class="bx bx-left-arrow-alt me-1"></i>Kembali</button>
+                                            <button type="button" class="btn btn-primary wizard-next">Lanjut <i class="bx bx-right-arrow-alt ms-1"></i></button>
+                                        </div>
+                                        </section>
 
                                         {{-- 3. INSTRUMEN --}}
-                                        @foreach($questions as $subCat => $items)
-                                        <div class="mb-5">
-                                            <h5 class="fw-bold border-bottom pb-2 text-primary text-uppercase">{{ $subCat }}</h5>
-                                            @foreach($items as $index => $q)
-                                            <div class="card mb-4 border shadow-none bg-light">
-                                                <div class="card-body">
-                                                    <label class="form-label fw-bold mb-4 d-block">{{ $index+1 }}. {{ strtoupper($q->question_text) }}</label>
-                                                    
-                                                    @if($q->type == 'slider')
-                                                        <div class="slider-wrapper px-2">
-                                                            <input type="range" name="scores[{{ $q->id }}]" class="form-range kirkpatrick-slider" min="10" max="100" step="1" value="80" data-id="{{ $q->id }}">
-                                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                                <div class="badge bg-primary px-3 py-2 h5 mb-0" id="score-{{ $q->id }}">80</div>
-                                                                <span class="fw-bold h5 mb-0" id="label-{{ $q->id }}" style="color: #71dd37;">Cukup</span>
-                                                            </div>
-                                                        </div>
-                                                    @elseif($q->type == 'dropdown')
-                                                        <select name="scores[{{ $q->id }}]" class="form-select border-primary" required>
-                                                            <option value="">-- Pilih Jawaban --</option>
-                                                            @if(is_array($q->options))
-                                                                @foreach($q->options as $opt) <option value="{{ $opt }}">{{ $opt }}</option> @endforeach
-                                                            @endif
-                                                        </select>
-                                                    @else
-                                                        <textarea name="scores[{{ $q->id }}]" class="form-control" rows="3" placeholder="Isi jawaban Anda..."></textarea>
-                                                    @endif
-                                                </div>
+                                        <section class="wizard-step d-none" data-step="3">
+                                            <h5 class="section-heading">3. Perubahan Perilaku ({{ $roleLabel }})</h5>
+                                            @include('evaluasi.partials.l34_questions', ['items' => $questionSections['behavior']])
+                                            @if($questionSections['behavior']->isEmpty())
+                                                <div class="alert alert-warning">Pertanyaan Perubahan Perilaku belum tersedia untuk bidang dan peran ini.</div>
+                                            @endif
+                                            <div class="d-flex justify-content-between mb-4">
+                                                <button type="button" class="btn btn-outline-secondary wizard-prev"><i class="bx bx-left-arrow-alt me-1"></i>Kembali</button>
+                                                <button type="button" class="btn btn-primary wizard-next">Lanjut <i class="bx bx-right-arrow-alt ms-1"></i></button>
                                             </div>
-                                            @endforeach
-                                        </div>
-                                        @endforeach
+                                        </section>
 
-                                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow py-3 fw-bold mb-5">
-                                            <i class="bx bx-paper-plane me-2"></i> KIRIM PENILAIAN SEKARANG
-                                        </button>
+                                        <section class="wizard-step d-none" data-step="4">
+                                            <h5 class="section-heading">4. Dampak Pelatihan ({{ $roleLabel }})</h5>
+                                            @include('evaluasi.partials.l34_questions', ['items' => $questionSections['impact']])
+                                            @if($questionSections['impact']->isEmpty())
+                                                <div class="alert alert-warning">Pertanyaan Dampak Pelatihan belum tersedia untuk bidang dan peran ini.</div>
+                                            @endif
+                                            <div class="d-flex justify-content-between mb-5">
+                                                <button type="button" class="btn btn-outline-secondary wizard-prev"><i class="bx bx-left-arrow-alt me-1"></i>Kembali</button>
+                                                <button type="submit" class="btn btn-primary btn-lg shadow fw-bold">
+                                                    <i class="bx bx-paper-plane me-2"></i>Kirim Penilaian
+                                                </button>
+                                            </div>
+                                        </section>
                                     </form>
                                 @endif
                             </div>
@@ -223,6 +225,44 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    let currentStep = 1;
+
+    function showStep(step) {
+        currentStep = step;
+        $('.wizard-step').addClass('d-none');
+        $('.wizard-step[data-step="' + step + '"]').removeClass('d-none');
+        $('.wizard-progress-item').each(function() {
+            const indicator = Number($(this).data('indicator'));
+            $(this).toggleClass('active', indicator === step);
+            $(this).toggleClass('completed', indicator < step);
+        });
+        window.scrollTo({ top: $('#l34WizardForm').offset().top - 20, behavior: 'smooth' });
+    }
+
+    function currentStepIsValid() {
+        const fields = $('.wizard-step[data-step="' + currentStep + '"]').find(':input[required]').toArray();
+        for (const field of fields) {
+            if (!field.checkValidity()) {
+                field.reportValidity();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    $('.wizard-next').on('click', function() {
+        if (currentStepIsValid()) showStep(Math.min(4, currentStep + 1));
+    });
+
+    $('.wizard-prev').on('click', function() {
+        showStep(Math.max(1, currentStep - 1));
+    });
+
+    $('#participantSelect').on('change', function() {
+        const status = $(this).find(':selected').data('status') || '-';
+        $('#participantStatus').text(status);
+    }).trigger('change');
+
     function getKirkLabel(val) {
         val = parseInt(val);
         if (val <= 60) return { t: "Sangat Kurang", c: "#ff3e1d" };
@@ -257,5 +297,25 @@ $(document).ready(function() {
         -webkit-appearance: none;
     }
     .custom-option-basic { width: 100%; cursor: pointer; }
+    .section-heading {
+        color: #696cff;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e7e7ff;
+        padding-bottom: .75rem;
+        margin-bottom: 1.5rem;
+    }
+    .wizard-progress { display: flex; justify-content: space-between; position: relative; gap: .5rem; }
+    .wizard-progress::before { content: ''; position: absolute; top: 17px; left: 8%; right: 8%; height: 2px; background: #e7e7ff; z-index: 0; }
+    .wizard-progress-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; flex: 1; color: #a1acb8; text-align: center; }
+    .wizard-progress-item span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #f0f2f4; font-weight: 700; margin-bottom: .4rem; }
+    .wizard-progress-item small { font-weight: 600; }
+    .wizard-progress-item.active span { background: #696cff; color: #fff; box-shadow: 0 0 0 5px rgba(105,108,255,.14); }
+    .wizard-progress-item.active { color: #696cff; }
+    .wizard-progress-item.completed span { background: #71dd37; color: #fff; }
+    @media (max-width: 575.98px) {
+        .wizard-progress-item small { font-size: 10px; }
+        .wizard-progress::before { left: 10%; right: 10%; }
+    }
 </style>
 @endsection

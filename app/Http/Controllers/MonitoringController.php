@@ -13,6 +13,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Carbon\Carbon;
 use App\Exports\MonitoringCeklisExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MonitoringController extends Controller
 {
@@ -36,11 +38,28 @@ class MonitoringController extends Controller
     /**
      * Form pengisian instrumen monitoring
      */
-    public function create($id)
+    public function create(Request $request, $id)
     {
         // Eager Load relasi agar data jawaban dan kesimpulan terbawa
         $training = Training::with(['stages', 'monitoringResults'])->findOrFail($id);
-        $organizers = \App\Models\User::where('role', 'admin_bidang')->get();
+        $this->authorizeTraining($training);
+        $organizers = \App\Models\User::where('role', 'admin_bidang')
+            ->whereNotNull('bidang')
+            ->orderBy('bidang')
+            ->get()
+            ->unique('bidang')
+            ->values();
+        $monitoringDate = null;
+        if ($training->model === 'standar') {
+            $requestedDate = $request->query('monitoring_date', now()->toDateString());
+            $monitoringDate = Carbon::parse($requestedDate);
+            $startDate = Carbon::parse($training->tgl_mulai)->startOfDay();
+            $endDate = Carbon::parse($training->tgl_selesai)->endOfDay();
+            if (!$monitoringDate->betweenIncluded($startDate, $endDate)) {
+                $monitoringDate = $startDate;
+            }
+            $monitoringDate = $monitoringDate->toDateString();
+        }
 
         $questionsByStage = [];
         if ($training->model == 'standar') {
@@ -57,7 +76,7 @@ class MonitoringController extends Controller
             }
         }
 
-        return view('monitoring.fill', compact('training', 'questionsByStage', 'organizers'));
+        return view('monitoring.fill', compact('training', 'questionsByStage', 'organizers', 'monitoringDate'));
     }
 
     /**
@@ -68,45 +87,99 @@ class MonitoringController extends Controller
         $request->validate([
             'stage_id' => 'required',
             'ans' => 'required|array',
-            'final_conclusion' => 'required|string'
+            'final_conclusion' => 'required|string',
+            'monitoring_date' => 'nullable|date',
         ]);
+        $training = Training::with('stages')->findOrFail($id);
+        $this->authorizeTraining($training);
 
         // Konversi stage_id ke integer agar sinkron dengan database
         $stage_id = ($request->stage_id === 'std' || $request->stage_id === null) ? null : (int)$request->stage_id;
+        $stage = $stage_id ? $training->stages->firstWhere('id', $stage_id) : null;
+        abort_if($stage_id && !$stage, 422, 'Tahapan tidak sesuai dengan pelatihan.');
+        $monitoringDate = $stage_id ? null : ($request->monitoring_date ?: now()->toDateString());
 
-        // 1. Simpan Jawaban Indikator
-        foreach ($request->ans as $q_id => $answer) {
-            $question = \App\Models\Question::find($q_id);
-            \App\Models\MonitoringResult::updateOrCreate(
+        foreach ($request->ans as $qId => $answer) {
+            if (!in_array($answer, ['ya', 'tidak'], true)) {
+                throw ValidationException::withMessages(["ans.$qId" => 'Jawaban indikator tidak valid.']);
+            }
+            if ($answer === 'tidak') {
+                $required = [
+                    'notes' => 'Temuan wajib dijelaskan.',
+                    'target' => 'Bidang tujuan tindak lanjut wajib dipilih.',
+                    'recommendation' => 'Rekomendasi tindakan wajib diisi.',
+                    'priority' => 'Prioritas wajib dipilih.',
+                    'due_date' => 'Batas waktu tindak lanjut wajib diisi.',
+                ];
+                foreach ($required as $field => $message) {
+                    if (blank($request->input("{$field}.{$qId}"))) {
+                        throw ValidationException::withMessages(["{$field}.{$qId}" => $message]);
+                    }
+                }
+            }
+        }
+
+        DB::transaction(function () use ($request, $id, $stage_id, $monitoringDate, $training, $stage) {
+            // 1. Simpan Jawaban Indikator
+            foreach ($request->ans as $q_id => $answer) {
+                $method = $stage?->metode ?? $training->metode;
+                $question = \App\Models\Question::where('category', 'LIKE', 'Monitoring%')
+                    ->where(function ($query) use ($method) {
+                        $query->where('metode', $method)->orWhere('metode', 'semua');
+                    })
+                    ->findOrFail($q_id);
+                $keys = [
+                    'training_id' => $id,
+                    'training_stage_id' => $stage_id,
+                    'monitoring_date' => $monitoringDate,
+                    'question_id' => $q_id,
+                ];
+                $existing = MonitoringResult::where($keys)->first();
+                $isChangedFinding = $existing && $answer === 'tidak' && (
+                    $existing->notes !== $request->input("notes.$q_id") ||
+                    $existing->recommendation !== $request->input("recommendation.$q_id") ||
+                    $existing->follow_up_target !== $request->input("target.$q_id")
+                );
+                $workflowStatus = $answer === 'ya'
+                    ? 'not_required'
+                    : (($existing && !$isChangedFinding && in_array($existing->workflow_status, ['submitted', 'verified'], true))
+                        ? $existing->workflow_status
+                        : 'open');
+
+                MonitoringResult::updateOrCreate(
                 [
-                    'training_id' => $id, 
-                    'training_stage_id' => $stage_id, 
-                    'question_id' => $q_id
+                    ...$keys,
                 ],
                 [
                     'category' => $question->sub_category ?? $question->category,
                     'answer' => $answer,
-                    'notes' => $request->notes[$q_id] ?? null,
-                    'follow_up_target' => ($answer == 'tidak') ? $request->target[$q_id] : null,
+                    'notes' => $answer === 'tidak' ? $request->input("notes.$q_id") : null,
+                    'recommendation' => $answer === 'tidak' ? $request->input("recommendation.$q_id") : null,
+                    'follow_up_target' => $answer === 'tidak' ? $request->input("target.$q_id") : null,
+                    'priority' => $answer === 'tidak' ? $request->input("priority.$q_id", 'sedang') : 'sedang',
+                    'due_date' => $answer === 'tidak' ? $request->input("due_date.$q_id") : null,
+                    'workflow_status' => $workflowStatus,
+                    'is_resolved' => $workflowStatus === 'verified',
                 ]
-            );
-        }
-
-        // 2. Simpan Kesimpulan per Kategori
-        if ($request->has('category_conclusions')) {
-            foreach ($request->category_conclusions as $cat => $text) {
-                \App\Models\MonitoringSummary::updateOrCreate(
-                    ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => $cat],
-                    ['conclusion' => $text]
                 );
             }
-        }
 
-        // 3. Simpan Kesimpulan Akhir Tahapan
-        \App\Models\MonitoringSummary::updateOrCreate(
-            ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => 'STAGE_FINAL_SUMMARY'],
-            ['conclusion' => $request->final_conclusion]
-        );
+            // 2. Simpan Kesimpulan per Kategori
+            if ($request->has('category_conclusions')) {
+                foreach ($request->category_conclusions as $cat => $text) {
+                    \App\Models\MonitoringSummary::updateOrCreate(
+                        ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => $cat],
+                        ['conclusion' => $text]
+                    );
+                }
+            }
+
+            // 3. Simpan Kesimpulan Akhir Tahapan
+            \App\Models\MonitoringSummary::updateOrCreate(
+                ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => 'STAGE_FINAL_SUMMARY'],
+                ['conclusion' => $request->final_conclusion]
+            );
+        });
 
         return redirect()->back()->with('success', 'Data untuk tahapan berhasil disimpan dan diperbarui.');
     }
@@ -340,6 +413,15 @@ class MonitoringController extends Controller
 
         $text = $templates[$category][$metodeKey] ?? "";
         return str_replace('{TP}', $namaPelatihan, $text);
+    }
+
+    private function authorizeTraining(Training $training): void
+    {
+        $user = Auth::user();
+        abort_unless(
+            $user && ($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang)),
+            403
+        );
     }
     
     

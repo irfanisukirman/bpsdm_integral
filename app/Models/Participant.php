@@ -76,24 +76,68 @@ class Participant extends Model
 
     public function hasFilledL34($role)
     {
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->where('evaluator_role', 'mandiri')
+        if (!in_array($role, ['mandiri', 'atasan', 'rekan'], true)) {
+            return false;
+        }
+
+        if ($this->relationLoaded('evaluationResultsL34')) {
+            return $this->evaluationResultsL34->contains(fn ($result) =>
+                $result->evaluator_role === $role &&
+                (int) $result->training_id === (int) $this->training_id
+            );
+        }
+
+        return $this->evaluationResultsL34()
+            ->where('training_id', $this->training_id)
+            ->where('evaluator_role', $role)
             ->exists();
     }
 
     public function hasFilledL34Mandiri()
     {
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->where('evaluator_role', 'mandiri')
-            ->exists();
+        return $this->hasFilledL34('mandiri');
     }
 
     public function getAvgL4Attribute()
     {
-        // Menghitung rata-rata skor dari semua penilai (Mandiri, Atasan, Rekan)
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->whereNotNull('score')
-            ->avg('score') ?? 0;
+        return $this->l4_summary['average'];
+    }
+
+    public function getL4SummaryAttribute(): array
+    {
+        $results = $this->relationLoaded('evaluationResultsL34')
+            ? $this->evaluationResultsL34
+            : $this->evaluationResultsL34()->with('question')
+                ->where('training_id', $this->training_id)
+                ->get();
+
+        $labelScores = [
+            'sangat kurang' => 20,
+            'kurang' => 40,
+            'cukup' => 60,
+            'baik' => 80,
+            'sangat baik' => 100,
+        ];
+
+        $values = $results
+            ->filter(fn ($result) =>
+                (int) $result->training_id === (int) $this->training_id &&
+                $result->question?->sub_category === 'Dampak Pelatihan'
+            )
+            ->map(function ($result) use ($labelScores) {
+                if (is_numeric($result->score)) {
+                    return (float) $result->score;
+                }
+
+                return $labelScores[strtolower(trim((string) $result->note))] ?? null;
+            })
+            ->filter(fn ($value) => $value !== null)
+            ->values();
+
+        return [
+            'average' => $values->isNotEmpty() ? round($values->avg(), 1) : 0,
+            'count' => $values->count(),
+        ];
     }
 
     public function alumniProfile()

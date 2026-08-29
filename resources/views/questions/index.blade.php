@@ -5,6 +5,84 @@
 @section('content')
 <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4>
 
+@if($isSuperadmin && blank($selectedBidang))
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <h5 class="mb-1"><i class="bx bx-copy-alt text-primary me-2"></i>Duplikasi Bundel Evaluasi</h5>
+                <p class="text-muted mb-0">Salin seluruh pertanyaan evaluasi dari satu bidang ke bidang lain.</p>
+            </div>
+            <span class="badge bg-label-primary">Khusus Superadmin</span>
+        </div>
+        <form action="{{ route('questions.duplicate-bundle') }}" method="POST" onsubmit="return confirm('Duplikat seluruh bundel pertanyaan ke bidang tujuan?')">
+            @csrf
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Bidang Sumber</label>
+                    <select name="source_bidang" class="form-select border-primary" required>
+                        <option value="">-- Pilih Bidang Sumber --</option>
+                        @foreach($bundleStats->where('total', '>', 0) as $bundle)
+                            <option value="{{ $bundle['bidang'] }}">{{ $bundle['bidang'] }} ({{ $bundle['total'] }} pertanyaan)</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Bidang Tujuan</label>
+                    <select name="target_bidang" class="form-select border-primary" required>
+                        <option value="">-- Pilih Bidang Tujuan --</option>
+                        @foreach($bidangOptions as $bidang)
+                            <option value="{{ $bidang }}">{{ $bidang }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bx bx-copy me-1"></i>Duplikat</button>
+                </div>
+            </div>
+            <div class="form-text mt-2">Pertanyaan yang identik di bidang tujuan akan dilewati sehingga tidak terjadi duplikasi ganda.</div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h5 class="mb-1">Bundel Evaluasi per Bidang</h5>
+        <small class="text-muted">Pilih bidang untuk membuat dan mengelola pertanyaannya.</small>
+    </div>
+</div>
+<div class="row g-3">
+    @foreach($bundleStats as $bundle)
+    <div class="col-md-6 col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="avatar-initial rounded bg-label-primary p-3"><i class="bx bx-folder-open fs-4"></i></span>
+                    <span class="badge {{ $bundle['total'] > 0 ? 'bg-label-success' : 'bg-label-secondary' }}">{{ $bundle['total'] }} pertanyaan</span>
+                </div>
+                <h6 class="mb-3" style="line-height:1.45">{{ $bundle['bidang'] }}</h6>
+                <div class="d-flex gap-2 mb-4">
+                    <span class="badge bg-label-info">L1: {{ $bundle['l1'] }}</span>
+                    <span class="badge bg-label-warning">L3 & L4: {{ $bundle['l34'] }}</span>
+                </div>
+                <a href="{{ route('questions.index', ['bidang' => $bundle['bidang']]) }}" class="btn btn-outline-primary mt-auto">
+                    <i class="bx bx-cog me-1"></i>Kelola Evaluasi
+                </a>
+            </div>
+        </div>
+    </div>
+    @endforeach
+</div>
+@else
+@if($isSuperadmin)
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div class="alert alert-primary mb-0 py-2 px-3">
+        <i class="bx bx-folder-open me-1"></i>Bundel: <strong>{{ $selectedBidang }}</strong>
+    </div>
+    <a href="{{ route('questions.index') }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Daftar Bidang</a>
+</div>
+@endif
+
 <!-- FORM BUAT SOAL -->
 <div class="card mb-4">
     <div class="card-header border-bottom mb-3">
@@ -15,18 +93,21 @@
             @csrf
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label fw-bold text-dark">Jenis Pelatihan</label>
-                    <select name="training_type" class="form-select border-primary" required>
-                        <option value="PKTI/PKTU">PKTI/PKTU</option>
-                        <option value="CPNS">CPNS</option>
-                        <option value="PKP">PKP</option>
-                        <option value="PKA">PKA</option>
-                        <option value="PKN">PKN</option>
-                    </select>
+                    <label class="form-label fw-bold text-dark">Bidang</label>
+                    @if($isSuperadmin)
+                        <select name="bidang" class="form-select border-primary" required>
+                            @foreach($bidangOptions as $bidang)
+                                <option value="{{ $bidang }}" {{ $selectedBidang === $bidang ? 'selected' : '' }}>{{ $bidang }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <input type="hidden" name="bidang" value="{{ Auth::user()->bidang }}">
+                        <input type="text" class="form-control bg-light" value="{{ Auth::user()->bidang }}" readonly>
+                    @endif
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold text-dark">Kategori / Level</label>
-                    <select name="category" class="form-select border-primary" required>
+                    <select name="category" id="create_category" class="form-select border-primary" onchange="syncMethodField('create')" required>
                         <optgroup label="Level 1: Reaksi">
                             <option value="l1_penyelenggara">L1 - Penyelenggara</option>
                             <option value="l1_narasumber">L1 - Narasumber</option>
@@ -39,10 +120,30 @@
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold text-dark">Metode Pelatihan</label>
+                    <select name="metode" id="create_metode" class="form-select border-primary">
+                        <option value="semua" data-global="true">Semua Metode</option>
+                        <option value="klasikal">Klasikal</option>
+                        <option value="full learning">Full Learning</option>
+                        <option value="blended">Blended Learning</option>
+                    </select>
+                    <div id="create_method_help" class="form-text">Digunakan untuk evaluasi Level 1.</div>
+                </div>
+                <div class="col-md-4 mb-3" id="create_subcategory_wrapper" style="display:none">
+                    <label class="form-label fw-bold text-dark">Bagian Evaluasi L3/L4</label>
+                    <select name="sub_category" id="create_sub_category" class="form-select border-primary" disabled>
+                        <option value="Data Diri Alumni">1. Data Diri Alumni</option>
+                        <option value="Penempatan Tugas dan Transfer Learning">2. Penempatan Tugas dan Transfer Learning</option>
+                        <option value="Perubahan Perilaku">3. Perubahan Perilaku</option>
+                        <option value="Dampak Pelatihan">4. Dampak Pelatihan</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold text-dark">Tipe Jawaban</label>
                     <select name="type" class="form-select border-primary" onchange="handleTypeChange(this, 'create-options-wrapper')" required>
                         <option value="slider">Slider Angka (10-100)</option>
                         <option value="dropdown">Dropdown (Pilihan)</option>
+                        <option value="checkbox">Checkbox (Bisa Pilih Lebih dari Satu)</option>
                         <option value="text">Teks Paragraf</option>
                         {{-- Opsi ya_tidak dihapus sesuai permintaan --}}
                     </select>
@@ -64,7 +165,7 @@
                 </div>
             </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportSoal">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportSoal">
                             <i class="bx bx-file me-1"></i> Import Soal
                         </button>
                         <button type="submit" class="btn btn-primary w-100 shadow"><i class="bx bx-save me-1"></i> Simpan Pertanyaan Evaluasi</button>
@@ -80,8 +181,8 @@
         <table class="table table-hover" style="table-layout: fixed; width: 100%;">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 120px;">Jenis</th>
-                    <th style="width: 150px;">Kategori</th>
+                    <th style="width: 240px;">Bidang</th>
+                    <th style="width: 190px;">Klasifikasi</th>
                     <th>Pertanyaan & Preview</th>
                     <th style="width: 100px;" class="text-center">Aksi</th>
                 </tr>
@@ -96,11 +197,15 @@
                         
                         @php $count++; @endphp
                         <tr>
-                            <td class="align-top"><span class="badge bg-label-primary">{{ $q->training_type }}</span></td>
+                            <td class="align-top"><span class="badge bg-label-primary text-wrap text-start">{{ $q->bidang ?: $q->training_type }}</span></td>
                             <td class="align-top text-wrap">
                                 <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
                                     {{ str_replace('_', ' ', $q->category) }}
                                 </small>
+                                <div class="mt-1"><span class="badge bg-label-info">{{ in_array($q->category, ['l1_penyelenggara', 'l1_narasumber']) ? ucfirst($q->metode ?: 'semua') : 'Semua metode' }}</span></div>
+                                @if(str_starts_with($q->category, 'l34_'))
+                                    <div class="mt-1"><span class="badge bg-label-warning">{{ $q->sub_category ?: 'Belum dikategorikan' }}</span></div>
+                                @endif
                             </td>
                             <td class="align-top">
                                 <div class="fw-bold text-dark mb-2 text-wrap" style="line-height: 1.4;">{{ $q->question_text }}</div>
@@ -110,10 +215,12 @@
                                         <input type="range" class="form-range w-25" disabled>
                                         <span class="badge bg-label-secondary" style="font-size: 9px;">SKALA 10-100</span>
                                     </div>
-                                @elseif($q->type == 'dropdown' && is_array($q->options))
+                                @elseif(in_array($q->type, ['dropdown', 'checkbox']) && is_array($q->options))
                                     <div class="d-flex flex-wrap gap-1">
                                         @foreach($q->options as $opt)
-                                            <span class="badge bg-label-info" style="font-size: 9px;">{{ $opt }}</span>
+                                            <span class="badge bg-label-info" style="font-size: 9px;">
+                                                @if($q->type === 'checkbox')<i class="bx bx-checkbox me-1"></i>@endif{{ $opt }}
+                                            </span>
                                         @endforeach
                                     </div>
                                 @else
@@ -122,6 +229,16 @@
                             </td>
                             <td class="text-center align-top">
                                 <div class="d-flex justify-content-center gap-1">
+                                    @if($isSuperadmin)
+                                    <button type="button"
+                                            class="btn btn-xs btn-icon btn-outline-primary"
+                                            title="Duplikat pertanyaan"
+                                            onclick="duplicateQuestion({{ $q->id }}, {{ Illuminate\Support\Js::from($q->question_text) }}, {{ Illuminate\Support\Js::from($q->bidang) }})"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#duplicateQuestionModal">
+                                        <i class="bx bx-copy"></i>
+                                    </button>
+                                    @endif
                                     <button class="btn btn-xs btn-icon btn-outline-warning" onclick="editQuestion({{ json_encode($q) }})" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bx bx-edit"></i></button>
                                     <form action="{{ route('questions.destroy', $q->id) }}" method="POST">
                                         @csrf @method('DELETE')
@@ -154,9 +271,11 @@
                 <div class="alert alert-info py-2 shadow-none mb-3">
                     <small class="fw-bold d-block mb-1">ATURAN PENGISIAN EXCEL:</small>
                     <ul class="small mb-0 ps-3">
+                        <li><strong>bidang</strong>: gunakan nama bidang lengkap; superadmin dapat memakai Semua Bidang.</li>
+                        <li><strong>metode</strong>: klasikal, full learning, blended, atau semua.</li>
                         <li><strong>level_peran</strong>: Mandiri, Atasan, Rekan, Penyelenggara, Narasumber.</li>
-                        <li><strong>tipe_jawaban</strong>: slider, dropdown, atau text.</li>
-                        <li><strong>pilihan_jawaban</strong>: Isi jika tipe=dropdown (pisahkan dengan koma).</li>
+                        <li><strong>tipe_jawaban</strong>: slider, dropdown, checkbox, atau text.</li>
+                        <li><strong>pilihan_jawaban</strong>: Isi jika tipe dropdown/checkbox (pisahkan dengan koma).</li>
                     </ul>
                 </div>
                 
@@ -175,6 +294,37 @@
     </div>
 </div>
 
+@if($isSuperadmin)
+<div class="modal fade" id="duplicateQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="" method="POST" id="duplicateQuestionForm" class="modal-content">
+            @csrf
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="bx bx-copy me-1"></i>Duplikat Pertanyaan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <small class="d-block mb-1">Pertanyaan yang akan disalin:</small>
+                    <strong id="duplicateQuestionText"></strong>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Bidang</label>
+                    <input type="text" id="duplicateSourceBidang" class="form-control bg-light" readonly>
+                </div>
+                <div class="alert alert-warning mb-0">
+                    Salinan dibuat pada bidang yang sama. Gunakan duplikasi bundel untuk menyalin antarbidang.
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="bx bx-copy me-1"></i>Duplikat Sekarang</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 <!-- MODAL EDIT -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -186,19 +336,22 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Jenis Pelatihan</label>
-                        <select name="training_type" id="edit_training_type" class="form-select">
-                            <option value="PKTI/PKTU">PKTI/PKTU</option>
-                            <option value="CPNS">CPNS</option>
-                            <option value="PKP">PKP</option>
-                            <option value="PKA">PKA</option>
-                            <option value="PKN">PKN</option>
-                        </select>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Bidang</label>
+                        @if($isSuperadmin)
+                            <select name="bidang" id="edit_bidang" class="form-select">
+                                @foreach($bidangOptions as $bidang)
+                                    <option value="{{ $bidang }}">{{ $bidang }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="hidden" name="bidang" value="{{ Auth::user()->bidang }}">
+                            <input type="text" class="form-control bg-light" value="{{ Auth::user()->bidang }}" readonly>
+                        @endif
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">Kategori</label>
-                        <select name="category" id="edit_category" class="form-select">
+                        <select name="category" id="edit_category" class="form-select" onchange="syncMethodField('edit')">
                             <option value="l1_penyelenggara">L1 - Penyelenggara</option>
                             <option value="l1_narasumber">L1 - Narasumber</option>
                             <option value="l34_mandiri">L3 & L4 - Mandiri</option>
@@ -206,11 +359,31 @@
                             <option value="l34_atasan">L3 & L4 - Atasan Langsung</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Metode Pelatihan</label>
+                        <select name="metode" id="edit_metode" class="form-select">
+                            <option value="semua" data-global="true">Semua Metode</option>
+                            <option value="klasikal">Klasikal</option>
+                            <option value="full learning">Full Learning</option>
+                            <option value="blended">Blended Learning</option>
+                        </select>
+                        <div id="edit_method_help" class="form-text">Digunakan untuk evaluasi Level 1.</div>
+                    </div>
+                    <div class="col-md-6 mb-3" id="edit_subcategory_wrapper" style="display:none">
+                        <label class="form-label">Bagian Evaluasi L3/L4</label>
+                        <select name="sub_category" id="edit_sub_category" class="form-select" disabled>
+                            <option value="Data Diri Alumni">1. Data Diri Alumni</option>
+                            <option value="Penempatan Tugas dan Transfer Learning">2. Penempatan Tugas dan Transfer Learning</option>
+                            <option value="Perubahan Perilaku">3. Perubahan Perilaku</option>
+                            <option value="Dampak Pelatihan">4. Dampak Pelatihan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">Tipe</label>
                         <select name="type" id="edit_type" class="form-select" onchange="handleTypeChange(this, 'edit-options-wrapper')">
                             <option value="slider">Slider</option>
                             <option value="dropdown">Dropdown</option>
+                            <option value="checkbox">Checkbox (Pilihan Ganda)</option>
                             <option value="text">Teks</option>
                         </select>
                     </div>
@@ -233,6 +406,7 @@
         </form>
     </div>
 </div>
+@endif
 @endsection
 
 @push('js')
@@ -252,25 +426,48 @@
     }
 
     function handleTypeChange(select, wrapperId) {
-        if (select.value === 'dropdown') {
+        if (['dropdown', 'checkbox'].includes(select.value)) {
             $(`#${wrapperId}`).slideDown();
         } else {
             $(`#${wrapperId}`).slideUp();
         }
     }
 
+    function syncMethodField(prefix) {
+        const category = document.getElementById(prefix + '_category');
+        const method = document.getElementById(prefix + '_metode');
+        const help = document.getElementById(prefix + '_method_help');
+        const subcategoryWrapper = document.getElementById(prefix + '_subcategory_wrapper');
+        const subcategory = document.getElementById(prefix + '_sub_category');
+        if (!category || !method || !help) return;
+        const isLevelOne = ['l1_penyelenggara', 'l1_narasumber'].includes(category.value);
+        const isLevel34 = category.value.startsWith('l34_');
+
+        method.disabled = !isLevelOne;
+        if (!isLevelOne) method.value = 'semua';
+        help.textContent = isLevelOne
+            ? 'Pilih metode tertentu atau Semua Metode agar pertanyaan dapat digunakan bersama.'
+            : 'Kategori ini otomatis berlaku untuk semua metode.';
+        if (subcategoryWrapper && subcategory) {
+            subcategoryWrapper.style.display = isLevel34 ? '' : 'none';
+            subcategory.disabled = !isLevel34;
+        }
+    }
+
     function editQuestion(data) {
         const url = "{{ url('questions') }}/" + data.id;
         $('#editForm').attr('action', url);
-        $('#edit_training_type').val(data.training_type);
+        $('#edit_bidang').val(data.bidang || data.training_type);
         $('#edit_category').val(data.category);
+        $('#edit_metode').val(data.metode || 'semua');
+        $('#edit_sub_category').val(data.sub_category || 'Data Diri Alumni');
         $('#edit_type').val(data.type);
         $('#edit_question_text').val(data.question_text);
 
         const container = $('#edit-options-wrapper .options-container');
         container.empty();
 
-        if (data.type === 'dropdown') {
+        if (['dropdown', 'checkbox'].includes(data.type)) {
             $('#edit-options-wrapper').show();
             if (data.options && data.options.length > 0) {
                 data.options.forEach(opt => addOptionField('edit-options-wrapper', opt));
@@ -280,6 +477,17 @@
         } else {
             $('#edit-options-wrapper').hide();
         }
+        syncMethodField('edit');
     }
+
+    function duplicateQuestion(id, questionText, sourceBidang) {
+        $('#duplicateQuestionForm').attr('action', "{{ url('questions') }}/" + id + '/duplicate');
+        $('#duplicateQuestionText').text(questionText);
+        $('#duplicateSourceBidang').val(sourceBidang);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        syncMethodField('create');
+    });
 </script>
 @endpush

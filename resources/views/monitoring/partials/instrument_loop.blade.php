@@ -23,6 +23,10 @@
                     // AMBIL DATA LAMA DARI DATABASE (Sticky Value)
                     $existingRes = $training->monitoringResults
                         ->where('training_stage_id', $currentStageId == 'std' ? null : $currentStageId)
+                        ->when($currentStageId == 'std', fn ($items) => $items->where(
+                            'monitoring_date',
+                            \Carbon\Carbon::parse($monitoringDate)->startOfDay()
+                        ))
                         ->where('question_id', $q->id)
                         ->first();
                 @endphp
@@ -37,7 +41,9 @@
                     <td>
                         {{-- Box Tindak Lanjut otomatis terbuka jika data lama adalah 'tidak' --}}
                         <div id="fu-box-{{ $uniqueId }}" style="display: {{ optional($existingRes)->answer == 'tidak' ? 'block' : 'none' }};">
-                            <select name="target[{{ $q->id }}]" class="form-select form-select-sm mb-1 border-warning">
+                            <div class="border border-warning rounded p-2 bg-label-warning">
+                            <label class="form-label small fw-bold mb-1">Bidang Penanggung Jawab</label>
+                            <select name="target[{{ $q->id }}]" class="form-select form-select-sm mb-2" data-followup-required>
                                 <option value="">-- Pilih Penyelenggara Tujuan --</option>
                                 @foreach($organizers as $org)
                                     <option value="{{ $org->bidang }}" {{ optional($existingRes)->follow_up_target == $org->bidang ? 'selected' : '' }}>
@@ -45,7 +51,36 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="text" name="notes[{{ $q->id }}]" class="form-control form-control-sm" value="{{ $existingRes->notes ?? '' }}" placeholder="Tuliskan temuan di sini...">
+                            <label class="form-label small fw-bold mb-1">Temuan</label>
+                            <textarea name="notes[{{ $q->id }}]" class="form-control form-control-sm mb-2" rows="2"
+                                      placeholder="Jelaskan kondisi yang belum terpenuhi..." data-followup-required>{{ $existingRes->notes ?? '' }}</textarea>
+                            <label class="form-label small fw-bold mb-1">Rekomendasi Perbaikan</label>
+                            <textarea name="recommendation[{{ $q->id }}]" class="form-control form-control-sm mb-2" rows="2"
+                                      placeholder="Tuliskan tindakan yang harus dilakukan bidang tujuan..." data-followup-required>{{ $existingRes->recommendation ?? '' }}</textarea>
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold mb-1">Prioritas</label>
+                                    <select name="priority[{{ $q->id }}]" class="form-select form-select-sm" data-followup-required>
+                                        @foreach(['rendah' => 'Rendah', 'sedang' => 'Sedang', 'tinggi' => 'Tinggi', 'kritis' => 'Kritis'] as $value => $label)
+                                            <option value="{{ $value }}" {{ ($existingRes->priority ?? 'sedang') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label small fw-bold mb-1">Batas Waktu</label>
+                                    <input type="date" name="due_date[{{ $q->id }}]" class="form-control form-control-sm"
+                                           value="{{ optional(optional($existingRes)->due_date)->toDateString() }}" data-followup-required>
+                                </div>
+                            </div>
+                            @if($existingRes && $existingRes->answer === 'tidak')
+                                <div class="mt-2 small">
+                                    Status:
+                                    <span class="badge bg-label-{{ $existingRes->workflow_status === 'verified' ? 'success' : ($existingRes->workflow_status === 'submitted' ? 'info' : 'warning') }}">
+                                        {{ strtoupper(str_replace('_', ' ', $existingRes->workflow_status ?? 'open')) }}
+                                    </span>
+                                </div>
+                            @endif
+                            </div>
                         </div>
                     </td>
                 </tr>

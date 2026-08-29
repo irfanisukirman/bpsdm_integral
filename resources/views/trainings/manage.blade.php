@@ -149,16 +149,19 @@
                     <h6 class="small text-muted text-uppercase fw-bold mt-2">Laporan Rekapitulasi & Surat</h6>
                     <div class="d-grid gap-2">
                         <a href="{{ route('trainings.export_evaluation', $training->id) }}" class="btn btn-sm btn-outline-success text-start">
-                            <i class="bx bxs-file-export me-2"></i> Hasil L1 & L2 (Excel)
+                            <i class="bx bxs-file-export me-2"></i> Rekap Level 1 &amp; 2 (Excel)
+                        </a>
+                        <a href="{{ route('evall12.export_word', $training->id) }}" class="btn btn-sm btn-outline-info text-start">
+                            <i class="bx bxs-file-doc me-2"></i> Laporan Evaluasi Level 1 &amp; 2 (Word)
                         </a>
                         <a href="{{ route('evall34.export', $training->id) }}" class="btn btn-sm btn-outline-primary text-start">
-                            <i class="bx bxs-spreadsheet me-2"></i> Laporan Statistik L3 & L4 (Excel)
+                            <i class="bx bxs-spreadsheet me-2"></i> Rekap 360&deg; Level 3 &amp; 4 (Excel)
                         </a>
                         <a href="{{ route('evall34.export_word', $training->id) }}" class="btn btn-sm btn-outline-info text-start">
-                            <i class="bx bxs-file-doc me-2"></i> Laporan Akhir Dampak (Word)
+                            <i class="bx bxs-file-doc me-2"></i> Laporan Dampak 360&deg; (Word)
                         </a>
                         <a href="{{ route('evall34.export_invitation', $training->id) }}" class="btn btn-sm btn-outline-danger text-start">
-                            <i class="bx bxs-envelope me-2"></i> Undangan Evaluasi Pasca (Word)
+                            <i class="bx bxs-envelope me-2"></i> Undangan Evaluasi 360&deg; (Word)
                         </a>
                     </div>
                 </div>

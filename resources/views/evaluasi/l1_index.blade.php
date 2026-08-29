@@ -62,7 +62,7 @@
                         <td>
                             @if($form->type == 'narasumber')
                                 <div class="d-flex flex-column">
-                                    <span class="fw-bold text-dark">{{ $form->target_name }}</span>
+                                    <span class="fw-bold text-dark">{{ $form->schedule?->pengajar?->name ?? $form->target_name }}</span>
                                     <small class="text-muted">{{ $form->materi }}</small>
                                 </div>
                             @else
@@ -146,15 +146,17 @@
                         <label class="form-label fw-bold">PILIH SESI JADWAL</label>
                         <select name="schedule_id" class="form-select" id="schedule-select">
                             <option value="">-- Pilih Sesi --</option>
-                            @foreach($training->schedules as $s)
-                                <option value="{{ $s->id }}" 
-                                    data-narsum="{{ $s->pic }}" 
-                                    data-materi="{{ $s->activity }}" 
+                            @forelse($training->schedules as $s)
+                                <option value="{{ $s->id }}"
+                                    data-narsum="{{ $s->pengajar->name }}"
+                                    data-materi="{{ $s->activity }}"
                                     {{-- Pastikan format tanggal sudah benar --}}
                                     data-tgl="{{ \Carbon\Carbon::parse($s->date)->translatedFormat('d F Y') }}">
-                                    {{ $s->activity }} ({{ $s->pic }})
+                                    {{ $s->activity }} - {{ $s->pengajar->name }}
                                 </option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>Belum ada sesi yang memiliki tenaga pengajar</option>
+                            @endforelse
                         </select>
                     </div>
                     <div class="mb-3 p-3 bg-light rounded border border-dashed">
@@ -190,9 +192,14 @@
             if(val === 'narasumber') {
                 $('#field-narasumber').slideDown();
                 $('#field-penyelenggara').hide();
+                $('#schedule-select').prop('required', true);
             } else if(val === 'penyelenggara') {
                 $('#field-penyelenggara').slideDown();
                 $('#field-narasumber').hide();
+                $('#schedule-select').prop('required', false).val('').trigger('change');
+            } else {
+                $('#field-penyelenggara, #field-narasumber').hide();
+                $('#schedule-select').prop('required', false);
             }
         });
 

@@ -8,6 +8,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class QuestionImport implements ToModel, WithHeadingRow
 {
+    public function __construct(private readonly string $defaultBidang)
+    {
+    }
+
     public function model(array $row)
     {
         // 1. VALIDASI: Jika baris 'pertanyaan' kosong, abaikan baris ini (skip)
@@ -33,6 +37,9 @@ class QuestionImport implements ToModel, WithHeadingRow
         // 3. Mapping Tipe Jawaban
         // Pastikan di Excel kolom 'tipe_jawaban' diisi: slider, dropdown, atau text
         $type = isset($row['tipe_jawaban']) ? strtolower(trim($row['tipe_jawaban'])) : 'slider';
+        if (!in_array($type, ['slider', 'dropdown', 'checkbox', 'text'], true)) {
+            $type = 'slider';
+        }
 
         // 4. Proses pilihan jawaban (jika tipe dropdown)
         $options = null;
@@ -40,9 +47,20 @@ class QuestionImport implements ToModel, WithHeadingRow
             $options = array_map('trim', explode(',', $row['pilihan_jawaban']));
         }
 
-        // 5. Simpan ke Database
+        $bidang = trim((string) ($row['bidang'] ?? $this->defaultBidang));
+        $metode = strtolower(trim((string) ($row['metode'] ?? 'semua')));
+        if (!in_array($category, ['l1_penyelenggara', 'l1_narasumber'], true)) {
+            $metode = 'semua';
+        } elseif (!in_array($metode, ['semua', 'klasikal', 'full learning', 'blended'], true)) {
+            throw new \InvalidArgumentException(
+                'Metode pertanyaan Level 1 wajib semua, klasikal, full learning, atau blended.'
+            );
+        }
+
         return new Question([
-            'training_type' => $row['jenis_pelatihan'] ?? 'Semua',
+            'training_type' => $bidang,
+            'bidang'        => $bidang,
+            'metode'        => $metode,
             'category'      => $category,
             'sub_category'  => $row['sub_kategori'] ?? 'Perubahan Perilaku',
             'type'          => $type,
