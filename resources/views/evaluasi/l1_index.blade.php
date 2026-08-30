@@ -148,11 +148,11 @@
                             <option value="">-- Pilih Sesi --</option>
                             @foreach($training->schedules as $s)
                                 <option value="{{ $s->id }}" 
-                                    data-narsum="{{ $s->pic }}" 
+                                    data-narsum="{{ $s->pengajar ? $s->pengajar->name : 'Belum ada pengajar' }}" 
                                     data-materi="{{ $s->activity }}" 
                                     {{-- Pastikan format tanggal sudah benar --}}
                                     data-tgl="{{ \Carbon\Carbon::parse($s->date)->translatedFormat('d F Y') }}">
-                                    {{ $s->activity }} ({{ $s->pic }})
+                                   {{ $s->activity }} ({{ $s->pengajar ? $s->pengajar->name : 'Belum ada pengajar' }})
                                 </option>
                             @endforeach
                         </select>

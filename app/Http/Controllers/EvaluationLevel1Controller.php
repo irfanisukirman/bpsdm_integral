@@ -29,7 +29,8 @@ class EvaluationLevel1Controller extends Controller
 
     public function index($id)
     {
-        $training = Training::with(['schedules', 'participants'])->findOrFail($id);
+        //penambahan pengajar menarik dari schedules
+        $training = Training::with(['schedules.pengajar', 'participants'])->findOrFail($id);
         $forms = EvaluationFormL1::where('training_id', $id)->get();
         
         // Mengambil data hasil evaluasi untuk menghitung progres di tabel
@@ -55,9 +56,11 @@ class EvaluationLevel1Controller extends Controller
         ];
 
         if ($request->type == 'narasumber') {
-            $schedule = Schedule::findOrFail($request->schedule_id);
+            //ini juga sama dengan pengajar
+            $schedule = Schedule::with('pengajar')->findOrFail($request->schedule_id);
             $data['schedule_id'] = $schedule->id;
-            $data['target_name'] = $schedule->pic;
+            //menyimpan nama pengajar
+            $data['target_name'] = $schedule->pengajar ? $schedule->pengajar->name : 'Tanpa Pengajar';
             $data['materi'] = $schedule->activity;
         } else {
             $data['target_name'] = $request->instansi_penyelenggara;
