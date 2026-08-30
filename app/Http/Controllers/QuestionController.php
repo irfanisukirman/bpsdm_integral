@@ -19,13 +19,21 @@ class QuestionController extends Controller
         $bidangOptions = $this->bidangOptions();
         $isSuperadmin = $user->role === 'superadmin';
         $selectedBidang = $isSuperadmin ? $request->query('bidang') : $user->bidang;
+        $programOptions = ['semua', 'PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'];
+        $selectedProgram = $request->query('program');
+        if ($selectedProgram && !in_array($selectedProgram, $programOptions, true)) {
+            abort(404);
+        }
 
         if ($selectedBidang && !in_array($selectedBidang, $bidangOptions, true)) {
             abort(404);
         }
 
         $questions = $selectedBidang
-            ? $this->evaluationQuestions()->where('bidang', $selectedBidang)->latest()->get()
+            ? $this->evaluationQuestions()
+                ->where('bidang', $selectedBidang)
+                ->when($selectedProgram, fn ($query) => $query->where('program_evaluasi', $selectedProgram))
+                ->latest()->get()
             : collect();
 
         $counts = $this->evaluationQuestions()
@@ -40,7 +48,8 @@ class QuestionController extends Controller
         ]);
 
         return view('questions.index', compact(
-            'questions', 'bidangOptions', 'isSuperadmin', 'selectedBidang', 'bundleStats'
+            'questions', 'bidangOptions', 'isSuperadmin', 'selectedBidang', 'bundleStats',
+            'programOptions', 'selectedProgram'
         ));
     }
 
@@ -111,6 +120,7 @@ class QuestionController extends Controller
         $data = $request->validate([
             'bidang'        => Auth::user()->role === 'superadmin' ? ['required', 'string', Rule::in($this->bidangOptions())] : ['nullable'],
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
+            'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
                 ? ['required', Rule::in(['Data Diri Alumni', 'Penempatan Tugas dan Transfer Learning', 'Perubahan Perilaku', 'Dampak Pelatihan'])]
                 : ['nullable'],
@@ -126,6 +136,9 @@ class QuestionController extends Controller
         $data['bidang'] = Auth::user()->role === 'superadmin' ? $data['bidang'] : Auth::user()->bidang;
         abort_if(blank($data['bidang']), 422, 'Bidang akun Admin belum ditentukan.');
         $data['training_type'] = $data['bidang'];
+        $data['program_evaluasi'] = str_starts_with($data['category'], 'l34_')
+            ? $data['program_evaluasi']
+            : 'PKTI/PKTU';
         $data['metode'] = in_array($data['category'], ['l1_penyelenggara', 'l1_narasumber'], true)
             ? strtolower($data['metode'] ?? 'semua')
             : 'semua';
@@ -155,6 +168,7 @@ class QuestionController extends Controller
         $data = $request->validate([
             'bidang'        => Auth::user()->role === 'superadmin' ? ['required', 'string', Rule::in($this->bidangOptions())] : ['nullable'],
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
+            'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
                 ? ['required', Rule::in(['Data Diri Alumni', 'Penempatan Tugas dan Transfer Learning', 'Perubahan Perilaku', 'Dampak Pelatihan'])]
                 : ['nullable'],
@@ -171,6 +185,9 @@ class QuestionController extends Controller
         $this->authorizeQuestion($question);
         $data['bidang'] = Auth::user()->role === 'superadmin' ? $data['bidang'] : Auth::user()->bidang;
         $data['training_type'] = $data['bidang'];
+        $data['program_evaluasi'] = str_starts_with($data['category'], 'l34_')
+            ? $data['program_evaluasi']
+            : 'PKTI/PKTU';
         $data['metode'] = in_array($data['category'], ['l1_penyelenggara', 'l1_narasumber'], true)
             ? strtolower($data['metode'] ?? 'semua')
             : 'semua';
@@ -206,34 +223,61 @@ class QuestionController extends Controller
         return redirect()->back()->with('success', 'Soal dan data jawaban terkait berhasil dihapus.');
     }
 
+    public function destroyBundle(Request $request)
+    {
+        $data = $request->validate([
+            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
+        ]);
+        $user = Auth::user();
+        $bidang = $user->role === 'superadmin' ? $data['bidang'] : $user->bidang;
+        abort_if(blank($bidang) || ($user->role !== 'superadmin' && $data['bidang'] !== $bidang), 403);
+
+        $questionIds = $this->evaluationQuestions()->where('bidang', $bidang)->pluck('id');
+        DB::transaction(function () use ($questionIds) {
+            \App\Models\EvaluationResultL1::whereIn('question_id', $questionIds)->delete();
+            \App\Models\EvaluationResultL34::whereIn('question_id', $questionIds)->delete();
+            Question::whereIn('id', $questionIds)->delete();
+        });
+
+        return redirect()->route('questions.index', $user->role === 'superadmin' ? ['bidang' => $bidang] : [])
+            ->with('success', $questionIds->count().' pertanyaan pada bidang tersebut berhasil dihapus.');
+    }
+
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
+            'file' => 'required|mimes:xlsx,xls',
+            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
         ]);
 
-        $defaultBidang = Auth::user()->role === 'superadmin' ? 'Semua Bidang' : Auth::user()->bidang;
+        $defaultBidang = Auth::user()->role === 'superadmin' ? $request->input('bidang') : Auth::user()->bidang;
         abort_if(blank($defaultBidang), 422, 'Bidang akun Admin belum ditentukan.');
+        abort_if(Auth::user()->role !== 'superadmin' && $request->input('bidang') !== $defaultBidang, 403);
         Excel::import(new QuestionImport($defaultBidang), $request->file('file'));
 
-        return redirect()->back()->with('success', 'Bank Soal berhasil diimport.');
+        return redirect()->route('questions.index', Auth::user()->role === 'superadmin' ? ['bidang' => $defaultBidang] : [])
+            ->with('success', 'Bank soal berhasil diimpor ke '.$defaultBidang.'.');
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
+        $bidang = Auth::user()->role === 'superadmin' ? $request->query('bidang') : Auth::user()->bidang;
+        abort_if(blank($bidang) || !in_array($bidang, $this->bidangOptions(), true), 422, 'Pilih bidang terlebih dahulu.');
         $header = [
-            ['bidang', 'metode', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
-            ['Bidang Pengembangan Kompetensi Teknis Umum', 'klasikal', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
-            ['Bidang Pengembangan Kompetensi Teknis Umum', 'semua', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
-            ['Semua Bidang', 'semua', 'Mandiri', 'Perubahan Perilaku', 'slider', 'Ybs menerapkan kompetensi setelah pelatihan...', ''],
-            ['Semua Bidang', 'semua', 'Mandiri', 'Dampak Pelatihan', 'checkbox', 'Manfaat apa yang dirasakan setelah pelatihan?', 'Produktivitas meningkat, Kualitas kerja meningkat, Kolaborasi meningkat'],
+            ['bidang', 'metode', 'program_evaluasi', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
+            [$bidang, 'klasikal', 'PKTI/PKTU', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
+            [$bidang, 'semua', 'PKTI/PKTU', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
         ];
+        foreach ($bidang === 'Bidang Pengembangan Kompetensi Manajerial' ? ['CPNS', 'PKP', 'PKA', 'PKN'] : ['PKTI/PKTU'] as $program) {
+            $header[] = [$bidang, 'semua', $program, 'Mandiri', 'Perubahan Perilaku', 'slider', 'Pertanyaan '.$program.' tentang perubahan perilaku...', ''];
+            $header[] = [$bidang, 'semua', $program, 'Mandiri', 'Dampak Pelatihan', 'checkbox', 'Pertanyaan '.$program.' tentang dampak pelatihan...', 'Produktivitas meningkat, Kualitas kerja meningkat'];
+        }
 
         return \Maatwebsite\Excel\Facades\Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromArray {
             private $data;
             public function __construct($data) { $this->data = $data; }
             public function array(): array { return $this->data; }
-        }, 'template_bank_soal_L34.xlsx');
+        }, 'template_bank_soal_'.\Illuminate\Support\Str::slug($bidang, '_').'.xlsx');
     }
 
     private function authorizeQuestion(Question $question): void
@@ -255,6 +299,7 @@ class QuestionController extends Controller
         return implode('|', [
             $question->category,
             strtolower((string) $question->metode),
+            strtolower((string) $question->program_evaluasi),
             (string) $question->sub_category,
             $question->type,
             trim($question->question_text),

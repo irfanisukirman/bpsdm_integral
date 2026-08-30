@@ -27,6 +27,8 @@ use App\Http\Controllers\PengajarController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TrainingForumController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\CertificationController;
+use App\Http\Controllers\PublicCertificationBiodataController;
 use App\Http\Controllers\AgendaController;
 
 /*
@@ -52,6 +54,8 @@ Route::get('auth/google', [App\Http\Controllers\Auth\LoginController::class, 're
 Route::get('auth/google/callback', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 // Document Share
+Route::get('share/folder/{token}/file/{file}/excel', [DocumentController::class, 'previewSharedExcel'])->name('documents.public.excel');
+Route::get('share/folder/{token}/file/{file}/preview', [DocumentController::class, 'previewSharedFile'])->name('documents.public.file');
 Route::get('share/folder/{token}', [DocumentController::class, 'share'])->name('documents.public');
 // Tambahan Document Action (Download/View File)
 Route::get('/documents/file/{id}/view', [DocumentController::class, 'viewFile'])->name('documents.file.view');
@@ -77,6 +81,10 @@ Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Cont
 |--------------------------------------------------------------------------
 */
 Auth::routes(['register' => false]);
+Route::get('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'index'])->name('certifications.public');
+Route::post('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'verify'])->name('certifications.public.verify');
+Route::get('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'form'])->name('certifications.public.form');
+Route::post('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'submit'])->name('certifications.public.submit');
 
 Route::get('/logout', function() {
     Auth::logout();
@@ -86,11 +94,26 @@ Route::get('/logout', function() {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('certifications/template', [CertificationController::class, 'template'])->name('certifications.template');
+    Route::get('certifications/export', [CertificationController::class, 'export'])->name('certifications.export');
+    Route::post('certifications/types', [CertificationController::class, 'storeType'])->name('certifications.types.store');
+    Route::delete('certifications/types/{type}', [CertificationController::class, 'destroyType'])->name('certifications.types.destroy');
+    Route::get('certifications', [CertificationController::class, 'index'])->name('certifications.index');
+    Route::post('certifications', [CertificationController::class, 'storeEvent'])->name('certifications.store');
+    Route::put('certifications/{event}', [CertificationController::class, 'updateEvent'])->name('certifications.update');
+    Route::delete('certifications/{event}', [CertificationController::class, 'destroyEvent'])->name('certifications.destroy');
+    Route::get('certifications/{event}', [CertificationController::class, 'show'])->name('certifications.show');
+    Route::post('certifications/{event}/participants/import', [CertificationController::class, 'import'])->name('certifications.import');
+    Route::delete('certifications/{event}/participants', [CertificationController::class, 'destroyAllParticipants'])->name('certifications.participants.destroy-all');
+    Route::delete('certification-participants/{participant}', [CertificationController::class, 'destroyParticipant'])->name('certifications.participants.destroy');
+    Route::post('certifications/{event}/minutes', [CertificationController::class, 'uploadMinutes'])->name('certifications.minutes');
+    Route::put('certification-participants/{participant}/result', [CertificationController::class, 'updateResult'])->name('certifications.participants.result');
     Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
     Route::get('assets/monitoring', [AssetController::class, 'monitoring'])->name('assets.monitoring');
     // Jangan gunakan URI tepat /assets karena bertabrakan dengan folder public/assets.
     Route::get('assets/kelola', [AssetController::class, 'index'])->name('assets.index');
     Route::post('assets/kelola', [AssetController::class, 'store'])->name('assets.store');
+    Route::put('assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
     Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
     Route::get('agendas', [AgendaController::class, 'index'])->name('agendas.index');
     Route::get('agendas/create', [AgendaController::class, 'create'])->name('agendas.create');
@@ -145,12 +168,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('documents/folder', [DocumentController::class, 'createFolder'])->name('documents.folder.create');
     Route::post('documents/upload', [DocumentController::class, 'uploadFiles'])->name('documents.upload');
     Route::put('documents/folder/{id}/privacy', [DocumentController::class, 'togglePrivacy'])->name('documents.folder.privacy');
+    Route::get('documents/share-users/search', [DocumentController::class, 'searchShareUsers'])->name('documents.share-users.search');
+    Route::get('documents/folder/{folder}/sharing', [DocumentController::class, 'sharing'])->name('documents.folder.sharing');
+    Route::post('documents/folder/{folder}/sharing', [DocumentController::class, 'shareWithUser'])->name('documents.folder.sharing.store');
+    Route::delete('documents/folder/{folder}/sharing/{user}', [DocumentController::class, 'revokeShare'])->name('documents.folder.sharing.destroy');
+    Route::get('documents/file/{file}/versions', [DocumentController::class, 'fileVersions'])->name('documents.file.versions');
+    Route::get('documents/file-versions/{version}/download', [DocumentController::class, 'downloadVersion'])->name('documents.file-versions.download');
+    Route::post('documents/file-versions/{version}/restore', [DocumentController::class, 'restoreVersion'])->name('documents.file-versions.restore');
     Route::delete('documents/file/{id}', [DocumentController::class, 'destroyFile'])->name('documents.file.destroy');
     Route::delete('documents/folder/{id}', [DocumentController::class, 'destroyFolder'])->name('documents.folder.destroy');
 
     // Kelola Pertanyaan
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
     Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
+    Route::delete('questions/delete-bundle', [QuestionController::class, 'destroyBundle'])->name('questions.destroy-bundle');
     Route::post('questions/duplicate-bundle', [QuestionController::class, 'duplicateBundle'])->name('questions.duplicate-bundle');
     Route::post('questions/{question}/duplicate', [QuestionController::class, 'duplicateQuestion'])->name('questions.duplicate');
     Route::resource('questions', QuestionController::class);

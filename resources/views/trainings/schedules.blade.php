@@ -89,7 +89,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div class="form-text small">Pilih pengajar agar sesi ini muncul di akun Pengajar.</div>
+                        <div class="form-text small">Menampilkan akun non-administratif yang tidak terikat bidang, termasuk pengajar atau narasumber dari luar.</div>
                     </div>
 
                     <div class="mb-3">

@@ -11,6 +11,7 @@ class Question extends Model
     protected $fillable = [
         'training_type',
         'bidang',
+        'program_evaluasi',
         'training_id',
         'category', 
         'sub_category', 
@@ -45,6 +46,14 @@ class Question extends Model
 
                 $q->whereRaw('LOWER(metode) = ?', ['semua'])
                     ->orWhereNull('metode');
+            })
+            ->when(str_starts_with($category, 'l34_'), function ($q) use ($training) {
+                $program = strtoupper(trim((string) ($training->program_evaluasi ?: 'PKTI/PKTU')));
+                $q->where(function ($programQuery) use ($program) {
+                    $programQuery->whereRaw('UPPER(program_evaluasi) = ?', [$program])
+                        ->orWhereRaw('LOWER(program_evaluasi) = ?', ['semua'])
+                        ->orWhereNull('program_evaluasi');
+                });
             });
     }
 }

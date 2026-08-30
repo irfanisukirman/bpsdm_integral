@@ -8,6 +8,7 @@ use App\Models\Participant;
 use App\Imports\ParticipantImport;
 use App\Exports\TrainingEvaluationExport;
 use App\Models\Folder;
+use App\Models\File;
 use App\Helpers\LogHelper; 
 use App\Models\User; 
 use App\Models\EvaluationFormL1;
@@ -20,7 +21,9 @@ use App\Imports\ScheduleImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel; 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon; 
@@ -36,7 +39,7 @@ class TrainingController extends Controller
             $query->where('bidang', Auth::user()->bidang);
         }
 
-        $trainings = $query->latest()->get();
+        $trainings = $query->latest()->paginate(10);
         return view('trainings.index', compact('trainings'));
     }
 
@@ -52,6 +55,7 @@ class TrainingController extends Controller
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang'         => 'required',
+            'program_evaluasi' => 'required|in:CPNS,PKP,PKA,PKN,PKTI/PKTU',
             'model'          => 'required',
             'lokasi'         => 'required',
             'angkatan'       => 'required',
@@ -69,6 +73,9 @@ class TrainingController extends Controller
         if (Auth::user()->role === 'admin_bidang') {
             abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
             $data['bidang'] = Auth::user()->bidang;
+        }
+        if ($data['bidang'] !== 'Bidang Pengembangan Kompetensi Manajerial') {
+            $data['program_evaluasi'] = 'PKTI/PKTU';
         }
 
         if ($request->model === 'blended') {
@@ -205,8 +212,52 @@ class TrainingController extends Controller
 
     public function destroyParticipant($id)
     {
-        Participant::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Peserta berhasil dihapus.');
+        $participant = Participant::with('training')->findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $participant->training?->bidang === $user->bidang),
+            403
+        );
+
+        $fileIds = collect([
+            $participant->biodata_file_id,
+            $participant->surat_tugas_file_id,
+            $participant->pas_foto_file_id,
+        ])->filter()->unique()->values();
+        $documentFiles = File::whereIn('id', $fileIds)->get();
+        $participantName = $participant->name;
+        $trainingName = $participant->training?->nama_pelatihan;
+
+        DB::transaction(function () use ($participant, $fileIds) {
+            DB::table('alumni_profiles')->where('participant_id', $participant->id)->delete();
+            DB::table('attendances')->where('participant_id', $participant->id)->delete();
+            DB::table('evaluation_results_l1')->where('participant_id', $participant->id)->delete();
+            DB::table('evaluation_results_l2')->where('participant_id', $participant->id)->delete();
+            DB::table('evaluation_results_l34')->where('participant_id', $participant->id)->delete();
+
+            $participant->delete();
+
+            foreach ($fileIds as $fileId) {
+                $stillUsed = Participant::where('biodata_file_id', $fileId)
+                    ->orWhere('surat_tugas_file_id', $fileId)
+                    ->orWhere('pas_foto_file_id', $fileId)
+                    ->exists();
+                if (!$stillUsed) {
+                    File::whereKey($fileId)->delete();
+                }
+            }
+        });
+
+        foreach ($documentFiles as $file) {
+            if (!File::whereKey($file->id)->exists() && Storage::disk('public')->exists($file->file_path)) {
+                Storage::disk('public')->delete($file->file_path);
+            }
+        }
+
+        LogHelper::record('Peserta', 'Menghapus kepesertaan '.$participantName.' dari pelatihan '.$trainingName.' beserta seluruh data terkait.');
+
+        return redirect()->back()->with('success', 'Peserta dan seluruh data terkait pada pelatihan ini berhasil dihapus.');
     }
 
     /**
@@ -223,8 +274,12 @@ class TrainingController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
 
-        // Semua akun dapat ditugaskan tanpa mengubah role utama akun.
-        $pengajars = User::orderBy('name', 'asc')->get();
+        // Kandidat pengajar adalah akun non-administratif yang tidak terikat bidang
+        // (termasuk narasumber/pengajar dari luar instansi).
+        $pengajars = User::whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
+            ->where(fn ($query) => $query->whereNull('bidang')->orWhere('bidang', ''))
+            ->orderBy('name', 'asc')
+            ->get();
         $assets = Asset::where('is_active', true)->orderBy('name')->get();
 
         return view('trainings.schedules', compact('training', 'schedules', 'pengajars', 'assets'));
@@ -264,7 +319,12 @@ class TrainingController extends Controller
             'jp'          => 'nullable|numeric|min:1',
             'link_zoom'   => 'nullable|string|max:500',
             'pic'         => 'required|string|max:255',
-            'pengajar_id' => 'nullable|exists:users,id',
+            'pengajar_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
+                    ->where(fn ($scope) => $scope->whereNull('bidang')->orWhere('bidang', ''))),
+            ],
             'venue_type' => 'required|in:internal,external',
             'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
             'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
@@ -296,6 +356,7 @@ class TrainingController extends Controller
      */
     public function updateSchedule(Request $request, $id)
     {
+        $schedule = Schedule::findOrFail($id);
         $request->validate([
             'date'        => 'required|date',
             'start_time'  => 'required',
@@ -304,14 +365,24 @@ class TrainingController extends Controller
             'jp'          => 'nullable|numeric|min:1',
             'link_zoom'   => 'nullable|string|max:500',
             'pic'         => 'required|string|max:255',
-            'pengajar_id' => 'nullable|exists:users,id',
+            'pengajar_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(function ($query) use ($schedule) {
+                    $query->where(function ($candidate) {
+                        $candidate->whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
+                            ->where(fn ($scope) => $scope->whereNull('bidang')->orWhere('bidang', ''));
+                    });
+                    if ($schedule->pengajar_id) {
+                        $query->orWhere('id', $schedule->pengajar_id);
+                    }
+                }),
+            ],
             'venue_type' => 'required|in:internal,external',
             'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
             'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
             'asset_ids.*' => 'integer|exists:assets,id',
         ]);
 
-        $schedule = Schedule::findOrFail($id);
         DB::transaction(function () use ($request, $schedule) {
         $schedule->update([
             'date'        => $request->date,
@@ -431,6 +502,7 @@ class TrainingController extends Controller
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang'         => 'required',
+            'program_evaluasi' => 'required|in:CPNS,PKP,PKA,PKN,PKTI/PKTU',
             'lokasi'         => 'required',
             'angkatan'       => 'required',
             'jumlah_peserta' => 'required|numeric',
@@ -448,6 +520,9 @@ class TrainingController extends Controller
         if (Auth::user()->role === 'admin_bidang') {
             abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
             $data['bidang'] = Auth::user()->bidang;
+        }
+        if ($data['bidang'] !== 'Bidang Pengembangan Kompetensi Manajerial') {
+            $data['program_evaluasi'] = 'PKTI/PKTU';
         }
 
         $training->update($data);
@@ -474,12 +549,111 @@ class TrainingController extends Controller
     public function destroy($id)
     {
         $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $training->bidang === $user->bidang),
+            403
+        );
 
-        // Karena kita pakai onDelete('cascade') di migration, 
-        // maka jadwal, peserta, dan tahapan akan terhapus otomatis.
-        $training->delete();
+        $participantIds = Participant::where('training_id', $training->id)->pluck('id');
+        $scheduleIds = Schedule::where('training_id', $training->id)->pluck('id');
 
-        return redirect()->route('trainings.index')->with('success', 'Pelatihan berhasil dihapus dari sistem.');
+        // Ambil seluruh pohon folder, termasuk data lama yang training_id subfolder-nya kosong.
+        $folderIds = Folder::where('training_id', $training->id)->pluck('id');
+        do {
+            $children = Folder::whereIn('parent_id', $folderIds)->whereNotIn('id', $folderIds)->pluck('id');
+            if ($children->isNotEmpty()) {
+                $folderIds = $folderIds->merge($children)->unique()->values();
+            }
+        } while ($children->isNotEmpty());
+
+        $folderFiles = File::whereIn('folder_id', $folderIds)->get();
+        $sessionDocuments = DB::table('pengajar_schedule_documents')->whereIn('schedule_id', $scheduleIds)->get();
+        $monitoringEvidencePaths = DB::table('monitoring_results')
+            ->where('training_id', $training->id)
+            ->whereNotNull('evidence_file')
+            ->pluck('evidence_file');
+        $physicalPaths = $folderFiles->pluck('file_path')
+            ->merge($sessionDocuments->flatMap(fn ($document) => [
+                $document->bahan_ajar_path,
+                $document->rbpmp_rp_path,
+                $document->bukti_mengajar_path,
+            ]))
+            ->merge($monitoringEvidencePaths)
+            ->filter()->unique()->values();
+        $trainingName = $training->nama_pelatihan;
+
+        DB::transaction(function () use ($training, $participantIds, $scheduleIds, $folderIds) {
+            DB::table('asset_bookings')
+                ->where('bookable_type', Schedule::class)
+                ->whereIn('bookable_id', $scheduleIds)
+                ->delete();
+            DB::table('pengajar_schedule_documents')->whereIn('schedule_id', $scheduleIds)->delete();
+            DB::table('attendances')->whereIn('participant_id', $participantIds)->delete();
+
+            DB::table('evaluation_results_l1')
+                ->where('training_id', $training->id)
+                ->orWhereIn('participant_id', $participantIds)
+                ->delete();
+            DB::table('evaluation_results_l2')->whereIn('participant_id', $participantIds)->delete();
+            DB::table('evaluation_results_l34')
+                ->where('training_id', $training->id)
+                ->orWhereIn('participant_id', $participantIds)
+                ->delete();
+            DB::table('alumni_profiles')
+                ->where('training_id', $training->id)
+                ->orWhereIn('participant_id', $participantIds)
+                ->delete();
+
+            DB::table('monitoring_results')->where('training_id', $training->id)->delete();
+            DB::table('monitoring_summaries')->where('training_id', $training->id)->delete();
+            DB::table('evaluation_forms')->where('training_id', $training->id)->delete();
+
+            DB::table('training_forum_reads')->where('training_id', $training->id)->delete();
+            DB::table('training_messages')->where('training_id', $training->id)->delete();
+            DB::table('training_stages')->where('training_id', $training->id)->delete();
+
+            File::whereIn('folder_id', $folderIds)->delete();
+            $folders = Folder::whereIn('id', $folderIds)->get(['id', 'parent_id']);
+            $depth = function ($folder) use ($folders) {
+                $level = 0;
+                $parentId = $folder->parent_id;
+                while ($parentId && $level < 100) {
+                    $level++;
+                    $parentId = optional($folders->firstWhere('id', $parentId))->parent_id;
+                }
+                return $level;
+            };
+            foreach ($folders->sortByDesc($depth) as $folder) {
+                Folder::whereKey($folder->id)->delete();
+            }
+
+            Participant::whereIn('id', $participantIds)->delete();
+            Schedule::whereIn('id', $scheduleIds)->delete();
+
+            $questionIds = DB::table('evaluation_questions')->where('training_id', $training->id)->pluck('id');
+            DB::table('evaluation_results_l1')->whereIn('question_id', $questionIds)->delete();
+            DB::table('evaluation_results_l34')->whereIn('question_id', $questionIds)->delete();
+            DB::table('monitoring_results')->whereIn('question_id', $questionIds)->delete();
+            DB::table('evaluation_questions')->whereIn('id', $questionIds)->delete();
+
+            $training->delete();
+        });
+
+        foreach ($physicalPaths as $path) {
+            $stillReferenced = File::where('file_path', $path)->exists()
+                || DB::table('pengajars')->where('cv_path', $path)->orWhere('sertifikat_path', $path)->orWhere('surat_tugas_path', $path)->exists()
+                || DB::table('pengajar_schedule_documents')->where('bahan_ajar_path', $path)->orWhere('rbpmp_rp_path', $path)->orWhere('bukti_mengajar_path', $path)->exists()
+                || DB::table('monitoring_results')->where('evidence_file', $path)->exists();
+            if (!$stillReferenced && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        LogHelper::record('Pelatihan', 'Menghapus pelatihan '.$trainingName.' beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.');
+
+        return redirect()->route('trainings.index')->with('success', 'Pelatihan dan seluruh data terkait berhasil dihapus dari sistem.');
     }
 
     public function exportEvaluation($id)

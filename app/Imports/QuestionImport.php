@@ -47,8 +47,13 @@ class QuestionImport implements ToModel, WithHeadingRow
             $options = array_map('trim', explode(',', $row['pilihan_jawaban']));
         }
 
-        $bidang = trim((string) ($row['bidang'] ?? $this->defaultBidang));
+        // Bidang tujuan selalu mengikuti halaman import, bukan nilai bebas dari file.
+        $bidang = $this->defaultBidang;
         $metode = strtolower(trim((string) ($row['metode'] ?? 'semua')));
+        $program = trim((string) ($row['program_evaluasi'] ?? 'PKTI/PKTU'));
+        if (!in_array($program, ['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'], true)) {
+            throw new \InvalidArgumentException('Program evaluasi wajib semua, CPNS, PKP, PKA, PKN, atau PKTI/PKTU.');
+        }
         if (!in_array($category, ['l1_penyelenggara', 'l1_narasumber'], true)) {
             $metode = 'semua';
         } elseif (!in_array($metode, ['semua', 'klasikal', 'full learning', 'blended'], true)) {
@@ -60,6 +65,7 @@ class QuestionImport implements ToModel, WithHeadingRow
         return new Question([
             'training_type' => $bidang,
             'bidang'        => $bidang,
+            'program_evaluasi' => str_starts_with($category, 'l34_') ? $program : 'PKTI/PKTU',
             'metode'        => $metode,
             'category'      => $category,
             'sub_category'  => $row['sub_kategori'] ?? 'Perubahan Perilaku',

@@ -8,21 +8,21 @@
         <span class="text-muted fw-light">Akun /</span> Riwayat Pelatihan Saya
     </h4>
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm overflow-hidden">
         <div class="card-header border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Daftar Pelatihan yang Diikuti</h5>
             <span class="badge bg-label-primary">NIP: {{ auth()->user()->nip_nik }}</span>
         </div>
         
-        <div class="table-responsive text-nowrap">
-            <table class="table table-hover">
+        <div class="table-responsive">
+            <table class="table table-hover history-table mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th width="5%">No</th>
-                        <th width="40%">Nama Pelatihan</th>
-                        <th width="25%">Penyelenggara</th>
-                        <th width="15%">Waktu Pelaksanaan</th>
-                        <th width="15%" class="text-center">Aksi</th>
+                        <th class="history-number">No</th>
+                        <th>Nama Pelatihan</th>
+                        <th>Penyelenggara</th>
+                        <th>Waktu Pelaksanaan</th>
+                        <th class="text-center history-action-column">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -40,11 +40,13 @@
                                 <small class="text-muted" style="font-size: 10px;">s.d {{ \Carbon\Carbon::parse($h->training->tgl_selesai)->format('d/m/Y') }}</small>
                             </div>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center history-action-cell">
                             {{-- TOMBOL AKSI DETAIL --}}
-                            <a href="{{ route('participant.training.show', $h->training->id) }}" class="btn btn-sm btn-primary">
-                                <i class="bx bx-show-alt me-1"></i> Detail
-                            </a>
+                            <div class="d-flex justify-content-center">
+                                <a href="{{ route('participant.training.show', $h->training->id) }}" class="btn btn-sm btn-primary text-nowrap">
+                                    <i class="bx bx-show-alt me-1"></i>Detail
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -69,6 +71,42 @@
     .table td {
         vertical-align: top;
         padding: 1rem 0.75rem !important;
+    }
+    .history-table {
+        width: 100%;
+    }
+    .history-table th,
+    .history-table td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .history-number {
+        width: 64px;
+    }
+    .history-action-column,
+    .history-action-cell {
+        width: 130px;
+        min-width: 130px;
+    }
+    .history-action-cell {
+        white-space: nowrap !important;
+    }
+    @media (max-width: 767.98px) {
+        .history-table {
+            min-width: 720px;
+        }
+        .history-action-column,
+        .history-action-cell {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            box-shadow: -6px 0 10px rgba(67, 89, 113, .06);
+            z-index: 1;
+        }
+        .history-table thead .history-action-column {
+            background: #f5f5f9;
+            z-index: 2;
+        }
     }
 </style>
 @endsection

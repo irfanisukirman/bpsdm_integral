@@ -1,15 +1,31 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Agenda;use App\Models\AgendaSchedule;use App\Models\Asset;use App\Models\AssetBooking;use Illuminate\Http\Request;use Illuminate\Support\Facades\Auth;use Illuminate\Support\Facades\DB;use Illuminate\Validation\ValidationException;
+use App\Models\Agenda;use App\Models\AgendaSchedule;use App\Models\Asset;use App\Models\AssetBooking;use App\Models\Schedule;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Auth;use Illuminate\Support\Facades\DB;use Illuminate\Validation\ValidationException;
 class AgendaController extends Controller {
  private function guard():void{abort_unless(in_array(Auth::user()->role,['superadmin','admin_aset','admin_bidang']),403);}
  private function scope($q){$u=Auth::user();return $q->when($u->role==='admin_bidang',fn($x)=>$x->where('bidang',$u->bidang));}
  public function index(){
   $this->guard();
-  $agendas=$this->scope(Agenda::with(['creator','schedules'=>fn($q)=>$q->orderByDesc('starts_at'),'schedules.bookings.asset']))
-   ->orderByDesc(AgendaSchedule::select('starts_at')->whereColumn('agenda_schedules.agenda_id','agendas.id')->latest('starts_at')->limit(1))
-   ->paginate(20);
-  return view('agendas.index',compact('agendas'));
+  $agendaEvents=$this->scope(Agenda::with(['creator','schedules'=>fn($q)=>$q->orderByDesc('starts_at'),'schedules.bookings.asset']))
+   ->get()->map(function($agenda){$schedule=$agenda->schedules->first();if(!$schedule)return null;
+    return ['type'=>'agenda','id'=>$agenda->id,'starts_at'=>$schedule->starts_at,'ends_at'=>$schedule->ends_at,'title'=>$agenda->name,
+     'subtitle'=>$agenda->agenda_type==='pimpinan'?'Agenda Pimpinan':'Agenda Bidang','bidang'=>$agenda->bidang,
+     'location'=>$agenda->scope==='internal'?$schedule->bookings->pluck('asset.name')->filter()->join(', '):$schedule->external_place,
+     'executor'=>$schedule->participants_info,'description'=>$agenda->description,'creator'=>$agenda->creator?->name,
+     'edit_url'=>route('agendas.edit',$agenda),'delete_url'=>route('agendas.destroy',$agenda)];
+   })->filter();
+  $trainingEvents=Schedule::with(['training.creator','pengajar','bookings.asset'])
+   ->whereHas('training',fn($q)=>$q->when(Auth::user()->role==='admin_bidang',fn($x)=>$x->where('bidang',Auth::user()->bidang)))
+   ->get()->map(function($schedule){$start=\Carbon\Carbon::parse($schedule->date.' '.$schedule->start_time);$end=\Carbon\Carbon::parse($schedule->date.' '.$schedule->end_time);
+    return ['type'=>'training','id'=>$schedule->id,'starts_at'=>$start,'ends_at'=>$end,
+     'title'=>$schedule->training->nama_pelatihan,'subtitle'=>$schedule->activity,'bidang'=>$schedule->training->bidang,
+     'location'=>$schedule->venue_type==='internal'?$schedule->bookings->pluck('asset.name')->filter()->join(', '):($schedule->external_place?:$schedule->training->lokasi),
+     'executor'=>$schedule->pengajar?->name?:$schedule->pic,'description'=>'Sesi pelatihan'.($schedule->jp?' · '.$schedule->jp.' JP':''),
+     'creator'=>$schedule->training->creator?->name,'manage_url'=>route('trainings.schedules',$schedule->training_id)];
+   });
+  $allEvents=$agendaEvents->concat($trainingEvents)->sortByDesc('starts_at')->values();$page=LengthAwarePaginator::resolveCurrentPage();$perPage=20;
+  $events=new LengthAwarePaginator($allEvents->forPage($page,$perPage)->values(),$allEvents->count(),$perPage,$page,['path'=>request()->url(),'query'=>request()->query()]);
+  return view('agendas.index',compact('events'));
  }
  public function create(){ $this->guard();$assets=Asset::where('is_active',true)->where('type','ruangan')->orderBy('name')->get();return view('agendas.create',compact('assets')); }
  public function availability(Request $r){

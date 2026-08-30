@@ -16,21 +16,17 @@
         </div>
         
         <div class="d-flex gap-2">
-            @if(isset($currentBidang))
-                @if(Auth::user()->role === 'superadmin' && !request()->query('folder'))
-                    <a href="{{ route('documents.index') }}" class="btn btn-outline-secondary">
-                        <i class="bx bx-arrow-back me-1"></i> Daftar Bidang
-                    </a>
-                @endif
-                
-                @if($currentFolder)
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFile">
-                        <i class="bx bx-upload me-1"></i> Upload File
-                    </button>
-                @endif
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFolder">
-                    <i class="bx bx-folder-plus me-1"></i> Folder Baru
-                </button>
+            @if(Auth::user()->role === 'superadmin' && !request()->query('folder') && isset($currentBidang))
+                <a href="{{route('documents.index')}}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Daftar Bidang</a>
+            @endif
+            @if(($currentFolder ?? null) && ($canManageCurrent ?? false))
+                <a href="{{route('documents.folder.sharing',$currentFolder)}}" class="btn btn-outline-primary"><i class="bx bx-user-plus me-1"></i>Bagikan</a>
+            @endif
+            @if(($currentFolder ?? null) && ($canContribute ?? false))
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFile"><i class="bx bx-upload me-1"></i>Upload File</button>
+            @endif
+            @if($canContribute ?? in_array(Auth::user()->role,['superadmin','admin_bidang'],true))
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFolder"><i class="bx bx-folder-plus me-1"></i>Folder Baru</button>
             @endif
         </div>
     </div>
@@ -131,7 +127,8 @@
                             // Logika Izin: 
                             // 1. Jika dia Superadmin, dia bisa melakukan apa saja.
                             // 2. Jika dia Admin Bidang, dia hanya bisa ubah/hapus foldernya sendiri.
-                            $canManage = (Auth::user()->role === 'superadmin') || ($folder->user_id === Auth::id());
+                            $folderPermission = app(\App\Services\DocumentAccessService::class)->permission(Auth::user(), $folder);
+                            $canManage = app(\App\Services\DocumentAccessService::class)->canManage(Auth::user(), $folder);
                         @endphp
                         <div class="dropdown position-absolute end-0 top-0 me-2 mt-2">
                             <button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
@@ -148,6 +145,9 @@
                                             </button>
                                         </form>
                                     </li>
+                                @endif
+                                @if($canManage)
+                                    <li><a class="dropdown-item" href="{{route('documents.folder.sharing',$folder)}}"><i class="bx bx-user-plus me-2 text-primary"></i>Bagikan ke Pengguna</a></li>
                                 @endif
                                 @if($folder->is_public)
                                     <li>
@@ -167,7 +167,7 @@
                                     </li>
                                 @else
                                     {{-- Opsional: Berikan info jika tidak bisa menghapus --}}
-                                    <li><a class="dropdown-item disabled" href="javascript:void(0)"><i class="bx bx-info-circle me-2"></i> Folder Read-Only</a></li>
+                                    <li><span class="dropdown-item-text small text-muted"><i class="bx bx-info-circle me-2"></i>{{ $folderPermission === 'contributor' ? 'Akses Kontributor' : 'Hanya Lihat' }}</span></li>
                                 @endif
                             </ul>
                         </div>
@@ -200,18 +200,18 @@
 
         <!-- Tabel File -->
         @if($files->count() > 0)
-        <div class="card shadow-sm border">
+        <div class="card shadow-sm border document-files-card">
             <div class="card-header border-bottom py-3">
                 <h6 class="m-0 fw-bold"><i class="bx bx-file me-2"></i>Daftar Berkas Dokumen</h6>
             </div>
-            <div class="table-responsive text-nowrap">
+            <div class="table-responsive document-files-table">
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>Nama File</th>
                             <th>Ukuran</th>
                             <th>Informasi Upload</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-center document-action-column">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,20 +226,16 @@
                             
                             <td><small class="text-muted">{{ formatSizeUnits($file->file_size) }}</small></td>
                             <td><small class="d-block">{{ $file->created_at->translatedFormat('d M Y, H:i') }}</small><small class="text-muted">oleh {{ $file->user?->name ?? 'Sistem' }}</small></td>
-                            <td class="text-center">
-                                <div class="btn-group">
+                            <td class="text-center document-action-column">
+                                <div class="document-file-actions">
                                     <a href="{{ route('documents.file.view', $file->id) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-primary" title="Lihat file">
                                         <i class="bx bx-show"></i>
                                     </a>
-                                    <a href="{{ route('documents.file.download', $file->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Download file">
-                                        <i class="bx bx-download"></i>
-                                    </a>
-                                    <form action="{{ route('documents.file.destroy', $file->id) }}" method="POST" onsubmit="return confirm('Hapus file ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Hapus">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
-                                    </form>
+                                    <a href="{{route('documents.file.download',$file)}}" class="btn btn-sm btn-icon btn-outline-secondary" title="Download file"><i class="bx bx-download"></i></a>
+                                    <a href="{{route('documents.file.versions',$file)}}" class="btn btn-sm btn-icon btn-outline-info" title="Riwayat versi"><i class="bx bx-history"></i></a>
+                                    @if($canManageCurrent ?? false)
+                                    <form action="{{route('documents.file.destroy',$file)}}" method="POST" onsubmit="return confirm('Hapus file ini beserta seluruh riwayat versinya?')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Hapus"><i class="bx bx-trash"></i></button></form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -321,6 +317,27 @@
 </div>
 
 <style>
+    .document-files-card { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
+    .document-files-table { display: block; width: 100%; max-width: 100%; min-width: 0; overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; }
+    .document-files-table .table { width: 100%; min-width: 760px; margin-bottom: 0; white-space: normal; }
+    .document-files-table th, .document-files-table td { vertical-align: middle; }
+    .document-files-table td:first-child { min-width: 220px; max-width: 360px; }
+    .document-files-table td:first-child .fw-semibold { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+    .document-action-column { width: 1%; min-width: 178px; white-space: normal !important; }
+    .document-file-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem; max-width: 100%; }
+    .document-file-actions form { display: inline-flex; margin: 0; }
+    .document-file-actions .btn { flex: 0 0 auto; border-radius: .375rem !important; }
+    .table-responsive { max-width: 100%; }
+    @media (max-width: 575.98px) {
+        .document-files-card { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
+    .document-files-table { display: block; width: 100%; max-width: 100%; min-width: 0; overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; }
+    .document-files-table .table { width: 100%; min-width: 760px; margin-bottom: 0; white-space: normal; }
+    .document-files-table th, .document-files-table td { vertical-align: middle; }
+    .document-files-table td:first-child { min-width: 220px; max-width: 360px; }
+    .document-files-table td:first-child .fw-semibold { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+    .document-action-column { min-width: 112px; }
+        .document-file-actions { max-width: 112px; margin-inline: auto; }
+    }
     .folder-card {
         transition: all 0.2s ease-in-out;
         cursor: pointer;

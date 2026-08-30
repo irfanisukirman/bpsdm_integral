@@ -53,9 +53,22 @@ class ParticipantController extends Controller
             ? Schedule::where('pengajar_id', $user->id)->distinct('training_id')->count('training_id')
             : 0;
 
+        $postEvaluationTrainings = Participant::with('training')
+            ->where('user_id', $user->id)
+            ->where('registration_status', 'approved')
+            ->get()
+            ->filter(fn ($participant) =>
+                $participant->is_core_training_complete
+                && $participant->is_post_evaluation_due
+                && !$participant->hasFilledL34Mandiri()
+            )
+            ->sortBy(fn ($participant) => $participant->training?->tgl_sebar_l34)
+            ->values();
+
         return view('participant.dashboard', compact(
             'user', 'totalFollowed', 'myJpThisYear', 'isPengajar',
-            'teachingJpTotal', 'teachingJpThisYear', 'teachingCount'
+            'teachingJpTotal', 'teachingJpThisYear', 'teachingCount',
+            'postEvaluationTrainings'
         ));
     }
 
@@ -66,25 +79,38 @@ class ParticipantController extends Controller
     {
         $user = auth()->user();
 
-        // Ambil pelatihan yang diikuti user
+        $enrollments = Participant::with('training')
+            ->where('user_id', $user->id)
+            ->get();
+
+        $canJoinNewTraining = $this->canJoinNewTraining($enrollments);
+
+        // Tampilkan pelatihan aktif/belum lengkap serta evaluasi pasca yang sudah jatuh tempo.
         $myTrainings = \App\Models\Training::with(['participants', 'stages'])
             ->whereHas('participants', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
+            ->orderByDesc('tgl_mulai')
             ->get()
             ->filter(function($t) use ($user) {
                 $participant = $t->participants->where('user_id', $user->id)->first();
-                // KUNCI: Hanya tampilkan jika belum menyelesaikan semua kewajiban
-                // Jika sudah selesai semua (L1-L4 & Berkas), maka card hilang (pindah ke riwayat)
-                return !$participant->is_all_finished;
+                $needsPostEvaluation = $participant->is_post_evaluation_due && !$participant->hasFilledL34Mandiri();
+                return !$participant->is_core_training_complete || $needsPostEvaluation;
             });
 
-        return view('participant.available_trainings', compact('myTrainings'));
+        return view('participant.available_trainings', compact('myTrainings', 'canJoinNewTraining'));
     }
 
     public function enrollByCode(Request $request)
     {
         $request->validate(['invitation_code' => 'required|string']);
+
+        $enrollments = Participant::with('training')
+            ->where('user_id', auth()->id())
+            ->get();
+        if (!$this->canJoinNewTraining($enrollments)) {
+            return redirect()->back()->with('error', 'Selesaikan pelatihan yang sedang diikuti, lengkapi tiga berkas, dan isi seluruh Evaluasi Level 1 sebelum mengikuti pelatihan baru.');
+        }
         
         // Cari pelatihan berdasarkan kode
         $training = \App\Models\Training::where('invitation_code', strtoupper($request->invitation_code))->first();
@@ -95,6 +121,13 @@ class ParticipantController extends Controller
 
         // Gunakan fungsi enroll yang sudah kita buat sebelumnya (Tinggal panggil logikanya)
         return $this->enroll($request, $training->id);
+    }
+
+    private function canJoinNewTraining($enrollments): bool
+    {
+        return $enrollments->isEmpty() || $enrollments->every(fn ($participant) =>
+            $participant->registration_status === 'rejected' || $participant->is_core_training_complete
+        );
     }
 
     /**
@@ -214,7 +247,7 @@ class ParticipantController extends Controller
         }
 
         // Ambil form evaluasi
-        $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
+        $formsL1 = \App\Models\EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->get();
         $participantAttendances = Attendance::with('schedule')
             ->where('participant_id', $participant->id)
             ->whereHas('schedule', fn ($query) => $query->where('training_id', $training->id))
@@ -238,16 +271,13 @@ class ParticipantController extends Controller
     public function myHistory()
     {
         $user = auth()->user();
-        
-        $history = \App\Models\Training::whereHas('participants', function($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
+
+        $history = Participant::with('training')
+            ->where('user_id', $user->id)
             ->get()
-            ->filter(function($t) use ($user) {
-                $participant = $t->participants->where('user_id', $user->id)->first();
-                // KUNCI: Muncul di Riwayat HANYA JIKA sudah selesai semua
-                return $participant->is_all_finished;
-            });
+            ->filter(fn ($participant) => $participant->is_core_training_complete)
+            ->sortByDesc(fn ($participant) => $participant->training?->tgl_selesai)
+            ->values();
 
         return view('participant.history', compact('history'));
     }

@@ -41,9 +41,16 @@
         </div>
     </div>
 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <small class="text-muted">
+            Menampilkan {{ $trainings->firstItem() ?? 0 }}-{{ $trainings->lastItem() ?? 0 }}
+            dari {{ $trainings->total() }} pelatihan
+        </small>
+    </div>
+
     <!-- Main List -->
     <div class="row pb-5">
-        @foreach($trainings as $t)
+        @forelse($trainings as $t)
         <div class="col-12 mb-3">
             <div class="card border-0 shadow-sm card-training-row">
                 <div class="card-body p-3">
@@ -118,7 +125,7 @@
                                             <i class="bx bx-edit-alt me-2"></i> Edit Pelatihan
                                         </a>
                                         <div class="dropdown-divider"></div>
-                                        <form action="{{ route('trainings.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Hapus pelatihan?')">
+                                        <form action="{{ route('trainings.destroy', $t->id) }}" method="POST" class="delete-training-form" data-training-name="{{ $t->nama_pelatihan }}">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="dropdown-item text-danger">
                                                 <i class="bx bx-trash me-2"></i> Hapus
@@ -132,7 +139,79 @@
                 </div>
             </div>
         </div>
-        @endforeach
+        @empty
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-5 text-center text-muted">
+                    <i class="bx bx-book-open fs-1 d-block mb-2"></i>
+                    Belum ada data pelatihan.
+                </div>
+            </div>
+        </div>
+        @endforelse
+    </div>
+
+    @if($trainings->hasPages())
+        <div class="d-flex justify-content-center mb-4">
+            {{ $trainings->onEachSide(1)->links() }}
+        </div>
+    @endif
+</div>
+
+<div class="modal fade" id="deleteTrainingModal" tabindex="-1" aria-labelledby="deleteTrainingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden">
+            <div class="modal-header border-0 bg-label-danger px-4 pt-4 pb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="delete-warning-icon"><i class="bx bx-trash"></i></span>
+                    <div>
+                        <small class="text-danger fw-bold text-uppercase">Tindakan permanen</small>
+                        <h5 class="modal-title fw-bold mb-0" id="deleteTrainingModalLabel">Hapus Pelatihan?</h5>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-2">Anda akan menghapus pelatihan:</p>
+                <div class="border border-danger rounded-3 p-3 bg-label-danger mb-4">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bx bx-book-open text-danger fs-4"></i>
+                        <strong class="text-dark" id="deleteTrainingName">-</strong>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">Seluruh data berikut akan ikut dihapus:</h6>
+                <div class="row g-2 mb-4">
+                    @foreach([
+                        ['bx-group', 'Peserta & profil alumni'],
+                        ['bx-fingerprint', 'Presensi peserta'],
+                        ['bx-bar-chart-alt-2', 'Evaluasi L1–L4'],
+                        ['bx-task-x', 'Monitoring & tindak lanjut'],
+                        ['bx-calendar-x', 'Jadwal & administrasi pengajar'],
+                        ['bx-conversation', 'Forum pelatihan'],
+                        ['bx-folder-minus', 'Folder & seluruh dokumen'],
+                        ['bx-cube', 'Reservasi aset pelatihan'],
+                    ] as [$icon, $label])
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 small text-muted p-2 rounded bg-light h-100">
+                                <i class="bx {{ $icon }} text-danger"></i><span>{{ $label }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="alert alert-success border-0 d-flex align-items-start mb-0">
+                    <i class="bx bx-shield-quarter fs-4 me-2"></i>
+                    <div><strong>Akun user tetap aman.</strong><br><small>Akun pengguna dan data mereka pada pelatihan lain tidak akan dihapus.</small></div>
+                </div>
+            </div>
+            <div class="modal-footer border-top px-4 py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteTraining">
+                    <i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -203,6 +282,53 @@
     .dropdown-item.text-danger:hover {
         background-color: #ffebee !important;
     }
+
+    .delete-warning-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 52px;
+        color: #ff3e1d;
+        background: rgba(255, 62, 29, .14);
+        font-size: 1.7rem;
+    }
 </style>
+@endpush
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalElement = document.getElementById('deleteTrainingModal');
+    const modal = new bootstrap.Modal(modalElement);
+    const trainingName = document.getElementById('deleteTrainingName');
+    const confirmButton = document.getElementById('confirmDeleteTraining');
+    let selectedForm = null;
+
+    document.querySelectorAll('.delete-training-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            selectedForm = form;
+            trainingName.textContent = form.dataset.trainingName || 'Pelatihan ini';
+            confirmButton.disabled = false;
+            confirmButton.innerHTML = '<i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data';
+            modal.show();
+        });
+    });
+
+    confirmButton.addEventListener('click', function () {
+        if (!selectedForm) return;
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
+        selectedForm.submit();
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        selectedForm = null;
+    });
+});
+</script>
 @endpush
 @endsection

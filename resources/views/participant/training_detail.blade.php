@@ -248,31 +248,31 @@
                                         @php
                                             // Cek status pengisian per form
                                             $isFilledL1 = $participant->hasFilledL1($form->id, $form->schedule_id);
+                                            $opensAtL1 = $form->opensAt();
+                                            $isOpenL1 = $form->isOpen();
                                         @endphp
                                         
-                                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded mb-2 border {{ $isFilledL1 ? 'border-info bg-label-info' : 'border-danger bg-label-danger' }} shadow-sm">
+                                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded mb-2 border {{ $isFilledL1 ? 'border-info bg-label-info' : ($isOpenL1 ? 'border-danger bg-label-danger' : 'border-secondary bg-light') }} shadow-sm">
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar flex-shrink-0 me-3">
-                                                    <span class="avatar-initial rounded bg-white {{ $isFilledL1 ? 'text-info' : 'text-danger' }}">
-                                                        <i class="bx {{ $isFilledL1 ? 'bx-check-circle' : 'bx-error-circle' }}"></i>
+                                                    <span class="avatar-initial rounded bg-white {{ $isFilledL1 ? 'text-info' : ($isOpenL1 ? 'text-danger' : 'text-secondary') }}">
+                                                        <i class="bx {{ $isFilledL1 ? 'bx-check-circle' : ($isOpenL1 ? 'bx-error-circle' : 'bx-lock-alt') }}"></i>
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <span class="fw-bold d-block text-dark">{{ $form->name }}</span>
-                                                    <small class="text-muted">Objek: {{ $form->target_name }}</small>
+                                                    <small class="text-muted d-block">Objek: {{$form->target_name}}</small>
+                                                    @if($form->type==='narasumber' && $form->schedule)<small class="text-muted d-block"><i class="bx bx-calendar me-1"></i>{{\Carbon\Carbon::parse($form->schedule->date)->translatedFormat('d M Y')}} · {{substr($form->schedule->start_time,0,5)}}–{{substr($form->schedule->end_time,0,5)}} · {{$form->materi}}</small>@endif
                                                 </div>
                                             </div>
 
                                             <div class="text-end">
                                                 @if($isFilledL1)
-                                                    <span class="badge bg-info mb-1">Sudah Mengisi</span>
-                                                    <button class="btn btn-xs btn-outline-info d-block w-100" disabled>Terkunci</button>
+                                                    <span class="badge bg-info mb-1">Sudah Mengisi</span><button class="btn btn-xs btn-outline-info d-block w-100" disabled>Terkunci</button>
+                                                @elseif(!$isOpenL1)
+                                                    <span class="badge bg-label-secondary mb-1">Belum Dibuka</span><button class="btn btn-xs btn-outline-secondary d-block w-100" disabled><i class="bx bx-lock-alt me-1"></i>{{$opensAtL1?->translatedFormat('d M, H:i')?:'Menunggu jadwal'}}</button>
                                                 @else
-                                                    <span class="badge bg-danger mb-1">Belum Mengisi</span>
-                                                    <a href="{{ route('public.evall1.form', ['training_id' => $training->id, 'type' => $form->type, 'sid' => $form->schedule_id ?? 'null']) }}" 
-                                                    target="_blank" class="btn btn-xs btn-danger d-block w-100">
-                                                    Isi Sekarang
-                                                    </a>
+                                                    <span class="badge bg-danger mb-1">Belum Mengisi</span><a href="{{route('public.evall1.form',['training_id'=>$training->id,'type'=>$form->type,'sid'=>$form->schedule_id??'null'])}}" target="_blank" class="btn btn-xs btn-danger d-block w-100">Isi Sekarang</a>
                                                 @endif
                                             </div>
                                         </div>

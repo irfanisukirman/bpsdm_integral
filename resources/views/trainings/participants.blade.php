@@ -205,7 +205,7 @@
                                             </form>
                                         @endif
 
-                                        <form action="{{ route('participants.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini?')">
+                                        <form action="{{ route('participants.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus peserta dari pelatihan ini? Seluruh berkas, presensi, profil alumni, dan hasil evaluasinya pada pelatihan ini akan ikut dihapus. Akun user tidak akan dihapus.')">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-icon btn-label-danger border-0" title="Hapus">
                                                 <i class="bx bx-trash"></i>

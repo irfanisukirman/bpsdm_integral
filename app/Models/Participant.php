@@ -153,6 +153,51 @@ class Participant extends Model
             ->exists();
     }
 
+    public function hasCompletedAllL1(): bool
+    {
+        $forms = \App\Models\EvaluationFormL1::where('training_id', $this->training_id)->get();
+        if ($forms->isEmpty()) {
+            return true;
+        }
+
+        return $forms->every(function ($form) {
+            return \App\Models\EvaluationResultL1::where('participant_id', $this->id)
+                ->where('training_id', $this->training_id)
+                ->where(function ($query) use ($form) {
+                    if ($form->schedule_id) {
+                        $query->where('schedule_id', $form->schedule_id);
+                    } else {
+                        $query->whereNull('schedule_id');
+                    }
+                })
+                ->exists();
+        });
+    }
+
+    public function getHasCompletedDocumentsAttribute(): bool
+    {
+        return (bool) ($this->biodata_file_id && $this->surat_tugas_file_id && $this->pas_foto_file_id);
+    }
+
+    public function getIsCoreTrainingCompleteAttribute(): bool
+    {
+        $training = $this->relationLoaded('training') ? $this->training : $this->training()->first();
+
+        return $this->registration_status === 'approved'
+            && $training
+            && \Carbon\Carbon::parse($training->tgl_selesai)->endOfDay()->isPast()
+            && $this->has_completed_documents
+            && $this->hasCompletedAllL1();
+    }
+
+    public function getIsPostEvaluationDueAttribute(): bool
+    {
+        $training = $this->relationLoaded('training') ? $this->training : $this->training()->first();
+
+        return $training
+            && now()->startOfDay()->greaterThanOrEqualTo($training->tgl_sebar_l34->copy()->startOfDay());
+    }
+
     public function getIsAllFinishedAttribute()
     {
         // 1. Cek Berkas (Biodata, Surat Tugas, Pas Foto)

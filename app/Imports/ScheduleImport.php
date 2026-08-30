@@ -41,7 +41,8 @@ class ScheduleImport implements ToModel, WithHeadingRow
         $pengajarKeyword = trim($row['tenaga_pengajar_fasilitator'] ?? '');
 
         if (!empty($pengajarKeyword)) {
-            $pengajar = User::where('role', 'pengajar')
+            $pengajar = User::whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
+                ->where(fn ($query) => $query->whereNull('bidang')->orWhere('bidang', ''))
                 ->where(function($q) use ($pengajarKeyword) {
                     $q->where('name', 'LIKE', "%{$pengajarKeyword}%")
                       ->orWhere('nip_nik', $pengajarKeyword);

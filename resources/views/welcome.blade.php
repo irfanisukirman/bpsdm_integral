@@ -501,7 +501,7 @@
 
     <section id="kalender-kegiatan" class="py-5 bg-white">
         <div class="container py-5">
-            <div class="text-center mb-5"><span class="section-tag">Agenda BPSDM</span><h2 class="fw-bold">Kalender Kegiatan</h2><p class="text-muted">Agenda publik di luar kegiatan pelatihan.</p></div>
+            <div class="text-center mb-5"><span class="section-tag">Agenda BPSDM</span><h2 class="fw-bold">Kalender Kegiatan</h2><p class="text-muted">Jadwal pelatihan dan agenda publik BPSDM dalam satu kalender.</p></div>
             @include('partials.public-agenda-list', ['publicSchedules' => $publicSchedules])
             <div class="row g-4 d-none" aria-hidden="true">
                 @forelse($publicAgendas as $agenda)

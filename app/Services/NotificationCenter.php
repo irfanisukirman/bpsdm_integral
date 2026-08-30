@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\EvaluationFormL1;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL34;
+use App\Models\FolderUserPermission;
 use App\Models\MonitoringResult;
 use App\Models\Participant;
 use App\Models\Schedule;
@@ -53,6 +54,7 @@ class NotificationCenter
         }
 
         $items = $items->merge($this->forumItems($user));
+        $items = $items->merge($this->folderShareItems($user));
 
         $weight = ['danger' => 1, 'warning' => 2, 'info' => 3, 'success' => 4];
 
@@ -64,6 +66,10 @@ class NotificationCenter
         ))->values();
     }
 
+    private function folderShareItems(User $user): Collection
+    {
+        return FolderUserPermission::with(['folder','sharer'])->where('user_id',$user->id)->whereNull('seen_at')->latest()->get()->filter(fn($permission)=>$permission->folder)->map(function($permission){$role=$permission->permission==='contributor'?'Kontributor':'Pelihat';return $this->item('shared-folder-'.$permission->id,'Folder dibagikan kepada Anda',($permission->sharer?->name?:'Administrator').' membagikan folder '.$permission->folder->name.' sebagai '.$role.'.','info','bx-folder-open',route('documents.index',['folder'=>$permission->folder_id,'bidang'=>$permission->folder->bidang]),'Buka folder',$permission->created_at?->format('Y-m-d H:i:s'));})->values();
+    }
     private function participantItems(User $user): Collection
     {
         $items = collect();
@@ -128,7 +134,7 @@ class NotificationCenter
                 }
             }
 
-            $forms = EvaluationFormL1::where('training_id', $training->id)->get();
+            $forms = EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $training->id)->get()->filter(fn ($form) => $form->isOpen());
             $missingL1 = $forms->filter(function ($form) use ($participant) {
                 return !EvaluationResultL1::where('training_id', $participant->training_id)
                     ->where('participant_id', $participant->id)
@@ -148,12 +154,14 @@ class NotificationCenter
                 ));
             }
 
-            $trainingEnded = $training->tgl_selesai && Carbon::parse($training->tgl_selesai)->endOfDay()->isPast();
             $hasL34 = EvaluationResultL34::where('training_id', $training->id)
                 ->where('participant_id', $participant->id)
                 ->where('evaluator_role', 'mandiri')
                 ->exists();
-            if ($trainingEnded && !$hasL34) {
+            $postEvaluationAt = $training->tgl_sebar_l34?->copy()->startOfDay();
+            $postEvaluationIsDue = $postEvaluationAt
+                && now('Asia/Jakarta')->startOfDay()->greaterThanOrEqualTo($postEvaluationAt);
+            if ($postEvaluationIsDue && !$hasL34) {
                 $items->push($this->item(
                     'evaluation-l34-'.$participant->id,
                     'Evaluasi pascapelatihan belum diisi',
@@ -161,7 +169,8 @@ class NotificationCenter
                     'info',
                     'bx-line-chart',
                     route('public.l34.gateway', $training->id),
-                    'Isi evaluasi'
+                    'Isi evaluasi',
+                    $postEvaluationAt->format('Y-m-d 00:00:00')
                 ));
             }
         }

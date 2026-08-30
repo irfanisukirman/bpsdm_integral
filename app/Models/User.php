@@ -51,6 +51,10 @@ class User extends Authenticatable
         return $this->hasOne(Pengajar::class);
     }
 
+    public function sharedFolders()
+    {
+        return $this->belongsToMany(Folder::class, 'folder_user_permissions')->withPivot(['permission', 'shared_by'])->withTimestamps();
+    }
     public function teachingSchedules()
     {
         return $this->hasMany(Schedule::class, 'pengajar_id');

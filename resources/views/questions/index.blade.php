@@ -83,6 +83,41 @@
 </div>
 @endif
 
+<div class="d-flex justify-content-end mb-3">
+    <form action="{{ route('questions.destroy-bundle') }}" method="POST"
+          onsubmit="return confirm('Hapus seluruh pertanyaan evaluasi pada bidang ini? Semua jawaban yang terkait dengan pertanyaan tersebut juga akan dihapus permanen.')">
+        @csrf @method('DELETE')
+        <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
+        <button type="submit" class="btn btn-outline-danger" {{ $questions->isEmpty() ? 'disabled' : '' }}>
+            <i class="bx bx-trash me-1"></i>Hapus Semua Pertanyaan Bidang Ini
+        </button>
+    </form>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{{ route('questions.index') }}" class="row g-3 align-items-end">
+            @if($isSuperadmin)<input type="hidden" name="bidang" value="{{ $selectedBidang }}">@endif
+            <div class="col-md-5">
+                <label class="form-label fw-bold mb-1">Filter Program Evaluasi</label>
+                <select name="program" class="form-select" onchange="this.form.submit()">
+                    <option value="">Tampilkan Semua Program</option>
+                    @foreach($programOptions as $program)
+                        <option value="{{ $program }}" @selected($selectedProgram === $program)>
+                            {{ $program === 'semua' ? 'Semua Program' : $program }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-7">
+                <div class="alert alert-info py-2 mb-0">
+                    <small><i class="bx bx-info-circle me-1"></i>Bidang selain Manajerial otomatis menggunakan <strong>PKTI/PKTU</strong>. CPNS, PKP, PKA, dan PKN khusus Bidang Manajerial.</small>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- FORM BUAT SOAL -->
 <div class="card mb-4">
     <div class="card-header border-bottom mb-3">
@@ -128,6 +163,16 @@
                         <option value="blended">Blended Learning</option>
                     </select>
                     <div id="create_method_help" class="form-text">Digunakan untuk evaluasi Level 1.</div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold text-dark">Program Evaluasi</label>
+                    <select name="program_evaluasi" id="create_program_evaluasi" class="form-select border-primary">
+                        <option value="semua">Semua Program</option>
+                        @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                            <option value="{{ $program }}">{{ $program }}</option>
+                        @endforeach
+                    </select>
+                    <div id="create_program_help" class="form-text">Digunakan untuk evaluasi Level 3 & 4.</div>
                 </div>
                 <div class="col-md-4 mb-3" id="create_subcategory_wrapper" style="display:none">
                     <label class="form-label fw-bold text-dark">Bagian Evaluasi L3/L4</label>
@@ -204,6 +249,7 @@
                                 </small>
                                 <div class="mt-1"><span class="badge bg-label-info">{{ in_array($q->category, ['l1_penyelenggara', 'l1_narasumber']) ? ucfirst($q->metode ?: 'semua') : 'Semua metode' }}</span></div>
                                 @if(str_starts_with($q->category, 'l34_'))
+                                    <div class="mt-1"><span class="badge bg-label-primary">{{ $q->program_evaluasi === 'semua' ? 'Semua Program' : ($q->program_evaluasi ?: 'PKTI/PKTU') }}</span></div>
                                     <div class="mt-1"><span class="badge bg-label-warning">{{ $q->sub_category ?: 'Belum dikategorikan' }}</span></div>
                                 @endif
                             </td>
@@ -262,6 +308,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <form action="{{ route('questions.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
             @csrf
+            <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
             <div class="modal-header border-bottom">
                 <h5 class="modal-title">Import Bank Soal (Excel)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -271,8 +318,10 @@
                 <div class="alert alert-info py-2 shadow-none mb-3">
                     <small class="fw-bold d-block mb-1">ATURAN PENGISIAN EXCEL:</small>
                     <ul class="small mb-0 ps-3">
-                        <li><strong>bidang</strong>: gunakan nama bidang lengkap; superadmin dapat memakai Semua Bidang.</li>
+                        <li><strong>bidang</strong>: otomatis mengikuti bidang yang sedang dikelola.</li>
                         <li><strong>metode</strong>: klasikal, full learning, blended, atau semua.</li>
+                        <li><strong>program_evaluasi</strong>: semua, CPNS, PKP, PKA, PKN, atau PKTI/PKTU.</li>
+                        <li>CPNS, PKP, PKA, dan PKN hanya digunakan pada Bidang Pengembangan Kompetensi Manajerial.</li>
                         <li><strong>level_peran</strong>: Mandiri, Atasan, Rekan, Penyelenggara, Narasumber.</li>
                         <li><strong>tipe_jawaban</strong>: slider, dropdown, checkbox, atau text.</li>
                         <li><strong>pilihan_jawaban</strong>: Isi jika tipe dropdown/checkbox (pisahkan dengan koma).</li>
@@ -285,7 +334,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top">
-                <a href="{{ route('questions.template') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('questions.template', ['bidang' => $selectedBidang]) }}" class="btn btn-outline-secondary">
                     <i class="bx bx-download me-1"></i> Download Template
                 </a>
                 <button type="submit" class="btn btn-primary">Mulai Import</button>
@@ -369,6 +418,16 @@
                         </select>
                         <div id="edit_method_help" class="form-text">Digunakan untuk evaluasi Level 1.</div>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Program Evaluasi</label>
+                        <select name="program_evaluasi" id="edit_program_evaluasi" class="form-select">
+                            <option value="semua">Semua Program</option>
+                            @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                                <option value="{{ $program }}">{{ $program }}</option>
+                            @endforeach
+                        </select>
+                        <div id="edit_program_help" class="form-text">Digunakan untuk evaluasi Level 3 & 4.</div>
+                    </div>
                     <div class="col-md-6 mb-3" id="edit_subcategory_wrapper" style="display:none">
                         <label class="form-label">Bagian Evaluasi L3/L4</label>
                         <select name="sub_category" id="edit_sub_category" class="form-select" disabled>
@@ -439,6 +498,8 @@
         const help = document.getElementById(prefix + '_method_help');
         const subcategoryWrapper = document.getElementById(prefix + '_subcategory_wrapper');
         const subcategory = document.getElementById(prefix + '_sub_category');
+        const program = document.getElementById(prefix + '_program_evaluasi');
+        const programHelp = document.getElementById(prefix + '_program_help');
         if (!category || !method || !help) return;
         const isLevelOne = ['l1_penyelenggara', 'l1_narasumber'].includes(category.value);
         const isLevel34 = category.value.startsWith('l34_');
@@ -452,6 +513,15 @@
             subcategoryWrapper.style.display = isLevel34 ? '' : 'none';
             subcategory.disabled = !isLevel34;
         }
+        if (program) {
+            program.disabled = false;
+            if (!isLevel34) program.value = 'PKTI/PKTU';
+        }
+        if (programHelp) {
+            programHelp.textContent = isLevel34
+                ? 'Pilih program tertentu atau Semua Program agar pertanyaan digunakan bersama.'
+                : 'Kategori Level 1 otomatis berlaku untuk semua program.';
+        }
     }
 
     function editQuestion(data) {
@@ -460,6 +530,7 @@
         $('#edit_bidang').val(data.bidang || data.training_type);
         $('#edit_category').val(data.category);
         $('#edit_metode').val(data.metode || 'semua');
+        $('#edit_program_evaluasi').val(data.program_evaluasi || 'PKTI/PKTU');
         $('#edit_sub_category').val(data.sub_category || 'Data Diri Alumni');
         $('#edit_type').val(data.type);
         $('#edit_question_text').val(data.question_text);

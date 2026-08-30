@@ -38,14 +38,17 @@
                         $isExpired = \Carbon\Carbon::parse($t->tgl_selesai)->isPast();
 
                         $hasDocs = $isApproved && ($p->biodata_file_id && $p->surat_tugas_file_id && $p->pas_foto_file_id);
-                        $hasL1 = $isApproved && $p->hasFilledL1Any();
+                        $hasL1 = $isApproved && $p->hasCompletedAllL1();
                         $hasL2 = $isApproved && \App\Models\EvaluationResultL2::where('participant_id', $p->id)->exists();
                         $hasL34 = $isApproved && $p->hasFilledL34Mandiri();
+                        $isCoreComplete = $isApproved && $p->is_core_training_complete;
+                        $isPostDue = $isApproved && $p->is_post_evaluation_due;
+                        $needsPostEvaluation = $isCoreComplete && $isPostDue && !$hasL34;
                     @endphp
 
-                    <div class="col-12 col-xl-6">
+                    <div class="col-12">
                         <div class="card h-100 shadow-sm border-0 transition-all 
-                            {{ $isPending ? 'border-top border-warning border-3' : ($isExpired ? 'border-top border-danger border-3' : 'border-top border-primary border-3') }} 
+                            {{ $isPending ? 'border-top border-warning border-3' : ($needsPostEvaluation ? 'border-top border-warning border-3' : ($isExpired ? 'border-top border-danger border-3' : 'border-top border-primary border-3')) }}
                             hover-shadow-lg">
 
                             <div class="card-header pb-2 d-flex justify-content-between align-items-center">
@@ -54,6 +57,8 @@
                                         <span class="badge bg-label-warning">MENUNGGU APPROVAL</span>
                                     @elseif($isRejected)
                                         <span class="badge bg-label-danger">DITOLAK</span>
+                                    @elseif($needsPostEvaluation)
+                                        <span class="badge bg-warning"><i class="bx bx-bell me-1"></i>EVALUASI PASCA TERSEDIA</span>
                                     @elseif($isExpired)
                                         <span class="badge bg-label-danger"><i class="bx bx-error-circle me-1"></i>PELATIHAN SELESAI</span>
                                     @else
@@ -64,18 +69,25 @@
                             </div>
 
                             <div class="card-body">
-                                <h5 class="card-title fw-extrabold text-dark mb-3">{{ $t->nama_pelatihan }}</h5>
+                                <div class="training-landscape">
+                                <div class="training-main-info">
+                                    <small class="text-uppercase text-primary fw-bold d-block mb-2">Informasi Pelatihan</small>
+                                    <h4 class="card-title fw-extrabold text-dark mb-3">{{ $t->nama_pelatihan }}</h4>
 
-                                <div class="training-meta mb-3">
-                                    <span><i class="bx bx-map me-1"></i>{{ $t->lokasi ?? 'Lokasi belum ditentukan' }}</span>
-                                    <span><i class="bx bx-book-open me-1"></i>{{ ucfirst($t->metode ?? $t->model ?? '-') }}</span>
-                                    <span><i class="bx bx-time-five me-1"></i>{{ $t->jp ?? 0 }} JP</span>
+                                    <div class="training-meta">
+                                        <span><i class="bx bx-map me-1"></i>{{ $t->lokasi ?? 'Lokasi belum ditentukan' }}</span>
+                                        <span><i class="bx bx-book-open me-1"></i>{{ ucfirst($t->metode ?? $t->model ?? '-') }}</span>
+                                        <span><i class="bx bx-time-five me-1"></i>{{ $t->jp ?? 0 }} JP</span>
+                                    </div>
                                 </div>
 
-                                <div class="mb-4 p-3 rounded-3 {{ $isExpired ? 'bg-label-danger' : 'bg-label-primary' }} text-center">
-                                    @if ($isExpired)
+                                <div class="training-schedule-panel p-3 rounded-3 {{ $needsPostEvaluation ? 'bg-label-warning' : ($isExpired ? 'bg-label-danger' : 'bg-label-primary') }} text-center">
+                                    @if ($needsPostEvaluation)
+                                        <h6 class="mb-1 fw-bold text-warning"><i class="bx bx-time-five me-1"></i>Waktunya Evaluasi Pascapelatihan</h6>
+                                        <small>Evaluasi dampak L3 & L4 dibuka sejak {{ $t->tgl_sebar_l34->translatedFormat('d F Y') }}.</small>
+                                    @elseif ($isExpired)
                                         <h6 class="mb-0 fw-bold text-danger">Masa Pelaksanaan Berakhir</h6>
-                                        <small class="text-danger opacity-75">Tuntaskan evaluasi agar pindah ke riwayat</small>
+                                        <small class="text-danger opacity-75">Lengkapi berkas dan seluruh evaluasi Level 1.</small>
                                     @else
                                         <small class="d-block text-uppercase fw-bold mb-1" style="font-size: 10px;">Jadwal Pelaksanaan</small>
                                         <span class="fw-bold text-primary">
@@ -102,7 +114,13 @@
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small>4. Evaluasi Dampak (L3&4)</small>
-                                            <i class="bx {{ $hasL34 ? 'bxs-check-circle text-success' : 'bx-x-circle text-danger' }} fs-5"></i>
+                                            @if($hasL34)
+                                                <i class="bx bxs-check-circle text-success fs-5"></i>
+                                            @elseif($isPostDue)
+                                                <span class="badge bg-label-danger">Wajib diisi</span>
+                                            @else
+                                                <span class="badge bg-label-secondary">Belum waktunya</span>
+                                            @endif
                                         </div>
                                         </div>
                                     </div>
@@ -111,15 +129,18 @@
                                         <i class="bx bx-loader-circle bx-spin me-1"></i> <small>Menunggu verifikasi NIP oleh Admin...</small>
                                     </div>
                                 @endif
+                                </div>
                             </div>
 
                             <div class="card-footer border-top bg-transparent pt-3 pb-3 text-center">
                                 @if ($isApproved)
-                                    <a href="{{ route('participant.training.show', $t->id) }}"
-                                        class="btn {{ $isExpired ? 'btn-danger' : 'btn-primary' }} w-100 shadow-sm fw-bold">
-                                        {{ $isExpired ? 'LENGKAPI DATA SEKARANG' : 'BUKA DASHBOARD KELAS' }}
-                                        <i class="bx bx-right-arrow-alt ms-1"></i>
-                                    </a>
+                                    @if($needsPostEvaluation)
+                                        <a href="{{ route('public.l34.form', [$t->id, 'mandiri']) }}" class="btn btn-warning w-100 shadow-sm fw-bold"><i class="bx bx-edit me-1"></i>ISI EVALUASI PASCA SEKARANG</a>
+                                    @else
+                                        <a href="{{ route('participant.training.show', $t->id) }}" class="btn {{ $isExpired ? 'btn-danger' : 'btn-primary' }} w-100 shadow-sm fw-bold">
+                                            {{ $isExpired ? 'LENGKAPI BERKAS & EVALUASI L1' : 'BUKA DASHBOARD KELAS' }} <i class="bx bx-right-arrow-alt ms-1"></i>
+                                        </a>
+                                    @endif
                                 @else
                                     <button class="btn btn-secondary w-100 opacity-50 shadow-none" disabled>
                                         <i class="bx bx-lock-alt me-1"></i> DASHBOARD TERKUNCI
@@ -183,7 +204,7 @@
         .transition-all { transition: all 0.3s ease-in-out; }
         
         .hover-shadow-lg:hover {
-            transform: translateY(-8px);
+            transform: translateY(-4px);
             box-shadow: 0 15px 30px rgba(105, 108, 255, 0.15) !important;
         }
 
@@ -203,8 +224,8 @@
 
         .training-meta {
             display: flex;
-            flex-wrap: wrap;
-            gap: .65rem 1.25rem;
+            flex-direction: column;
+            gap: .7rem;
             color: #697a8d;
             font-size: .875rem;
         }
@@ -220,9 +241,51 @@
             gap: .75rem 1.5rem;
         }
 
+        .training-landscape {
+            display: grid;
+            grid-template-columns: minmax(240px, 1.1fr) minmax(220px, .85fr) minmax(340px, 1.3fr);
+            align-items: stretch;
+            gap: 1.25rem;
+        }
+
+        .training-main-info,
+        .training-schedule-panel,
+        .task-section,
+        .training-landscape > .alert {
+            min-width: 0;
+            height: 100%;
+        }
+
+        .training-schedule-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 132px;
+        }
+
+        .task-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 1199.98px) {
+            .training-landscape {
+                grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+            }
+            .training-landscape .task-section,
+            .training-landscape > .alert {
+                grid-column: 1 / -1;
+            }
+        }
+
         @media (max-width: 575.98px) {
+            .training-landscape { grid-template-columns: 1fr; }
+            .training-landscape .task-section,
+            .training-landscape > .alert { grid-column: auto; }
             .task-grid { grid-template-columns: 1fr; }
             .card-header { align-items: flex-start !important; gap: .75rem; }
+            .card-footer .btn { white-space: normal; }
         }
         
         .bg-label-primary { background-color: #f0f0ff !important; }

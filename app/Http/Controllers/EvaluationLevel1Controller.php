@@ -128,6 +128,11 @@ class EvaluationLevel1Controller extends Controller
         
         // Pastikan schedule_id diproses sebagai null jika itu penyelenggara
         $sid = ($schedule_id && $schedule_id !== 'null') ? $schedule_id : null;
+        $formQuery = EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->where('type', $type);
+        $sid ? $formQuery->where('schedule_id', $sid) : $formQuery->whereNull('schedule_id');
+        $activeForm = $formQuery->firstOrFail();
+        $opensAt = $activeForm->opensAt();
+        abort_if(!$activeForm->isOpen(), 403, 'Evaluasi ini baru dapat diisi pada '.($opensAt?->translatedFormat('d F Y, H:i') ?: 'waktu yang ditentukan').'.');
 
         // 1. Ambil ID peserta yang SUDAH mengisi UNTUK OBJEK INI SAJA
         $filledIds = EvaluationResultL1::where('training_id', $id)
@@ -171,6 +176,12 @@ class EvaluationLevel1Controller extends Controller
         if ($sid) {
             Schedule::where('training_id', $id)->findOrFail($sid);
         }
+        $type = $sid ? 'narasumber' : 'penyelenggara';
+        $formQuery = EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->where('type', $type);
+        $sid ? $formQuery->where('schedule_id', $sid) : $formQuery->whereNull('schedule_id');
+        $activeForm = $formQuery->firstOrFail();
+        $opensAt = $activeForm->opensAt();
+        abort_if(!$activeForm->isOpen(), 403, 'Evaluasi ini baru dapat diisi pada '.($opensAt?->translatedFormat('d F Y, H:i') ?: 'waktu yang ditentukan').'.');
 
         $category = $sid ? 'l1_narasumber' : 'l1_penyelenggara';
         $applicableQuestions = Question::forTraining($training, $category)->get();

@@ -41,6 +41,13 @@
             </li>
         @endif
 
+        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Sertifikasi SKPK</span></li>
+            <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
+                <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
+            </li>
+        @endif
+
         @if(in_array(Auth::user()->role, ['admin_aset', 'superadmin']))
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Manajemen Aset & Agenda</span></li>
             @if(Auth::user()->role === 'superadmin')

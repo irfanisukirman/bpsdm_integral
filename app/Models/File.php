@@ -19,6 +19,10 @@ class File extends Model
         return $this->belongsTo(Folder::class); 
     }
 
+    public function versions()
+    {
+        return $this->hasMany(FileVersion::class)->orderByDesc('version_number');
+    }
     public function user() { 
         return $this->belongsTo(User::class); 
     }

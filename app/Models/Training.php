@@ -14,6 +14,7 @@ class Training extends Model
         'invitation_code',
         'link_lms',
         'bidang',
+        'program_evaluasi',
         'model',
         'metode',
         'lokasi',
