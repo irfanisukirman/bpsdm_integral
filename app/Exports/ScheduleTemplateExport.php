@@ -34,7 +34,7 @@ class ScheduleTemplateExport implements FromArray, WithHeadings, WithStyles, Sho
                 '09:30',
                 'Pengantar Transformasi Digital',
                 '2',
-                
+                'https://zoom.us/j/123456789',
                 'Budi Santoso', // Bisa diisi Nama atau NIP Pengajar yang terdaftar
                 'Panitia BPSDM'
             ],

@@ -131,6 +131,8 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('trainings/{id}/schedules', [TrainingController::class, 'showSchedules'])->name('trainings.schedules');
     Route::post('trainings/{id}/schedules', [TrainingController::class, 'storeSchedule'])->name('schedules.store');
+    Route::post('trainings/{id}/schedules/import', [TrainingController::class, 'importSchedules'])->name('schedules.import');
+    Route::get('schedules/template', [TrainingController::class, 'downloadScheduleTemplate'])->name('schedules.template');
     Route::put('trainings/{id}/set-lms', [TrainingController::class, 'setLmsLink'])->name('trainings.set_lms');
     Route::put('schedules/{id}', [TrainingController::class, 'updateSchedule'])->name('schedules.update');
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy'); // Route Hapus

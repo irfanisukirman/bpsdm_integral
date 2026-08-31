@@ -229,6 +229,28 @@ class TrainingController extends Controller
         );
     }
 
+    public function importSchedules(Request $request, $id)
+    {
+        Training::findOrFail($id);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        Excel::import(new ScheduleImport($id), $request->file('file'));
+
+        return redirect()->route('trainings.schedules', $id)
+            ->with('success', 'Jadwal berhasil diimpor.');
+    }
+
+    public function downloadScheduleTemplate()
+    {
+        return Excel::download(
+            new ScheduleTemplateExport(),
+            'template_jadwal_pelatihan.xlsx'
+        );
+    }
+
 
     /**
      * MENYIMPAN JADWAL BARU (DENGAN JP, LINK ZOOM & PENGAJAR)
