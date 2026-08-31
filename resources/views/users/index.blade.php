@@ -9,14 +9,20 @@
 
         <div class="d-flex flex-wrap gap-2">
             <!-- FORM PENCARIAN USER -->
-            <form action="{{ route('users.index') }}" method="GET" style="min-width: 300px;">
+            <form action="{{ route('users.index') }}" method="GET" class="d-flex gap-2 flex-grow-1" style="min-width: 300px;">
+                <select name="category" class="form-select shadow-sm" style="max-width: 230px;" onchange="this.form.submit()" aria-label="Filter kategori akun">
+                    <option value="">Semua kategori</option>
+                    <option value="admin" @selected(($category ?? '') === 'admin')>Admin & Superadmin</option>
+                    <option value="bidang" @selected(($category ?? '') === 'bidang')>Pengguna Terikat Bidang</option>
+                    <option value="external" @selected(($category ?? '') === 'external')>Tidak Terikat Bidang (Luar)</option>
+                </select>
                 <div class="input-group input-group-merge shadow-sm">
                     <span class="input-group-text"><i class="bx bx-search"></i></span>
                     <input type="text" name="search" class="form-control" 
                            placeholder="Cari Nama, NIP, atau Bidang..." 
                            value="{{ $search ?? '' }}">
-                    @if($search)
-                        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary px-2">
+                    @if($search || $category)
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary px-2" title="Hapus filter">
                             <i class="bx bx-x"></i>
                         </a>
                     @endif
@@ -55,13 +61,33 @@
         </div>
     @endif
 
+    <div class="row g-3 mb-4">
+        @foreach([
+            ['key' => '', 'label' => 'Semua Pengguna', 'value' => $stats['all'], 'icon' => 'bx-group', 'color' => 'primary'],
+            ['key' => 'admin', 'label' => 'Admin & Superadmin', 'value' => $stats['admin'], 'icon' => 'bx-shield-quarter', 'color' => 'danger'],
+            ['key' => 'bidang', 'label' => 'Terikat Bidang', 'value' => $stats['bidang'], 'icon' => 'bx-buildings', 'color' => 'info'],
+            ['key' => 'external', 'label' => 'Tidak Terikat Bidang (Luar)', 'value' => $stats['external'], 'icon' => 'bx-world', 'color' => 'secondary'],
+        ] as $item)
+            <div class="col-6 col-xl-3">
+                <a href="{{ route('users.index', array_filter(['category' => $item['key'], 'search' => $search])) }}" class="card border-0 shadow-sm h-100 text-decoration-none {{ ($category ?? '') === $item['key'] ? 'border border-2 border-'.$item['color'] : '' }}">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <span class="avatar-initial rounded bg-label-{{ $item['color'] }} p-2"><i class="bx {{ $item['icon'] }} fs-4"></i></span>
+                        <div>
+                            <div class="h5 mb-0 text-dark">{{ number_format($item['value']) }}</div>
+                            <small class="text-muted">{{ $item['label'] }}</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        @endforeach
+    </div>
     <div class="card shadow-sm border-0">
         <div class="table-responsive text-nowrap">
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
                         <th>Nama & Role</th>
-                        <th>Bidang / Penyelenggara</th>
+                        <th>Kategori & Bidang</th>
                         <th>Username / NIP</th>
                         <th>WhatsApp</th>
                         <th class="text-center">Aksi</th>
@@ -84,8 +110,17 @@
                             </div>
                         </td>
                         <td class="text-wrap">
-                            <small class="text-muted" style="font-size: 11px; line-height: 1.2; display: block; max-width: 250px;">
-                                {{ $user->bidang ?? 'Tidak Terikat Bidang (Luar)' }}
+                            @php
+                                $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true);
+                                $hasBidang = filled($user->bidang);
+                                $scopeLabel = $isAdmin
+                                    ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : 'Admin Bidang'))
+                                    : ($hasBidang ? 'Pengguna Terikat Bidang' : 'Tidak Terikat Bidang (Luar)');
+                                $scopeColor = $isAdmin ? 'danger' : ($hasBidang ? 'info' : 'secondary');
+                            @endphp
+                            <span class="badge bg-label-{{ $scopeColor }} mb-1">{{ $scopeLabel }}</span>
+                            <small class="text-muted d-block" style="font-size: 11px; line-height: 1.35; max-width: 280px;">
+                                {{ $hasBidang ? $user->bidang : 'Pengguna luar tanpa bidang penyelenggara' }}
                             </small>
                         </td>
                         <td>
@@ -135,6 +170,15 @@
             </table>
         </div>
     </div>
+
+    @if($users->hasPages())
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
+            <small class="text-muted">
+                Menampilkan {{ $users->firstItem() }}–{{ $users->lastItem() }} dari {{ $users->total() }} pengguna
+            </small>
+            {{ $users->onEachSide(1)->links() }}
+        </div>
+    @endif
 </div>
 
 <!-- ==============================================

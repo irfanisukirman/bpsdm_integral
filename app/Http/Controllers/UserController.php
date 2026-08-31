@@ -21,26 +21,49 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $category = $request->query('category');
+        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset'];
 
-        // Ambil data user dengan filter pencarian yang diperluas
+        $stats = [
+            'all' => User::count(),
+            'admin' => User::whereIn('role', $adminRoles)->count(),
+            'bidang' => User::whereNotIn('role', $adminRoles)
+                ->whereNotNull('bidang')->where('bidang', '<>', '')->count(),
+            'external' => User::whereNotIn('role', $adminRoles)
+                ->where(function ($query) {
+                    $query->whereNull('bidang')->orWhere('bidang', '');
+                })->count(),
+        ];
+
         $users = User::latest()
-            ->when($search, function($query) use ($search) {
-                $query->where(function($q) use ($search) {
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%")
-                    ->orWhere('username', 'LIKE', "%$search%")
-                    ->orWhere('nip_nik', 'LIKE', "%$search%")
-                    ->orWhere('bidang', 'LIKE', "%$search%")
-                    ->orWhere('role', 'LIKE', "%$search%")
-                    // Tambahan pencarian untuk mempermudah mencari Participant
-                    ->orWhere('instansi', 'LIKE', "%$search%")
-                    ->orWhere('jabatan', 'LIKE', "%$search%");
+                        ->orWhere('username', 'LIKE', "%$search%")
+                        ->orWhere('nip_nik', 'LIKE', "%$search%")
+                        ->orWhere('bidang', 'LIKE', "%$search%")
+                        ->orWhere('role', 'LIKE', "%$search%")
+                        ->orWhere('instansi', 'LIKE', "%$search%")
+                        ->orWhere('jabatan', 'LIKE', "%$search%");
                 });
             })
-            ->get();
+            ->when($category === 'admin', fn ($query) => $query->whereIn('role', $adminRoles))
+            ->when($category === 'bidang', function ($query) use ($adminRoles) {
+                $query->whereNotIn('role', $adminRoles)
+                    ->whereNotNull('bidang')->where('bidang', '<>', '');
+            })
+            ->when($category === 'external', function ($query) use ($adminRoles) {
+                $query->whereNotIn('role', $adminRoles)
+                    ->where(function ($scope) {
+                        $scope->whereNull('bidang')->orWhere('bidang', '');
+                    });
+            })
+            ->paginate(15)
+            ->withQueryString();
 
         $listBidang = self::$listBidang;
 
-        return view('users.index', compact('users', 'listBidang', 'search'));
+        return view('users.index', compact('users', 'listBidang', 'search', 'category', 'stats'));
     }
 
     public function store(Request $request)

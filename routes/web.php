@@ -210,6 +210,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('schedules/{id}', [TrainingController::class, 'destroySchedule'])->name('schedules.destroy');
     
     Route::put('participants/{id}/approve', [TrainingController::class, 'approveParticipant'])->name('participants.approve');
+    Route::put('trainings/{id}/participants/approve-bulk', [TrainingController::class, 'approveParticipantsBulk'])->name('participants.approve-bulk');
     Route::put('participants/{id}/reject', [TrainingController::class, 'rejectParticipant'])->name('participants.reject');
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
     

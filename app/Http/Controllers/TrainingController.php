@@ -172,7 +172,10 @@ class TrainingController extends Controller
             ->whereNotIn('nip_nik', $registeredNips)
             ->orderBy('name')->get(['id', 'name', 'nip_nik', 'instansi']);
 
-        return view('trainings.participants', compact('training', 'participants', 'search', 'availableUsers'));
+        $pendingParticipantsCount = Participant::where('training_id', $id)
+            ->where('registration_status', 'pending')->count();
+
+        return view('trainings.participants', compact('training', 'participants', 'search', 'availableUsers', 'pendingParticipantsCount'));
     }
 
     public function updateParticipant(Request $request, $id)
@@ -810,6 +813,37 @@ class TrainingController extends Controller
 
             return redirect()->back()->with('success', 'Pendaftaran ' . $participant->name . ' telah disetujui.');
     }   
+
+    public function approveParticipantsBulk(Request $request, $id)
+    {
+        Training::findOrFail($id);
+
+        $data = $request->validate([
+            'mode' => ['required', Rule::in(['selected', 'all'])],
+            'participant_ids' => ['nullable', 'array'],
+            'participant_ids.*' => ['integer'],
+        ]);
+
+        $query = Participant::where('training_id', $id)
+            ->where('registration_status', 'pending');
+
+        if ($data['mode'] === 'selected') {
+            $participantIds = collect($data['participant_ids'] ?? [])->filter()->unique()->values();
+            if ($participantIds->isEmpty()) {
+                return back()->with('error', 'Pilih minimal satu peserta yang akan disetujui.');
+            }
+            $query->whereIn('id', $participantIds);
+        }
+
+        $approvedCount = $query->update(['registration_status' => 'approved']);
+
+        return back()->with(
+            $approvedCount > 0 ? 'success' : 'error',
+            $approvedCount > 0
+                ? $approvedCount . ' peserta berhasil disetujui.'
+                : 'Tidak ada peserta pending yang dapat disetujui.'
+        );
+    }
 
     public function rejectParticipant($id)
     {

@@ -67,15 +67,34 @@
             </div>
         @endif
 
+        <form id="bulk-approve-form" action="{{ route('participants.approve-bulk', $training->id) }}" method="POST" class="d-none">
+            @csrf
+            @method('PUT')
+        </form>
         <!-- Tabel Peserta Modern -->
         <div class="card shadow-sm border-0">
-            <div class="card-header border-bottom d-flex justify-content-between align-items-center py-3">
-                <h5 class="card-title mb-0 text-primary fw-bold">Daftar Peserta Pelatihan</h5>
-                <div class="d-flex align-items-center">
+            <div class="card-header border-bottom d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 py-3">
+                <div>
+                    <h5 class="card-title mb-1 text-primary fw-bold">Daftar Peserta Pelatihan</h5>
+                    <small class="text-muted">Centang beberapa peserta pending atau setujui semuanya sekaligus.</small>
+                </div>
+                <div class="d-flex flex-wrap align-items-center justify-content-lg-end gap-2">
                     @if(isset($search) && $search)
-                        <small class="text-muted me-3 text-uppercase">Hasil Pencarian: <strong>"{{ $search }}"</strong></small>
+                        <small class="text-muted text-uppercase">Hasil: <strong>"{{ $search }}"</strong></small>
                     @endif
                     <span class="badge bg-label-primary">{{ $participants->total() }} ORANG</span>
+                    @if($pendingParticipantsCount > 0)
+                        <span class="badge bg-label-warning">{{ $pendingParticipantsCount }} PENDING</span>
+                        <button type="submit" form="bulk-approve-form" name="mode" value="selected"
+                                id="approve-selected-button" class="btn btn-sm btn-success" disabled>
+                            <i class="bx bx-check-square me-1"></i>Setujui Terpilih <span id="selected-participant-count"></span>
+                        </button>
+                        <button type="submit" form="bulk-approve-form" name="mode" value="all"
+                                class="btn btn-sm btn-outline-success"
+                                onclick="return confirm('Setujui seluruh {{ $pendingParticipantsCount }} peserta yang masih pending pada pelatihan ini?')">
+                            <i class="bx bx-check-double me-1"></i>Setujui Semua
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -83,6 +102,9 @@
                 <table class="table table-hover" style="table-layout: fixed; width: 100%; min-width: 1250px;">
                     <thead>
                         <tr class="text-nowrap bg-light">
+                            <th style="width: 48px;" class="text-center">
+                                <input type="checkbox" class="form-check-input" id="select-all-pending" title="Pilih semua peserta pending di halaman ini">
+                            </th>
                             <th style="width: 170px;" class="fw-bold">NIP / NIK</th>
                             <th style="width: 220px;" class="fw-bold">NAMA LENGKAP</th>
                             <th style="width: 130px;" class="fw-bold">GENDER/STATUS</th>
@@ -96,6 +118,15 @@
                     <tbody class="table-border-bottom-0">
                         @forelse($participants as $p)
                             <tr class="participant-row">
+                                <td class="align-top text-center">
+                                    @if($p->registration_status === 'pending')
+                                        <input type="checkbox" class="form-check-input participant-checkbox"
+                                               name="participant_ids[]" value="{{ $p->id }}"
+                                               form="bulk-approve-form" aria-label="Pilih {{ $p->name }}">
+                                    @else
+                                        <i class="bx bx-check-circle text-success" title="Sudah disetujui"></i>
+                                    @endif
+                                </td>
                                 <!-- Kolom NIP -->
                                 <td class="align-top">
                                     <div class="d-flex align-items-center mt-1">
@@ -216,7 +247,7 @@
                             </tr>
                             @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5">
+                            <td colspan="9" class="text-center py-5">
                                 <img src="{{ asset('assets/img/illustrations/empty-box.png') }}" width="100" class="mb-3 opacity-50">
                                 <p class="text-muted fw-light">Tidak ada data peserta yang ditemukan.</p>
                             </td>
@@ -305,6 +336,32 @@
             width: '100%'
         });
     });
+
+    const selectAllPending = document.getElementById('select-all-pending');
+    const participantCheckboxes = Array.from(document.querySelectorAll('.participant-checkbox'));
+    const approveSelectedButton = document.getElementById('approve-selected-button');
+    const selectedParticipantCount = document.getElementById('selected-participant-count');
+
+    function updateBulkApprovalState() {
+        const selectedCount = participantCheckboxes.filter(checkbox => checkbox.checked).length;
+        if (approveSelectedButton) approveSelectedButton.disabled = selectedCount === 0;
+        if (selectedParticipantCount) selectedParticipantCount.textContent = selectedCount ? `(${selectedCount})` : '';
+        if (selectAllPending) {
+            selectAllPending.checked = participantCheckboxes.length > 0 && selectedCount === participantCheckboxes.length;
+            selectAllPending.indeterminate = selectedCount > 0 && selectedCount < participantCheckboxes.length;
+        }
+    }
+
+    selectAllPending?.addEventListener('change', function () {
+        participantCheckboxes.forEach(checkbox => checkbox.checked = this.checked);
+        updateBulkApprovalState();
+    });
+    participantCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateBulkApprovalState));
+    approveSelectedButton?.addEventListener('click', function (event) {
+        const selectedCount = participantCheckboxes.filter(checkbox => checkbox.checked).length;
+        if (!selectedCount || !confirm(`Setujui ${selectedCount} peserta yang dipilih?`)) event.preventDefault();
+    });
+    updateBulkApprovalState();
 
     /**
      * Fungsi Copy NIP ke Clipboard
