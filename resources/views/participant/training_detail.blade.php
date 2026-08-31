@@ -64,6 +64,9 @@
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'evaluasi' ? 'active' : '' }}" role="tab" data-tab="evaluasi" data-bs-toggle="tab" data-bs-target="#navs-pills-evaluasi">
                             <i class="bx bx-bar-chart-alt-2 me-1"></i> Evaluasi
+                            @if($participant->hasFilledL34Mandiri())
+                                <i class="bx bxs-check-circle text-success ms-1"></i>
+                            @endif
                         </button>
                     </li>
                     <li class="nav-item">
@@ -390,8 +393,19 @@
                                     <i class="bx bx-medal" style="font-size: 50px;"></i>
                                 </div>
                                 <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
-                                <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
-                                <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
+
+                                @if($participant->is_all_finished)
+                                    <p class="text-muted px-lg-5">Anda telah melengkapi seluruh administrasi serta evaluasi. Silakan unggah sertifikat elektronik Anda.</p>
+                                    <form action="{{ route('participant.training.upload', ['id' => $training->id, 'tab' => 'sertifikat']) }}" method="POST" enctype="multipart/form-data" class="mx-auto mt-2" style="max-width: 400px;">
+                                        @csrf
+                                        <input type="hidden" name="type" value="sertifikat">
+                                        <input type="file" name="file" class="form-control form-control-sm mb-2" accept=".pdf" required>
+                                        <button type="submit" class="btn btn-success w-100"><i class="bx bx-cloud-upload me-1"></i> Unggah Sertifikat</button>
+                                    </form>
+                                @else
+                                    <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
+                                    <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
+                                @endif
                             </div>
                         @endif
                     </div>

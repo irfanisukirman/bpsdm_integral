@@ -205,9 +205,7 @@ class Participant extends Model
         $docsComplete = $this->biodata_file_id && $this->surat_tugas_file_id && $this->pas_foto_file_id;
 
         // 2. Cek Evaluasi Level 1 (Harus mengisi semua form yang disediakan admin)
-        $formsCount = \App\Models\EvaluationFormL1::where('training_id', $this->training_id)->count();
-        $filledL1Count = \App\Models\EvaluationResultL1::where('participant_id', $this->id)->distinct('schedule_id')->count();
-        $l1Complete = ($formsCount > 0) ? ($filledL1Count >= $formsCount) : true;
+        $l1Complete = $this->hasCompletedAllL1();
 
         // 3. Cek Evaluasi Level 2 (Admin sudah input nilai)
         $l2Complete = \App\Models\EvaluationResultL2::where('participant_id', $this->id)->exists();
