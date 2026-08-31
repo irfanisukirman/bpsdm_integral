@@ -102,13 +102,12 @@ class ParticipantController extends Controller
     {
         $user = \App\Models\User::findOrFail(Auth::id());
 
-        $request->validate([
+        $validated = $request->validate([
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
             'gender' => 'required',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kota' => 'required',
             'kabupaten_kota' => 'required',
             'kecamatan' => 'required',
             'kelurahan' => 'required',
@@ -116,7 +115,7 @@ class ParticipantController extends Controller
             'whatsapp' => 'required'
         ]);
 
-        $user->update($request->all());
+        $user->forceFill($validated)->save();
 
         return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil diperbarui.');
     }
