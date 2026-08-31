@@ -289,7 +289,7 @@ class ParticipantController extends Controller
 
         $request->validate([
             'file' => "required|mimes:$allowedMimes|max:5120",
-            'type' => 'required|in:biodata,surat_tugas,pas_foto'
+            'type' => 'required|in:biodata,surat_tugas,pas_foto,sertifikat'
         ]);
 
         $user = Auth::user();
@@ -375,7 +375,9 @@ class ParticipantController extends Controller
         $column = $request->type . '_file_id';
         $participant->update([$column => $fileRecord->id]);
 
-        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+        $redirectTab = ($request->type === 'sertifikat') ? 'sertifikat' : 'kelengkapan';
+
+        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => $redirectTab])
             ->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
 }

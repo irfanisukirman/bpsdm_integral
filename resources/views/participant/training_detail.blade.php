@@ -69,6 +69,9 @@
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'sertifikat' ? 'active' : '' }}" role="tab" data-tab="sertifikat" data-bs-toggle="tab" data-bs-target="#navs-pills-sertifikat">
                             <i class="bx bx-medal me-1"></i> Sertifikat
+                            @if($participant->sertifikat_file_id)
+                                <i class="bx bxs-check-circle text-success ms-1"></i>
+                            @endif
                         </button>
                     </li>
                 </ul>
@@ -360,14 +363,37 @@
 
                     {{-- TAB 4: SERTIFIKAT --}}
                     <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
-                        <div class="text-center py-5 bg-light rounded border border-dashed">
-                            <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
-                                <i class="bx bx-medal" style="font-size: 50px;"></i>
+                        @php
+                            $sertifikatFile = $participant->sertifikat_file_id ? \App\Models\File::find($participant->sertifikat_file_id) : null;
+                        @endphp
+
+                        @if($sertifikatFile)
+                            <div class="text-center py-5 bg-light rounded border border-success border-dashed">
+                                <div class="avatar avatar-xl bg-success mx-auto mb-4" style="width: 100px; height: 100px;">
+                                    <i class="bx bx-medal text-white" style="font-size: 50px;"></i>
+                                </div>
+                                <div class="badge bg-label-success mb-3"><i class="bx bx-check-double me-1"></i> Sertifikat Tersedia</div>
+                                <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
+                                <p class="text-muted px-lg-5">Sertifikat elektronik Anda telah tersedia dan dapat diunduh.</p>
+                                <div class="d-inline-flex gap-2 mt-2">
+                                    <a href="{{ asset('storage/'.($sertifikatFile->file_path ?? '')) }}" target="_blank" class="btn btn-success">
+                                        <i class="bx bx-show me-1"></i> Lihat Sertifikat
+                                    </a>
+                                    <a href="{{ asset('storage/'.($sertifikatFile->file_path ?? '')) }}" download class="btn btn-outline-success">
+                                        <i class="bx bx-download me-1"></i> Unduh
+                                    </a>
+                                </div>
                             </div>
-                            <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
-                            <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
-                            <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
-                        </div>
+                        @else
+                            <div class="text-center py-5 bg-light rounded border border-dashed">
+                                <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
+                                    <i class="bx bx-medal" style="font-size: 50px;"></i>
+                                </div>
+                                <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
+                                <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
+                                <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -25,6 +25,7 @@ class Participant extends Model
         'biodata_file_id',
         'surat_tugas_file_id',
         'pas_foto_file_id',
+        'sertifikat_file_id',
         'registration_status'
     ];
 
