@@ -136,6 +136,7 @@ class ParticipantController extends Controller
     public function completeProfile()
     {
         $user = Auth::user();
+        abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
         return view('participant.complete_profile', compact('user'));
     }
 
@@ -145,8 +146,10 @@ class ParticipantController extends Controller
     public function storeProfile(Request $request)
     {
         $user = \App\Models\User::findOrFail(auth()->id());
+        abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
         $request->validate([
+            'user_type' => 'required|in:peserta,narasumber,mitra',
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
             'whatsapp' => 'required',
             'gender' => 'required',
@@ -161,7 +164,13 @@ class ParticipantController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
         ]);
 
+        $requestedType = $request->user_type;
         $user->update([
+            'user_type' => $requestedType,
+            'user_type_status' => $requestedType === 'peserta' ? 'approved' : 'pending',
+            // Form publik tidak pernah menaikkan hak akses. Narasumber/Mitra harus diverifikasi admin.
+            'role' => 'participant',
+            'bidang' => null,
             'nip_nik' => $request->nip_nik,
             'whatsapp' => $request->whatsapp,
             'gender' => $request->gender,
@@ -180,7 +189,11 @@ class ParticipantController extends Controller
         \App\Models\Participant::where('nip_nik', $user->nip_nik)
             ->update(['user_id' => $user->id]);
 
-        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil disimpan.');
+        $message = $requestedType === 'peserta'
+            ? 'Profil peserta berhasil disimpan.'
+            : 'Profil berhasil disimpan. Pengajuan sebagai '.ucfirst($requestedType).' menunggu persetujuan admin.';
+
+        return redirect()->route('participant.dashboard')->with('success', $message);
     }
 
     // Proses Daftar dengan Kode

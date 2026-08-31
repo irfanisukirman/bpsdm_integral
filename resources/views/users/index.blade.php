@@ -13,8 +13,9 @@
                 <select name="category" class="form-select shadow-sm" style="max-width: 230px;" onchange="this.form.submit()" aria-label="Filter kategori akun">
                     <option value="">Semua kategori</option>
                     <option value="admin" @selected(($category ?? '') === 'admin')>Admin & Superadmin</option>
-                    <option value="bidang" @selected(($category ?? '') === 'bidang')>Pengguna Terikat Bidang</option>
-                    <option value="external" @selected(($category ?? '') === 'external')>Tidak Terikat Bidang (Luar)</option>
+                    <option value="peserta" @selected(($category ?? '') === 'peserta')>Peserta</option>
+                    <option value="narasumber" @selected(($category ?? '') === 'narasumber')>Narasumber</option>
+                    <option value="mitra" @selected(($category ?? '') === 'mitra')>Mitra</option>
                 </select>
                 <div class="input-group input-group-merge shadow-sm">
                     <span class="input-group-text"><i class="bx bx-search"></i></span>
@@ -29,9 +30,9 @@
                 </div>
             </form>
 
-            <!-- TOMBOL TAMBAH PENGAJAR -->
+            <!-- TOMBOL TAMBAH PENGGUNA -->
             <button type="button" class="btn btn-info shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddPengajar">
-                <i class="bx bx-chalkboard me-1"></i> Tambah Pengajar
+                <i class="bx bx-user-plus me-1"></i> Tambah Pengguna
             </button>
 
             <!-- TOMBOL TAMBAH USER (ADMIN/SUPERADMIN) -->
@@ -65,10 +66,11 @@
         @foreach([
             ['key' => '', 'label' => 'Semua Pengguna', 'value' => $stats['all'], 'icon' => 'bx-group', 'color' => 'primary'],
             ['key' => 'admin', 'label' => 'Admin & Superadmin', 'value' => $stats['admin'], 'icon' => 'bx-shield-quarter', 'color' => 'danger'],
-            ['key' => 'bidang', 'label' => 'Terikat Bidang', 'value' => $stats['bidang'], 'icon' => 'bx-buildings', 'color' => 'info'],
-            ['key' => 'external', 'label' => 'Tidak Terikat Bidang (Luar)', 'value' => $stats['external'], 'icon' => 'bx-world', 'color' => 'secondary'],
+            ['key' => 'peserta', 'label' => 'Peserta', 'value' => $stats['peserta'], 'icon' => 'bx-user', 'color' => 'success'],
+            ['key' => 'narasumber', 'label' => 'Narasumber', 'value' => $stats['narasumber'], 'icon' => 'bx-chalkboard', 'color' => 'info'],
+            ['key' => 'mitra', 'label' => 'Mitra', 'value' => $stats['mitra'], 'icon' => 'bx-handshake', 'color' => 'warning'],
         ] as $item)
-            <div class="col-6 col-xl-3">
+            <div class="col-6 col-xl">
                 <a href="{{ route('users.index', array_filter(['category' => $item['key'], 'search' => $search])) }}" class="card border-0 shadow-sm h-100 text-decoration-none {{ ($category ?? '') === $item['key'] ? 'border border-2 border-'.$item['color'] : '' }}">
                     <div class="card-body d-flex align-items-center gap-3 p-3">
                         <span class="avatar-initial rounded bg-label-{{ $item['color'] }} p-2"><i class="bx {{ $item['icon'] }} fs-4"></i></span>
@@ -105,22 +107,23 @@
                                 </div>
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold text-dark">{{ $user->name }}</span>
-                                    <small class="text-muted" style="font-size: 10px;">{{ strtoupper(str_replace('_', ' ', $user->role)) }}</small>
+                                    <small class="text-muted" style="font-size: 10px;">{{ match($user->role) { 'participant' => 'PESERTA', 'pengajar' => 'NARASUMBER', 'mitra' => 'MITRA', default => strtoupper(str_replace('_', ' ', $user->role)) } }}</small>
                                 </div>
                             </div>
                         </td>
                         <td class="text-wrap">
                             @php
                                 $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true);
-                                $hasBidang = filled($user->bidang);
-                                $scopeLabel = $isAdmin
-                                    ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : 'Admin Bidang'))
-                                    : ($hasBidang ? 'Pengguna Terikat Bidang' : 'Tidak Terikat Bidang (Luar)');
-                                $scopeColor = $isAdmin ? 'danger' : ($hasBidang ? 'info' : 'secondary');
+                                $typeLabel = match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' };
+                                $scopeLabel = $isAdmin ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : 'Admin Bidang')) : $typeLabel;
+                                $scopeColor = $isAdmin ? 'danger' : match($user->user_type) { 'narasumber' => 'info', 'mitra' => 'warning', default => 'success' };
                             @endphp
                             <span class="badge bg-label-{{ $scopeColor }} mb-1">{{ $scopeLabel }}</span>
+                            @if(!$isAdmin && $user->user_type_status === 'pending')
+                                <span class="badge bg-label-warning mb-1">Menunggu Persetujuan</span>
+                            @endif
                             <small class="text-muted d-block" style="font-size: 11px; line-height: 1.35; max-width: 280px;">
-                                {{ $hasBidang ? $user->bidang : 'Pengguna luar tanpa bidang penyelenggara' }}
+                                {{ $isAdmin ? ($user->bidang ?: 'Akses lintas bidang') : ($user->instansi ?: 'Data instansi belum diisi') }}
                             </small>
                         </td>
                         <td>
@@ -189,18 +192,23 @@
         <div class="modal-content">
             <form action="{{ route('users.store') }}" method="POST">
                 @csrf
-                <!-- Role diset otomatis ke pengajar -->
-                <input type="hidden" name="role" value="pengajar">
                 
                 <div class="modal-header bg-info">
-                    <h5 class="modal-title text-white">Tambah Akun Pengajar Baru</h5>
+                    <h5 class="modal-title text-white">Tambah Peserta, Narasumber, atau Mitra</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info py-2 small mb-4">
-                        <i class="bx bx-info-circle me-1"></i> Pengajar akan diminta melengkapi Profil Keuangan & mengubah password saat pertama kali login.
+                        <i class="bx bx-info-circle me-1"></i> Pilih jenis akun pengguna. Role administratif hanya tersedia melalui tombol Tambah Admin.
                     </div>
-                    
+                    <div class="mb-3">
+                        <label class="form-label">Jenis Pengguna <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select" required>
+                            <option value="participant">Peserta</option>
+                            <option value="pengajar">Narasumber</option>
+                            <option value="mitra">Mitra</option>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Lengkap (Beserta Gelar) <span class="text-danger">*</span></label>
                         <input type="text" name="name" class="form-control" required />
@@ -218,9 +226,9 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Asal Instansi/Bidang <small>(Opsional)</small></label>
+                        <label class="form-label">Bidang <small>(Opsional)</small></label>
                         <select name="bidang" class="form-select">
-                            <option value="">Luar BPSDM / Tidak Terikat</option>
+                            <option value="">Tanpa bidang</option>
                             @foreach($listBidang as $b)
                                 <option value="{{ $b }}">{{ $b }}</option>
                             @endforeach
@@ -242,7 +250,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-info text-white w-100">Buatkan Akun Pengajar</button>
+                    <button type="submit" class="btn btn-info text-white w-100">Simpan Akun Pengguna</button>
                 </div>
             </form>
         </div>
@@ -338,8 +346,9 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">ROLE / HAK AKSES</label>
                         <select name="role" id="edit_role" class="form-select" required>
-                            <option value="participant">Participant (Peserta)</option>
-                            <option value="pengajar">Pengajar</option>
+                            <option value="participant">Peserta</option>
+                            <option value="pengajar">Narasumber</option>
+                            <option value="mitra">Mitra</option>
                             <option value="admin_bidang">Admin Bidang</option>
                             <option value="admin_aset">Admin Pengelola Aset</option>
                             <option value="superadmin">Superadmin</option>
@@ -353,7 +362,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-bold">PENYELENGGARA / BIDANG</label>
                         <select name="bidang" id="edit_bidang" class="form-select">
-                            <option value="">Tidak Terikat Bidang (Luar BPSDM)</option>
+                            <option value="">Tanpa bidang</option>
                             <option value="Pengelola Aset" data-asset-only>Pengelola Aset</option>
                         @foreach($listBidang as $b)
                             <option value="{{ $b }}">{{ $b }}</option>

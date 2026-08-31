@@ -27,7 +27,8 @@
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
-            <li class="menu-item {{ request()->routeIs('pengajar.index') ? 'active' : '' }}"><a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Pengajar</div></a></li>
+            <li class="menu-item {{ request()->routeIs('pengajar.index') ? 'active' : '' }}"><a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Pengajar</div></a></li>        @elseif(Auth::user()->role === 'mitra')
+            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Dashboard Mitra</div></a></li>
         @else
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
         @endif
@@ -66,6 +67,17 @@
         <!-- 1. MENU KHUSUS ADMIN BIDANG & SUPERADMIN                  -->
         <!-- ========================================================= -->
         @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
+            @if(Auth::user()->role === 'superadmin' || in_array(Auth::user()->bidang, [
+                'Bidang Pengembangan Kompetensi Teknis Inti',
+                'Bidang Pengembangan Kompetensi Teknis Umum',
+                'Bidang Pengembangan Kompetensi Manajerial',
+                'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'
+            ], true))
+                <li class="menu-header small text-uppercase"><span class="menu-header-text">Kemitraan</span></li>
+                <li class="menu-item {{ request()->routeIs('mitra.admin.*') || (request()->routeIs('mitra.submissions.show') && Auth::user()->role !== 'mitra') ? 'active' : '' }}">
+                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Pengajuan Mitra</div></a>
+                </li>
+            @endif
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
             <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
                 <a href="{{ route('followup.index') }}" class="menu-link">
@@ -155,6 +167,11 @@
                     <div>Riwayat Pelatihan</div>
                 </a>
             </li>
+        @elseif(Auth::user()->role === 'mitra')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Pengajuan Mitra</span></li>
+            <li class="menu-item {{ request()->routeIs('mitra.submissions.create') && request()->route('type') === 'training' ? 'active' : '' }}"><a href="{{ route('mitra.submissions.create','training') }}" class="menu-link"><i class="menu-icon bx bx-book-add"></i><div>Pengajuan Pelatihan</div></a></li>
+            <li class="menu-item {{ request()->routeIs('mitra.submissions.create') && request()->route('type') === 'cooperation' ? 'active' : '' }}"><a href="{{ route('mitra.submissions.create','cooperation') }}" class="menu-link"><i class="menu-icon bx bx-file"></i><div>Pengajuan Kerja Sama</div></a></li>
+            <li class="menu-item {{ request()->routeIs('mitra.submissions.show') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-folder-open"></i><div>Semua Pengajuan</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Aktivitas Pengajar</span>

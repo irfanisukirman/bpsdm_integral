@@ -1,9 +1,9 @@
 @extends('layouts.form')
 
 {{-- Konfigurasi Header & Metadata Form --}}
-@section('form_title', 'Lengkapi Profil Peserta')
-@section('module_name', 'Portal Peserta')
-@section('page_title', 'Lengkapi Profil Peserta')
+@section('form_title', 'Lengkapi Profil Pengguna')
+@section('module_name', 'Registrasi Pengguna')
+@section('page_title', 'Lengkapi Profil Pengguna')
 @section('page_description', 'Silakan lengkapi data identitas dan wilayah kerja Anda untuk integrasi sistem INTEGRAL.')
 @section('form_action', route('participant.profile.store'))
 @section('submit_text', 'Simpan Profil & Lanjutkan')
@@ -16,6 +16,25 @@
         <div class="card-body p-4">
             <div class="form-section-title">
                 <i class="bx bx-user-pin fs-4 me-2"></i> 1. Identitas Utama & Kepegawaian
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Daftar Sebagai <span class="required-star">*</span></label>
+                <div class="row g-3">
+                    @foreach([
+                        'peserta' => ['Peserta', 'bx-user', 'Mengikuti pelatihan dan melengkapi administrasi peserta.'],
+                        'narasumber' => ['Narasumber', 'bx-chalkboard', 'Pengajuan akan diverifikasi admin sebelum akses narasumber diberikan.'],
+                        'mitra' => ['Mitra', 'bx-handshake', 'Kategori mitra; fitur khusus akan tersedia kemudian.'],
+                    ] as $value => [$label, $icon, $description])
+                        <div class="col-md-4">
+                            <label class="border rounded p-3 d-flex gap-2 h-100 cursor-pointer">
+                                <input class="form-check-input mt-1" type="radio" name="user_type" value="{{ $value }}" @checked(old('user_type', $user->user_type ?: 'peserta') === $value) required>
+                                <span><strong class="d-block"><i class="bx {{ $icon }} me-1"></i>{{ $label }}</strong><small class="text-muted">{{ $description }}</small></span>
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="alert alert-info py-2 mt-3 mb-0 small"><i class="bx bx-shield-quarter me-1"></i>Akun admin dan superadmin tidak dapat dibuat melalui registrasi publik.</div>
             </div>
 
             <div class="row">

@@ -30,6 +30,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\PublicCertificationBiodataController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PartnerSubmissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -129,6 +130,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/trainings/{training}/forum/messages/{message}', [TrainingForumController::class, 'destroy'])->name('training.forum.destroy');
     
     // --- DASHBOARD ---
+    // Portal Mitra dan pengelolaan pengajuan
+    Route::get('mitra', [PartnerSubmissionController::class, 'index'])->name('mitra.dashboard');
+    Route::get('mitra/pengajuan/create/{type}', [PartnerSubmissionController::class, 'create'])->name('mitra.submissions.create');
+    Route::post('mitra/pengajuan', [PartnerSubmissionController::class, 'store'])->name('mitra.submissions.store');
+    Route::get('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'show'])->name('mitra.submissions.show');
+    Route::put('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'update'])->name('mitra.submissions.update');
+    Route::put('mitra/pengajuan/{submission}/submit', [PartnerSubmissionController::class, 'submit'])->name('mitra.submissions.submit');
+    Route::post('mitra/pengajuan/{submission}/comments', [PartnerSubmissionController::class, 'comment'])->name('mitra.submissions.comment');
+    Route::post('mitra/pengajuan/{submission}/documents', [PartnerSubmissionController::class, 'upload'])->name('mitra.submissions.upload');
+    Route::get('mitra/dokumen/{document}/download', [PartnerSubmissionController::class, 'download'])->name('mitra.documents.download');
+    Route::get('pengajuan-mitra', [PartnerSubmissionController::class, 'adminIndex'])->name('mitra.admin.index');
+    Route::put('pengajuan-mitra/{submission}/review', [PartnerSubmissionController::class, 'review'])->name('mitra.admin.review');
+    Route::put('pengajuan-mitra/{submission}/finalize', [PartnerSubmissionController::class, 'finalize'])->name('mitra.admin.finalize');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---

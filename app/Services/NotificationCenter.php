@@ -9,6 +9,7 @@ use App\Models\EvaluationResultL34;
 use App\Models\FolderUserPermission;
 use App\Models\MonitoringResult;
 use App\Models\Participant;
+use App\Models\PartnerSubmission;
 use App\Models\Schedule;
 use App\Models\Training;
 use App\Models\TrainingForumRead;
@@ -41,6 +42,9 @@ class NotificationCenter
         if ($user->role === 'participant') {
             $items = $items->merge($this->participantItems($user));
         }
+        if ($user->role === 'mitra') {
+            $items = $items->merge($this->partnerItems($user));
+        }
 
         if ($user->role === 'pengajar' || $user->teachingSchedules()->exists()) {
             $items = $items->merge($this->teacherItems($user));
@@ -48,6 +52,7 @@ class NotificationCenter
 
         if (in_array($user->role, ['superadmin', 'admin_bidang'], true)) {
             $items = $items->merge($this->adminItems($user));
+            $items = $items->merge($this->adminPartnerItems($user));
         }
         if (in_array($user->role, ['superadmin', 'admin_aset', 'admin_bidang'], true)) {
             $items = $items->merge($this->assetAgendaItems($user));
@@ -66,6 +71,29 @@ class NotificationCenter
         ))->values();
     }
 
+    private function partnerItems(User $user): Collection
+    {
+        return PartnerSubmission::where('user_id', $user->id)
+            ->whereIn('status', ['revision_requested', 'waiting_approval', 'final'])
+            ->latest('updated_at')->get()->map(function ($submission) {
+                $level = $submission->status === 'revision_requested' ? 'warning' : ($submission->status === 'final' ? 'success' : 'info');
+                $title = match ($submission->status) {
+                    'revision_requested' => 'Pengajuan Mitra perlu direvisi',
+                    'final' => 'Pengajuan Mitra telah final',
+                    default => 'Pengajuan menunggu persetujuan final',
+                };
+                return $this->item('partner-submission-'.$submission->id.'-'.$submission->status, $title, $submission->title.' · '.$submission->status_label.'.', $level, 'bx-handshake', route('mitra.submissions.show', $submission), 'Buka pengajuan', $submission->updated_at?->format('Y-m-d H:i:s'));
+            })->values();
+    }
+
+    private function adminPartnerItems(User $user): Collection
+    {
+        $items = PartnerSubmission::whereIn('status', ['submitted', 'revision_submitted', 'waiting_approval'])
+            ->when($user->role !== 'superadmin', fn ($query) => $query->where('target_bidang', $user->bidang))
+            ->latest('updated_at')->get();
+        if ($items->isEmpty()) return collect();
+        return collect([$this->item('partner-admin-'.$user->id, 'Pengajuan Mitra menunggu tindakan', $items->count().' pengajuan perlu diperiksa atau disetujui.', 'warning', 'bx-handshake', route('mitra.admin.index'), 'Periksa pengajuan', $items->first()->updated_at?->format('Y-m-d H:i:s'))]);
+    }
     private function folderShareItems(User $user): Collection
     {
         return FolderUserPermission::with(['folder','sharer'])->where('user_id',$user->id)->whereNull('seen_at')->latest()->get()->filter(fn($permission)=>$permission->folder)->map(function($permission){$role=$permission->permission==='contributor'?'Kontributor':'Pelihat';return $this->item('shared-folder-'.$permission->id,'Folder dibagikan kepada Anda',($permission->sharer?->name?:'Administrator').' membagikan folder '.$permission->folder->name.' sebagai '.$role.'.','info','bx-folder-open',route('documents.index',['folder'=>$permission->folder_id,'bidang'=>$permission->folder->bidang]),'Buka folder',$permission->created_at?->format('Y-m-d H:i:s'));})->values();

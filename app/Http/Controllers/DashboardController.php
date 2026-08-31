@@ -30,6 +30,9 @@ class DashboardController extends Controller
         if ($user->role === 'participant') {
             return redirect()->route('participant.dashboard');
         }
+        if ($user->role === 'mitra') {
+            return redirect()->route('mitra.dashboard');
+        }
 
         // ==========================================
         // 2. JIKA ROLE ADALAH PENGAJAR

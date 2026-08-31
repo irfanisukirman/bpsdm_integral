@@ -1,0 +1,12 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration {
+ public function up():void {
+  Schema::create('partner_submissions',function(Blueprint $t){$t->id();$t->foreignId('user_id')->constrained('users')->cascadeOnDelete();$t->string('type',20);$t->string('target_bidang');$t->string('title');$t->text('background')->nullable();$t->text('objective')->nullable();$t->text('scope')->nullable();$t->string('participant_target')->nullable();$t->unsignedInteger('estimated_participants')->nullable();$t->text('competency')->nullable();$t->date('preferred_start')->nullable();$t->date('preferred_end')->nullable();$t->string('method')->nullable();$t->string('location')->nullable();$t->date('period_start')->nullable();$t->date('period_end')->nullable();$t->string('pic_name');$t->string('pic_contact',30);$t->string('status',30)->default('draft');$t->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();$t->foreignId('folder_id')->nullable()->constrained('folders')->nullOnDelete();$t->timestamp('submitted_at')->nullable();$t->timestamp('finalized_at')->nullable();$t->timestamps();$t->index(['target_bidang','status']);});
+  Schema::create('partner_submission_documents',function(Blueprint $t){$t->id();$t->foreignId('partner_submission_id')->constrained()->cascadeOnDelete();$t->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();$t->unsignedInteger('version_number');$t->string('display_name');$t->string('file_path');$t->string('file_type',30)->nullable();$t->unsignedBigInteger('file_size')->default(0);$t->text('change_note')->nullable();$t->boolean('is_final')->default(false);$t->timestamps();$t->unique(['partner_submission_id','version_number']);});
+  Schema::create('partner_submission_comments',function(Blueprint $t){$t->id();$t->foreignId('partner_submission_id')->constrained()->cascadeOnDelete();$t->foreignId('user_id')->constrained('users')->cascadeOnDelete();$t->text('message');$t->timestamps();});
+ }
+ public function down():void {Schema::dropIfExists('partner_submission_comments');Schema::dropIfExists('partner_submission_documents');Schema::dropIfExists('partner_submissions');}
+};
