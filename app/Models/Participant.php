@@ -24,7 +24,8 @@ class Participant extends Model
         'status_kepegawaian',
         'biodata_file_id',
         'surat_tugas_file_id',
-        'pas_foto_file_id'
+        'pas_foto_file_id',
+        'registration_status'
     ];
 
     /**
@@ -95,4 +96,31 @@ class Participant extends Model
         return $this->hasOne(AlumniProfile::class);
     }
 
+    public function hasFilledL1Any()
+    {
+        // Cek apakah minimal ada 1 baris hasil evaluasi L1 untuk peserta ini di pelatihan ini
+        return \App\Models\EvaluationResultL1::where('participant_id', $this->id)
+            ->where('training_id', $this->training_id)
+            ->exists();
+    }
+
+    public function getIsAllFinishedAttribute()
+    {
+        // 1. Cek Berkas (Biodata, Surat Tugas, Pas Foto)
+        $docsComplete = $this->biodata_file_id && $this->surat_tugas_file_id && $this->pas_foto_file_id;
+
+        // 2. Cek Evaluasi Level 1 (Harus mengisi semua form yang disediakan admin)
+        $formsCount = \App\Models\EvaluationFormL1::where('training_id', $this->training_id)->count();
+        $filledL1Count = \App\Models\EvaluationResultL1::where('participant_id', $this->id)->distinct('schedule_id')->count();
+        $l1Complete = ($formsCount > 0) ? ($filledL1Count >= $formsCount) : true;
+
+        // 3. Cek Evaluasi Level 2 (Admin sudah input nilai)
+        $l2Complete = \App\Models\EvaluationResultL2::where('participant_id', $this->id)->exists();
+
+        // 4. Cek Evaluasi Level 3 & 4 (Mandiri)
+        $l34Complete = \App\Models\EvaluationResultL34::where('participant_id', $this->id)
+            ->where('evaluator_role', 'mandiri')->exists();
+
+        return $docsComplete && $l1Complete && $l2Complete && $l34Complete;
+    }
 }
