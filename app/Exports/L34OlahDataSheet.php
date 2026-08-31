@@ -33,16 +33,26 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
     {
         $id = $this->training->id;
         $profiles = AlumniProfile::where('training_id', $id)->get();
-        $results = EvaluationResultL34::where('training_id', $id)->get();
+        $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
 
         // Ambil Pertanyaan L3 & L4
-        $this->questionsL3 = Question::where('category', 'LIKE', 'l34%')
+        $this->questionsL3 = Question::forTraining($this->training, 'l34_mandiri')
                             ->where('sub_category', 'Perubahan Perilaku')
                             ->get()->unique('question_text');
 
-        $this->questionsL4 = Question::where('category', 'LIKE', 'l34%')
+        $this->questionsL4 = Question::forTraining($this->training, 'l34_mandiri')
                             ->where('sub_category', 'Dampak Pelatihan')
                             ->get()->unique('question_text');
+        $questionsPlacement = Question::forTraining($this->training, 'l34_mandiri')
+                            ->where('sub_category', 'Penempatan Tugas dan Transfer Learning')
+                            ->get()->unique('question_text');
+        $allQuestions = Question::query()
+                            ->where(function ($query) {
+                                $query->where('bidang', $this->training->bidang)
+                                    ->orWhere('bidang', 'Semua Bidang');
+                            })
+                            ->where('category', 'LIKE', 'l34_%')
+                            ->get();
 
         $totalResponden = [
             'mandiri' => $results->where('evaluator_role', 'mandiri')->unique('participant_id')->count(),
@@ -55,12 +65,16 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
             'results' => $results,
             'questionsL3' => $this->questionsL3,
             'questionsL4' => $this->questionsL4,
+            'questionsPlacement' => $questionsPlacement,
+            'allQuestions' => $allQuestions,
+            'training' => $this->training,
             'totalResponden' => $totalResponden
         ]);
     }
 
     public function charts(): array
     {
+        return [];
         $charts = [];
         $sheetName = 'OLAH DATA';
 

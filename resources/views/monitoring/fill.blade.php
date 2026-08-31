@@ -46,6 +46,40 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger border-0 shadow-sm mb-4">
+            <div class="fw-bold mb-1">Data belum dapat disimpan:</div>
+            <ul class="mb-0 ps-3">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @if($training->model === 'standar')
+        <div class="card border mb-4 shadow-none">
+            <div class="card-body py-3">
+                <form method="GET" action="{{ route('monitoring.fill', $training->id) }}" class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold mb-1">Tanggal Monitoring Harian</label>
+                        <input type="date" name="monitoring_date" class="form-control"
+                               min="{{ \Carbon\Carbon::parse($training->tgl_mulai)->toDateString() }}"
+                               max="{{ \Carbon\Carbon::parse($training->tgl_selesai)->toDateString() }}"
+                               value="{{ $monitoringDate }}">
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="bx bx-calendar-check me-1"></i> Tampilkan Instrumen
+                        </button>
+                    </div>
+                    <div class="col">
+                        <small class="text-muted">Jawaban disimpan per tanggal sehingga checklist harian tidak mengulang satu jawaban untuk seluruh hari.</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     <!-- Form Monitoring -->
     <div class="nav-align-top mb-4">
@@ -98,6 +132,7 @@
             <form action="{{ route('monitoring.store', $training->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="stage_id" value="std">
+                <input type="hidden" name="monitoring_date" value="{{ $monitoringDate }}">
                 @include('monitoring.partials.instrument_loop', [
                     'questions' => $questionsByStage['standar'], 
                     'stage_id' => 'std',
@@ -134,15 +169,16 @@
         // Toggle box tindak lanjut saat pilihan YA/TIDAK berubah
         $(document).on('change', '.select-ans', function() {
             let targetId = $(this).data('target');
+            let box = $('#' + targetId);
             if($(this).val() === 'tidak') {
-                $(`#${targetId}`).fadeIn();
+                box.fadeIn();
+                box.find('[data-followup-required]').prop('required', true);
             } else {
-                $(`#${targetId}`).fadeOut();
-                // Opsional: kosongkan input saat dikembalikan ke YA
-                $(`#${targetId} select`).val('');
-                $(`#${targetId} input`).val('');
+                box.fadeOut();
+                box.find('[data-followup-required]').prop('required', false);
             }
         });
+        $('.select-ans').trigger('change');
     });
 </script>
 @endpush

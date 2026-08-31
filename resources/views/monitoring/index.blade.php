@@ -11,8 +11,8 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Daftar Pelatihan terpantau</h5>
         <small class="text-muted">Kelola instrumen monitoring per pelatihan</small>
-        <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
+        <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pelatihan
         </a>
     </div>
     <div class="table-responsive text-nowrap">
@@ -62,6 +62,11 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
+                                    <a class="dropdown-item" href="{{ route('followup.index', ['training_id' => $t->id]) }}">
+                                        <i class="bx bx-task me-2 text-warning"></i> Rekomendasi Monitoring
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item" href="{{ route('monitoring.export.laporan', $t->id) }}">
                                         <i class="bx bxs-file-doc me-2 text-primary"></i> Laporan Monitoring
                                     </a>
@@ -73,7 +78,7 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="{{ route('monitoring.export.rekap', $t->id) }}">
-                                        <i class="bx bxs-spreadsheet me-2 text-success"></i> Ceklis Harian
+                                        <i class="bx bxs-spreadsheet me-2 text-success"></i> Checklist Monitoring
                                     </a>
                                 </li>
                             </ul>

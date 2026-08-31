@@ -81,7 +81,13 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
 
         $currentRow = 8;  
 
+        $methods = $t->model === 'standar'
+            ? collect([$t->metode])
+            : $t->stages->pluck('metode');
         $categories = \App\Models\Question::where('category', 'LIKE', 'Monitoring%')
+                    ->where(function ($query) use ($methods) {
+                        $query->whereIn('metode', $methods)->orWhere('metode', 'semua');
+                    })
                     ->select('category')->distinct()->pluck('category');
 
         foreach ($categories as $cat) {
@@ -89,7 +95,10 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
             $this->categoryRowIndices[] = $currentRow; 
             $rows[] = ['', strtoupper($cat)]; 
             
-            $questions = \App\Models\Question::where('category', $cat)->get();
+            $questions = \App\Models\Question::where('category', $cat)
+                ->where(function ($query) use ($methods) {
+                    $query->whereIn('metode', $methods)->orWhere('metode', 'semua');
+                })->get();
             $no = 1;
             foreach ($questions as $q) {
                 $currentRow++;
@@ -100,9 +109,25 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
                     $ans = $t->monitoringResults
                         ->where('question_id', $q->id)
                         ->where('training_stage_id', $col->id == 'std' ? null : $col->id)
+                        ->when($col->id == 'std', fn ($items) => $items->where(
+                            'monitoring_date',
+                            Carbon::parse($col->db_date)->startOfDay()
+                        ))
                         ->first();
 
-                    $row[] = ($ans && $ans->answer == 'ya') ? '✓' : (($ans && $ans->answer == 'tidak') ? 'X' : '-');
+                    if (!$ans) {
+                        $row[] = '-';
+                    } elseif ($ans->answer === 'ya') {
+                        $row[] = 'YA';
+                    } else {
+                        $status = match ($ans->workflow_status) {
+                            'submitted' => 'MENUNGGU VERIFIKASI',
+                            'verified' => 'SELESAI',
+                            'rejected' => 'PERLU REVISI',
+                            default => 'OPEN',
+                        };
+                        $row[] = 'TIDAK - ' . $status;
+                    }
                 }
                 $rows[] = $row;
             }

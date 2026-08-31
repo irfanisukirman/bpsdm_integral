@@ -71,7 +71,7 @@
                     <div class="mt-4">
                         <div class="d-flex justify-content-between mb-1">
                             <small class="fw-semibold">Progress Capaian</small>
-                            <small class="fw-bold">{{ round(($myJpThisYear / 20) * 100) }}%</small>
+                            <small class="fw-bold">{{ round($percent) }}%</small>
                         </div>
                         <div class="progress" style="height: 12px;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated {{ $myJpThisYear >= 20 ? 'bg-success' : 'bg-primary' }}" 
@@ -92,6 +92,65 @@
             </div>
         </div>
     </div>
+
+    @if($postEvaluationTrainings->isNotEmpty())
+    <div class="card border-warning shadow-sm mb-4">
+        <div class="card-header bg-label-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h5 class="mb-1 text-warning"><i class="bx bx-bell-ring me-2"></i>Evaluasi Pascapelatihan Perlu Diisi</h5>
+                <small class="text-muted">{{ $postEvaluationTrainings->count() }} pelatihan sudah memasuki jadwal evaluasi dampak.</small>
+            </div>
+            <a href="{{ route('participant.trainings') }}" class="btn btn-warning btn-sm">Lihat Semua</a>
+        </div>
+        <div class="list-group list-group-flush">
+            @foreach($postEvaluationTrainings as $evaluationParticipant)
+                <div class="list-group-item p-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ $evaluationParticipant->training->nama_pelatihan }}</h6>
+                            <small class="text-muted"><i class="bx bx-calendar me-1"></i>Dibuka sejak {{ $evaluationParticipant->training->tgl_sebar_l34->translatedFormat('d F Y') }} · Penilaian perubahan perilaku dan dampak pelatihan</small>
+                        </div>
+                        <a href="{{ route('public.l34.form', [$evaluationParticipant->training_id, 'mandiri']) }}" class="btn btn-sm btn-warning flex-shrink-0"><i class="bx bx-edit me-1"></i>Isi Sekarang</a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    @if($isPengajar)
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-label-info d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h5 class="mb-1 text-info"><i class="bx bx-chalkboard me-2"></i>Dashboard Pengajar</h5>
+                <small class="text-muted">Ringkasan penugasan mengajar Anda.</small>
+            </div>
+            <a href="{{ route('pengajar.index') }}" class="btn btn-info btn-sm">Kelola Administrasi Pengajar</a>
+        </div>
+        <div class="card-body pt-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <small class="text-muted d-block mb-1">JP Mengajar Tahun {{ date('Y') }}</small>
+                        <h3 class="mb-0 text-info">{{ $teachingJpThisYear }} <small class="fs-6 text-muted">JP</small></h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <small class="text-muted d-block mb-1">Total Seluruh JP Mengajar</small>
+                        <h3 class="mb-0 text-primary">{{ $teachingJpTotal }} <small class="fs-6 text-muted">JP</small></h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <small class="text-muted d-block mb-1">Pelatihan yang Diajar</small>
+                        <h3 class="mb-0 text-success">{{ $teachingCount }} <small class="fs-6 text-muted">Pelatihan</small></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <div class="row">
         <!-- Statistik Kecil -->

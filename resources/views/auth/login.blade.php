@@ -53,9 +53,9 @@
                     <div class="mb-3 form-password-toggle">
                         <div class="d-flex justify-content-between">
                             <label class="form-label fw-bold" for="password">Password</label>
-                            <a href="#">
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
                                 <small class="text-primary fw-semibold">Lupa Password?</small>
-                            </a>
+                            </button>
                         </div>
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-lock-alt"></i></span>
@@ -97,6 +97,29 @@
     </div>
 </div>
 
+@php
+    $passwordAdmins = [
+        ['name' => 'Sembiru', 'phone' => '6281382830814'],
+        ['name' => 'Alam', 'phone' => '6281809597757'],
+        ['name' => 'Rizky', 'phone' => '6281295317499'],
+    ];
+@endphp
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordTitle" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg overflow-hidden">
+  <div class="modal-header border-0 bg-label-primary px-4 pt-4"><div><span class="badge bg-primary mb-2"><i class="bx bx-lock-open me-1"></i>Bantuan Akun</span><h5 class="modal-title fw-bold" id="forgotPasswordTitle">Hubungi Admin via WhatsApp</h5><p class="text-muted small mb-0">Pilih salah satu admin untuk meminta bantuan reset password.</p></div><button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body p-4">
+   <div class="alert alert-info small"><i class="bx bx-info-circle me-1"></i>WhatsApp akan terbuka dengan formulir yang sudah tersedia. Lengkapi seluruh data tersebut sebelum mengirim pesan.</div>
+   <div class="d-grid gap-2">
+    @foreach($passwordAdmins as $admin)
+     @php $waMessage = "Halo Admin {$admin['name']}, saya ingin meminta bantuan reset password akun INTEGRAL.\n\nNama Lengkap:\nNIP/NIK:\nEmail Terdaftar:\n\nMohon bantuannya. Terima kasih."; @endphp
+     <a href="https://wa.me/{{$admin['phone']}}?text={{rawurlencode($waMessage)}}" target="_blank" rel="noopener" class="btn btn-outline-success d-flex align-items-center text-start p-3 rounded-3">
+      <span class="avatar avatar-md me-3"><span class="avatar-initial rounded-circle bg-label-success"><i class="bx bxl-whatsapp fs-4"></i></span></span><span class="flex-grow-1"><strong class="d-block text-dark">{{$admin['name']}}</strong><small class="text-muted">+{{substr($admin['phone'],0,2)}} {{substr($admin['phone'],2)}}</small></span><i class="bx bx-chevron-right fs-4"></i>
+     </a>
+    @endforeach
+   </div>
+  </div><div class="modal-footer border-0 pt-0 px-4 pb-4"><button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Batal</button></div>
+ </div></div>
+</div>
 <!-- Background Elements -->
 <div class="bg-shape-1 d-none d-sm-block"></div>
 <div class="bg-shape-2 d-none d-sm-block"></div>

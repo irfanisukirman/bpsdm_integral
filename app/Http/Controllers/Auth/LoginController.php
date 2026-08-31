@@ -113,5 +113,5 @@ class LoginController extends Controller implements HasMiddleware
     {
         // Arahkan ke rute landing page (/)
         return redirect('/');
-    }
+    }   
 }

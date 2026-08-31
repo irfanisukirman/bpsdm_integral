@@ -9,16 +9,18 @@ class Participant extends Model
     protected $table = 'participants';
 
     protected $fillable = [
-        'training_id', 
-        'user_id', 
-        'nip_nik', 
-        'name', 
-        'gender', 
+        'training_id',
+        'user_id',
+        'nip_nik',
+        'name',
+        'gender',
         'phone',
-        'jabatan', 
+        'jabatan',
         'instansi',
-        'provinsi', 
-        'kabupaten_kota', 
+        'provinsi',
+        'kota',
+        'kecamatan',
+        'kelurahan',
         'status_kepegawaian',
         'biodata_file_id',
         'surat_tugas_file_id',
@@ -34,6 +36,11 @@ class Participant extends Model
         return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
             ->where('evaluator_role', $role)
             ->exists();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
@@ -69,27 +76,72 @@ class Participant extends Model
 
     public function hasFilledL34($role)
     {
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->where('evaluator_role', 'mandiri')
+        if (!in_array($role, ['mandiri', 'atasan', 'rekan'], true)) {
+            return false;
+        }
+
+        if ($this->relationLoaded('evaluationResultsL34')) {
+            return $this->evaluationResultsL34->contains(fn ($result) =>
+                $result->evaluator_role === $role &&
+                (int) $result->training_id === (int) $this->training_id
+            );
+        }
+
+        return $this->evaluationResultsL34()
+            ->where('training_id', $this->training_id)
+            ->where('evaluator_role', $role)
             ->exists();
     }
 
     public function hasFilledL34Mandiri()
     {
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->where('evaluator_role', 'mandiri')
-            ->exists();
+        return $this->hasFilledL34('mandiri');
     }
 
     public function getAvgL4Attribute()
     {
-        // Menghitung rata-rata skor dari semua penilai (Mandiri, Atasan, Rekan)
-        return \App\Models\EvaluationResultL34::where('participant_id', $this->id)
-            ->whereNotNull('score')
-            ->avg('score') ?? 0;
+        return $this->l4_summary['average'];
     }
 
-    public function alumniProfile() {
+    public function getL4SummaryAttribute(): array
+    {
+        $results = $this->relationLoaded('evaluationResultsL34')
+            ? $this->evaluationResultsL34
+            : $this->evaluationResultsL34()->with('question')
+                ->where('training_id', $this->training_id)
+                ->get();
+
+        $labelScores = [
+            'sangat kurang' => 20,
+            'kurang' => 40,
+            'cukup' => 60,
+            'baik' => 80,
+            'sangat baik' => 100,
+        ];
+
+        $values = $results
+            ->filter(fn ($result) =>
+                (int) $result->training_id === (int) $this->training_id &&
+                $result->question?->sub_category === 'Dampak Pelatihan'
+            )
+            ->map(function ($result) use ($labelScores) {
+                if (is_numeric($result->score)) {
+                    return (float) $result->score;
+                }
+
+                return $labelScores[strtolower(trim((string) $result->note))] ?? null;
+            })
+            ->filter(fn ($value) => $value !== null)
+            ->values();
+
+        return [
+            'average' => $values->isNotEmpty() ? round($values->avg(), 1) : 0,
+            'count' => $values->count(),
+        ];
+    }
+
+    public function alumniProfile()
+    {
         return $this->hasOne(AlumniProfile::class);
     }
 
@@ -99,6 +151,51 @@ class Participant extends Model
         return \App\Models\EvaluationResultL1::where('participant_id', $this->id)
             ->where('training_id', $this->training_id)
             ->exists();
+    }
+
+    public function hasCompletedAllL1(): bool
+    {
+        $forms = \App\Models\EvaluationFormL1::where('training_id', $this->training_id)->get();
+        if ($forms->isEmpty()) {
+            return true;
+        }
+
+        return $forms->every(function ($form) {
+            return \App\Models\EvaluationResultL1::where('participant_id', $this->id)
+                ->where('training_id', $this->training_id)
+                ->where(function ($query) use ($form) {
+                    if ($form->schedule_id) {
+                        $query->where('schedule_id', $form->schedule_id);
+                    } else {
+                        $query->whereNull('schedule_id');
+                    }
+                })
+                ->exists();
+        });
+    }
+
+    public function getHasCompletedDocumentsAttribute(): bool
+    {
+        return (bool) ($this->biodata_file_id && $this->surat_tugas_file_id && $this->pas_foto_file_id);
+    }
+
+    public function getIsCoreTrainingCompleteAttribute(): bool
+    {
+        $training = $this->relationLoaded('training') ? $this->training : $this->training()->first();
+
+        return $this->registration_status === 'approved'
+            && $training
+            && \Carbon\Carbon::parse($training->tgl_selesai)->endOfDay()->isPast()
+            && $this->has_completed_documents
+            && $this->hasCompletedAllL1();
+    }
+
+    public function getIsPostEvaluationDueAttribute(): bool
+    {
+        $training = $this->relationLoaded('training') ? $this->training : $this->training()->first();
+
+        return $training
+            && now()->startOfDay()->greaterThanOrEqualTo($training->tgl_sebar_l34->copy()->startOfDay());
     }
 
     public function getIsAllFinishedAttribute()

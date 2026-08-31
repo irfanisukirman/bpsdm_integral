@@ -18,6 +18,8 @@ class AlumniProfile extends Model
         'pos_during_training',
         'pos_current',
         'unit_during_training',
-        'unit_current'
+        'unit_current',
+        'dept_during_training',
+        'dept_current',
     ];
 }

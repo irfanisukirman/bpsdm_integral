@@ -22,12 +22,28 @@
                     
                     <div class="mb-3">
                         <label class="form-label">Penyelenggara Pelatihan</label>
-                        <select name="bidang" class="form-select" required>
-                            <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan">Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Inti">Bidang Pengembangan Kompetensi Teknis Inti</option>
-                            <option value="Bidang Pengembangan Kompetensi Teknis Umum">Bidang Pengembangan Kompetensi Teknis Umum</option>
-                            <option value="Bidang Pengembangan Kompetensi Manajerial">Bidang Pengembangan Kompetensi Manajerial</option>
+                        @if(auth()->user()->role === 'admin_bidang')
+                            <input type="hidden" name="bidang" value="{{ auth()->user()->bidang }}">
+                            <input type="text" class="form-control bg-light" value="{{ auth()->user()->bidang }}" readonly>
+                            <div class="form-text">Penyelenggara mengikuti bidang pada akun Anda.</div>
+                        @else
+                            <select name="bidang" class="form-select" required>
+                                <option value="Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan">Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</option>
+                                <option value="Bidang Pengembangan Kompetensi Teknis Inti">Bidang Pengembangan Kompetensi Teknis Inti</option>
+                                <option value="Bidang Pengembangan Kompetensi Teknis Umum">Bidang Pengembangan Kompetensi Teknis Umum</option>
+                                <option value="Bidang Pengembangan Kompetensi Manajerial">Bidang Pengembangan Kompetensi Manajerial</option>
+                            </select>
+                        @endif
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">PROGRAM EVALUASI L3 & L4</label>
+                        <select name="program_evaluasi" class="form-select border-primary" required>
+                            @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                                <option value="{{ $program }}" @selected(old('program_evaluasi', 'PKTI/PKTU') === $program)>{{ $program }}</option>
+                            @endforeach
                         </select>
+                        <div class="form-text">Untuk Bidang Manajerial pilih CPNS, PKP, PKA, atau PKN. Bidang lainnya menggunakan PKTI/PKTU.</div>
                     </div>
 
                     @if($model === 'standar')

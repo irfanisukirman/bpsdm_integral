@@ -1,0 +1,10 @@
+<div class="row g-3">
+ <div class="col-md-8"><label class="form-label">Nama Aset <span class="text-danger">*</span></label><input name="name" class="form-control" value="{{old('name',$asset?->name)}}" required></div>
+ <div class="col-md-4"><label class="form-label">Jenis <span class="text-danger">*</span></label><select name="type" class="form-select" required>@foreach(['ruangan','kendaraan','peralatan','lainnya'] as $type)<option value="{{$type}}" @selected(old('type',$asset?->type)===$type)>{{ucfirst($type)}}</option>@endforeach</select></div>
+ <div class="col-md-8"><label class="form-label">Lokasi <span class="text-danger">*</span></label><input name="location" class="form-control" value="{{old('location',$asset?->location)}}" required></div>
+ <div class="col-md-4"><label class="form-label">Kapasitas</label><div class="input-group"><input type="number" min="1" name="capacity" class="form-control" value="{{old('capacity',$asset?->capacity)}}"><span class="input-group-text">orang</span></div></div>
+ <div class="col-12"><label class="form-label">Fasilitas</label><textarea name="facilities" rows="2" class="form-control">{{old('facilities',$asset?->facilities)}}</textarea></div>
+ <div class="col-12"><label class="form-label">Deskripsi</label><textarea name="description" rows="3" class="form-control">{{old('description',$asset?->description)}}</textarea></div>
+ <div class="col-12"><label class="form-label">{{$editing?'Tambahkan Foto':'Foto'}} <small class="text-muted">(maks. 10 file, masing-masing 5 MB)</small></label><input type="file" name="images[]" multiple accept="image/*" class="form-control">@if($editing)<div class="form-text">Foto baru ditambahkan tanpa menghapus foto lama.</div>@endif</div>
+ <div class="col-12"><div class="form-check form-switch"><input type="checkbox" class="form-check-input" name="is_public" value="1" id="isPublic{{$asset?->id??'New'}}" @checked(old('is_public',$asset?->is_public??true))><label class="form-check-label" for="isPublic{{$asset?->id??'New'}}">Tampilkan aset di halaman publik</label></div></div>
+</div>

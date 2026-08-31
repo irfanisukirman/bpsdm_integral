@@ -20,6 +20,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Penyelenggara Pelatihan</label>
+                        @if(auth()->user()->role === 'admin_bidang')
+                        <input type="hidden" name="bidang" value="{{ auth()->user()->bidang }}">
+                        <input type="text" class="form-control bg-light" value="{{ auth()->user()->bidang }}" readonly>
+                        <div class="form-text">Penyelenggara mengikuti bidang pada akun Anda.</div>
+                        @else
                         <select name="bidang" class="form-select" required>
                             @php
                                 $bidangs = [
@@ -33,6 +38,17 @@
                                 <option value="{{ $b }}" {{ $training->bidang == $b ? 'selected' : '' }}>{{ $b }}</option>
                             @endforeach
                         </select>
+                        @endif
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">PROGRAM EVALUASI L3 & L4</label>
+                        <select name="program_evaluasi" class="form-select border-primary" required>
+                            @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                                <option value="{{ $program }}" @selected(old('program_evaluasi', $training->program_evaluasi ?: 'PKTI/PKTU') === $program)>{{ $program }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Menentukan kelompok pertanyaan evaluasi pascapelatihan yang ditampilkan.</div>
                     </div>
 
                     @if($training->model === 'standar')

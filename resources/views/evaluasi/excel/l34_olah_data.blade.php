@@ -1,113 +1,103 @@
+@php
+    $roles = ['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan Kerja'];
+    $labelScore = ['Sangat Kurang' => 20, 'Kurang' => 40, 'Cukup' => 60, 'Baik' => 80, 'Sangat Baik' => 100];
+    $sections = [
+        'PENEMPATAN TUGAS DAN TRANSFER LEARNING' => $questionsPlacement,
+        'PERUBAHAN PERILAKU (L3)' => $questionsL3,
+        'DAMPAK PELATIHAN (L4)' => $questionsL4,
+    ];
+@endphp
 <table>
-    {{-- BAGIAN 1 - INFORMASI UMUM --}}
-    <tr><th colspan="7" style="font-weight: bold; background-color: #FFA500; border: 1px solid #000;">BAGIAN 1 - INFORMASI UMUM</th></tr>
-    <tr></tr> {{-- Row 2 --}}
-    <tr> {{-- Row 3 --}}
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">1. TINGKAT PENDIDIKAN</td>
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">Saat Pelatihan</td>
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">Saat Ini</td>
-    </tr>
-    @foreach(['S2/S3', 'D4/S1', 'D3', 'SMA/K', 'SD/SMP'] as $edu)
-    <tr> {{-- Row 4-8 --}}
-        <td style="border: 1px solid #000;">{{ $edu }}</td>
-        <td style="border: 1px solid #000; text-align: center;">{{ $profiles->where('edu_during_training', $edu)->count() }}</td>
-        <td style="border: 1px solid #000; text-align: center;">{{ $profiles->where('edu_current', $edu)->count() }}</td>
-    </tr>
+    <tr><th colspan="8" style="font-weight:bold;background-color:#2F5597;color:#FFFFFF;">OLAH DATA EVALUASI LEVEL 3 &amp; 4</th></tr>
+    <tr><td>Pelatihan</td><td colspan="7">{{ $training->nama_pelatihan }}</td></tr>
+    <tr><td>Bidang</td><td colspan="7">{{ $training->bidang }}</td></tr>
+    <tr><td>Responden</td><td>Mandiri: {{ $totalResponden['mandiri'] }}</td><td>Atasan: {{ $totalResponden['atasan'] }}</td><td>Rekan: {{ $totalResponden['rekan'] }}</td></tr>
+    <tr></tr>
+
+    <tr><th colspan="8" style="font-weight:bold;background-color:#F4B183;">RINGKASAN PERUBAHAN DATA DIRI</th></tr>
+    <tr><td>Profil Mandiri Tersimpan</td><td>{{ $profiles->count() }}</td></tr>
+    <tr><td>Jabatan Berubah</td><td>{{ $profiles->filter(fn($profile) => $profile->pos_during_training !== $profile->pos_current)->count() }}</td></tr>
+    <tr><td>Unit Kerja Berubah</td><td>{{ $profiles->filter(fn($profile) => $profile->unit_during_training !== $profile->unit_current)->count() }}</td></tr>
+    <tr><td>Perangkat Daerah Berubah</td><td>{{ $profiles->filter(fn($profile) => $profile->dept_during_training !== $profile->dept_current)->count() }}</td></tr>
+    <tr></tr>
+
+    @foreach($sections as $sectionTitle => $sectionQuestions)
+        <tr><th colspan="8" style="font-weight:bold;background-color:#F4B183;">{{ $sectionTitle }}</th></tr>
+        @forelse($sectionQuestions as $questionNumber => $question)
+            @php
+                $roleResults = collect();
+                foreach ($roles as $roleKey => $roleName) {
+                    $roleQuestion = $allQuestions->first(fn($candidate) =>
+                        $candidate->category === 'l34_' . $roleKey &&
+                        $candidate->sub_category === $question->sub_category &&
+                        $candidate->question_text === $question->question_text
+                    );
+                    $roleResults->put($roleKey, $roleQuestion
+                        ? $results->where('evaluator_role', $roleKey)->where('question_id', $roleQuestion->id)
+                        : collect());
+                }
+
+                $options = $question->options ?? [];
+                if ($question->type === 'slider') {
+                    $options = array_keys($labelScore);
+                } elseif ($question->type === 'text') {
+                    $options = ['Jawaban terisi'];
+                }
+            @endphp
+            <tr><td colspan="8" style="font-weight:bold;">{{ $questionNumber + 1 }}. {{ $question->question_text }}</td></tr>
+            <tr style="font-weight:bold;background-color:#D9EAF7;">
+                <td>Pilihan / Skala</td>
+                @foreach($roles as $roleName)
+                    <td>{{ $roleName }} (Jumlah)</td><td>{{ $roleName }} (%)</td>
+                @endforeach
+                <td>Catatan</td>
+            </tr>
+            @foreach($options as $option)
+                <tr>
+                    <td>{{ $option }}</td>
+                    @foreach($roles as $roleKey => $roleName)
+                        @php
+                            $roleItems = $roleResults->get($roleKey, collect());
+                            $count = $roleItems->filter(function ($result) use ($question, $option, $labelScore) {
+                                if ($question->type === 'checkbox') {
+                                    $selected = json_decode((string) $result->note, true);
+                                    return is_array($selected) && in_array($option, $selected, true);
+                                }
+                                if ($question->type === 'text') {
+                                    return filled($result->note);
+                                }
+                                if ($result->score !== null) {
+                                    $numeric = (float) $result->score;
+                                    $target = $labelScore[$option] ?? null;
+                                    return $target !== null && $numeric === (float) $target;
+                                }
+                                return trim((string) $result->note) === (string) $option;
+                            })->count();
+                            $denominator = max(1, $roleItems->unique('participant_id')->count());
+                        @endphp
+                        <td>{{ $count }}</td>
+                        <td>{{ round(($count / $denominator) * 100, 1) }}</td>
+                    @endforeach
+                    <td>{{ $question->type === 'checkbox' ? 'Boleh lebih dari satu jawaban' : '' }}</td>
+                </tr>
+            @endforeach
+            <tr></tr>
+        @empty
+            <tr><td colspan="8">Belum ada pertanyaan pada bagian ini.</td></tr>
+        @endforelse
     @endforeach
 
-    @for($i=0; $i<7; $i++) <tr></tr> @endfor {{-- Row 9-15 (Spasi untuk Chart) --}}
-
-    <tr> {{-- Row 16 --}}
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">2. GOLONGAN</td>
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">Saat Pelatihan</td>
-        <td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">Saat Ini</td>
-    </tr>
-    @foreach(['Gol IV', 'Gol III', 'Gol II', 'Gol I'] as $gol)
-    <tr> {{-- Row 17-20 --}}
-        <td style="border: 1px solid #000;">{{ $gol }}</td>
-        <td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => str_contains($p->rank_during_training ?? '', str_replace('Gol ', '', $gol)))->count() }}</td>
-        <td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => str_contains($p->rank_current ?? '', str_replace('Gol ', '', $gol)))->count() }}</td>
-    </tr>
-    @endforeach
-
-    @for($i=0; $i<7; $i++) <tr></tr> @endfor {{-- Spasi --}}
-
-    <tr><td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">3. JABATAN</td><td style="font-weight: bold; border: 1px solid #000; text-align: center;">Jumlah</td></tr> {{-- Row 28 --}}
-    <tr><td style="border: 1px solid #000;">Berubah</td><td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => $p->pos_during_training != $p->pos_current)->count() }}</td></tr>
-    <tr><td style="border: 1px solid #000;">Tetap</td><td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => $p->pos_during_training == $p->pos_current)->count() }}</td></tr>
-
-    @for($i=0; $i<5; $i++) <tr></tr> @endfor {{-- Spasi --}}
-
-    <tr><td style="font-weight: bold; border: 1px solid #000; background-color: #f2f2f2;">4. UNIT KERJA</td><td style="font-weight: bold; border: 1px solid #000; text-align: center;">Jumlah</td></tr> {{-- Row 37 --}}
-    <tr><td style="border: 1px solid #000;">Berubah</td><td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => $p->unit_during_training != $p->unit_current)->count() }}</td></tr>
-    <tr><td style="border: 1px solid #000;">Tetap</td><td style="border: 1px solid #000; text-align: center;">{{ $profiles->filter(fn($p) => $p->unit_during_training == $p->unit_current)->count() }}</td></tr>
-
-    @for($i=0; $i<10; $i++) <tr></tr> @endfor {{-- Row 40-50 --}}
-
-    {{-- BAGIAN 2 - PENUGASAN --}}
-    <tr><th colspan="7" style="font-weight: bold; background-color: #FFA500; border: 1px solid #000;">BAGIAN 2 - PENUGASAN SAAT INI</th></tr>
-    @php
-        $taskQs = [
-            1 => 'Apakah saat ini Ybs sedang bertugas yang berkaitan dengan pelatihan?',
-            2 => 'Apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?',
-            3 => 'Jika Tidak, apakah pengetahuan membantu menjalankan tugas?',
-            4 => 'Apakah pelatihan memiliki keterkaitan dengan bidang tugas?',
-            5 => 'Apakah Ybs melakukan transfer ilmu?'
-        ];
-    @endphp
-
-    @foreach($taskQs as $num => $txt)
-        <tr><td colspan="7" style="font-weight: bold;">{{ $num + 5 }}. {{ $txt }}</td></tr>
-        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-            <td style="border: 1px solid #000;">Pilihan</td>
-            <td style="border: 1px solid #000;">Peserta</td><td style="border: 1px solid #000;">Atasan</td><td style="border: 1px solid #000;">Rekan</td>
-            <td style="border: 1px solid #000;">Peserta (%)</td><td style="border: 1px solid #000;">Atasan (%)</td><td style="border: 1px solid #000;">Rekan (%)</td>
-        </tr>
-        @foreach(['Ya', 'Tidak'] as $ans)
-        <tr>
-            <td style="border: 1px solid #000;">{{ $ans }}</td>
-            @foreach(['mandiri', 'atasan', 'rekan'] as $role)
-                @php $c = $results->where('evaluator_role', $role)->filter(fn($r) => str_contains($r->note, "Tugas ke-$num") && str_contains($r->note, $ans))->count(); @endphp
-                <td style="border: 1px solid #000; text-align: center;">{{ $c }}</td>
-            @endforeach
-            @foreach(['mandiri', 'atasan', 'rekan'] as $role)
-                @php 
-                    $total = $totalResponden[$role] > 0 ? $totalResponden[$role] : 1;
-                    $c = $results->where('evaluator_role', $role)->filter(fn($r) => str_contains($r->note, "Tugas ke-$num") && str_contains($r->note, $ans))->count();
-                @endphp
-                <td style="border: 1px solid #000; text-align: center;">{{ round(($c/$total)*100, 1) }}</td>
-            @endforeach
-        </tr>
-        @endforeach
-        @for($i=0; $i<7; $i++) <tr></tr> @endfor {{-- Jarak antar chart penugasan --}}
-    @endforeach
-
-    {{-- BAGIAN 3 & 4 - PERILAKU & DAMPAK --}}
-    @foreach(['PERUBAHAN PERILAKU' => $questionsL3, 'DAMPAK PELATIHAN' => $questionsL4] as $title => $qs)
-    <tr><th colspan="7" style="font-weight: bold; background-color: #FFA500; border: 1px solid #000;">{{ $title }}</th></tr>
-    @foreach($qs as $idx => $q)
-        <tr><td colspan="7" style="font-weight: bold;">{{ $idx + 1 }}. {{ $q->question_text }}</td></tr>
-        <tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">
-            <td style="border: 1px solid #000;">Skala</td>
-            <td style="border: 1px solid #000;">Peserta</td><td style="border: 1px solid #000;">Atasan</td><td style="border: 1px solid #000;">Rekan</td>
-            <td style="border: 1px solid #000;">P (%)</td><td style="border: 1px solid #000;">A (%)</td><td style="border: 1px solid #000;">R (%)</td>
-        </tr>
-        @foreach([['l'=>'Sangat Baik','min'=>91,'max'=>100],['l'=>'Baik','min'=>81,'max'=>90],['l'=>'Cukup','min'=>71,'max'=>80],['l'=>'Kurang','min'=>61,'max'=>70],['l'=>'Sangat Kurang','min'=>10,'max'=>60]] as $s)
-        <tr>
-            <td style="border: 1px solid #000;">{{ $s['l'] }}</td>
-            @foreach(['mandiri', 'atasan', 'rekan'] as $role)
-                <td style="border: 1px solid #000; text-align: center;">{{ $results->where('evaluator_role', $role)->where('question_id', $q->id)->whereBetween('score', [$s['min'], $s['max']])->count() }}</td>
-            @endforeach
-            @foreach(['mandiri', 'atasan', 'rekan'] as $role)
-                @php 
-                    $total = $totalResponden[$role] > 0 ? $totalResponden[$role] : 1;
-                    $c = $results->where('evaluator_role', $role)->where('question_id', $q->id)->whereBetween('score', [$s['min'], $s['max']])->count();
-                @endphp
-                <td style="border: 1px solid #000; text-align: center;">{{ round(($c/$total)*100, 1) }}</td>
-            @endforeach
-        </tr>
-        @endforeach
-        @for($i=0; $i<5; $i++) <tr></tr> @endfor
-    @endforeach
+    <tr><th colspan="8" style="font-weight:bold;background-color:#70AD47;color:#FFFFFF;">RATA-RATA SKOR DAMPAK (L4)</th></tr>
+    @foreach($roles as $roleKey => $roleName)
+        @php
+            $roleImpactResults = $results->where('evaluator_role', $roleKey)
+                ->filter(fn($result) => $result->question?->sub_category === 'Dampak Pelatihan');
+            $values = $roleImpactResults->map(fn($result) =>
+                $result->score !== null
+                    ? (float) $result->score
+                    : ($labelScore[trim((string) $result->note)] ?? null)
+            )->filter(fn($value) => $value !== null);
+        @endphp
+        <tr><td>{{ $roleName }}</td><td>{{ $values->isNotEmpty() ? round($values->avg(), 1) : 0 }}</td><td>{{ $values->count() }} jawaban</td></tr>
     @endforeach
 </table>

@@ -13,6 +13,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Carbon\Carbon;
 use App\Exports\MonitoringCeklisExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MonitoringController extends Controller
 {
@@ -36,11 +38,28 @@ class MonitoringController extends Controller
     /**
      * Form pengisian instrumen monitoring
      */
-    public function create($id)
+    public function create(Request $request, $id)
     {
         // Eager Load relasi agar data jawaban dan kesimpulan terbawa
         $training = Training::with(['stages', 'monitoringResults'])->findOrFail($id);
-        $organizers = \App\Models\User::where('role', 'admin_bidang')->get();
+        $this->authorizeTraining($training);
+        $organizers = \App\Models\User::where('role', 'admin_bidang')
+            ->whereNotNull('bidang')
+            ->orderBy('bidang')
+            ->get()
+            ->unique('bidang')
+            ->values();
+        $monitoringDate = null;
+        if ($training->model === 'standar') {
+            $requestedDate = $request->query('monitoring_date', now()->toDateString());
+            $monitoringDate = Carbon::parse($requestedDate);
+            $startDate = Carbon::parse($training->tgl_mulai)->startOfDay();
+            $endDate = Carbon::parse($training->tgl_selesai)->endOfDay();
+            if (!$monitoringDate->betweenIncluded($startDate, $endDate)) {
+                $monitoringDate = $startDate;
+            }
+            $monitoringDate = $monitoringDate->toDateString();
+        }
 
         $questionsByStage = [];
         if ($training->model == 'standar') {
@@ -57,7 +76,7 @@ class MonitoringController extends Controller
             }
         }
 
-        return view('monitoring.fill', compact('training', 'questionsByStage', 'organizers'));
+        return view('monitoring.fill', compact('training', 'questionsByStage', 'organizers', 'monitoringDate'));
     }
 
     /**
@@ -68,51 +87,120 @@ class MonitoringController extends Controller
         $request->validate([
             'stage_id' => 'required',
             'ans' => 'required|array',
-            'final_conclusion' => 'required|string'
+            'final_conclusion' => 'required|string',
+            'monitoring_date' => 'nullable|date',
         ]);
+        $training = Training::with('stages')->findOrFail($id);
+        $this->authorizeTraining($training);
 
         // Konversi stage_id ke integer agar sinkron dengan database
         $stage_id = ($request->stage_id === 'std' || $request->stage_id === null) ? null : (int)$request->stage_id;
+        $stage = $stage_id ? $training->stages->firstWhere('id', $stage_id) : null;
+        abort_if($stage_id && !$stage, 422, 'Tahapan tidak sesuai dengan pelatihan.');
+        $monitoringDate = $stage_id ? null : ($request->monitoring_date ?: now()->toDateString());
+        if (!$stage_id) {
+            $date = Carbon::parse($monitoringDate);
+            if (!$date->betweenIncluded(Carbon::parse($training->tgl_mulai)->startOfDay(), Carbon::parse($training->tgl_selesai)->endOfDay())) {
+                throw ValidationException::withMessages(['monitoring_date' => 'Tanggal monitoring harus berada dalam periode pelatihan.']);
+            }
+        }
 
-        // 1. Simpan Jawaban Indikator
-        foreach ($request->ans as $q_id => $answer) {
-            $question = \App\Models\Question::find($q_id);
-            \App\Models\MonitoringResult::updateOrCreate(
+        foreach ($request->ans as $qId => $answer) {
+            if (!in_array($answer, ['ya', 'tidak'], true)) {
+                throw ValidationException::withMessages(["ans.$qId" => 'Jawaban indikator tidak valid.']);
+            }
+            if ($answer === 'tidak') {
+                $required = [
+                    'notes' => 'Temuan wajib dijelaskan.',
+                    'target' => 'Bidang tujuan tindak lanjut wajib dipilih.',
+                    'recommendation' => 'Rekomendasi tindakan wajib diisi.',
+                    'priority' => 'Prioritas wajib dipilih.',
+                    'due_date' => 'Batas waktu tindak lanjut wajib diisi.',
+                ];
+                foreach ($required as $field => $message) {
+                    if (blank($request->input("{$field}.{$qId}"))) {
+                        throw ValidationException::withMessages(["{$field}.{$qId}" => $message]);
+                    }
+                }
+                if (!in_array($request->input("priority.$qId"), ['rendah', 'sedang', 'tinggi', 'kritis'], true)) {
+                    throw ValidationException::withMessages(["priority.$qId" => 'Prioritas tindak lanjut tidak valid.']);
+                }
+                if (!User::where('role', 'admin_bidang')->where('bidang', $request->input("target.$qId"))->exists()) {
+                    throw ValidationException::withMessages(["target.$qId" => 'Bidang tujuan tidak memiliki akun admin bidang yang valid.']);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($request, $id, $stage_id, $monitoringDate, $training, $stage) {
+            // 1. Simpan Jawaban Indikator
+            foreach ($request->ans as $q_id => $answer) {
+                $method = $stage?->metode ?? $training->metode;
+                $question = \App\Models\Question::where('category', 'LIKE', 'Monitoring%')
+                    ->where(function ($query) use ($method) {
+                        $query->where('metode', $method)->orWhere('metode', 'semua');
+                    })
+                    ->findOrFail($q_id);
+                $keys = [
+                    'training_id' => $id,
+                    'training_stage_id' => $stage_id,
+                    'monitoring_date' => $monitoringDate,
+                    'question_id' => $q_id,
+                ];
+                $existing = MonitoringResult::where($keys)->first();
+                $isChangedFinding = $existing && $answer === 'tidak' && (
+                    $existing->notes !== $request->input("notes.$q_id") ||
+                    $existing->recommendation !== $request->input("recommendation.$q_id") ||
+                    $existing->follow_up_target !== $request->input("target.$q_id")
+                );
+                $workflowStatus = $answer === 'ya'
+                    ? 'not_required'
+                    : (($existing && !$isChangedFinding && in_array($existing->workflow_status, ['submitted', 'verified'], true))
+                        ? $existing->workflow_status
+                        : 'open');
+
+                MonitoringResult::updateOrCreate(
                 [
-                    'training_id' => $id, 
-                    'training_stage_id' => $stage_id, 
-                    'question_id' => $q_id
+                    ...$keys,
                 ],
                 [
                     'category' => $question->sub_category ?? $question->category,
                     'answer' => $answer,
-                    'notes' => $request->notes[$q_id] ?? null,
-                    'follow_up_target' => ($answer == 'tidak') ? $request->target[$q_id] : null,
+                    'notes' => $answer === 'tidak' ? $request->input("notes.$q_id") : null,
+                    'recommendation' => $answer === 'tidak' ? $request->input("recommendation.$q_id") : null,
+                    'follow_up_target' => $answer === 'tidak' ? $request->input("target.$q_id") : null,
+                    'priority' => $answer === 'tidak' ? $request->input("priority.$q_id", 'sedang') : 'sedang',
+                    'due_date' => $answer === 'tidak' ? $request->input("due_date.$q_id") : null,
+                    'workflow_status' => $workflowStatus,
+                    'is_resolved' => $workflowStatus === 'verified',
                 ]
-            );
-        }
-
-        // 2. Simpan Kesimpulan per Kategori
-        if ($request->has('category_conclusions')) {
-            foreach ($request->category_conclusions as $cat => $text) {
-                \App\Models\MonitoringSummary::updateOrCreate(
-                    ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => $cat],
-                    ['conclusion' => $text]
                 );
             }
-        }
 
-        // 3. Simpan Kesimpulan Akhir Tahapan
-        \App\Models\MonitoringSummary::updateOrCreate(
-            ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => 'STAGE_FINAL_SUMMARY'],
-            ['conclusion' => $request->final_conclusion]
-        );
+            // 2. Simpan Kesimpulan per Kategori
+            if ($request->has('category_conclusions')) {
+                foreach ($request->category_conclusions as $cat => $text) {
+                    \App\Models\MonitoringSummary::updateOrCreate(
+                        ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => $cat],
+                        ['conclusion' => $text]
+                    );
+                }
+            }
+
+            // 3. Simpan Kesimpulan Akhir Tahapan
+            \App\Models\MonitoringSummary::updateOrCreate(
+                ['training_id' => $id, 'training_stage_id' => $stage_id, 'category' => 'STAGE_FINAL_SUMMARY'],
+                ['conclusion' => $request->final_conclusion]
+            );
+        });
 
         return redirect()->back()->with('success', 'Data untuk tahapan berhasil disimpan dan diperbarui.');
     }
 
     public function storeFinalSummary(Request $request, $id)
     {
+        $training = Training::findOrFail($id);
+        $this->authorizeTraining($training);
+        $request->validate(['final_conclusion' => 'required|string']);
         \App\Models\MonitoringSummary::updateOrCreate(
             ['training_id' => $id, 'category' => 'FINAL_SUMMARY', 'training_stage_id' => null],
             ['conclusion' => $request->final_conclusion]
@@ -126,12 +214,16 @@ class MonitoringController extends Controller
      */
     public function exportLaporan($id, Request $request)
     {
-        $training = Training::with(['stages', 'summaries'])->findOrFail($id);
+        $training = Training::with(['stages', 'summaries', 'monitoringResults.question', 'monitoringResults.stage'])->findOrFail($id);
+        $this->authorizeTraining($training);
         $stage_id = $request->query('stage_id'); 
         
         $stage = $training->stages->where('id', $stage_id)->first();
         $metode = $stage ? $stage->metode : $training->metode;
-        $nama_tahapan = $stage ? $stage->nama_tahapan : 'Utama';
+        $nama_tahapan = $stage ? $stage->nama_tahapan : 'Keseluruhan';
+        $scopeResults = $stage_id
+            ? $training->monitoringResults->where('training_stage_id', (int) $stage_id)
+            : $training->monitoringResults;
 
         $templateProcessor = new TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
 
@@ -142,7 +234,7 @@ class MonitoringController extends Controller
         $templateProcessor->setValue('tgl_selesai', \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'));
         $templateProcessor->setValue('tahapan', $nama_tahapan);
 
-        // 2. Logika Kesimpulan (Manual vs Standar)
+        // 2. Isi narasi pada placeholder template asli tanpa mengubah desain dokumen.
         $categories = [
             'Monitoring Penyelenggara' => 'kesimpulan_penyelenggara',
             'Monitoring Peserta' => 'kesimpulan_peserta',
@@ -152,17 +244,46 @@ class MonitoringController extends Controller
         ];
 
         foreach ($categories as $dbCategory => $wordPlaceholder) {
-            $manualEntry = $training->summaries
-                ->where('training_stage_id', $stage_id)
-                ->where('category', $dbCategory)
-                ->first();
-
-            if ($manualEntry && !empty($manualEntry->conclusion)) {
-                $text = $manualEntry->conclusion;
+            if ($dbCategory === 'STAGE_FINAL_SUMMARY') {
+                $total = $scopeResults->count();
+                $yes = $scopeResults->where('answer', 'ya')->count();
+                $findings = $scopeResults->where('answer', 'tidak');
+                $compliance = $total ? round(($yes / $total) * 100, 1) : 0;
+                $verified = $findings->where('workflow_status', 'verified')->count();
+                $pending = $findings->count() - $verified;
+                $manualTexts = $training->summaries
+                    ->when($stage_id, fn ($items) => $items->where('training_stage_id', (int) $stage_id))
+                    ->whereIn('category', ['STAGE_FINAL_SUMMARY', 'FINAL_SUMMARY'])
+                    ->pluck('conclusion')->filter()->implode(' ');
+                $text = $total === 0
+                    ? 'Instrumen monitoring belum diisi sehingga pelaksanaan pelatihan belum dapat disimpulkan berdasarkan bukti monitoring.'
+                    : "Secara keseluruhan terdapat {$total} jawaban indikator, terdiri atas {$yes} indikator terpenuhi dan {$findings->count()} indikator belum terpenuhi. Tingkat kepatuhan tercatat {$compliance}%. Dari seluruh temuan, {$verified} telah selesai diverifikasi dan {$pending} masih memerlukan penyelesaian atau verifikasi. " .
+                        ($manualTexts ?: 'Tim monitoring perlu memastikan setiap rekomendasi ditindaklanjuti sampai bukti perbaikan dinyatakan sesuai.');
             } else {
-                $text = $this->getFallbackConclusion($dbCategory, $metode, $training->nama_pelatihan);
+                $categoryResults = $scopeResults->where('category', $dbCategory);
+                $categoryFindings = $categoryResults->where('answer', 'tidak');
+                $manualTexts = $training->summaries
+                    ->when($stage_id, fn ($items) => $items->where('training_stage_id', (int) $stage_id))
+                    ->where('category', $dbCategory)
+                    ->pluck('conclusion')->filter()->implode(' ');
+
+                if ($categoryResults->isEmpty()) {
+                    $text = "Pada pilar {$dbCategory}, belum tersedia hasil pengisian instrumen sehingga tingkat pemenuhan indikator belum dapat dinilai.";
+                } elseif ($categoryFindings->isEmpty()) {
+                    $text = "Pada pilar {$dbCategory}, seluruh {$categoryResults->count()} indikator yang diisi dinyatakan terpenuhi (YA). Kondisi ini menunjukkan pelaksanaan telah sesuai dengan indikator monitoring dan perlu dipertahankan secara konsisten. " . $manualTexts;
+                } else {
+                    $findingNarratives = $categoryFindings->values()->map(function ($result, $index) {
+                        $status = $this->workflowLabel($result->workflow_status);
+                        return ($index + 1) . ') ' . ($result->question?->question_text ?: 'Indikator') .
+                            '; temuan: ' . ($result->notes ?: '-') .
+                            '; rekomendasi: ' . ($result->recommendation ?: '-') .
+                            '; ditujukan kepada ' . ($result->follow_up_target ?: '-') .
+                            '; status ' . $status . '.';
+                    })->implode(' ');
+                    $text = "Pada pilar {$dbCategory}, ditemukan {$categoryFindings->count()} indikator yang belum terpenuhi dari {$categoryResults->count()} indikator yang diisi. {$findingNarratives} " . $manualTexts;
+                }
             }
-            $templateProcessor->setValue($wordPlaceholder, $text);
+            $templateProcessor->setValue($wordPlaceholder, $this->wordValue(trim($text)));
         }
 
         // --- PROSES AUTO ARCHIVE ---
@@ -191,7 +312,8 @@ class MonitoringController extends Controller
 
     public function exportTindakLanjut($id, Request $request)
     {
-        $training = Training::findOrFail($id);
+        $training = Training::with(['monitoringResults.question', 'monitoringResults.stage'])->findOrFail($id);
+        $this->authorizeTraining($training);
         $stage_id = $request->query('stage_id');
         
         // Load Template
@@ -199,7 +321,7 @@ class MonitoringController extends Controller
 
         // Header Dokumen
         $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
-        $templateProcessor->setValue('tanggal_cetak', Carbon::now()->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_selesai', Carbon::now()->translatedFormat('d F Y'));
 
         // Daftar Pilar dan Kategori Database
         $pillars = [
@@ -212,9 +334,11 @@ class MonitoringController extends Controller
         $goldenParagraph = "Dalam pilar ini, tim monitoring melaporkan bahwa tidak ditemukan kendala maupun temuan yang bersifat signifikan selama proses pelaksanaan kegiatan. Seluruh komponen dan indikator yang menjadi objek monitoring telah dilaksanakan sesuai dengan standar, prosedur, serta ketentuan yang berlaku. Berdasarkan hasil pemantauan, implementasi pada pilar ini berjalan dengan baik, tertib, dan konsisten sehingga tidak memerlukan tindak lanjut maupun perbaikan khusus. Ke depan, kondisi yang sudah baik ini diharapkan dapat terus dipertahankan dan ditingkatkan guna menjaga kualitas pelaksanaan kegiatan secara berkelanjutan.";
 
         foreach ($pillars as $num => $categoryName) {
-            $findings = MonitoringResult::where('training_id', $id)
+            $findings = MonitoringResult::with(['question', 'stage', 'submitter', 'verifier'])
+                ->where('training_id', $id)
                 ->where('category', $categoryName)
                 ->where('answer', 'tidak')
+                ->when($stage_id, fn ($query) => $query->where('training_stage_id', $stage_id))
                 ->get();
 
             if ($findings->isEmpty()) {
@@ -225,23 +349,39 @@ class MonitoringController extends Controller
                 $templateProcessor->setValue("ind{$num}#1", "Seluruh indikator terpenuhi (YA)");
                 $templateProcessor->setValue("tem{$num}#1", "-");
                 $templateProcessor->setValue("tuj{$num}#1", "-");
-                // 1. Tampilkan paragraf "Tidak ada temuan"
-                $templateProcessor->setValue("ket$num", $goldenParagraph);
-                
-                // 2. HAPUS tabel (beserta tag block-nya)
-                $templateProcessor->deleteBlock("block$num");
             } else {
-                // 1. Tampilkan teks pengantar
-                $templateProcessor->setValue("ket$num", "Ditemukan beberapa hal yang memerlukan tindak lanjut:");
+                $verified = $findings->where('workflow_status', 'verified')->count();
+                $submitted = $findings->where('workflow_status', 'submitted')->count();
+                $pending = $findings->count() - $verified - $submitted;
+                $templateProcessor->setValue("ket$num", $this->wordValue(
+                    "Pada pilar {$categoryName} ditemukan {$findings->count()} ketidaksesuaian. Sebanyak {$verified} temuan telah selesai diverifikasi, {$submitted} sedang menunggu verifikasi, dan {$pending} masih memerlukan tindakan atau perbaikan. Setiap penyelesaian harus didukung narasi pelaksanaan dan evidence yang relevan."
+                ));
 
                 // Cukup lakukan cloneRow seperti biasa
                 $templateProcessor->cloneRow("n$num", $findings->count());
                 foreach ($findings as $index => $res) {
                     $row = $index + 1;
                     $templateProcessor->setValue("n{$num}#{$row}", $row);
-                    $templateProcessor->setValue("ind{$num}#{$row}", $res->question->question_text ?? '-');
-                    $templateProcessor->setValue("tem{$num}#{$row}", $res->notes ?? '-');
-                    $templateProcessor->setValue("tuj{$num}#{$row}", $res->follow_up_target ?? '-');
+                    $context = $res->stage?->nama_tahapan
+                        ?? optional($res->monitoring_date)->translatedFormat('d F Y')
+                        ?? 'Pelatihan';
+                    $templateProcessor->setValue("ind{$num}#{$row}", $this->wordValue(
+                        ($res->question->question_text ?? '-') . "\nTahap/Tanggal: {$context}"
+                    ));
+                    $narrative = 'Temuan: ' . ($res->notes ?: '-') .
+                        "\nRekomendasi: " . ($res->recommendation ?: '-') .
+                        "\nTindakan bidang: " . ($res->resolution_notes ?: 'Belum ada respons bidang.') .
+                        "\nStatus: " . $this->workflowLabel($res->workflow_status);
+                    if ($res->verification_notes) {
+                        $narrative .= "\nCatatan verifikasi: {$res->verification_notes}";
+                    }
+                    $templateProcessor->setValue("tem{$num}#{$row}", $this->wordValue($narrative));
+                    $dueDate = optional($res->due_date)->translatedFormat('d F Y') ?? '-';
+                    $templateProcessor->setValue("tuj{$num}#{$row}", $this->wordValue(
+                        ($res->follow_up_target ?: '-') .
+                        "\nPrioritas: " . strtoupper($res->priority ?: 'sedang') .
+                        "\nBatas waktu: {$dueDate}"
+                    ));
                 }
                 
             }
@@ -249,7 +389,7 @@ class MonitoringController extends Controller
 
         $attachments = \App\Models\MonitoringResult::with('question')
             ->where('training_id', $id)
-            ->where('training_stage_id', $stage_id)
+            ->when($stage_id, fn ($query) => $query->where('training_stage_id', $stage_id))
             ->whereNotNull('evidence_file')
             ->get();
 
@@ -265,11 +405,11 @@ class MonitoringController extends Controller
                 
                 // 2. Set Nama Indikator & Catatan Temuan (Digabung agar ringkas)
                 $indikatorText = ($res->question->question_text ?? 'Indikator') . "\nTemuan: " . ($res->notes ?? '-');
-                $templateProcessor->setValue("ind_la#$rowNum", $indikatorText);
+                $templateProcessor->setValue("ind_la#$rowNum", $this->wordValue($indikatorText));
                 
                 // 3. Set Tautan URL (Menghasilkan link lengkap: http://domain.com/storage/...)
                 $fileUrl = url('storage/' . $res->evidence_file);
-                $templateProcessor->setValue("url_la#$rowNum", $fileUrl);
+                $templateProcessor->setValue("url_la#$rowNum", $this->wordValue($fileUrl));
             }
         } else {
             // Jika tidak ada lampiran sama sekali, isi dengan keterangan "-"
@@ -294,12 +434,13 @@ class MonitoringController extends Controller
     public function exportCeklis($id)
     {
         $training = Training::with(['stages', 'monitoringResults.question', 'summaries'])->findOrFail($id);
+        $this->authorizeTraining($training);
         
         // Ambil data pendukung untuk export
         $questions = \App\Models\Question::where('category', 'LIKE', 'Monitoring%')->orderBy('category')->get()->groupBy('category');
         $stages = $training->model == 'standar' ? [(object)['id' => null, 'nama_tahapan' => 'Pelatihan', 'metode' => $training->metode, 'tgl_mulai' => $training->tgl_mulai, 'tgl_selesai' => $training->tgl_selesai]] : $training->stages;
 
-        $export = new MonitoringCeklisExport($training, $questions, $stages);
+        $export = new MonitoringCeklisExport($training);
         $fileName = 'CEKLIS_MONITORING_' . str_replace(' ', '_', $training->nama_pelatihan) . '.xlsx';
 
         // --- PROSES AUTO ARCHIVE ---
@@ -308,6 +449,171 @@ class MonitoringController extends Controller
         \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'CEKLIS MONITORING', $fileName, $fileContent, 'xlsx');
 
         return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
+    }
+
+    private function buildMonitoringReport(int $id)
+    {
+        $training = Training::with(['stages', 'monitoringResults.question', 'monitoringResults.stage', 'summaries'])
+            ->findOrFail($id);
+        $this->authorizeTraining($training);
+        $results = $training->monitoringResults->sortBy([
+            ['monitoring_date', 'asc'],
+            ['training_stage_id', 'asc'],
+            ['category', 'asc'],
+        ])->values();
+        $findings = $results->where('answer', 'tidak');
+        $yes = $results->where('answer', 'ya')->count();
+        $total = $results->count();
+        $compliance = $total ? round(($yes / $total) * 100, 1) : 0;
+        $statusCounts = [
+            'open' => $findings->whereIn('workflow_status', ['open', 'in_progress', 'rejected'])->count(),
+            'submitted' => $findings->where('workflow_status', 'submitted')->count(),
+            'verified' => $findings->where('workflow_status', 'verified')->count(),
+        ];
+
+        $template = new TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
+        $values = [
+            'nama_pelatihan' => strtoupper($training->nama_pelatihan),
+            'bidang' => $training->bidang ?: '-',
+            'periode' => Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y') . ' s.d. ' . Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'),
+            'model_metode' => strtoupper(($training->model ?: '-') . ' / ' . ($training->metode ?: '-')),
+            'jumlah_peserta' => $training->jumlah_peserta,
+            'total_indikator' => $total,
+            'jumlah_ya' => $yes,
+            'jumlah_tidak' => $findings->count(),
+            'tingkat_kepatuhan' => number_format($compliance, 1, ',', '.') . '%',
+            'status_ringkas' => "{$statusCounts['open']} perlu aksi; {$statusCounts['submitted']} menunggu verifikasi; {$statusCounts['verified']} selesai terverifikasi.",
+            'kesimpulan_data' => $total === 0
+                ? 'Instrumen monitoring belum diisi sehingga kepatuhan penyelenggaraan belum dapat disimpulkan.'
+                : ($findings->isEmpty()
+                    ? "Seluruh {$total} indikator yang telah diisi dinyatakan terpenuhi (YA), dengan tingkat kepatuhan 100%. Kondisi ini perlu dipertahankan dan dibuktikan secara konsisten pada monitoring berikutnya."
+                    : "Dari {$total} jawaban indikator, {$yes} terpenuhi dan {$findings->count()} belum terpenuhi. Tingkat kepatuhan sebesar {$compliance}%. Temuan harus ditindaklanjuti sesuai rekomendasi dan baru dinyatakan selesai setelah diverifikasi."),
+            'kesimpulan_manual' => $training->summaries
+                ->whereIn('category', ['STAGE_FINAL_SUMMARY', 'FINAL_SUMMARY'])
+                ->map(fn ($summary) => $summary->conclusion)
+                ->filter()
+                ->implode(' ' ) ?: 'Belum ada kesimpulan manual petugas monitoring.',
+        ];
+        foreach ($values as $key => $value) {
+            $template->setValue($key, $this->wordValue($value));
+        }
+
+        $rows = $results->map(function ($result, $index) {
+            return [
+                'no' => $index + 1,
+                'tahap' => $result->stage?->nama_tahapan
+                    ?? optional($result->monitoring_date)->translatedFormat('d F Y')
+                    ?? 'Pelatihan',
+                'kategori' => $result->category ?: '-',
+                'indikator' => $result->question?->question_text ?: '-',
+                'jawaban' => strtoupper($result->answer),
+                'temuan' => $result->answer === 'tidak' ? ($result->notes ?: '-') : '-',
+                'tujuan' => $result->answer === 'tidak' ? ($result->follow_up_target ?: '-') : '-',
+                'status' => $result->answer === 'tidak'
+                    ? $this->workflowLabel($result->workflow_status)
+                    : 'Terpenuhi',
+            ];
+        })->all();
+        $this->cloneWordRows($template, 'mon_no', 'mon', $rows, ['no', 'tahap', 'kategori', 'indikator', 'jawaban', 'temuan', 'tujuan', 'status'], 'Instrumen belum diisi.');
+
+        return $this->archiveWord($template, $training, 'LAPORAN MONITORING', 'LAPORAN_MONITORING_');
+    }
+
+    private function buildFollowUpReport(int $id)
+    {
+        $training = Training::with([
+            'monitoringResults' => fn ($query) => $query->where('answer', 'tidak')->with(['question', 'stage', 'submitter', 'verifier']),
+        ])->findOrFail($id);
+        $this->authorizeTraining($training);
+        $findings = $training->monitoringResults->sortBy('due_date')->values();
+        $open = $findings->whereIn('workflow_status', ['open', 'in_progress', 'rejected'])->count();
+        $submitted = $findings->where('workflow_status', 'submitted')->count();
+        $verified = $findings->where('workflow_status', 'verified')->count();
+        $overdue = $findings->filter(fn ($item) =>
+            $item->workflow_status !== 'verified' && $item->due_date && $item->due_date->isPast()
+        )->count();
+
+        $template = new TemplateProcessor(public_path('templates/laporan_tindak_lanjut.docx'));
+        $values = [
+            'nama_pelatihan' => strtoupper($training->nama_pelatihan),
+            'bidang' => $training->bidang ?: '-',
+            'periode' => Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y') . ' s.d. ' . Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'),
+            'jumlah_temuan' => $findings->count(),
+            'jumlah_open' => $open,
+            'jumlah_submitted' => $submitted,
+            'jumlah_verified' => $verified,
+            'jumlah_overdue' => $overdue,
+            'tanggal_cetak' => now()->translatedFormat('d F Y'),
+            'ringkasan_tindak_lanjut' => $findings->isEmpty()
+                ? 'Tidak terdapat indikator TIDAK yang memerlukan tindak lanjut.'
+                : "Terdapat {$findings->count()} temuan: {$open} perlu aksi, {$submitted} menunggu verifikasi, {$verified} selesai terverifikasi, dan {$overdue} melewati tenggat. Status selesai hanya diberikan setelah bukti dan tindakan perbaikan diverifikasi.",
+        ];
+        foreach ($values as $key => $value) {
+            $template->setValue($key, $this->wordValue($value));
+        }
+        $rows = $findings->map(function ($result, $index) {
+            $due = optional($result->due_date)->translatedFormat('d F Y') ?? '-';
+            $overdue = $result->workflow_status !== 'verified' && $result->due_date && $result->due_date->isPast();
+            return [
+                'no' => $index + 1,
+                'tahap' => $result->stage?->nama_tahapan
+                    ?? optional($result->monitoring_date)->translatedFormat('d F Y')
+                    ?? 'Pelatihan',
+                'temuan' => ($result->question?->question_text ?: 'Indikator') . "\nTemuan: " . ($result->notes ?: '-'),
+                'rekomendasi' => $result->recommendation ?: '-',
+                'tujuan' => ($result->follow_up_target ?: '-') . "\nPrioritas: " . strtoupper($result->priority ?: 'sedang') . "\nTenggat: {$due}" . ($overdue ? ' (TERLAMBAT)' : ''),
+                'respons' => $result->resolution_notes ?: 'Belum ada respons bidang.',
+                'status' => $this->workflowLabel($result->workflow_status)
+                    . ($result->verification_notes ? "\nVerifikasi: {$result->verification_notes}" : ''),
+                'evidence' => $result->evidence_file ? url('storage/' . $result->evidence_file) : '-',
+            ];
+        })->all();
+        $this->cloneWordRows($template, 'fu_no', 'fu', $rows, ['no', 'tahap', 'temuan', 'rekomendasi', 'tujuan', 'respons', 'status', 'evidence'], 'Tidak ada temuan monitoring.');
+
+        return $this->archiveWord($template, $training, 'LAPORAN TINDAK LANJUT', 'LAPORAN_TINDAK_LANJUT_');
+    }
+
+    private function cloneWordRows(TemplateProcessor $template, string $anchor, string $prefix, array $rows, array $fields, string $emptyMessage): void
+    {
+        if (empty($rows)) {
+            $rows = [array_fill_keys($fields, '-')];
+            $rows[0]['no'] = 1;
+            $rows[0][$fields[1]] = $emptyMessage;
+        }
+        $template->cloneRow($anchor, count($rows));
+        foreach ($rows as $index => $row) {
+            foreach ($fields as $field) {
+                $template->setValue("{$prefix}_{$field}#" . ($index + 1), $this->wordValue($row[$field] ?? '-'));
+            }
+        }
+    }
+
+    private function archiveWord(TemplateProcessor $template, Training $training, string $category, string $prefix)
+    {
+        $fileName = $prefix . str_replace(' ', '_', $training->nama_pelatihan) . '.docx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'monitoring_');
+        $template->saveAs($tempFile);
+        $content = file_get_contents($tempFile);
+        unlink($tempFile);
+        DocumentController::archiveInternal($training->id, $category, $fileName, $content, 'docx');
+        return response()->streamDownload(static fn () => print($content), $fileName);
+    }
+
+    private function wordValue($value): string
+    {
+        return htmlspecialchars((string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+
+    private function workflowLabel(?string $status): string
+    {
+        return match ($status) {
+            'in_progress' => 'Sedang Dikerjakan',
+            'submitted' => 'Menunggu Verifikasi',
+            'verified' => 'Selesai Terverifikasi',
+            'rejected' => 'Perlu Revisi',
+            'not_required' => 'Tidak Memerlukan Tindak Lanjut',
+            default => 'Open',
+        };
     }
 
     private function getFallbackConclusion($category, $metode, $namaPelatihan)
@@ -340,6 +646,15 @@ class MonitoringController extends Controller
 
         $text = $templates[$category][$metodeKey] ?? "";
         return str_replace('{TP}', $namaPelatihan, $text);
+    }
+
+    private function authorizeTraining(Training $training): void
+    {
+        $user = Auth::user();
+        abort_unless(
+            $user && ($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang)),
+            403
+        );
     }
     
     

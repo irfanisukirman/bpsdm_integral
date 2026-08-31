@@ -14,9 +14,10 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'bidang', 
-        'nip_nik', 'gender', 'jabatan', 'instansi', 'provinsi', 
-        'kabupaten_kota', 'status_kepegawaian', 'password'
+        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'bidang',
+        'nip_nik', 'gender', 'jabatan', 'instansi', 
+        'provinsi', 'kota', 'kecamatan', 'kelurahan', 'latitude', 'longitude',
+        'status_kepegawaian', 'password', 'profile_photo'
     ];
 
     /**
@@ -33,6 +34,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     /**
@@ -42,5 +45,23 @@ class User extends Authenticatable
     public function trainingHistories()
     {
         return $this->hasMany(Participant::class, 'nip_nik', 'username');
+    }
+    public function pengajar()
+    {
+        return $this->hasOne(Pengajar::class);
+    }
+
+    public function sharedFolders()
+    {
+        return $this->belongsToMany(Folder::class, 'folder_user_permissions')->withPivot(['permission', 'shared_by'])->withTimestamps();
+    }
+    public function teachingSchedules()
+    {
+        return $this->hasMany(Schedule::class, 'pengajar_id');
+    }
+
+    public function hasTeachingAssignment(): bool
+    {
+        return $this->role === 'pengajar' || $this->teachingSchedules()->exists();
     }
 }

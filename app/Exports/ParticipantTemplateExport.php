@@ -29,8 +29,10 @@ class MainTemplateSheet implements FromArray, WithTitle, WithEvents
     public function array(): array
     {
         return [
-            ['nip_nik', 'nama_lengkap', 'nomor_hp', 'gender', 'status', 'jabatan', 'instansi', 'provinsi', 'kabupaten_kota'],
-            ["'199503032024011001", "Contoh Nama", "0812345678", "Laki-Laki", "PNS", "Staff", "BPSDM", "JAWA BARAT", "KOTA BANDUNG"]
+            // Penyesuaian header: kabupaten_kota diubah jadi kota, ditambah kecamatan & kelurahan
+            ['nip_nik', 'nama_lengkap', 'nomor_hp', 'gender', 'status', 'jabatan', 'instansi', 'provinsi', 'kota', 'kecamatan', 'kelurahan'],
+            // Penyesuaian contoh data
+            ["'199503032024011001", "Contoh Nama", "0812345678", "Laki-Laki", "PNS", "Staff", "BPSDM", "JAWA BARAT", "KOTA BANDUNG", "COBLONG", "DAGO"]
         ];
     }
 
@@ -75,7 +77,7 @@ class DataSourceSheet implements FromArray, WithTitle, WithEvents
         // Susun data dalam bentuk baris-baris
         $gender = ['Laki-Laki', 'Perempuan'];
         $status = ['PNS', 'PPPK', 'Non-ASN'];
-        $provinces = ['ACEH', 'SUMATERA UTARA', 'SUMATERA BARAT', 'RIAU', 'JAMBI', 'SUMATERA SELATAN', 'BENGKULU', 'LAMPUNG', 'KEP. BANGKA BELITUNG', 'KEP. RIAU', 'DKI JAKARTA', 'JAWA BARAT', 'JAWA TENGAH', 'DI YOGYAKARTA', 'JAWA TIMUR', 'BANTEN', 'BALI', 'NUSA TENGGARA BARAT', 'NUSA TENGGARA TIMUR', 'KALIMANTAN BARAT', 'KALIMANTAN TENGAH', 'KALIMANTAN SELATAN', 'KALIMANTAN TIMUR', 'KALIMANTAN UTARA', 'SULAWESI UTARA', 'SULAWESI TENGAH', 'SULAWESI SELATAN', 'SULAWESI TENGGARA', 'GORONTALO', 'SULAWESI BARAT', 'MALUKU', 'MALUKU UTARA', 'PAPUA BARAT', 'PAPUA'];
+        $provinces = ['ACEH', 'SUMATERA UTARA', 'SUMATERA BARAT', 'RIAU', 'JAMBI', 'SUMATERA SELATAN', 'BENGKULU', 'LAMPUNG', 'KEP. BANGKA BELITUNG', 'KEP. RIAU', 'DKI JAKARTA', 'JAWA BARAT', 'JAWA TENGAH', 'DI YOGYAKARTA', 'JAWA TIMUR', 'BANTEN', 'BALI', 'NUSA TENGGARA BARAT', 'NUSA TENGGARA TIMUR', 'KALIMANTAN BARAT', 'KALIMANTAN TENGAH', 'KALIMANTAN SELATAN', 'KALIMANTAN TIMUR', 'KALIMANTAN UTARA', 'SULAWESI UTARA', 'SULAWESI TENGAH', 'SULAWESI SELATAN', 'SULAWESI TENGGARA', 'GORONTALO', 'SULAWESI BARAT', 'MALUKU', 'MALUKU UTARA', 'PAPUA BARAT', 'PAPUA', 'PAPUA SELATAN', 'PAPUA TENGAH', 'PAPUA PEGUNUNGAN', 'PAPUA BARAT DAYA'];
 
         $rows = [];
         $max = max(count($gender), count($status), count($provinces));
@@ -99,7 +101,8 @@ class DataSourceSheet implements FromArray, WithTitle, WithEvents
                 // DAFTARKAN NAMED RANGES (Kunci agar tidak corrupt)
                 $workbook->addNamedRange(new NamedRange('GENDER_LIST', $sheet, '$A$1:$A$2'));
                 $workbook->addNamedRange(new NamedRange('STATUS_LIST', $sheet, '$B$1:$B$3'));
-                $workbook->addNamedRange(new NamedRange('PROVINSI_LIST', $sheet, '$C$1:$C$34'));
+                // Diperbarui jadi C38 karena provinsi ditambah papua pemekaran
+                $workbook->addNamedRange(new NamedRange('PROVINSI_LIST', $sheet, '$C$1:$C$38')); 
 
                 // Sembunyikan sheet ini
                 $sheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_VERYHIDDEN);

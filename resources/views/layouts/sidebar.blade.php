@@ -19,23 +19,58 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-3">
-        {{-- MENU UNTUK ADMIN & SUPERADMIN --}}
-        @if(Auth::user()->role !== 'participant')
-            <li class="menu-item {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}">
-                <a href="{{ route('dashboard') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                    <div class="fw-bold">Dashboard Admin</div>
-                </a>
-            </li>
-
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen Pelatihan</span>
-            </li>
-            
+        <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
+        @if(Auth::user()->role === 'admin_aset')
+            <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
+        @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
+            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+        @elseif(Auth::user()->role === 'participant')
+            <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
+        @elseif(Auth::user()->role === 'pengajar')
+            <li class="menu-item {{ request()->routeIs('pengajar.index') ? 'active' : '' }}"><a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Pengajar</div></a></li>
+        @else
+            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
+        @endif
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
-                <a href="{{ route('trainings.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-collection"></i>
-                    <div>Daftar Pelatihan</div>
+                <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div></a>
+            </li>
+        @elseif(Auth::user()->role === 'participant')
+            <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
+                <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div></a>
+            </li>
+        @endif
+
+        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Sertifikasi SKPK</span></li>
+            <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
+                <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
+            </li>
+        @endif
+
+        @if(in_array(Auth::user()->role, ['admin_aset', 'superadmin']))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Manajemen Aset & Agenda</span></li>
+            @if(Auth::user()->role === 'superadmin')
+                <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div>Dashboard Aset</div></a></li>
+            @endif
+            <li class="menu-item {{ request()->routeIs('assets.index') ? 'active' : '' }}"><a href="{{ route('assets.index') }}" class="menu-link"><i class="menu-icon bx bx-cube"></i><div>Kelola Aset</div></a></li>
+            <li class="menu-item {{ request()->routeIs('assets.monitoring') ? 'active' : '' }}"><a href="{{ route('assets.monitoring') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Monitoring Aset</div></a></li>
+            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div></a></li>
+        @endif
+        @if(Auth::user()->role === 'admin_bidang')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Agenda Kegiatan</span></li>
+            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div></a></li>
+        @endif
+        
+        <!-- ========================================================= -->
+        <!-- 1. MENU KHUSUS ADMIN BIDANG & SUPERADMIN                  -->
+        <!-- ========================================================= -->
+        @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
+            <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
+                <a href="{{ route('followup.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-task"></i>
+                    <div>Rekomendasi Monitoring</div>
                 </a>
             </li>
 
@@ -84,7 +119,7 @@
                 </a>
             </li>
 
-            @if(Auth::check() && Auth::user()->role == 'superadmin')
+            @if(Auth::user()->role === 'superadmin')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan Sistem</span>
             </li>
@@ -97,24 +132,21 @@
             @endif
         @endif
 
-        {{-- MENU KHUSUS PESERTA --}}
         @if(Auth::user()->role === 'participant')
-            <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}">
-                <a href="{{ route('participant.dashboard') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-home-alt"></i>
-                    <div class="fw-bold">Dashboard Saya</div>
-                </a>
-            </li>
+            @if(Auth::user()->hasTeachingAssignment())
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Portal Pengajar</span>
+                </li>
+                <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
+                    <a href="{{ route('pengajar.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                        <div>Pengajar</div>
+                    </a>
+                </li>
+            @endif
 
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Portal Peserta</span>
-            </li>
-
-            <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
-                <a href="{{ route('participant.trainings') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-list-ul"></i>
-                    <div>Daftar Pelatihan</div>
-                </a>
             </li>
 
             <li class="menu-item {{ request()->routeIs('participant.history') ? 'active' : '' }}">
@@ -123,11 +155,39 @@
                     <div>Riwayat Pelatihan</div>
                 </a>
             </li>
+        @elseif(Auth::user()->role === 'pengajar')
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Aktivitas Pengajar</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('pengajar.schedule') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.schedule') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar"></i>
+                    <div>Jadwal Mengajar</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.history') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i>
+                    <div>Riwayat Mengajar</div>
+                </a>
+            </li>
+        @elseif(Auth::user()->hasTeachingAssignment())
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Portal Pengajar</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                    <div>Pengajar</div>
+                </a>
+            </li>
         @endif
+        <li class="menu-spacer" aria-hidden="true"></li>
+
     </ul>
 </aside>
 
-{{-- TAMBAHKAN CSS CUSTOM UNTUK INTERAKTIVITAS --}}
+{{-- CSS CUSTOM UNTUK INTERAKTIVITAS --}}
 @push('css')
 <style>
     /* Transisi menu */
@@ -138,7 +198,7 @@
         padding-left: 1rem;
     }
 
-    /* Efek Hover: Bergeser sedikit ke kanan dan warna background soft */
+    /* Efek Hover */
     .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover {
         background-color: rgba(105, 108, 255, 0.08) !important;
         transform: translateX(5px);
@@ -173,9 +233,20 @@
         color: #fff !important;
     }
 
-    /* Animasi Buka Dropdown */
+    /* Animasi Dropdown */
     .menu-sub {
         transition: all 0.3s ease-in-out;
+    }
+
+    /* Ruang aman agar menu terakhir tidak menempel ke bawah layar. */
+    .menu-inner {
+        padding-bottom: 3.5rem !important;
+    }
+
+    .menu-spacer {
+        display: block;
+        min-height: 2rem;
+        flex: 0 0 2rem;
     }
 </style>
 @endpush

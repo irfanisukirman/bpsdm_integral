@@ -24,6 +24,15 @@ class Folder extends Model
         return $this->hasMany(Folder::class, 'parent_id'); 
     }
 
+    public function permissions()
+    {
+        return $this->hasMany(FolderUserPermission::class);
+    }
+
+    public function sharedUsers()
+    {
+        return $this->belongsToMany(User::class, 'folder_user_permissions')->withPivot(['permission', 'shared_by'])->withTimestamps();
+    }
     public function parent() { 
         return $this->belongsTo(Folder::class, 'parent_id'); 
     }

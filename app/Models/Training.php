@@ -14,6 +14,7 @@ class Training extends Model
         'invitation_code',
         'link_lms',
         'bidang',
+        'program_evaluasi',
         'model',
         'metode',
         'lokasi',
@@ -22,6 +23,7 @@ class Training extends Model
         'jp',
         'tgl_mulai',
         'tgl_selesai',
+        'created_by',
     ];
 
     public function getSisaHariAttribute()
@@ -50,6 +52,9 @@ class Training extends Model
     {
         return $this->hasMany(Participant::class);
     }
+
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function messages() { return $this->hasMany(TrainingMessage::class); }
 
     public function monitoringResults()
     {

@@ -8,13 +8,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
-use App\Models\File; 
-use Illuminate\Support\Facades\Storage;
-use App\Helpers\LogHelper;
-use App\Models\EvaluationFormL1;
-use App\Models\EvaluationFormL34;
-
-
+use App\Models\File;
+use App\Models\Schedule;
+use App\Models\Attendance;
 
 class ParticipantController extends Controller
 {
@@ -36,16 +32,44 @@ class ParticipantController extends Controller
         // 2. Hitung Total JP Tahun Ini
         // Mengambil data dari tabel participant -> join ke training -> ambil kolom JP -> filter tahun berjalan
         $myJpThisYear = \App\Models\Participant::where('nip_nik', $user->nip_nik)
-            ->whereHas('training', function($q) use ($currentYear) {
+            ->whereHas('training', function ($q) use ($currentYear) {
                 $q->whereYear('tgl_mulai', $currentYear);
             })
             ->with('training')
             ->get()
-            ->sum(function($p) {
+            ->sum(function ($p) {
                 return $p->training->jp;
             });
 
-        return view('participant.dashboard', compact('user', 'totalFollowed', 'myJpThisYear'));
+        // Akun participant dapat sekaligus ditugaskan menjadi pengajar tanpa perubahan role.
+        $isPengajar = Schedule::where('pengajar_id', $user->id)->exists();
+        $teachingJpTotal = $isPengajar
+            ? (int) Schedule::where('pengajar_id', $user->id)->sum('jp')
+            : 0;
+        $teachingJpThisYear = $isPengajar
+            ? (int) Schedule::where('pengajar_id', $user->id)->whereYear('date', $currentYear)->sum('jp')
+            : 0;
+        $teachingCount = $isPengajar
+            ? Schedule::where('pengajar_id', $user->id)->distinct('training_id')->count('training_id')
+            : 0;
+
+        $postEvaluationTrainings = Participant::with('training')
+            ->where('user_id', $user->id)
+            ->where('registration_status', 'approved')
+            ->get()
+            ->filter(fn ($participant) =>
+                $participant->is_core_training_complete
+                && $participant->is_post_evaluation_due
+                && !$participant->hasFilledL34Mandiri()
+            )
+            ->sortBy(fn ($participant) => $participant->training?->tgl_sebar_l34)
+            ->values();
+
+        return view('participant.dashboard', compact(
+            'user', 'totalFollowed', 'myJpThisYear', 'isPengajar',
+            'teachingJpTotal', 'teachingJpThisYear', 'teachingCount',
+            'postEvaluationTrainings'
+        ));
     }
 
     /**
@@ -55,25 +79,38 @@ class ParticipantController extends Controller
     {
         $user = auth()->user();
 
-        // Ambil pelatihan yang diikuti user
+        $enrollments = Participant::with('training')
+            ->where('user_id', $user->id)
+            ->get();
+
+        $canJoinNewTraining = $this->canJoinNewTraining($enrollments);
+
+        // Tampilkan pelatihan aktif/belum lengkap serta evaluasi pasca yang sudah jatuh tempo.
         $myTrainings = \App\Models\Training::with(['participants', 'stages'])
             ->whereHas('participants', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
+            ->orderByDesc('tgl_mulai')
             ->get()
             ->filter(function($t) use ($user) {
                 $participant = $t->participants->where('user_id', $user->id)->first();
-                // KUNCI: Hanya tampilkan jika belum menyelesaikan semua kewajiban
-                // Jika sudah selesai semua (L1-L4 & Berkas), maka card hilang (pindah ke riwayat)
-                return !$participant->is_all_finished;
+                $needsPostEvaluation = $participant->is_post_evaluation_due && !$participant->hasFilledL34Mandiri();
+                return !$participant->is_core_training_complete || $needsPostEvaluation;
             });
 
-        return view('participant.available_trainings', compact('myTrainings'));
+        return view('participant.available_trainings', compact('myTrainings', 'canJoinNewTraining'));
     }
 
     public function enrollByCode(Request $request)
     {
         $request->validate(['invitation_code' => 'required|string']);
+
+        $enrollments = Participant::with('training')
+            ->where('user_id', auth()->id())
+            ->get();
+        if (!$this->canJoinNewTraining($enrollments)) {
+            return redirect()->back()->with('error', 'Selesaikan pelatihan yang sedang diikuti, lengkapi tiga berkas, dan isi seluruh Evaluasi Level 1 sebelum mengikuti pelatihan baru.');
+        }
         
         // Cari pelatihan berdasarkan kode
         $training = \App\Models\Training::where('invitation_code', strtoupper($request->invitation_code))->first();
@@ -84,6 +121,13 @@ class ParticipantController extends Controller
 
         // Gunakan fungsi enroll yang sudah kita buat sebelumnya (Tinggal panggil logikanya)
         return $this->enroll($request, $training->id);
+    }
+
+    private function canJoinNewTraining($enrollments): bool
+    {
+        return $enrollments->isEmpty() || $enrollments->every(fn ($participant) =>
+            $participant->registration_status === 'rejected' || $participant->is_core_training_complete
+        );
     }
 
     /**
@@ -100,22 +144,43 @@ class ParticipantController extends Controller
      */
     public function storeProfile(Request $request)
     {
-        $user = \App\Models\User::findOrFail(Auth::id());
+        $user = \App\Models\User::findOrFail(auth()->id());
 
         $request->validate([
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
+            'whatsapp' => 'required',
             'gender' => 'required',
             'jabatan' => 'required',
             'instansi' => 'required',
             'provinsi' => 'required',
-            'kabupaten_kota' => 'required',
+            'kota' => 'required', // <--- Gunakan 'kota'
+            'kecamatan' => 'required',
+            'kelurahan' => 'required',
             'status_kepegawaian' => 'required',
-            'whatsapp' => 'required'
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
 
-        $user->update($request->all());
+        $user->update([
+            'nip_nik' => $request->nip_nik,
+            'whatsapp' => $request->whatsapp,
+            'gender' => $request->gender,
+            'jabatan' => $request->jabatan,
+            'instansi' => $request->instansi,
+            'status_kepegawaian' => $request->status_kepegawaian,
+            'provinsi' => $request->provinsi,
+            'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
+            'kecamatan' => $request->kecamatan,
+            'kelurahan' => $request->kelurahan,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+        ]);
 
-        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil diperbarui.');
+        // Sinkronisasi ke tabel participants
+        \App\Models\Participant::where('nip_nik', $user->nip_nik)
+            ->update(['user_id' => $user->id]);
+
+        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil disimpan.');
     }
 
     // Proses Daftar dengan Kode
@@ -133,7 +198,7 @@ class ParticipantController extends Controller
         \App\Models\Participant::updateOrCreate(
             [
                 'training_id' => $id,
-                'nip_nik'     => $user->nip_nik // Kunci utama pencocokan
+                'nip_nik' => $user->nip_nik // Kunci utama pencocokan
             ],
             [
                 'user_id'            => $user->id,
@@ -144,11 +209,13 @@ class ParticipantController extends Controller
                 'instansi'           => $user->instansi,
                 'provinsi'           => $user->provinsi,
                 'kabupaten_kota'     => $user->kabupaten_kota,
+                'kecamatan'          => $user->kecamatan,
+                'kelurahan'          => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,
             ]
         );
 
-        return redirect()->route('participant.training.show', $id)
+        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
             ->with('success_enroll', 'Pendaftaran Berhasil! Data profil Anda telah disinkronkan ke pelatihan ini.');
     }
 
@@ -180,24 +247,37 @@ class ParticipantController extends Controller
         }
 
         // Ambil form evaluasi
-        $formsL1 = \App\Models\EvaluationFormL1::where('training_id', $id)->get();
+        $formsL1 = \App\Models\EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->get();
+        $participantAttendances = Attendance::with('schedule')
+            ->where('participant_id', $participant->id)
+            ->whereHas('schedule', fn ($query) => $query->where('training_id', $training->id))
+            ->get()
+            ->keyBy(fn ($attendance) => (string) $attendance->schedule->date);
+        $attendanceDays = $training->schedules
+            ->groupBy(fn ($schedule) => (string) $schedule->date)
+            ->map(function ($schedules, $date) use ($participantAttendances) {
+                return [
+                    'date' => $date,
+                    'setup' => $schedules->first(),
+                    'attendance' => $participantAttendances->get($date),
+                ];
+            })
+            ->sortBy('date')
+            ->values();
 
-        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user'));
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays'));
     }
 
     public function myHistory()
     {
         $user = auth()->user();
-        
-        $history = \App\Models\Training::whereHas('participants', function($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
+
+        $history = Participant::with('training')
+            ->where('user_id', $user->id)
             ->get()
-            ->filter(function($t) use ($user) {
-                $participant = $t->participants->where('user_id', $user->id)->first();
-                // KUNCI: Muncul di Riwayat HANYA JIKA sudah selesai semua
-                return $participant->is_all_finished;
-            });
+            ->filter(fn ($participant) => $participant->is_core_training_complete)
+            ->sortByDesc(fn ($participant) => $participant->training?->tgl_selesai)
+            ->values();
 
         return view('participant.history', compact('history'));
     }
@@ -206,26 +286,44 @@ class ParticipantController extends Controller
     public function uploadRequirement(Request $request, $id)
     {
         $allowedMimes = ($request->type == 'pas_foto') ? 'jpeg,png,jpg' : 'pdf';
-        
+
         $request->validate([
             'file' => "required|mimes:$allowedMimes|max:5120",
             'type' => 'required|in:biodata,surat_tugas,pas_foto'
         ]);
-           
+
         $user = Auth::user();
-        $participant = Participant::where('training_id', $id)->where('user_id', $user->id)->firstOrFail();
         $training = Training::with('folder')->findOrFail($id);
+
+        // PERBAIKAN: Pencarian data peserta agar tidak langsung menampilkan 404
+        $participant = Participant::where('training_id', $id)
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('nip_nik', $user->nip_nik);
+            })->first();
+
+        // Jika tidak ditemukan juga, beri pesan error yang jelas 
+        if (!$participant) {
+            return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+                ->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+        }
+
+        // Pastikan user_id terhubung jika sebelumnya kosong
+        if (empty($participant->user_id)) {
+            $participant->update(['user_id' => $user->id]);
+        }
 
         // PERBAIKAN: Cari peserta berdasarkan training_id DAN (user_id ATAU nip_nik)
         $participant = Participant::where('training_id', $id)
-            ->where(function($query) use ($user) {
+            ->where(function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->orWhere('nip_nik', $user->nip_nik);
             })->first();
 
         // Jika tidak ditemukan juga, baru kita beri pesan error yang jelas (bukan 404)
         if (!$participant) {
-            return redirect()->back()->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
+            return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+                ->with('error', 'Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini.');
         }
 
         // Pastikan user_id terhubung jika sebelumnya kosong
@@ -234,23 +332,29 @@ class ParticipantController extends Controller
         }
 
         // 1. Dapatkan/Buat Folder Utama Pelatihan
-        
         $parentFolder = Folder::firstOrCreate(
-            ['training_id' => $id],
+            ['training_id' => $id, 'parent_id' => null],
             [
                 'name' => $training->nama_pelatihan,
                 'bidang' => $training->bidang,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id() ?? 1
             ]
         );
 
         // 2. Dapatkan/Buat Sub-Folder "KELENGKAPAN PESERTA"
         $subFolder = Folder::firstOrCreate([
             'name' => 'KELENGKAPAN PESERTA',
-            'parent_id' => $training->folder->id,
+            'parent_id' => $parentFolder->id, // <--- PERBAIKI INI: Gunakan $parentFolder->id
             'training_id' => $id,
             'bidang' => $training->bidang
-        ], ['user_id' => Auth::id()]);
+        ], ['user_id' => Auth::id() ?? 1]);
+
+        $participantFolder = Folder::firstOrCreate([
+            'name' => strtoupper($participant->name),
+            'parent_id' => $subFolder->id,
+            'training_id' => $id,
+            'bidang' => $training->bidang,
+        ], ['user_id' => $user->id]);
 
         // 3. Simpan File
         $extension = $request->file('file')->getClientOriginalExtension();
@@ -259,7 +363,7 @@ class ParticipantController extends Controller
 
         // 4. Catat ke tabel Files
         $fileRecord = File::create([
-            'folder_id' => $subFolder->id,
+            'folder_id' => $participantFolder->id,
             'display_name' => $fileName,
             'file_path' => $path,
             'file_type' => $extension,
@@ -271,7 +375,7 @@ class ParticipantController extends Controller
         $column = $request->type . '_file_id';
         $participant->update([$column => $fileRecord->id]);
 
-        return redirect()->back()->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
+        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
+            ->with('success', 'Berkas ' . strtoupper($request->type) . ' berhasil diunggah.');
     }
-    
 }

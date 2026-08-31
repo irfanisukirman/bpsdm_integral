@@ -282,6 +282,8 @@
                     <li class="nav-item">
                         <a class="nav-link fw-semibold px-3" href="#jadwal-hari-ini">Jadwal Hari Ini</a>
                     </li>
+                    <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#kalender-kegiatan">Kalender</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#aset-publik">Aset</a></li>
                 </ul>
                 
                 <div class="ms-auto">
@@ -331,7 +333,8 @@
                 <h2 class="fw-extrabold text-dark h1">Ekosistem Terintegrasi</h2>
                 <p class="text-muted mx-auto" style="max-width: 600px;">Kami menyatukan seluruh rangkaian pengembangan kompetensi dalam satu dasbor kendali yang efisien.</p>
             </div>
-            <div class="row g-4 mt-2">
+            @include('partials.public-features')
+            <div class="row g-4 mt-2 d-none" aria-hidden="true">
                 <!-- Kalender -->
                 <div class="col-md-4">
                     <div class="feature-card">
@@ -365,7 +368,8 @@
         <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         
         <div class="container py-5 position-relative" style="z-index: 2;">
-            <div class="row text-center">
+            @include('partials.public-stats', ['stats' => $stats])
+            <div class="row text-center d-none" aria-hidden="true">
                 <!-- Statistik 1: Total Pelatihan -->
                 <div class="col-6 col-md-3 mb-4 mb-md-0 animate__animated animate__fadeInUp">
                     <div class="p-3">
@@ -492,6 +496,33 @@
                     </div>
                 @endforelse
             </div>
+        </div>
+    </section>
+
+    <section id="kalender-kegiatan" class="py-5 bg-white">
+        <div class="container py-5">
+            <div class="text-center mb-5"><span class="section-tag">Agenda BPSDM</span><h2 class="fw-bold">Kalender Kegiatan</h2><p class="text-muted">Jadwal pelatihan dan agenda publik BPSDM dalam satu kalender.</p></div>
+            @include('partials.public-agenda-list', ['publicSchedules' => $publicSchedules])
+            <div class="row g-4 d-none" aria-hidden="true">
+                @forelse($publicAgendas as $agenda)
+                    <div class="col-md-6 col-lg-4"><div class="card h-100 border-0 shadow-sm"><div class="card-body">
+                        <div class="d-flex justify-content-between"><span class="badge bg-label-primary">{{ ucfirst($agenda->agenda_type) }}</span><span class="badge bg-label-info">{{ ucfirst($agenda->scope) }}</span></div>
+                        <h5 class="fw-bold mt-3">{{ $agenda->name }}</h5><p class="text-muted">{{ \Illuminate\Support\Str::limit($agenda->description, 130) }}</p>
+                        @foreach($agenda->schedules as $schedule)<div class="border-top pt-2 mt-2 small"><strong>{{ $schedule->title ?: $agenda->name }}</strong><br><i class="bx bx-calendar"></i> {{ $schedule->starts_at->translatedFormat('d M Y, H:i') }} – {{ $schedule->ends_at->translatedFormat('d M Y, H:i') }}<br><i class="bx bx-map"></i> {{ $agenda->scope === 'internal' ? $schedule->bookings->pluck('asset.name')->filter()->join(', ') : $schedule->external_place }}</div>@endforeach
+                    </div></div></div>
+                @empty
+                    <div class="col-12 text-center text-muted py-5">Belum ada agenda publik mendatang.</div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    <section id="aset-publik" class="py-5 bg-light">
+        <div class="container py-5"><div class="text-center mb-5"><span class="section-tag">Fasilitas</span><h2 class="fw-bold">Aset & Ruangan</h2><p class="text-muted">Fasilitas yang tersedia di lingkungan BPSDM Jawa Barat.</p></div>
+            <div class="row g-4">@forelse($publicAssets as $assetItem)<div class="col-md-6 col-lg-4"><div class="card h-100 border-0 shadow-sm overflow-hidden">
+                @if($assetItem->images->isNotEmpty())<div id="publicAsset{{ $assetItem->id }}" class="carousel slide"><div class="carousel-inner">@foreach($assetItem->images as $image)<div class="carousel-item {{ $loop->first ? 'active' : '' }}"><img src="{{ asset('storage/'.$image->path) }}" class="d-block w-100" style="height:220px;object-fit:cover" alt="{{ $assetItem->name }}"></div>@endforeach</div>@if($assetItem->images->count()>1)<button class="carousel-control-prev" data-bs-target="#publicAsset{{ $assetItem->id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" data-bs-target="#publicAsset{{ $assetItem->id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>@endif</div>@endif
+                <div class="card-body"><span class="badge bg-label-success">{{ ucfirst($assetItem->type) }}</span><h5 class="fw-bold mt-2">{{ $assetItem->name }}</h5><p class="small text-muted"><i class="bx bx-map"></i> {{ $assetItem->location }} · <i class="bx bx-group"></i> {{ $assetItem->capacity ?: '-' }} orang</p><p class="mb-0">{{ $assetItem->facilities }}</p></div>
+            </div></div>@empty<div class="col-12 text-center text-muted py-5">Belum ada aset yang dipublikasikan.</div>@endforelse</div>
         </div>
     </section>
 

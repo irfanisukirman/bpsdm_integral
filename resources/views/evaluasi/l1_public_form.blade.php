@@ -17,7 +17,7 @@
                             <i class="bx bx-user-voice me-3 h2 mb-0"></i>
                             <div>
                                 <small class="d-block text-uppercase fw-bold opacity-75">Menilai Narasumber:</small> 
-                                <span class="h5 fw-bold mb-0">{{ $schedule->pic }}</span>
+                                <span class="h5 fw-bold mb-0">{{ $schedule->pengajar?->name ?? 'Pengajar belum ditentukan' }}</span>
                                 
                                 <div class="mt-1">
                                     <span class="badge bg-white text-info shadow-sm me-1">
@@ -34,6 +34,11 @@
                 </div>
 
                 <div class="card-body p-4">
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-label-primary">{{ $training->bidang }}</span>
+                        <span class="badge bg-label-info">{{ ucfirst($training->metode) }}</span>
+                        <span class="badge bg-label-secondary">Kirkpatrick Level 1</span>
+                    </div>
                     <div class="row">
                         <!-- KOLOM KIRI -->
                         <div class="col-md-7 col-lg-8 border-end">
@@ -45,6 +50,12 @@
                                     <button onclick="window.location.reload()" class="btn btn-primary">Kembali ke Form</button>
                                 </div>
                             @else
+                                @if($questions->isEmpty())
+                                    <div class="alert alert-warning">
+                                        <h6 class="alert-heading mb-1"><i class="bx bx-error-circle me-1"></i>Pertanyaan belum tersedia</h6>
+                                        <p class="mb-0">Admin perlu menambahkan pertanyaan untuk bidang, kategori, dan metode pelatihan ini.</p>
+                                    </div>
+                                @else
                                 <form action="{{ route('public.evall1.store', $training->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="schedule_id" value="{{ $sid }}">
@@ -82,6 +93,20 @@
                                                     <option value="{{ $opt }}">{{ $opt }}</option>
                                                 @endforeach
                                             </select>
+                                        @elseif($q->type == 'checkbox')
+                                            <div class="row g-2">
+                                                @foreach(($q->options ?? []) as $optionIndex => $opt)
+                                                    <div class="col-md-6">
+                                                        <label class="form-check border rounded p-3 w-100">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                   name="answers[{{ $q->id }}][]"
+                                                                   value="{{ $opt }}"
+                                                                   id="l1-check-{{ $q->id }}-{{ $optionIndex }}">
+                                                            <span class="form-check-label ms-1">{{ $opt }}</span>
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <textarea name="answers[{{ $q->id }}]" class="form-control" rows="3" placeholder="Isi masukan anda..."></textarea>
                                         @endif
@@ -92,6 +117,7 @@
                                         <i class="bx bx-paper-plane me-2"></i> KIRIM SEKARANG
                                     </button>
                                 </form>
+                                @endif
                             @endif
                         </div>
 
@@ -151,7 +177,6 @@ $(document).ready(function() {
     .question-card { background: #fff; transition: 0.3s; }
     .question-card:hover { border-color: #696cff !important; }
     .kirk-slider { height: 10px; cursor: pointer; }
-    <style>
     .alert-info {
         background: linear-gradient(45deg, #03c3ec, #009ef7) !important;
         color: white !important;

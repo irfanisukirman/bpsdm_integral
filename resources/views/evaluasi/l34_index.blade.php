@@ -121,15 +121,23 @@
                             @endif
                         </td>
                         <td>
-                            @php $score = round($p->avg_l4, 1); @endphp
-                            <div class="d-flex align-items-center">
-                                <div class="progress w-100 me-3" style="height: 6px;">
-                                    <div class="progress-bar {{ $score >= 80 ? 'bg-success' : ($score >= 70 ? 'bg-info' : 'bg-warning') }}" 
-                                         role="progressbar" style="width: {{ $score }}%"></div>
+                            @php
+                                $l4 = $p->l4_summary;
+                                $score = $l4['average'];
+                            @endphp
+                            @if($l4['count'] > 0)
+                                <div class="d-flex align-items-center">
+                                    <div class="progress w-100 me-3" style="height: 6px;">
+                                        <div class="progress-bar {{ $score >= 80 ? 'bg-success' : ($score >= 60 ? 'bg-info' : 'bg-warning') }}"
+                                             role="progressbar" style="width: {{ $score }}%"></div>
+                                    </div>
+                                    <span class="fw-bold {{ $score >= 80 ? 'text-success' : 'text-primary' }}">{{ number_format($score, 1) }}</span>
                                 </div>
-                                <span class="fw-bold {{ $score >= 80 ? 'text-success' : 'text-primary' }}">{{ $score }}</span>
-                            </div>
-                            <small class="text-muted" style="font-size: 9px;">Rata-rata 360°</small>
+                                <small class="text-muted" style="font-size: 9px;">Rata-rata L4 dari {{ $l4['count'] }} jawaban 360&deg;</small>
+                            @else
+                                <span class="text-muted">&mdash;</span>
+                                <small class="text-muted d-block" style="font-size: 9px;">Belum ada jawaban Dampak</small>
+                            @endif
                         </td>
                     </tr>
                     @endforeach
