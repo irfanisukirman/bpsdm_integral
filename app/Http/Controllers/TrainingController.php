@@ -317,10 +317,9 @@ class TrainingController extends Controller
         $request->validate([
             'date'        => 'required|date',
             'start_time'  => 'required',
-            'end_time'    => 'required',
             'activity'    => 'required|string|max:255',
-            'jp'          => 'nullable|numeric|min:1',
-            'link_zoom'   => 'nullable|string|max:500',
+            'jp'          => 'required|integer|min:1|max:24',
+            'link_zoom'   => 'nullable|url:http,https|max:500',
             'pic'         => 'required|string|max:255',
             'pengajar_id' => [
                 'nullable',
@@ -329,20 +328,30 @@ class TrainingController extends Controller
                     ->where(fn ($scope) => $scope->whereNull('bidang')->orWhere('bidang', ''))),
             ],
             'venue_type' => 'required|in:internal,external',
-            'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
+            'external_place' => 'nullable|string|max:255',
             'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
             'asset_ids.*' => 'integer|exists:assets,id',
         ]);
 
-        DB::transaction(function () use ($request, $id) {
+        if ($request->venue_type === 'external' && !$request->filled('external_place') && !$request->filled('link_zoom')) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'external_place' => 'Isi tempat eksternal atau tautan Zoom/virtual meeting.',
+            ]);
+        }
+
+        $endTime = Carbon::parse($request->start_time)
+            ->addMinutes(((int) $request->jp) * 45)
+            ->format('H:i:s');
+
+        DB::transaction(function () use ($request, $id, $endTime) {
         $schedule = Schedule::create([
             'training_id' => $id,
             'date'        => $request->date,
             'start_time'  => $request->start_time,
-            'end_time'    => $request->end_time,
+            'end_time'    => $endTime,
             'activity'    => $request->activity,
             'jp'          => $request->jp,
-            'link_zoom'   => $request->link_zoom,
+            'link_zoom'   => $request->venue_type === 'external' ? $request->link_zoom : null,
             'pic'         => $request->pic,
             'pengajar_id' => $request->pengajar_id,
             'venue_type' => $request->venue_type,
@@ -363,10 +372,9 @@ class TrainingController extends Controller
         $request->validate([
             'date'        => 'required|date',
             'start_time'  => 'required',
-            'end_time'    => 'required',
             'activity'    => 'required|string|max:255',
-            'jp'          => 'nullable|numeric|min:1',
-            'link_zoom'   => 'nullable|string|max:500',
+            'jp'          => 'required|integer|min:1|max:24',
+            'link_zoom'   => 'nullable|url:http,https|max:500',
             'pic'         => 'required|string|max:255',
             'pengajar_id' => [
                 'nullable',
@@ -381,19 +389,29 @@ class TrainingController extends Controller
                 }),
             ],
             'venue_type' => 'required|in:internal,external',
-            'external_place' => 'nullable|required_if:venue_type,external|string|max:255',
+            'external_place' => 'nullable|string|max:255',
             'asset_ids' => 'nullable|required_if:venue_type,internal|array|min:1',
             'asset_ids.*' => 'integer|exists:assets,id',
         ]);
 
-        DB::transaction(function () use ($request, $schedule) {
+        if ($request->venue_type === 'external' && !$request->filled('external_place') && !$request->filled('link_zoom')) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'external_place' => 'Isi tempat eksternal atau tautan Zoom/virtual meeting.',
+            ]);
+        }
+
+        $endTime = Carbon::parse($request->start_time)
+            ->addMinutes(((int) $request->jp) * 45)
+            ->format('H:i:s');
+
+        DB::transaction(function () use ($request, $schedule, $endTime) {
         $schedule->update([
             'date'        => $request->date,
             'start_time'  => $request->start_time,
-            'end_time'    => $request->end_time,
+            'end_time'    => $endTime,
             'activity'    => $request->activity,
             'jp'          => $request->jp,
-            'link_zoom'   => $request->link_zoom,
+            'link_zoom'   => $request->venue_type === 'external' ? $request->link_zoom : null,
             'pic'         => $request->pic,
             'pengajar_id' => $request->pengajar_id,
             'venue_type' => $request->venue_type,

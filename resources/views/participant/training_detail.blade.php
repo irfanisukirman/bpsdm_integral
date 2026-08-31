@@ -87,6 +87,38 @@
                                         <tr><td class="ps-0 py-1">Lokasi</td><td>: {{ $training->lokasi }}</td></tr>
                                         <tr><td class="ps-0 py-1">Durasi</td><td>: {{ $training->jp }} JP</td></tr>
                                     </table>
+                                    @php
+                                        $zoomSchedules = $training->schedules
+                                            ->filter(fn ($schedule) => filled($schedule->link_zoom))
+                                            ->sortBy(fn ($schedule) => $schedule->date.' '.$schedule->start_time);
+                                    @endphp
+                                    @if($zoomSchedules->isNotEmpty())
+                                        <div class="mt-4">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <h6 class="fw-bold mb-0"><i class="bx bx-video text-success me-1"></i>Kelas Virtual / Zoom</h6>
+                                                <span class="badge bg-label-success">{{ $zoomSchedules->count() }} sesi</span>
+                                            </div>
+                                            <div class="d-flex flex-column gap-2">
+                                                @foreach($zoomSchedules as $schedule)
+                                                    <div class="border rounded p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                                        <div>
+                                                            <div class="fw-semibold text-dark">{{ $schedule->activity }}</div>
+                                                            <small class="text-muted d-block">
+                                                                <i class="bx bx-calendar me-1"></i>{{ \Carbon\Carbon::parse($schedule->date)->translatedFormat('d F Y') }}
+                                                                &middot; {{ substr($schedule->start_time, 0, 5) }}&ndash;{{ substr($schedule->end_time, 0, 5) }} WIB
+                                                            </small>
+                                                            @if($schedule->external_place)
+                                                                <small class="text-muted"><i class="bx bx-map me-1"></i>{{ $schedule->external_place }}</small>
+                                                            @endif
+                                                        </div>
+                                                        <a href="{{ $schedule->link_zoom }}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm flex-shrink-0">
+                                                            <i class="bx bx-video me-1"></i>Join Zoom
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                     @if($training->link_lms)
                                         <div class="mt-4 p-4 border rounded bg-label-info animate__animated animate__fadeIn">
                                             <div class="d-flex align-items-start">

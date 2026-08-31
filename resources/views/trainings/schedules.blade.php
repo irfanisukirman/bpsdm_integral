@@ -51,31 +51,24 @@
                         <label class="form-label fw-bold">Tanggal <span class="text-danger">*</span></label>
                         <input type="date" name="date" class="form-control" value="{{ old('date', date('Y-m-d')) }}" required>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-bold">Mulai <span class="text-danger">*</span></label>
-                            <input type="time" name="start_time" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-bold">Selesai <span class="text-danger">*</span></label>
-                            <input type="time" name="end_time" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-8">
-                            <label class="form-label fw-bold">Materi / Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" name="activity" class="form-control" placeholder="Contoh: Pengantar Digitalisasi" required>
-                        </div>
+                    <div class="row g-2 mb-3">
                         <div class="col-4">
-                            <label class="form-label fw-bold">JP</label>
-                            <input type="number" name="jp" class="form-control" placeholder="2" min="1">
+                            <label class="form-label fw-bold">Jam Mulai <span class="text-danger">*</span></label>
+                            <input type="time" name="start_time" id="create_start" class="form-control" value="{{ old('start_time') }}" required>
                         </div>
+                        <div class="col-3">
+                            <label class="form-label fw-bold">Jumlah JP <span class="text-danger">*</span></label>
+                            <input type="number" name="jp" id="create_jp" class="form-control" value="{{ old('jp', 1) }}" min="1" max="24" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label fw-bold">Jam Selesai</label>
+                            <input type="time" id="create_end" class="form-control bg-light" readonly tabindex="-1">
+                        </div>
+                        <div class="col-12"><small class="text-muted"><i class="bx bx-calculator me-1"></i>Otomatis: 1 JP = 45 menit.</small></div>
                     </div>
-
-                    <!-- INPUT LINK ZOOM -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-success"><i class="bx bx-video me-1"></i>Link Zoom / Virtual Meeting <small class="text-muted">(Opsional)</small></label>
-                        <input type="url" name="link_zoom" class="form-control" placeholder="https://zoom.us/j/...">
+                        <label class="form-label fw-bold">Materi / Kegiatan <span class="text-danger">*</span></label>
+                        <input type="text" name="activity" class="form-control" value="{{ old('activity') }}" placeholder="Contoh: Pengantar Digitalisasi" required>
                     </div>
                     
                     <!-- INPUT PILIH PENGAJAR -->
@@ -107,7 +100,12 @@
                             <small class="text-muted">Bisa memilih beberapa ruangan/aset. Bentrok diperiksa saat disimpan.</small>
                         </div>
                         <div id="create_external" class="d-none">
-                            <input name="external_place" class="form-control" placeholder="Nama dan alamat tempat eksternal">
+                            <input name="external_place" class="form-control mb-2" value="{{ old('external_place') }}" placeholder="Nama/alamat tempat eksternal (opsional jika menggunakan Zoom)">
+                            <div class="input-group">
+                                <span class="input-group-text text-success"><i class="bx bx-video"></i></span>
+                                <input type="url" name="link_zoom" class="form-control" value="{{ old('link_zoom') }}" placeholder="https://zoom.us/j/...">
+                            </div>
+                            <small class="text-muted">Isi tempat eksternal, tautan Zoom, atau keduanya.</small>
                         </div>
                     </div>
 
@@ -262,31 +260,24 @@
                     <label class="form-label fw-bold">Tanggal <span class="text-danger">*</span></label>
                     <input type="date" name="date" id="edit_date" class="form-control" required>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-6">
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
                         <label class="form-label fw-bold">Jam Mulai <span class="text-danger">*</span></label>
                         <input type="time" name="start_time" id="edit_start" class="form-control" required>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label fw-bold">Jam Selesai <span class="text-danger">*</span></label>
-                        <input type="time" name="end_time" id="edit_end" class="form-control" required>
+                    <div class="col-3">
+                        <label class="form-label fw-bold">Jumlah JP <span class="text-danger">*</span></label>
+                        <input type="number" name="jp" id="edit_jp" class="form-control" min="1" max="24" required>
                     </div>
+                    <div class="col-5">
+                        <label class="form-label fw-bold">Jam Selesai</label>
+                        <input type="time" id="edit_end" class="form-control bg-light" readonly tabindex="-1">
+                    </div>
+                    <div class="col-12"><small class="text-muted"><i class="bx bx-calculator me-1"></i>Otomatis: 1 JP = 45 menit.</small></div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-8">
-                        <label class="form-label fw-bold">Materi / Kegiatan <span class="text-danger">*</span></label>
-                        <input type="text" name="activity" id="edit_activity" class="form-control" required>
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label fw-bold">JP</label>
-                        <input type="number" name="jp" id="edit_jp" class="form-control" min="1">
-                    </div>
-                </div>
-
-                <!-- INPUT EDIT LINK ZOOM -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold text-success"><i class="bx bx-video me-1"></i>Link Zoom / Virtual Meeting <small class="text-muted">(Opsional)</small></label>
-                    <input type="url" name="link_zoom" id="edit_link_zoom" class="form-control" placeholder="https://zoom.us/j/...">
+                    <label class="form-label fw-bold">Materi / Kegiatan <span class="text-danger">*</span></label>
+                    <input type="text" name="activity" id="edit_activity" class="form-control" required>
                 </div>
                 
                 <!-- DROPDOWN PENGAJAR DI MODAL EDIT -->
@@ -316,7 +307,12 @@
                         </select>
                     </div>
                     <div id="edit_external" class="d-none">
-                        <input name="external_place" id="edit_external_place" class="form-control" placeholder="Tempat eksternal">
+                        <input name="external_place" id="edit_external_place" class="form-control mb-2" placeholder="Nama/alamat tempat eksternal (opsional jika menggunakan Zoom)">
+                        <div class="input-group">
+                            <span class="input-group-text text-success"><i class="bx bx-video"></i></span>
+                            <input type="url" name="link_zoom" id="edit_link_zoom" class="form-control" placeholder="https://zoom.us/j/...">
+                        </div>
+                        <small class="text-muted">Isi tempat eksternal, tautan Zoom, atau keduanya.</small>
                     </div>
                 </div>
 
@@ -354,6 +350,25 @@
         });
         $('.select2-assets').select2({ theme: 'bootstrap-5', placeholder: 'Pilih aset/ruangan', width: '100%' });
         $('.select2-edit-assets').select2({ theme: 'bootstrap-5', dropdownParent: $('#modalEditSchedule'), placeholder: 'Pilih aset/ruangan', width: '100%' });
+
+        function calculateEndTime(prefix) {
+            const start = $('#' + prefix + '_start').val();
+            const jp = parseInt($('#' + prefix + '_jp').val(), 10);
+            if (!start || !jp || jp < 1) {
+                $('#' + prefix + '_end').val('');
+                return;
+            }
+            const [hours, minutes] = start.split(':').map(Number);
+            const totalMinutes = (hours * 60 + minutes + (jp * 45)) % (24 * 60);
+            const endHours = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+            const endMinutes = String(totalMinutes % 60).padStart(2, '0');
+            $('#' + prefix + '_end').val(`${endHours}:${endMinutes}`);
+        }
+
+        $('#create_start, #create_jp').on('input change', () => calculateEndTime('create'));
+        $('#edit_start, #edit_jp').on('input change', () => calculateEndTime('edit'));
+        calculateEndTime('create');
+
         function toggleVenue(prefix) {
             const internal = $('#' + prefix + '_venue_type').val() === 'internal';
             $('#' + prefix + '_internal').toggleClass('d-none', !internal);
@@ -373,7 +388,13 @@
         $('#edit_end').val(data.end_time);
         $('#edit_activity').val(data.activity);
         $('#edit_jp').val(data.jp);
-        $('#edit_link_zoom').val(data.link_zoom); // <-- Bind Link Zoom
+        $('#edit_link_zoom').val(data.link_zoom || '');
+        const jp = parseInt(data.jp, 10);
+        if (data.start_time && jp) {
+            const [hours, minutes] = data.start_time.substring(0, 5).split(':').map(Number);
+            const totalMinutes = (hours * 60 + minutes + (jp * 45)) % (24 * 60);
+            $('#edit_end').val(`${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`);
+        }
         $('#edit_pic').val(data.pic);
         $('#edit_pengajar_id').val(data.pengajar_id).trigger('change');
         $('#edit_venue_type').val(data.venue_type || 'external');
