@@ -101,6 +101,18 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dihapus.');
     }
 
+    public function approveUserType(User $user)
+    {
+        abort_unless($user->user_type_status === 'pending' && in_array($user->user_type, ['narasumber', 'mitra'], true), 422, 'Tidak ada pengajuan jenis akun yang menunggu persetujuan.');
+
+        $user->update([
+            'role' => $user->user_type === 'narasumber' ? 'pengajar' : 'mitra',
+            'user_type_status' => 'approved',
+            'bidang' => null,
+        ]);
+
+        return back()->with('success', 'Pengajuan sebagai '.ucfirst($user->user_type).' untuk '.$user->name.' berhasil disetujui.');
+    }
     public function resetPassword(User $user)
     {
         $user->update(['password' => Hash::make('password123')]);

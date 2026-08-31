@@ -137,18 +137,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'show'])->name('mitra.submissions.show');
     Route::put('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'update'])->name('mitra.submissions.update');
     Route::put('mitra/pengajuan/{submission}/submit', [PartnerSubmissionController::class, 'submit'])->name('mitra.submissions.submit');
+    Route::get('mitra/pengajuan/{submission}/comments', [PartnerSubmissionController::class, 'comments'])->name('mitra.submissions.comments');
     Route::post('mitra/pengajuan/{submission}/comments', [PartnerSubmissionController::class, 'comment'])->name('mitra.submissions.comment');
     Route::post('mitra/pengajuan/{submission}/documents', [PartnerSubmissionController::class, 'upload'])->name('mitra.submissions.upload');
     Route::get('mitra/dokumen/{document}/download', [PartnerSubmissionController::class, 'download'])->name('mitra.documents.download');
     Route::get('pengajuan-mitra', [PartnerSubmissionController::class, 'adminIndex'])->name('mitra.admin.index');
-    Route::put('pengajuan-mitra/{submission}/review', [PartnerSubmissionController::class, 'review'])->name('mitra.admin.review');
     Route::put('pengajuan-mitra/{submission}/finalize', [PartnerSubmissionController::class, 'finalize'])->name('mitra.admin.finalize');
+    Route::put('pengajuan-mitra/{submission}/reopen', [PartnerSubmissionController::class, 'reopen'])->name('mitra.admin.reopen');
+    Route::delete('pengajuan-mitra/{submission}', [PartnerSubmissionController::class, 'destroy'])->name('mitra.admin.destroy');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
         Route::resource('users', UserController::class);
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::put('users/{user}/approve-type', [UserController::class, 'approveUserType'])->name('users.approve-type');
     });
 
     // --- PENGATURAN PROFIL UMUM ---

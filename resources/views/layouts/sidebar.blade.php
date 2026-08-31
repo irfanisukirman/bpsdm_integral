@@ -28,7 +28,7 @@
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
             <li class="menu-item {{ request()->routeIs('pengajar.index') ? 'active' : '' }}"><a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Pengajar</div></a></li>        @elseif(Auth::user()->role === 'mitra')
-            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Dashboard Mitra</div></a></li>
+            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
         @else
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
         @endif
@@ -167,11 +167,6 @@
                     <div>Riwayat Pelatihan</div>
                 </a>
             </li>
-        @elseif(Auth::user()->role === 'mitra')
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Pengajuan Mitra</span></li>
-            <li class="menu-item {{ request()->routeIs('mitra.submissions.create') && request()->route('type') === 'training' ? 'active' : '' }}"><a href="{{ route('mitra.submissions.create','training') }}" class="menu-link"><i class="menu-icon bx bx-book-add"></i><div>Pengajuan Pelatihan</div></a></li>
-            <li class="menu-item {{ request()->routeIs('mitra.submissions.create') && request()->route('type') === 'cooperation' ? 'active' : '' }}"><a href="{{ route('mitra.submissions.create','cooperation') }}" class="menu-link"><i class="menu-icon bx bx-file"></i><div>Pengajuan Kerja Sama</div></a></li>
-            <li class="menu-item {{ request()->routeIs('mitra.submissions.show') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-folder-open"></i><div>Semua Pengajuan</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Aktivitas Pengajar</span>

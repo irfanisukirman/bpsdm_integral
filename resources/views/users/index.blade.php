@@ -147,7 +147,12 @@
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="javascript:void(0);" onclick="editUser({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalEditUser">
                                         <i class="bx bx-edit-alt me-1"></i> Edit User
-                                    </a>
+                                    </a>                                    @if($user->user_type_status === 'pending' && in_array($user->user_type, ['narasumber', 'mitra'], true))
+                                        <form action="{{ route('users.approve-type', $user) }}" method="POST" onsubmit="return confirm('Setujui {{ $user->name }} sebagai {{ ucfirst($user->user_type) }}?')">
+                                            @csrf @method('PUT')
+                                            <button class="dropdown-item text-success"><i class="bx bx-user-check me-1"></i> Setujui sebagai {{ ucfirst($user->user_type) }}</button>
+                                        </form>
+                                    @endif
                                     <form action="{{ route('users.reset-password', $user->id) }}" method="POST">
                                         @csrf @method('PUT')
                                         <button class="dropdown-item" onclick="return confirm('Reset password menjadi password123?')"><i class="bx bx-refresh me-1"></i> Reset Password</button>
