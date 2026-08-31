@@ -54,11 +54,11 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="form-label fw-bold">Mulai <span class="text-danger">*</span></label>
-                            <input type="time" name="start_time" class="form-control" required>
+                        <input type="time" name="start_time" id="start_time" class="form-control" step="900" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-bold">Selesai <span class="text-danger">*</span></label>
-                            <input type="time" name="end_time" class="form-control" required>
+                        <input type="time" name="end_time" id="end_time" class="form-control" step="900" required>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -68,7 +68,7 @@
                         </div>
                         <div class="col-4">
                             <label class="form-label fw-bold">JP</label>
-                            <input type="number" name="jp" class="form-control" placeholder="2" min="1">
+                            <input type="number" name="jp" id="jp" class="form-control" placeholder="2" min="1" step="1">
                         </div>
                     </div>
 
@@ -238,11 +238,11 @@
                 <div class="row mb-3">
                     <div class="col-6">
                         <label class="form-label fw-bold">Jam Mulai <span class="text-danger">*</span></label>
-                        <input type="time" name="start_time" id="edit_start" class="form-control" required>
+                    <input type="time" name="start_time" id="edit_start" class="form-control" step="900" required>
                     </div>
                     <div class="col-6">
                         <label class="form-label fw-bold">Jam Selesai <span class="text-danger">*</span></label>
-                        <input type="time" name="end_time" id="edit_end" class="form-control" required>
+                    <input type="time" name="end_time" id="edit_end" class="form-control" step="900" required>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -252,7 +252,7 @@
                     </div>
                     <div class="col-4">
                         <label class="form-label fw-bold">JP</label>
-                        <input type="number" name="jp" id="edit_jp" class="form-control" min="1">
+                    <input type="number" name="jp" id="edit_jp" class="form-control" min="1" step="1">
                     </div>
                 </div>
 
@@ -306,6 +306,71 @@
             placeholder: '-- Pilih Pengajar --',
             allowClear: true,
             width: '100%'
+        });
+
+        const toTimeValue = (date) => date.toTimeString().slice(0, 5);
+
+        const addMinutes = (time, minutes) => {
+            const [hours, mins] = time.split(':').map(Number);
+            const date = new Date(2000, 0, 1, hours, mins + minutes, 0, 0);
+            return toTimeValue(date);
+        };
+
+        const roundUpToQuarter = (time) => {
+            const [hours, mins] = time.split(':').map(Number);
+            const date = new Date(2000, 0, 1, hours, mins, 0, 0);
+            date.setMinutes(Math.ceil(mins / 15) * 15);
+            return toTimeValue(date);
+        };
+
+        const snapToQuarter = (input) => {
+            if (input.val()) {
+                input.val(roundUpToQuarter(input.val()));
+            }
+        };
+
+        const calculateEndTime = (startInput, endInput, jpInput) => {
+            const jp = Number(jpInput.val());
+            if (startInput.val() && Number.isInteger(jp) && jp > 0) {
+                endInput.val(addMinutes(startInput.val(), jp * 45));
+            }
+        };
+
+        const setDefaultTimes = () => {
+            const now = new Date();
+            now.setSeconds(0, 0);
+            now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+
+            if (!$('#start_time').val()) {
+                $('#start_time').val(toTimeValue(now));
+            }
+            if (!$('#end_time').val()) {
+                $('#end_time').val(addMinutes($('#start_time').val(), 60));
+            }
+        };
+
+        setDefaultTimes();
+
+        $('#start_time').on('change blur', function() {
+            snapToQuarter($('#start_time'));
+            calculateEndTime($('#start_time'), $('#end_time'), $('#jp'));
+        });
+
+        $('#end_time, #edit_end').on('change blur', function() {
+            snapToQuarter($(this));
+        });
+
+        $('#jp').on('change input', function() {
+            calculateEndTime($('#start_time'), $('#end_time'), $('#jp'));
+        });
+
+        $('#edit_start').on('change blur', function() {
+            snapToQuarter($('#edit_start'));
+            calculateEndTime($('#edit_start'), $('#edit_end'), $('#edit_jp'));
+        });
+
+        $('#edit_jp').on('change input', function() {
+            calculateEndTime($('#edit_start'), $('#edit_end'), $('#edit_jp'));
         });
     });
 
