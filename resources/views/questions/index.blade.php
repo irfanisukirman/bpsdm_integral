@@ -64,7 +64,7 @@
                 </div>
             </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportSoal">
+                        <button class="btn btn-success text-nowrap px-4 flex-shrink-0" style="min-width: 150px;" data-bs-toggle="modal" data-bs-target="#modalImportSoal">
                             <i class="bx bx-file me-1"></i> Import Soal
                         </button>
                         <button type="submit" class="btn btn-primary w-100 shadow"><i class="bx bx-save me-1"></i> Simpan Pertanyaan Evaluasi</button>
