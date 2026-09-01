@@ -23,7 +23,7 @@
                 <div class="row g-3">
                     @foreach([
                         'peserta' => ['Peserta', 'bx-user', 'Mengikuti pelatihan dan melengkapi administrasi peserta.'],
-                        'narasumber' => ['Narasumber', 'bx-chalkboard', 'Pengajuan akan diverifikasi admin sebelum akses narasumber diberikan.'],
+                        'narasumber' => ['Narasumber', 'bx-chalkboard', 'Akses Pengajar langsung aktif dan dilanjutkan dengan pengisian profil narasumber.'],
                         'mitra' => ['Mitra', 'bx-handshake', 'Kategori mitra; fitur khusus akan tersedia kemudian.'],
                     ] as $value => [$label, $icon, $description])
                         <div class="col-md-4">

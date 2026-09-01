@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $activeTab = in_array(request('tab'), ['info', 'kelengkapan', 'evaluasi', 'sertifikat'])
+    $activeTab = in_array(request('tab'), ['info', 'peserta', 'kelengkapan', 'evaluasi', 'sertifikat'])
         ? request('tab')
         : 'info';
     $completedDocuments = collect([$participant->pas_foto_file_id, $participant->biodata_file_id, $participant->surat_tugas_file_id])->filter()->count();
@@ -44,11 +44,17 @@
     <div class="row">
         <div class="col-md-12">
             <div class="nav-align-top mb-4">
-                {{-- 4 BAR MENU (TAB) --}}
+                {{-- NAVIGASI DETAIL PELATIHAN --}}
                 <ul class="nav nav-pills training-tabs mb-3 flex-nowrap" role="tablist">
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'info' ? 'active' : '' }}" role="tab" data-tab="info" data-bs-toggle="tab" data-bs-target="#navs-pills-info">
                             <i class="bx bx-info-circle me-1"></i> Ringkasan
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="nav-link {{ $activeTab === 'peserta' ? 'active' : '' }}" role="tab" data-tab="peserta" data-bs-toggle="tab" data-bs-target="#navs-pills-peserta">
+                            <i class="bx bx-group me-1"></i> Peserta
+                            <span class="badge bg-label-primary ms-1">{{ $training->participants->count() }}</span>
                         </button>
                     </li>
                     <li class="nav-item">
@@ -193,7 +199,81 @@
                         </div>
                     </div>
 
-                    {{-- TAB 2: KELENGKAPAN (LOGIKA TERKUNCI & USER FRIENDLY) --}}
+                    
+
+                    {{-- TAB: DAFTAR PESERTA --}}
+                    <div class="tab-pane fade {{ $activeTab === 'peserta' ? 'show active' : '' }}" id="navs-pills-peserta" role="tabpanel">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1"><i class="bx bx-group text-primary me-2"></i>Daftar Peserta Pelatihan</h5>
+                                <p class="text-muted small mb-0">Peserta yang telah disetujui oleh penyelenggara beserta asal instansi dan wilayahnya.</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-label-primary px-3 py-2">{{ $training->participants->count() }} peserta</span>
+                                <div class="input-group input-group-sm participant-search">
+                                    <span class="input-group-text bg-white"><i class="bx bx-search"></i></span>
+                                    <input type="search" id="participantSearch" class="form-control" placeholder="Cari nama atau instansi..." autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive border rounded">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="65">No.</th>
+                                        <th style="min-width: 220px">Nama Peserta</th>
+                                        <th style="min-width: 180px">Jabatan</th>
+                                        <th style="min-width: 220px">Instansi</th>
+                                        <th style="min-width: 190px">Asal Daerah</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="participantTableBody">
+                                    @forelse($training->participants as $listedParticipant)
+                                        @php
+                                            $participantName = $listedParticipant->name ?: $listedParticipant->user?->name ?: 'Peserta';
+                                            $participantPosition = $listedParticipant->jabatan ?: $listedParticipant->user?->jabatan;
+                                            $participantInstitution = $listedParticipant->instansi ?: $listedParticipant->user?->instansi;
+                                            $participantCity = $listedParticipant->kota ?: $listedParticipant->user?->kota;
+                                            $participantProvince = $listedParticipant->provinsi ?: $listedParticipant->user?->provinsi;
+                                            $participantOrigin = collect([$participantCity, $participantProvince])->filter()->unique()->implode(', ');
+                                            $searchText = strtolower(collect([$participantName, $participantPosition, $participantInstitution, $participantOrigin])->filter()->implode(' '));
+                                        @endphp
+                                        <tr class="participant-row" data-search="{{ $searchText }}">
+                                            <td class="text-muted">{{ $loop->iteration }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="avatar avatar-sm flex-shrink-0">
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($participantName, 0, 1)) }}</span>
+                                                    </span>
+                                                    <span class="fw-semibold text-dark">{{ $participantName }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ $participantPosition ?: '-' }}</td>
+                                            <td>{{ $participantInstitution ?: '-' }}</td>
+                                            <td>
+                                                <span class="d-block"><i class="bx bx-map-pin text-danger me-1"></i>{{ $participantOrigin ?: '-' }}</span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5 text-muted">
+                                                <i class="bx bx-user-x fs-1 d-block mb-2"></i>Belum ada peserta yang disetujui.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                    <tr id="participantSearchEmpty" class="d-none">
+                                        <td colspan="5" class="text-center py-4 text-muted">Peserta tidak ditemukan untuk kata kunci tersebut.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-light border mt-3 mb-0 small text-muted">
+                            <i class="bx bx-shield-quarter me-1"></i>Untuk menjaga privasi, nomor identitas, kontak, dan dokumen peserta tidak ditampilkan.
+                        </div>
+                    </div>
+
+                    {{-- TAB: KELENGKAPAN --}}
                     <div class="tab-pane fade {{ $activeTab === 'kelengkapan' ? 'show active' : '' }}" id="kelengkapan" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Unggah Berkas Administrasi</h5>
@@ -267,7 +347,7 @@
                         </div>
                     </div>
 
-                    {{-- TAB 3: EVALUASI --}}
+                    {{-- TAB: EVALUASI --}}
                     <div class="tab-pane fade {{ $activeTab === 'evaluasi' ? 'show active' : '' }}" id="navs-pills-evaluasi" role="tabpanel">
     
                         {{-- BAGIAN A: LEVEL 1 (REAKSI) --}}
@@ -358,7 +438,7 @@
                         </div>
                     </div>
 
-                    {{-- TAB 4: SERTIFIKAT --}}
+                    {{-- TAB: SERTIFIKAT --}}
                     <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
                         <div class="text-center py-5 bg-light rounded border border-dashed">
                             <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
@@ -391,6 +471,8 @@
         white-space: nowrap;
         padding: .8rem 1rem;
     }
+    .participant-search { min-width: min(290px, 75vw); }
+    .training-tabs .badge { font-size: .68rem; }
     .card { transition: all 0.3s ease; }
     .bg-label-success { background-color: #eafbea !important; }
     .transition-all:hover { transform: translateY(-3px); }
@@ -410,6 +492,26 @@
             });
         });
 
+        const participantSearch = document.getElementById('participantSearch');
+        if (participantSearch) {
+            const participantRows = Array.from(document.querySelectorAll('.participant-row'));
+            const emptySearchRow = document.getElementById('participantSearchEmpty');
+
+            participantSearch.addEventListener('input', function () {
+                const keyword = this.value.trim().toLocaleLowerCase('id-ID');
+                let visibleRows = 0;
+
+                participantRows.forEach(function (row) {
+                    const isVisible = !keyword || (row.dataset.search || '').includes(keyword);
+                    row.classList.toggle('d-none', !isVisible);
+                    if (isVisible) visibleRows++;
+                });
+
+                if (emptySearchRow) {
+                    emptySearchRow.classList.toggle('d-none', !keyword || visibleRows > 0);
+                }
+            });
+        }
         @if(session('success_enroll'))
             Swal.fire({
                 title: 'Selamat Bergabung!',

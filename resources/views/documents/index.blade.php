@@ -32,7 +32,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-warning"><i class="bx bxs-folder"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['folders'] ?? 0) }}</h4><small class="text-muted">Folder</small></div></div></div></div>
+        <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-warning"><i class="bx bx-folder"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['folders'] ?? 0) }}</h4><small class="text-muted">Folder</small></div></div></div></div>
         <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-primary"><i class="bx bx-file"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['files'] ?? 0) }}</h4><small class="text-muted">Berkas</small></div></div></div></div>
         <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-info"><i class="bx bx-data"></i></span><div><h4 class="mb-0 fw-bold">{{ formatSizeUnits($documentStats['size'] ?? 0) }}</h4><small class="text-muted">Ukuran Data</small></div></div></div></div>
         <div class="col-6 col-lg-3"><div class="card document-stat h-100"><div class="card-body d-flex align-items-center gap-3"><span class="stat-icon bg-label-success"><i class="bx bx-globe"></i></span><div><h4 class="mb-0 fw-bold">{{ number_format($documentStats['public'] ?? 0) }}</h4><small class="text-muted">Folder Publik</small></div></div></div></div>
@@ -57,7 +57,7 @@
                         <div class="card-body position-relative">
                             {{-- Dropdown aksi hapus/privacy tetap sama --}}
                             <a href="{{ route('documents.index', ['folder' => $folder->id, 'bidang' => 'Semua Bidang']) }}" class="text-body d-block mt-2">
-                                <i class="bx bxs-folder text-primary mb-2" style="font-size: 4rem;"></i>
+                                <i class="bx bx-folder text-primary mb-2" style="font-size: 4rem;"></i>
                                 <h6 class="fw-bold mb-1">{{ $folder->name }}</h6>
                                 <span class="badge bg-label-primary btn-xs">GLOBAL</span>
                             </a>
@@ -104,11 +104,11 @@
                             <li class="breadcrumb-item"><a href="{{ route('documents.index') }}">Daftar Bidang</a></li>
                         @endif
                         <li class="breadcrumb-item">
-                            <a href="{{ route('documents.index', ['bidang' => $currentBidang]) }}">Root</a>
+                            <a href="{{ route('documents.index', ['bidang' => $currentBidang]) }}"><i class="bx bx-home-alt me-1"></i>{{ $currentBidang === 'Semua Bidang' ? 'Dokumen Global' : ($currentBidang ?: 'Manajemen Dokumen') }}</a>
                         </li>
                         @if($currentFolder)
                             @if($currentFolder->parent)
-                                <li class="breadcrumb-item"><a href="{{ route('documents.index', ['folder' => $currentFolder->parent->id, 'bidang' => $currentBidang]) }}">...</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('documents.index', ['folder' => $currentFolder->parent->id, 'bidang' => $currentBidang]) }}"><i class="bx bx-folder-open me-1"></i>{{ $currentFolder->parent->name }}</a></li>
                             @endif
                             <li class="breadcrumb-item active text-primary fw-bold">{{ $currentFolder->name }}</li>
                         @endif
@@ -172,8 +172,8 @@
                             </ul>
                         </div>
                         <a href="{{ route('documents.index', ['folder' => $folder->id, 'bidang' => $currentBidang]) }}" class="text-body d-block mt-2">
-                            <i class="bx bxs-folder {{ $folder->bidang == 'Semua Bidang' ? 'text-primary' : 'text-warning' }} mb-2 animate-folder" style="font-size: 4.5rem;"></i>
-                            <h6 class="fw-bold mb-1 text-truncate px-2" title="{{ $folder->name }}">{{ $folder->name }}</h6>
+                            <i class="bx bx-folder {{ $folder->bidang == 'Semua Bidang' ? 'text-primary' : 'text-warning' }} mb-2 animate-folder" style="font-size: 4.5rem;"></i>
+                            <h6 class="fw-bold mb-1 px-2 folder-name">{{ $folder->name }}</h6>
                             <small class="text-muted d-block mb-2">{{ $folder->children_count }} subfolder · {{ $folder->files_count }} file</small>
                             @if($folder->bidang == 'Semua Bidang')
                                 <span class="badge bg-primary btn-xs">GLOBAL</span>
@@ -191,8 +191,11 @@
             @empty
                 @if($files->isEmpty())
                 <div class="col-12 text-center py-5">
-                    <img src="{{ asset('assets/img/illustrations/empty-folder.png') }}" alt="empty" width="120" class="opacity-50 mb-3">
-                    <p class="text-muted">Folder ini masih kosong.</p>
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-label-warning mb-3" style="width: 96px; height: 96px;">
+                        <i class="bx bx-folder-open text-warning" style="font-size: 3.75rem;" aria-hidden="true"></i>
+                    </span>
+                    <h6 class="fw-bold mb-1">Folder ini masih kosong</h6>
+                    <p class="text-muted mb-0">Belum ada subfolder atau berkas di dalam folder ini.</p>
                 </div>
                 @endif
             @endforelse
@@ -220,7 +223,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <i class="bx {{ getFileIcon($file->file_type) }} h4 mb-0 me-2 text-primary"></i>
-                                    <div><span class="fw-semibold d-block">{{ $file->display_name }}</span><small class="text-muted text-uppercase">{{ $file->file_type ?: 'file' }}</small></div>
+                                    <div class="min-w-0"><span class="fw-semibold d-block document-file-name">{{ $file->display_name }}</span><small class="text-muted text-uppercase">{{ $file->file_type ?: 'file' }}</small></div>
                                 </div>
                             </td>
                             
@@ -322,7 +325,7 @@
     .document-files-table .table { width: 100%; min-width: 760px; margin-bottom: 0; white-space: normal; }
     .document-files-table th, .document-files-table td { vertical-align: middle; }
     .document-files-table td:first-child { min-width: 220px; max-width: 360px; }
-    .document-files-table td:first-child .fw-semibold { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+    .document-files-table td:first-child .document-file-name { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-word; max-width: none; }
     .document-action-column { width: 1%; min-width: 178px; white-space: normal !important; }
     .document-file-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem; max-width: 100%; }
     .document-file-actions form { display: inline-flex; margin: 0; }
@@ -334,10 +337,11 @@
     .document-files-table .table { width: 100%; min-width: 760px; margin-bottom: 0; white-space: normal; }
     .document-files-table th, .document-files-table td { vertical-align: middle; }
     .document-files-table td:first-child { min-width: 220px; max-width: 360px; }
-    .document-files-table td:first-child .fw-semibold { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+    .document-files-table td:first-child .document-file-name { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; word-break: break-word; max-width: none; }
     .document-action-column { min-width: 112px; }
         .document-file-actions { max-width: 112px; margin-inline: auto; }
     }
+    .folder-name { white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; }
     .folder-card {
         transition: all 0.2s ease-in-out;
         cursor: pointer;

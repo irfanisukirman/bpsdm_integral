@@ -60,6 +60,24 @@
 
                     <div class="card-body">
                         <h6 class="text-primary mb-3 fw-bold text-uppercase"><i class="bx bx-user me-1"></i> Informasi Dasar</h6>
+                        @php
+                            $accountTypeLabel = match($user->user_type) {
+                                'narasumber' => 'Narasumber',
+                                'mitra' => 'Mitra',
+                                default => 'Peserta',
+                            };
+                        @endphp
+                        @if(!in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
+                            <div class="alert alert-{{ $user->user_type_status === 'pending' ? 'warning' : 'info' }} d-flex align-items-center gap-2 py-2">
+                                <i class="bx {{ $user->user_type === 'narasumber' ? 'bx-chalkboard' : ($user->user_type === 'mitra' ? 'bx-handshake' : 'bx-user') }} fs-5"></i>
+                                <div>
+                                    <strong>Jenis akun: {{ $accountTypeLabel }}</strong>
+                                    @if($user->user_type_status === 'pending')
+                                        <small class="d-block">Pengajuan sedang menunggu persetujuan superadmin.</small>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                         <div class="row">
                             <div class="mb-3 col-md-6">
                                 <label class="form-label fw-bold">Nama Lengkap</label>

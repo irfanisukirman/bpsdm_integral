@@ -46,7 +46,7 @@ class NotificationCenter
             $items = $items->merge($this->partnerItems($user));
         }
 
-        if ($user->role === 'pengajar' || $user->teachingSchedules()->exists()) {
+        if ($user->canAccessNarasumberPortal()) {
             $items = $items->merge($this->teacherItems($user));
         }
 

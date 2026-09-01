@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('certifications/{event}', [CertificationController::class, 'destroyEvent'])->name('certifications.destroy');
     Route::get('certifications/{event}', [CertificationController::class, 'show'])->name('certifications.show');
     Route::post('certifications/{event}/participants/import', [CertificationController::class, 'import'])->name('certifications.import');
+    Route::put('certifications/{event}/participants/pass-all', [CertificationController::class, 'passAllParticipants'])->name('certifications.participants.pass-all');
     Route::delete('certifications/{event}/participants', [CertificationController::class, 'destroyAllParticipants'])->name('certifications.participants.destroy-all');
     Route::delete('certification-participants/{participant}', [CertificationController::class, 'destroyParticipant'])->name('certifications.participants.destroy');
     Route::post('certifications/{event}/minutes', [CertificationController::class, 'uploadMinutes'])->name('certifications.minutes');
@@ -215,6 +216,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
+    Route::get('trainings/{id}/monitoring-pengajar', [TrainingController::class, 'teacherMonitoring'])->name('trainings.teacher-monitoring');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');
     Route::delete('participants/{id}', [TrainingController::class, 'destroyParticipant'])->name('participants.destroy');

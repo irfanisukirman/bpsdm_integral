@@ -60,8 +60,15 @@ class User extends Authenticatable
         return $this->hasMany(Schedule::class, 'pengajar_id');
     }
 
-    public function hasTeachingAssignment(): bool
+    public function isNarasumber(): bool
     {
-        return $this->role === 'pengajar' || $this->teachingSchedules()->exists();
+        return $this->role === 'pengajar'
+            && $this->user_type === 'narasumber'
+            && $this->user_type_status === 'approved';
+    }
+
+    public function canAccessNarasumberPortal(): bool
+    {
+        return $this->isNarasumber();
     }
 }

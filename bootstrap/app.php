@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CekSetupPengajar;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
             users: '/dashboard'    // Kemana user diarahkan setelah login
         );
 
-        // PASTIKAN TIDAK ADA rute global yang memaksa auth di sini
+        // Narasumber wajib melengkapi profil sebelum mengakses portal lainnya.
+        $middleware->web(append: [CekSetupPengajar::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

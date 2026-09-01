@@ -20,6 +20,22 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        // Kebijakan baru: pilihan Narasumber pada registrasi langsung mengaktifkan akses Pengajar.
+        // Blok ini juga menyelaraskan akun lama yang masih pending saat pemiliknya kembali login.
+        if (
+            $user->role === 'participant'
+            && $user->user_type === 'narasumber'
+            && $user->user_type_status === 'pending'
+        ) {
+            $user->update([
+                'role' => 'pengajar',
+                'user_type_status' => 'approved',
+                'bidang' => null,
+            ]);
+            $user->refresh();
+        }
+
         if ($user->role === 'admin_aset') {
             return redirect()->route('assets.dashboard');
         }
@@ -34,53 +50,14 @@ class DashboardController extends Controller
             return redirect()->route('mitra.dashboard');
         }
 
-        // ==========================================
-        // 2. JIKA ROLE ADALAH PENGAJAR
-        // ==========================================
+        // Akun Narasumber menggunakan /pengajar sebagai satu-satunya dashboard portal.
         if ($user->role === 'pengajar') {
             if (!$user->pengajar) {
                 return redirect()->route('pengajar.setup')
                     ->with('warning', 'Silakan lengkapi profil dan data rekening Anda terlebih dahulu.');
             }
 
-            $user->load('pengajar');
-
-            // 1. DATA PELATIHAN YANG DIAJAR
-            $myTrainings = Training::whereHas('schedules', function($q) use ($user) {
-                $q->where('pengajar_id', $user->id);
-            })->get();
-
-            // Pelatihan pada tahun berjalan
-            $myTrainingsThisYear = Training::whereHas('schedules', function($q) use ($user) {
-                $q->where('pengajar_id', $user->id);
-            })->whereYear('tgl_mulai', date('Y'))->get();
-
-            // 2. TOTAL JP (Diambil langsung dari tabel SCHEDULES milik pengajar ini)
-            $totalJp = abs((int) Schedule::where('pengajar_id', $user->id)->sum('jp'));
-
-            // 3. JP TAHUN INI (Diambil dari kolom JP tabel SCHEDULES berdasarkan tahun pada tanggal jadwal 'date')
-            $jpTahunIni = abs((int) Schedule::where('pengajar_id', $user->id)
-                ->whereYear('date', date('Y'))
-                ->sum('jp'));
-
-            // 4. Jumlah Pelatihan
-            $totalPelatihan = $myTrainings->count();
-
-            // 5. Pelatihan Tahun Ini
-            $pelatihanTahunIni = $myTrainingsThisYear->count();
-            
-            // 6. Persentase Capaian JP (Target 20 JP per tahun, dikunci maksimal 100%)
-            $targetJp = 20; 
-            $persentaseJp = $targetJp > 0 ? min(100, max(0, round(($jpTahunIni / $targetJp) * 100))) : 0;
-
-            return view('pengajar.dashboard', compact(
-                'user', 
-                'totalJp', 
-                'jpTahunIni', 
-                'totalPelatihan', 
-                'pelatihanTahunIni', 
-                'persentaseJp'
-            ));
+            return redirect()->route('pengajar.index');
         }
 
         $query = Training::query();

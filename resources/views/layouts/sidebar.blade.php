@@ -27,7 +27,10 @@
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
-            <li class="menu-item {{ request()->routeIs('pengajar.index') ? 'active' : '' }}"><a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Pengajar</div></a></li>        @elseif(Auth::user()->role === 'mitra')
+            <li class="menu-item {{ request()->routeIs('pengajar.index') || request()->routeIs('pengajar.manage') ? 'active' : '' }}">
+                <a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Narasumber</div></a>
+            </li>
+        @elseif(Auth::user()->role === 'mitra')
             <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
         @else
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
@@ -145,31 +148,20 @@
         @endif
 
         @if(Auth::user()->role === 'participant')
-            @if(Auth::user()->hasTeachingAssignment())
-                <li class="menu-header small text-uppercase">
-                    <span class="menu-header-text">Portal Pengajar</span>
-                </li>
-                <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
-                    <a href="{{ route('pengajar.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-chalkboard"></i>
-                        <div>Pengajar</div>
-                    </a>
-                </li>
-            @endif
-
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Portal Peserta</span>
             </li>
-
             <li class="menu-item {{ request()->routeIs('participant.history') ? 'active' : '' }}">
                 <a href="{{ route('participant.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Riwayat Pelatihan</div>
                 </a>
             </li>
-        @elseif(Auth::user()->role === 'pengajar')
+        @endif
+
+        @if(Auth::user()->canAccessNarasumberPortal())
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Aktivitas Pengajar</span>
+                <span class="menu-header-text">Portal Narasumber</span>
             </li>
             <li class="menu-item {{ request()->routeIs('pengajar.schedule') ? 'active' : '' }}">
                 <a href="{{ route('pengajar.schedule') }}" class="menu-link">
@@ -181,16 +173,6 @@
                 <a href="{{ route('pengajar.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Riwayat Mengajar</div>
-                </a>
-            </li>
-        @elseif(Auth::user()->hasTeachingAssignment())
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Portal Pengajar</span>
-            </li>
-            <li class="menu-item {{ request()->routeIs('pengajar.*') ? 'active' : '' }}">
-                <a href="{{ route('pengajar.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-chalkboard"></i>
-                    <div>Pengajar</div>
                 </a>
             </li>
         @endif

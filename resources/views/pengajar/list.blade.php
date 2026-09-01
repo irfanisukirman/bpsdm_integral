@@ -1,10 +1,16 @@
 @extends('layouts.master')
-@section('title', 'Daftar Penugasan Pengajar')
+@section('title', 'Dashboard Narasumber')
 
 @section('content')
-<div class="mb-4">
-    <h4 class="fw-bold mb-1">Pengajar</h4>
-    <p class="text-muted mb-0">Daftar pelatihan dan sesi yang ditugaskan kepada Anda.</p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Dashboard Narasumber</h4>
+        <p class="text-muted mb-0">Pelatihan yang Anda ampu beserta akses administrasi, jadwal, dan forum.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('pengajar.schedule') }}" class="btn btn-outline-primary"><i class="bx bx-calendar me-1"></i>Jadwal Mengajar</a>
+        <a href="{{ route('pengajar.history') }}" class="btn btn-outline-secondary"><i class="bx bx-history me-1"></i>Riwayat</a>
+    </div>
 </div>
 
 <div class="card">
@@ -42,7 +48,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-center py-5 text-muted">Belum ada penugasan mengajar.</td></tr>
+                <tr><td colspan="5" class="text-center py-5 text-muted"><i class="bx bx-calendar-x fs-1 d-block mb-2"></i>Belum ada pelatihan yang ditugaskan kepada Anda.</td></tr>
             @endforelse
             </tbody>
         </table>

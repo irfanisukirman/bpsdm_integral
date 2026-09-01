@@ -107,7 +107,11 @@
                                 </div>
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold text-dark">{{ $user->name }}</span>
-                                    <small class="text-muted" style="font-size: 10px;">{{ match($user->role) { 'participant' => 'PESERTA', 'pengajar' => 'NARASUMBER', 'mitra' => 'MITRA', default => strtoupper(str_replace('_', ' ', $user->role)) } }}</small>
+                                    <small class="text-muted" style="font-size: 10px;">
+                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true)
+                                            ? strtoupper(str_replace('_', ' ', $user->role))
+                                            : strtoupper(match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' }) }}
+                                    </small>
                                 </div>
                             </div>
                         </td>
@@ -430,7 +434,11 @@
         $('#edit_name').val(data.name);
         $('#edit_username').val(data.username);
         $('#edit_nip_nik').val(data.nip_nik);
-        $('#edit_role').val(data.role);
+        const administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset'];
+        const editableRole = administrativeRoles.includes(data.role)
+            ? data.role
+            : (data.user_type === 'narasumber' ? 'pengajar' : (data.user_type === 'mitra' ? 'mitra' : 'participant'));
+        $('#edit_role').val(editableRole);
         syncBidangByRole('#edit_role', '#edit_bidang');
         $('#edit_whatsapp').val(data.whatsapp);
         

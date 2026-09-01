@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 31 Agu 2026 pada 09.38
+-- Waktu pembuatan: 01 Sep 2026 pada 18.11
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -149,11 +149,11 @@ CREATE TABLE `assets` (
 --
 
 INSERT INTO `assets` (`id`, `name`, `type`, `facilities`, `location`, `capacity`, `description`, `is_active`, `is_public`, `created_by`, `created_at`, `updated_at`) VALUES
-(11, 'Ruang Makan Peserta', 'ruangan', 'Meja Makan, Kursi Makan, Toilet, live Musik', 'Gedung Kelas Lantai 1', 200, NULL, 1, 1, 9, '2026-08-30 07:45:50', '2026-08-30 07:45:50'),
-(12, 'Labolatorium Bahasa', 'ruangan', 'Komputer, AC, Infocus, Soundsystem, Headphone', 'Gedung Kelas Lantai 3', 30, NULL, 1, 1, 9, '2026-08-30 07:46:52', '2026-08-30 07:46:52'),
-(13, 'Ruang Ballroom', 'ruangan', 'Kursi, Meja, AC, LED, Soundsystem, Infocus', 'Belakang Amphiteater', 50, NULL, 1, 1, 9, '2026-08-30 07:47:41', '2026-08-30 07:47:41'),
-(14, 'Ruang Rapat', 'ruangan', 'AC, Soundsystem, Proyektor, Meja, Kursi', 'Gedung Kelas Lantai 2', 30, NULL, 1, 1, 9, '2026-08-30 07:48:54', '2026-08-30 07:48:54'),
-(15, 'Ruang Rapat Bidang SKPK', 'ruangan', 'Kursi, TV, AC, Meja', 'Gedung Kantor Lantai 2', 30, NULL, 1, 1, 9, '2026-08-30 07:49:38', '2026-08-30 07:49:38'),
+(11, 'RUANG MAKAN PESERTA', 'ruangan', 'Meja Makan, Kursi Makan, Toilet, live Musik', 'Gedung Kelas Lantai 1', 200, NULL, 1, 1, 9, '2026-08-30 07:45:50', '2026-08-31 13:23:49'),
+(12, 'LABOLATORIUM BAHASA', 'ruangan', 'Komputer, AC, Infocus, Soundsystem, Headphone', 'Gedung Kelas Lantai 3', 30, NULL, 1, 1, 9, '2026-08-30 07:46:52', '2026-08-31 13:24:01'),
+(13, 'RUANG BALLROOM', 'ruangan', 'Kursi, Meja, AC, LED, Soundsystem, Infocus', 'Belakang Amphiteater', 50, NULL, 1, 1, 9, '2026-08-30 07:47:41', '2026-08-31 13:23:37'),
+(14, 'RUANG RAPAT', 'ruangan', 'AC, Soundsystem, Proyektor, Meja, Kursi', 'Gedung Kelas Lantai 2', 30, NULL, 1, 1, 9, '2026-08-30 07:48:54', '2026-08-31 13:24:13'),
+(15, 'RUANG RAPAT BIDANG SKPK', 'ruangan', 'Kursi, TV, AC, Meja', 'Gedung Kantor Lantai 2', 30, NULL, 1, 1, 9, '2026-08-30 07:49:38', '2026-08-31 13:24:34'),
 (16, 'RUANG KELAS 3-X', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi', 'Gedung Kelas Lantai 3', 30, NULL, 1, 1, 9, '2026-08-30 07:50:36', '2026-08-30 07:50:36'),
 (17, 'RUANG KELAS 3-IX', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi', 'Gedung Kelas Lantai 3', 30, NULL, 1, 1, 9, '2026-08-30 07:51:20', '2026-08-30 07:51:20'),
 (18, 'RUANG KELAS 3-VIII', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi', 'Gedung Kelas Lantai 3', 30, NULL, 1, 1, 9, '2026-08-30 07:51:58', '2026-08-30 07:51:58'),
@@ -321,6 +321,16 @@ CREATE TABLE `cache` (
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `cache`
+--
+
+INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
+('integral-cache-bidangpktu@gmail.com|127.0.0.1', 'i:1;', 1788182791),
+('integral-cache-bidangpktu@gmail.com|127.0.0.1:timer', 'i:1788182791;', 1788182791),
+('integral-cache-bidangskpk@bpsdm.go.id|127.0.0.1', 'i:2;', 1788166339),
+('integral-cache-bidangskpk@bpsdm.go.id|127.0.0.1:timer', 'i:1788166339;', 1788166339);
+
 -- --------------------------------------------------------
 
 --
@@ -363,7 +373,8 @@ CREATE TABLE `certification_events` (
 --
 
 INSERT INTO `certification_events` (`id`, `certification_type_id`, `title`, `start_date`, `end_date`, `location`, `supervisor_name`, `supervisor_phone`, `supervisor_institution`, `participant_quota`, `public_token`, `folder_id`, `minutes_file_id`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Sertifikasi PBPJ Level 1 Kabupaten Bandung', '2026-08-27', '2026-08-27', 'Bpsdm Provinsi Jawa Barat', 'Velicia', '08080453685345', 'LKPP', 40, 'iciQIYpZW0hMi9ppPgdqJFjoE4JsA64gB3lLGjlyFBakdr2F', 55, 111, 12, '2026-08-30 10:02:29', '2026-08-30 10:02:47');
+(1, 1, 'Sertifikasi PBPJ Level 1 Kabupaten Bandung', '2026-08-27', '2026-08-27', 'Bpsdm Provinsi Jawa Barat', 'Velicia', '08080453685345', 'LKPP', 40, 'iciQIYpZW0hMi9ppPgdqJFjoE4JsA64gB3lLGjlyFBakdr2F', 55, 132, 12, '2026-08-30 10:02:29', '2026-08-31 08:54:29'),
+(5, 1, 'SERTIFIKASI PBJ LEBEL 1 SUBANG', '2026-08-31', '2026-09-02', 'Bpsdm Provinsi Jawa Barat', 'Velicia', '08080453685345', 'LKPP', 30, 'jglW7R95dG4pXhBPymeKBEfXbXPN14Xg6xJgyEUZaYu1pTpI', 75, NULL, 12, '2026-08-31 08:56:30', '2026-08-31 08:56:30');
 
 -- --------------------------------------------------------
 
@@ -404,7 +415,8 @@ CREATE TABLE `certification_participants` (
 --
 
 INSERT INTO `certification_participants` (`id`, `certification_event_id`, `nip_nik`, `name`, `position`, `institution`, `province`, `city`, `phone`, `email`, `result`, `biodata_token`, `notes`, `created_at`, `updated_at`, `birth_place_date`, `rank_grade`, `religion`, `gender`, `education`, `office_address`, `trainings`, `signature_path`, `biodata_file_id`, `biodata_submitted_at`) VALUES
-(5, 1, '19950332026211005', 'Contoh Peserta', 'Analis', 'Pemerintah Kabupaten/Kota', 'Jawa Barat', 'Kota Bandung', '081234567890', 'samsidin@example.go.id', 'lulus', '1AO9MekTBQeYauyjancj1KnzgmDkImQPiXOWoZqxTNvo7oqT', NULL, '2026-08-30 11:10:49', '2026-08-30 12:32:53', 'Bandung, 04 maret 2025', 'dasd', 'Islam', 'Laki-laki', 'S1', 'Kp. Nihmat, No.1 Rt/Rw 003/006, Cigugur Girang, Parongpong\r\nKp. Nihmat, No.1 Rt/Rw 003/006, Cigugur Girang,Parongpong', '-', 'certifications/signatures/5-5eDn8hpl.png', 125, '2026-08-30 12:21:33');
+(6, 1, '328943856235236', 'RIZKY', 'Analis', 'Pemerintah Kabupaten/Kota', 'Jawa Barat', 'Kota Bandung', '081234567890', 'peserta@example.go.id', 'tidak_lulus', 'MpIBjvGfuncgpJoJcLIgBZB01LsutoRFt3IZtrwpCNRgIv3W', NULL, '2026-08-31 08:54:20', '2026-08-31 08:59:10', 'Bandung, 03 Maret 1995', 'IV/a', 'Konghucu', 'Laki-laki', 'S1', 'dfsaafasfasf', '-', 'certifications/signatures/6-4Z1byiOC.png', 134, '2026-08-31 08:59:10'),
+(7, 5, '328943856235236', 'RIZKY', 'Analis', 'Pemerintah Kabupaten/Kota', 'Jawa Barat', 'Kota Bandung', '081234567890', 'peserta@example.go.id', 'lulus', '1Ei8bbuXje8xr2DfHMy7f6O8bxsotaNVZWlzyNx6Wami3ChX', NULL, '2026-08-31 08:56:57', '2026-08-31 13:22:51', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -946,14 +958,23 @@ CREATE TABLE `files` (
 --
 
 INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`, `file_size`, `user_id`, `created_at`, `updated_at`) VALUES
-(111, 56, 'RINGKASAN_LAPORAN_AKSES_INFORMASI_PUBLIK_TAHUN_2025_190826_a96f7860_signed.pdf', 'documents/cQTF5E3BNZkvmWeWloPNRwDHL38fJ3xmEnamgBPP.pdf', 'pdf', 1671695, 12, '2026-08-30 10:02:47', '2026-08-30 10:02:47'),
 (112, 57, 'template_peserta_sertifikasi.xlsx', 'documents/kpemOGZ2WxrWFfoOtBCMj5xrMNYkR49LKmQgjhlI.xlsx', 'xlsx', 9401, 12, '2026-08-30 10:04:01', '2026-08-30 10:04:01'),
 (122, 57, 'template_peserta_sertifikasi (2).xlsx', 'documents/HaInOTsSUpQreyjjTUvuuQ9iRu4fFaAD163ecujz.xlsx', 'xlsx', 9401, 2, '2026-08-30 11:10:49', '2026-08-30 11:10:49'),
-(125, 66, 'Biodata - Contoh Peserta - 19950332026211005.pdf', 'documents/certification-biodata/d728bcf5-1366-4b9d-a60c-d4ee79bd14c4.pdf', 'pdf', 934671, 12, '2026-08-30 12:21:33', '2026-08-30 12:21:33'),
 (126, 56, 'Biodata - Contoh Peserta - 19950332026211005 (2).pdf', 'documents/xAlZn0XdLCU2oHcFcCJfBJn8TTwUlCkofBhjzmlH.pdf', 'pdf', 888150, 1, '2026-08-30 13:29:39', '2026-08-30 13:29:39'),
 (127, 70, 'CV PENGAJAR.pdf', 'pengajar/kelengkapan/XqeG8xWazeXKytqpmmwnP1eCnk1sy9dHMWnHS0wZ.pdf', 'pdf', 1852608, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
 (128, 70, 'SERTIFIKAT TOT PENGAJAR.pdf', 'pengajar/kelengkapan/3c8crnwPcBn4FVNOaU8Rpcj8Jxyag0awXohD8TEz.pdf', 'pdf', 402773, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
-(129, 70, 'SURAT TUGAS PENGAJAR.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', 'pdf', 236531, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44');
+(129, 70, 'SURAT TUGAS PENGAJAR.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', 'pdf', 236531, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
+(131, 57, 'template_peserta_sertifikasi (3).xlsx', 'documents/22wLbi9u8lXMH4bC9ifTbgsNS44o3OjS2oyFUdJ4.xlsx', 'xlsx', 8815, 12, '2026-08-31 08:54:20', '2026-08-31 08:54:20'),
+(132, 56, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/QRlqBpe2AqpYrLDWXYJMIAylDdBsCVOUBo3ZTy15.pdf', 'pdf', 888150, 12, '2026-08-31 08:54:29', '2026-08-31 08:54:29'),
+(133, 77, 'template_peserta_sertifikasi (3).xlsx', 'documents/2oSaGs1855TwcqHx8jgYEP9QhTWHxlnov6TMstzG.xlsx', 'xlsx', 8815, 12, '2026-08-31 08:56:57', '2026-08-31 08:56:57'),
+(134, 66, 'Biodata - RIZKY - 328943856235236.pdf', 'documents/certification-biodata/d5490f13-0a54-4645-946e-c53846e3b922.pdf', 'pdf', 938504, 12, '2026-08-31 08:59:09', '2026-08-31 08:59:09'),
+(135, 78, 'LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 14680, 5, '2026-08-31 13:33:30', '2026-08-31 13:33:30'),
+(136, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 12306, 5, '2026-08-31 13:33:57', '2026-08-31 13:33:57'),
+(137, 80, 'LAPORAN_EVALUASI_LV1_LV2_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pealtihan_Keuangan_Daerah.docx', 'docx', 11494, 5, '2026-08-31 13:34:11', '2026-08-31 13:34:11'),
+(138, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 12306, 5, '2026-08-31 13:35:03', '2026-08-31 13:35:03'),
+(139, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 440229, 5, '2026-08-31 14:13:07', '2026-08-31 14:13:07'),
+(140, 78, 'LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 39249, 5, '2026-08-31 14:59:22', '2026-08-31 14:59:22'),
+(141, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 412473, 5, '2026-08-31 15:00:13', '2026-08-31 15:00:13');
 
 -- --------------------------------------------------------
 
@@ -1004,9 +1025,18 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (56, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-08-30 13:23:22'),
 (57, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-08-30 13:23:22'),
 (66, NULL, 'Biodata Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 11:08:51', '2026-08-30 13:23:22'),
-(68, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 13:43:37', '2026-08-31 03:12:01'),
-(69, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 1, 0, NULL, '2026-08-31 03:06:44', '2026-08-31 03:12:01'),
-(70, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 69, 1, 0, NULL, '2026-08-31 03:06:44', '2026-08-31 03:12:01');
+(68, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 13:43:37', '2026-09-01 15:45:37'),
+(69, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-01 15:45:37'),
+(70, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 69, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-01 15:45:37'),
+(71, NULL, 'Pengajuan Mitra', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
+(72, NULL, 'Kabupaten', 'Bidang Pengembangan Kompetensi Teknis Umum', 71, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
+(73, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
+(75, NULL, 'SERTIFIKASI PBJ LEBEL 1 SUBANG', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 54, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
+(76, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
+(77, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
+(78, 8, 'HASIL EVALUASI DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:29', '2026-08-31 13:33:29'),
+(79, 8, 'LAPORAN AKHIR DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:57', '2026-08-31 13:33:57'),
+(80, 8, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:34:11', '2026-08-31 13:34:11');
 
 -- --------------------------------------------------------
 
@@ -1295,7 +1325,7 @@ CREATE TABLE `partner_submissions` (
 --
 
 INSERT INTO `partner_submissions` (`id`, `user_id`, `type`, `target_bidang`, `title`, `background`, `objective`, `scope`, `participant_target`, `estimated_participants`, `competency`, `preferred_start`, `preferred_end`, `method`, `location`, `period_start`, `period_end`, `pic_name`, `pic_contact`, `status`, `assigned_to`, `folder_id`, `submitted_at`, `finalized_at`, `created_at`, `updated_at`) VALUES
-(1, 15, 'training', 'Bidang Pengembangan Kompetensi Teknis Umum', 'pasdjsdbjasfasf', 'kjsbdckjzdbaskd baskjd askdbasjkdasd', 'iudgadiasg diasgdi asdiuasdasd', NULL, 'dfsdfsdgfsdgsdg', 23, 'sdbasjdasd askdas dasjkdas', '2026-08-31', '2026-09-04', 'Klasikal', 'fasfasfasfasfasf', NULL, NULL, 'Kabupaten', '6281382830814', 'waiting_approval', 5, NULL, '2026-08-31 07:33:09', NULL, '2026-08-31 07:26:30', '2026-08-31 07:33:47'),
+(1, 15, 'training', 'Bidang Pengembangan Kompetensi Teknis Umum', 'pasdjsdbjasfasf', 'kjsbdckjzdbaskd baskjd askdbasjkdasd', 'iudgadiasg diasgdi asdiuasdasd', NULL, 'dfsdfsdgfsdgsdg', 23, 'sdbasjdasd askdas dasjkdas', '2026-08-31', '2026-09-04', 'Klasikal', 'fasfasfasfasfasf', NULL, NULL, 'Kabupaten', '6281382830814', 'draft', 5, NULL, '2026-08-31 07:33:09', NULL, '2026-08-31 07:26:30', '2026-08-31 08:47:29'),
 (2, 15, 'cooperation', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'sadjkbasdasd askd askdas', 'daskjdakjsd kasdkajsdasd', 'djasd jasgd ajdg asjd', 'kjasbxasd asid ashkdhasd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-31', '2026-09-01', 'Kabupaten', '6281382830814', 'draft', NULL, NULL, NULL, NULL, '2026-08-31 07:34:52', '2026-08-31 07:34:52');
 
 -- --------------------------------------------------------
@@ -1322,7 +1352,8 @@ INSERT INTO `partner_submission_comments` (`id`, `partner_submission_id`, `user_
 (2, 1, 15, 'dkashdasjkd asfasf haksf asfas', '2026-08-31 07:27:26', '2026-08-31 07:27:26'),
 (3, 1, 5, 'syipass', '2026-08-31 07:27:39', '2026-08-31 07:27:39'),
 (4, 1, 15, 'soalnya itu haruny asesuai dengan yang saya minta', '2026-08-31 07:31:53', '2026-08-31 07:31:53'),
-(5, 1, 5, 'okhays jika itu memang seperti itu apa bisa saya ini', '2026-08-31 07:32:23', '2026-08-31 07:32:23');
+(5, 1, 5, 'okhays jika itu memang seperti itu apa bisa saya ini', '2026-08-31 07:32:23', '2026-08-31 07:32:23'),
+(6, 1, 5, 'ada apa ini teh', '2026-08-31 08:47:38', '2026-08-31 08:47:38');
 
 -- --------------------------------------------------------
 
@@ -1350,7 +1381,7 @@ CREATE TABLE `partner_submission_documents` (
 --
 
 INSERT INTO `partner_submission_documents` (`id`, `partner_submission_id`, `uploaded_by`, `version_number`, `display_name`, `file_path`, `file_type`, `file_size`, `change_note`, `is_final`, `created_at`, `updated_at`) VALUES
-(1, 1, 15, 1, 'Biodata - Contoh Peserta - 19950332026211005 (2).pdf', 'partner-submissions/1/9quAbWuUgVGndiGVSF7EjJFTAzwk1t3D3IjhoofI.pdf', 'pdf', 888150, 'adjkabsdjasdjasjdasd', 0, '2026-08-31 07:33:01', '2026-08-31 07:33:01');
+(1, 1, 15, 1, 'Biodata - Contoh Peserta - 19950332026211005 (2).pdf', 'partner-submissions/1/9quAbWuUgVGndiGVSF7EjJFTAzwk1t3D3IjhoofI.pdf', 'pdf', 888150, 'adjkabsdjasdjasjdasd', 0, '2026-08-31 07:33:01', '2026-08-31 08:47:29');
 
 -- --------------------------------------------------------
 
@@ -1380,7 +1411,8 @@ CREATE TABLE `pengajars` (
 --
 
 INSERT INTO `pengajars` (`id`, `user_id`, `npwp`, `nama_bank`, `nomor_rekening`, `nama_rekening`, `bidang_keahlian`, `pangkat_golongan`, `instansi`, `cv_path`, `sertifikat_path`, `surat_tugas_path`, `created_at`, `updated_at`) VALUES
-(2, 1, '34242352523523', 'asfsdfsdfsd', '5235235235235', 'dasfasfasfafsasf', NULL, NULL, NULL, 'pengajar/kelengkapan/XqeG8xWazeXKytqpmmwnP1eCnk1sy9dHMWnHS0wZ.pdf', 'pengajar/kelengkapan/3c8crnwPcBn4FVNOaU8Rpcj8Jxyag0awXohD8TEz.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', '2026-08-30 05:42:30', '2026-08-30 05:42:39');
+(2, 1, '34242352523523', 'asfsdfsdfsd', '5235235235235', 'dasfasfasfafsasf', NULL, NULL, NULL, 'pengajar/kelengkapan/XqeG8xWazeXKytqpmmwnP1eCnk1sy9dHMWnHS0wZ.pdf', 'pengajar/kelengkapan/3c8crnwPcBn4FVNOaU8Rpcj8Jxyag0awXohD8TEz.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', '2026-08-30 05:42:30', '2026-08-30 05:42:39'),
+(3, 4, '673248264293428935235', 'sdfsdgsdgsdgsdgsdg', '423423423235235235', 'simpanakuaja delapan', NULL, NULL, 'afasasfasfasfasf', NULL, NULL, NULL, '2026-09-01 15:42:59', '2026-09-01 15:42:59');
 
 -- --------------------------------------------------------
 
@@ -1467,7 +1499,8 @@ CREATE TABLE `schedules` (
 --
 
 INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `jp`, `link_zoom`, `pic`, `pengajar_id`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`, `venue_type`, `external_place`) VALUES
-(10, 9, '2026-08-31', '08:00:00', '11:00:00', 'Matei I untuk kegiatan itu', 4, 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 11, '2026-08-31 02:52:13', '2026-08-31 02:52:13', NULL, NULL, 'external', 'melalu Zoom Meeting');
+(10, 9, '2026-08-31', '08:00:00', '11:00:00', 'Matei I untuk kegiatan itu', 4, 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-08-31 02:52:13', '2026-09-01 15:43:47', NULL, NULL, 'external', 'melalu Zoom Meeting'),
+(12, 8, '2026-09-01', '08:00:00', '09:30:00', 'Materi Kebangsaan', 2, 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-09-01 15:49:58', '2026-09-01 15:49:58', NULL, NULL, 'external', 'melalu Zoom Meeting');
 
 -- --------------------------------------------------------
 
@@ -1505,7 +1538,7 @@ CREATE TABLE `trainings` (
 
 INSERT INTO `trainings` (`id`, `created_by`, `bidang`, `program_evaluasi`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
 (8, 2, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pealtihan Keuangan Daerah', 'MQFO9Q', NULL, 'standar', 'klasikal', 'Gedung kelas lantai 2', NULL, NULL, '1', 1, 24, '2026-08-27', '2026-08-28', NULL, NULL, '2026-08-30 09:11:51', '2026-08-30 09:32:04'),
-(9, 12, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'PKTI/PKTU', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '20U5QG', NULL, 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 30, 29, '2026-08-30', '2026-08-30', NULL, NULL, '2026-08-30 13:43:37', '2026-08-31 03:12:01');
+(9, 12, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'PKTI/PKTU', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '20U5QG', NULL, 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 30, 29, '2026-08-30', '2026-08-31', NULL, NULL, '2026-08-30 13:43:37', '2026-09-01 15:45:37');
 
 -- --------------------------------------------------------
 
@@ -1527,8 +1560,9 @@ CREATE TABLE `training_forum_reads` (
 --
 
 INSERT INTO `training_forum_reads` (`id`, `training_id`, `user_id`, `last_read_message_id`, `created_at`, `updated_at`) VALUES
-(6, 9, 1, 10, '2026-08-31 02:55:41', '2026-08-31 03:03:56'),
-(7, 9, 2, 10, '2026-08-31 03:03:28', '2026-08-31 03:04:15');
+(6, 9, 1, 11, '2026-08-31 02:55:41', '2026-09-01 15:54:58'),
+(7, 9, 2, 10, '2026-08-31 03:03:28', '2026-08-31 03:04:15'),
+(8, 9, 4, 11, '2026-09-01 15:44:18', '2026-09-01 15:44:31');
 
 -- --------------------------------------------------------
 
@@ -1551,7 +1585,8 @@ CREATE TABLE `training_messages` (
 
 INSERT INTO `training_messages` (`id`, `training_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
 (9, 9, 2, 'apadkakad', '2026-08-31 03:03:32', '2026-08-31 03:03:32'),
-(10, 9, 1, 'sapasdasjdasd', '2026-08-31 03:03:56', '2026-08-31 03:03:56');
+(10, 9, 1, 'sapasdasjdasd', '2026-08-31 03:03:56', '2026-08-31 03:03:56'),
+(11, 9, 4, 'oke', '2026-09-01 15:44:31', '2026-09-01 15:44:31');
 
 -- --------------------------------------------------------
 
@@ -1612,7 +1647,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`, `whatsapp`, `profile_photo`, `role`, `user_type`, `user_type_status`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`, `gender`, `jabatan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `latitude`, `longitude`, `status_kepegawaian`) VALUES
 (1, '107781747552867366947', 'https://lh3.googleusercontent.com/a/ACg8ocJTdYYDR-py4kqvc2uXIM_JX56X0cang30ysQGyyWB23sdF2Q=s96-c', 'Simpan Aku aja 22', 'simpanakuajaduadua@gmail.com', '12387126387126438', '081382830814', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$HvkVkDVodkLIaQs6RniJ9.gPBvc7A8xecTEB12IXr1kuezKe.V1fq', NULL, '2026-08-28 04:30:55', '2026-08-28 14:43:37', 'Laki-Laki', 'Pengelola Layanan', 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', -6.8335548, 107.5854874, 'PNS'),
 (2, NULL, NULL, 'Super Administrator', 'superadmin@bpsdm.go.id', '19450817000000', '6281234567890', NULL, 'superadmin', NULL, 'approved', NULL, '$2y$12$82TUizUKE.owZ2/L0KDDg.7e.UydaeeVnpdqKnjkcqgV2KRqkKuym', NULL, '2026-08-28 06:19:21', '2026-08-30 14:16:38', 'Laki-Laki', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PNS'),
-(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', NULL, NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', NULL, '2026-08-28 12:02:38', '2026-08-28 12:02:38', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', '3542312431523123', '989364374327', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', NULL, '2026-08-28 12:02:38', '2026-09-01 14:44:56', 'Laki-Laki', 'asdasfasfas', 'afasasfasfasfasf', 'DKI JAKARTA', 'KOTA JAKARTA PUSAT', 'SENEN', 'PASEBAN', -6.1929872, 106.8515287, 'PNS'),
 (5, NULL, NULL, 'Ali Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$YPxZ1PjL0nlyZ5xYpyDlpO/QybSb.V1hYbezpk8WV1dARs/x7vtsi', NULL, '2026-08-28 12:49:55', '2026-08-28 13:30:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (6, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', NULL, NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$mqKZXhhesDekZhQWFAcyruw1EL.3KL7DcOUQFWZz19dLLIlY4W4y6', NULL, '2026-08-28 13:01:31', '2026-08-28 13:01:31', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (9, NULL, NULL, 'Ghani', 'aset@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_aset', NULL, 'approved', 'Pengelola Aset', '$2y$12$1/1IVk5j2D/c5zf527T2a.RPbGf9Bu9e1AWOkVSsIcgNZ1dxS6K9i', NULL, '2026-08-29 14:38:46', '2026-08-29 14:38:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -1620,7 +1655,8 @@ INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`,
 (12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$BettiHso5U47sRpz.I3q6uWJaSMVtr5//zu06HuBlHrIjlo.9Rj3C', NULL, '2026-08-31 07:09:45', '2026-08-31 07:09:45', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$BettiHso5U47sRpz.I3q6uWJaSMVtr5//zu06HuBlHrIjlo.9Rj3C', NULL, '2026-08-31 07:09:45', '2026-08-31 07:09:45', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', 'fsdfsdfsdfsdf', 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', -3.3569196, 122.8328450, 'PPPK');
 
 --
 -- Indexes for dumped tables
@@ -2020,13 +2056,13 @@ ALTER TABLE `attendances`
 -- AUTO_INCREMENT untuk tabel `certification_events`
 --
 ALTER TABLE `certification_events`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `certification_participants`
 --
 ALTER TABLE `certification_participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `certification_types`
@@ -2074,7 +2110,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -2086,7 +2122,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -2134,7 +2170,7 @@ ALTER TABLE `partner_submissions`
 -- AUTO_INCREMENT untuk tabel `partner_submission_comments`
 --
 ALTER TABLE `partner_submission_comments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `partner_submission_documents`
@@ -2146,7 +2182,7 @@ ALTER TABLE `partner_submission_documents`
 -- AUTO_INCREMENT untuk tabel `pengajars`
 --
 ALTER TABLE `pengajars`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `pengajar_schedule_documents`
@@ -2170,7 +2206,7 @@ ALTER TABLE `questions`
 -- AUTO_INCREMENT untuk tabel `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `trainings`
@@ -2182,13 +2218,13 @@ ALTER TABLE `trainings`
 -- AUTO_INCREMENT untuk tabel `training_forum_reads`
 --
 ALTER TABLE `training_forum_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_messages`
 --
 ALTER TABLE `training_messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_stages`
@@ -2200,7 +2236,7 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

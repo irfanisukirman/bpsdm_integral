@@ -10,12 +10,12 @@ class CekSetupPengajar
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'pengajar') {
+        if (Auth::check() && Auth::user()->isNarasumber()) {
             // Jika data di tabel pengajars belum ada, arahkan ke halaman setup
             if (!Auth::user()->pengajar) {
                 // Cegah redirect loop (jangan redirect jika sedang di halaman setup atau logout)
                 if (!$request->is('pengajar/setup-profil') && !$request->is('logout')) {
-                    return redirect()->route('pengajar.setup')->with('warning', 'Selamat datang! Silakan perbarui password dan lengkapi profil Anda untuk melanjutkan.');
+                    return redirect()->route('pengajar.setup')->with('warning', 'Selamat datang! Lengkapi data administrasi narasumber untuk melanjutkan.');
                 }
             }
         }

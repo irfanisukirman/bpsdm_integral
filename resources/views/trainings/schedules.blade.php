@@ -82,7 +82,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div class="form-text small">Menampilkan akun non-administratif yang tidak terikat bidang, termasuk pengajar atau narasumber dari luar.</div>
+                        <div class="form-text small">Hanya menampilkan akun Narasumber yang telah disetujui dan memiliki akses Pengajar.</div>
                     </div>
 
                     <div class="mb-3">
@@ -291,6 +291,7 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="form-text small">Hanya menampilkan akun Narasumber yang telah disetujui dan memiliki akses Pengajar.</div>
                 </div>
 
                 <div class="mb-3">

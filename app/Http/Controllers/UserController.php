@@ -140,16 +140,20 @@ class UserController extends Controller
             'mitra' => 'mitra',
             default => null,
         };
+        $preservePendingRequest = $user->user_type_status === 'pending'
+            && in_array($user->user_type, ['narasumber', 'mitra'], true)
+            && $user->user_type === $userType;
+        $effectiveRole = $preservePendingRequest ? 'participant' : $request->role;
 
         $user->update([
             'name'     => $request->name,
             'user_type' => $userType,
-            'user_type_status' => 'approved',
-            'username' => $request->username, // Pastikan input username ada di form modal edit Anda
+            'user_type_status' => $preservePendingRequest ? 'pending' : 'approved',
+            'username' => $request->username,
             'nip_nik'  => $request->nip_nik,
-            'role'     => $request->role,
+            'role'     => $effectiveRole,
             'whatsapp' => $request->whatsapp,
-            'bidang'   => match ($request->role) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
+            'bidang'   => match ($effectiveRole) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
         ]);
 
         return redirect()->back()->with('success', 'Data user ' . $user->name . ' berhasil diperbarui.');

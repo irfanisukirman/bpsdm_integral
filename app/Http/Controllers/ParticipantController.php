@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
 use App\Models\File;
-use App\Models\Schedule;
 use App\Models\Attendance;
 
 class ParticipantController extends Controller
@@ -41,18 +40,6 @@ class ParticipantController extends Controller
                 return $p->training->jp;
             });
 
-        // Akun participant dapat sekaligus ditugaskan menjadi pengajar tanpa perubahan role.
-        $isPengajar = Schedule::where('pengajar_id', $user->id)->exists();
-        $teachingJpTotal = $isPengajar
-            ? (int) Schedule::where('pengajar_id', $user->id)->sum('jp')
-            : 0;
-        $teachingJpThisYear = $isPengajar
-            ? (int) Schedule::where('pengajar_id', $user->id)->whereYear('date', $currentYear)->sum('jp')
-            : 0;
-        $teachingCount = $isPengajar
-            ? Schedule::where('pengajar_id', $user->id)->distinct('training_id')->count('training_id')
-            : 0;
-
         $postEvaluationTrainings = Participant::with('training')
             ->where('user_id', $user->id)
             ->where('registration_status', 'approved')
@@ -66,9 +53,7 @@ class ParticipantController extends Controller
             ->values();
 
         return view('participant.dashboard', compact(
-            'user', 'totalFollowed', 'myJpThisYear', 'isPengajar',
-            'teachingJpTotal', 'teachingJpThisYear', 'teachingCount',
-            'postEvaluationTrainings'
+            'user', 'totalFollowed', 'myJpThisYear', 'postEvaluationTrainings'
         ));
     }
 
@@ -86,7 +71,14 @@ class ParticipantController extends Controller
         $canJoinNewTraining = $this->canJoinNewTraining($enrollments);
 
         // Tampilkan pelatihan aktif/belum lengkap serta evaluasi pasca yang sudah jatuh tempo.
-        $myTrainings = \App\Models\Training::with(['participants', 'stages'])
+        $myTrainings = \App\Models\Training::with([
+            'participants',
+            'stages',
+            'schedules' => fn ($query) => $query
+                ->with(['pengajar', 'bookings.asset'])
+                ->orderBy('date')
+                ->orderBy('start_time'),
+        ])
             ->whereHas('participants', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -165,11 +157,13 @@ class ParticipantController extends Controller
         ]);
 
         $requestedType = $request->user_type;
+        $role = $requestedType === 'narasumber' ? 'pengajar' : 'participant';
+        $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
         $user->update([
             'user_type' => $requestedType,
-            'user_type_status' => $requestedType === 'peserta' ? 'approved' : 'pending',
-            // Form publik tidak pernah menaikkan hak akses. Narasumber/Mitra harus diverifikasi admin.
-            'role' => 'participant',
+            'user_type_status' => $typeStatus,
+            // Narasumber langsung aktif, sedangkan akun administratif tetap tidak tersedia di form publik.
+            'role' => $role,
             'bidang' => null,
             'nip_nik' => $request->nip_nik,
             'whatsapp' => $request->whatsapp,
@@ -189,9 +183,14 @@ class ParticipantController extends Controller
         \App\Models\Participant::where('nip_nik', $user->nip_nik)
             ->update(['user_id' => $user->id]);
 
+        if ($requestedType === 'narasumber') {
+            return redirect()->route('pengajar.setup')
+                ->with('success', 'Akun Narasumber berhasil diaktifkan. Lengkapi data pengajar untuk melanjutkan.');
+        }
+
         $message = $requestedType === 'peserta'
             ? 'Profil peserta berhasil disimpan.'
-            : 'Profil berhasil disimpan. Pengajuan sebagai '.ucfirst($requestedType).' menunggu persetujuan admin.';
+            : 'Profil berhasil disimpan. Pengajuan sebagai Mitra menunggu persetujuan admin.';
 
         return redirect()->route('participant.dashboard')->with('success', $message);
     }
@@ -234,7 +233,17 @@ class ParticipantController extends Controller
 
     public function showTrainingDetail($id)
     {
-        $training = Training::with(['stages', 'schedules'])->findOrFail($id);
+        $training = Training::with([
+            'stages',
+            'schedules' => fn ($query) => $query
+                ->with('pengajar')
+                ->orderBy('date')
+                ->orderBy('start_time'),
+            'participants' => fn ($query) => $query
+                ->with('user')
+                ->where('registration_status', 'approved')
+                ->orderBy('name'),
+        ])->findOrFail($id);
         $user = Auth::user();
 
         // Cari data peserta yang sinkron dengan User Login
