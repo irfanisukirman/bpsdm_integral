@@ -30,6 +30,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\PublicCertificationBiodataController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PartnerSubmissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('certifications/{event}', [CertificationController::class, 'destroyEvent'])->name('certifications.destroy');
     Route::get('certifications/{event}', [CertificationController::class, 'show'])->name('certifications.show');
     Route::post('certifications/{event}/participants/import', [CertificationController::class, 'import'])->name('certifications.import');
+    Route::put('certifications/{event}/participants/pass-all', [CertificationController::class, 'passAllParticipants'])->name('certifications.participants.pass-all');
     Route::delete('certifications/{event}/participants', [CertificationController::class, 'destroyAllParticipants'])->name('certifications.participants.destroy-all');
     Route::delete('certification-participants/{participant}', [CertificationController::class, 'destroyParticipant'])->name('certifications.participants.destroy');
     Route::post('certifications/{event}/minutes', [CertificationController::class, 'uploadMinutes'])->name('certifications.minutes');
@@ -129,12 +131,28 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/trainings/{training}/forum/messages/{message}', [TrainingForumController::class, 'destroy'])->name('training.forum.destroy');
     
     // --- DASHBOARD ---
+    // Portal Mitra dan pengelolaan pengajuan
+    Route::get('mitra', [PartnerSubmissionController::class, 'index'])->name('mitra.dashboard');
+    Route::get('mitra/pengajuan/create/{type}', [PartnerSubmissionController::class, 'create'])->name('mitra.submissions.create');
+    Route::post('mitra/pengajuan', [PartnerSubmissionController::class, 'store'])->name('mitra.submissions.store');
+    Route::get('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'show'])->name('mitra.submissions.show');
+    Route::put('mitra/pengajuan/{submission}', [PartnerSubmissionController::class, 'update'])->name('mitra.submissions.update');
+    Route::put('mitra/pengajuan/{submission}/submit', [PartnerSubmissionController::class, 'submit'])->name('mitra.submissions.submit');
+    Route::get('mitra/pengajuan/{submission}/comments', [PartnerSubmissionController::class, 'comments'])->name('mitra.submissions.comments');
+    Route::post('mitra/pengajuan/{submission}/comments', [PartnerSubmissionController::class, 'comment'])->name('mitra.submissions.comment');
+    Route::post('mitra/pengajuan/{submission}/documents', [PartnerSubmissionController::class, 'upload'])->name('mitra.submissions.upload');
+    Route::get('mitra/dokumen/{document}/download', [PartnerSubmissionController::class, 'download'])->name('mitra.documents.download');
+    Route::get('pengajuan-mitra', [PartnerSubmissionController::class, 'adminIndex'])->name('mitra.admin.index');
+    Route::put('pengajuan-mitra/{submission}/finalize', [PartnerSubmissionController::class, 'finalize'])->name('mitra.admin.finalize');
+    Route::put('pengajuan-mitra/{submission}/reopen', [PartnerSubmissionController::class, 'reopen'])->name('mitra.admin.reopen');
+    Route::delete('pengajuan-mitra/{submission}', [PartnerSubmissionController::class, 'destroy'])->name('mitra.admin.destroy');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
         Route::resource('users', UserController::class);
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::put('users/{user}/approve-type', [UserController::class, 'approveUserType'])->name('users.approve-type');
     });
 
     // --- PENGATURAN PROFIL UMUM ---
@@ -198,6 +216,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
+    Route::get('trainings/{id}/monitoring-pengajar', [TrainingController::class, 'teacherMonitoring'])->name('trainings.teacher-monitoring');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');
     Route::delete('participants/{id}', [TrainingController::class, 'destroyParticipant'])->name('participants.destroy');

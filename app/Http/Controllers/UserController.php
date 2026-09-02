@@ -27,12 +27,9 @@ class UserController extends Controller
         $stats = [
             'all' => User::count(),
             'admin' => User::whereIn('role', $adminRoles)->count(),
-            'bidang' => User::whereNotIn('role', $adminRoles)
-                ->whereNotNull('bidang')->where('bidang', '<>', '')->count(),
-            'external' => User::whereNotIn('role', $adminRoles)
-                ->where(function ($query) {
-                    $query->whereNull('bidang')->orWhere('bidang', '');
-                })->count(),
+            'peserta' => User::where('user_type', 'peserta')->count(),
+            'narasumber' => User::where('user_type', 'narasumber')->count(),
+            'mitra' => User::where('user_type', 'mitra')->count(),
         ];
 
         $users = User::latest()
@@ -43,21 +40,14 @@ class UserController extends Controller
                         ->orWhere('nip_nik', 'LIKE', "%$search%")
                         ->orWhere('bidang', 'LIKE', "%$search%")
                         ->orWhere('role', 'LIKE', "%$search%")
+                        ->orWhere('user_type', 'LIKE', "%$search%")
                         ->orWhere('instansi', 'LIKE', "%$search%")
                         ->orWhere('jabatan', 'LIKE', "%$search%");
                 });
             })
             ->when($category === 'admin', fn ($query) => $query->whereIn('role', $adminRoles))
-            ->when($category === 'bidang', function ($query) use ($adminRoles) {
-                $query->whereNotIn('role', $adminRoles)
-                    ->whereNotNull('bidang')->where('bidang', '<>', '');
-            })
-            ->when($category === 'external', function ($query) use ($adminRoles) {
-                $query->whereNotIn('role', $adminRoles)
-                    ->where(function ($scope) {
-                        $scope->whereNull('bidang')->orWhere('bidang', '');
-                    });
-            })
+            ->when(in_array($category, ['peserta', 'narasumber', 'mitra'], true),
+                fn ($query) => $query->where('user_type', $category))
             ->paginate(15)
             ->withQueryString();
 
@@ -65,7 +55,6 @@ class UserController extends Controller
 
         return view('users.index', compact('users', 'listBidang', 'search', 'category', 'stats'));
     }
-
     public function store(Request $request)
     {
         if ($request->role !== 'admin_aset' && $request->bidang === 'Pengelola Aset') {
@@ -76,18 +65,27 @@ class UserController extends Controller
             'nip_nik'  => 'nullable|string|max:50',
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant,mitra',
             'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
             'password' => 'required|min:6',
         ]);
 
+        $userType = match ($request->role) {
+            'participant' => 'peserta',
+            'pengajar' => 'narasumber',
+            'mitra' => 'mitra',
+            default => null,
+        };
+
         User::create([
             'name'     => $request->name,
+            'user_type' => $userType,
+            'user_type_status' => 'approved',
             'nip_nik'  => $request->nip_nik,
             'username' => $request->username,
             'whatsapp' => $request->whatsapp,
             'role'     => $request->role,
-            'bidang'   => $request->role === 'admin_aset' ? 'Pengelola Aset' : $request->bidang,
+            'bidang'   => match ($request->role) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
             'password' => Hash::make($request->password),
         ]);
 
@@ -103,6 +101,18 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dihapus.');
     }
 
+    public function approveUserType(User $user)
+    {
+        abort_unless($user->user_type_status === 'pending' && in_array($user->user_type, ['narasumber', 'mitra'], true), 422, 'Tidak ada pengajuan jenis akun yang menunggu persetujuan.');
+
+        $user->update([
+            'role' => $user->user_type === 'narasumber' ? 'pengajar' : 'mitra',
+            'user_type_status' => 'approved',
+            'bidang' => null,
+        ]);
+
+        return back()->with('success', 'Pengajuan sebagai '.ucfirst($user->user_type).' untuk '.$user->name.' berhasil disetujui.');
+    }
     public function resetPassword(User $user)
     {
         $user->update(['password' => Hash::make('password123')]);
@@ -119,18 +129,31 @@ class UserController extends Controller
             // Update username ditambahkan, dengan validasi ignore ID agar tidak error "sudah dipakai" oleh dirinya sendiri
             'username' => 'required|string|unique:users,username,' . $user->id,
             'nip_nik'  => 'nullable|string|max:50',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengajar,participant,mitra',
             'whatsapp' => 'required|numeric',
             'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
         ]);
 
+        $userType = match ($request->role) {
+            'participant' => 'peserta',
+            'pengajar' => 'narasumber',
+            'mitra' => 'mitra',
+            default => null,
+        };
+        $preservePendingRequest = $user->user_type_status === 'pending'
+            && in_array($user->user_type, ['narasumber', 'mitra'], true)
+            && $user->user_type === $userType;
+        $effectiveRole = $preservePendingRequest ? 'participant' : $request->role;
+
         $user->update([
             'name'     => $request->name,
-            'username' => $request->username, // Pastikan input username ada di form modal edit Anda
+            'user_type' => $userType,
+            'user_type_status' => $preservePendingRequest ? 'pending' : 'approved',
+            'username' => $request->username,
             'nip_nik'  => $request->nip_nik,
-            'role'     => $request->role,
+            'role'     => $effectiveRole,
             'whatsapp' => $request->whatsapp,
-            'bidang'   => $request->role === 'admin_aset' ? 'Pengelola Aset' : $request->bidang,
+            'bidang'   => match ($effectiveRole) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
         ]);
 
         return redirect()->back()->with('success', 'Data user ' . $user->name . ' berhasil diperbarui.');

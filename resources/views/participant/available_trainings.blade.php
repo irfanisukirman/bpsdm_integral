@@ -132,15 +132,23 @@
                                 </div>
                             </div>
 
-                            <div class="card-footer border-top bg-transparent pt-3 pb-3 text-center">
+                            <div class="card-footer border-top bg-transparent pt-3 pb-3">
                                 @if ($isApproved)
-                                    @if($needsPostEvaluation)
-                                        <a href="{{ route('public.l34.form', [$t->id, 'mandiri']) }}" class="btn btn-warning w-100 shadow-sm fw-bold"><i class="bx bx-edit me-1"></i>ISI EVALUASI PASCA SEKARANG</a>
-                                    @else
-                                        <a href="{{ route('participant.training.show', $t->id) }}" class="btn {{ $isExpired ? 'btn-danger' : 'btn-primary' }} w-100 shadow-sm fw-bold">
-                                            {{ $isExpired ? 'LENGKAPI BERKAS & EVALUASI L1' : 'BUKA DASHBOARD KELAS' }} <i class="bx bx-right-arrow-alt ms-1"></i>
-                                        </a>
-                                    @endif
+                                    <div class="d-grid d-md-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary flex-md-shrink-0" data-bs-toggle="modal" data-bs-target="#scheduleModal{{ $t->id }}">
+                                            <i class="bx bx-calendar-event me-1"></i> JADWAL ACARA
+                                            <span class="badge bg-primary ms-1">{{ $t->schedules->count() }}</span>
+                                        </button>
+                                        @if($needsPostEvaluation)
+                                            <a href="{{ route('public.l34.form', [$t->id, 'mandiri']) }}" class="btn btn-warning flex-grow-1 shadow-sm fw-bold">
+                                                <i class="bx bx-edit me-1"></i>ISI EVALUASI PASCA SEKARANG
+                                            </a>
+                                        @else
+                                            <a href="{{ route('participant.training.show', $t->id) }}" class="btn {{ $isExpired ? 'btn-danger' : 'btn-primary' }} flex-grow-1 shadow-sm fw-bold">
+                                                {{ $isExpired ? 'LENGKAPI BERKAS & EVALUASI L1' : 'BUKA DASHBOARD KELAS' }} <i class="bx bx-right-arrow-alt ms-1"></i>
+                                            </a>
+                                        @endif
+                                    </div>
                                 @else
                                     <button class="btn btn-secondary w-100 opacity-50 shadow-none" disabled>
                                         <i class="bx bx-lock-alt me-1"></i> DASHBOARD TERKUNCI
@@ -174,6 +182,93 @@
             @endif
         </div>
     </div>
+
+    {{-- MODAL JADWAL PER PELATIHAN --}}
+    @foreach($myTrainings as $scheduleTraining)
+        @php
+            $scheduleParticipant = $scheduleTraining->participants->where('user_id', auth()->id())->first();
+            $canViewSchedule = ($scheduleParticipant?->registration_status ?? 'pending') === 'approved';
+        @endphp
+        @if($canViewSchedule)
+            <div class="modal fade" id="scheduleModal{{ $scheduleTraining->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-bottom p-4">
+                            <div>
+                                <span class="badge bg-label-primary mb-2">JADWAL ACARA</span>
+                                <h5 class="modal-title fw-bold mb-1">{{ $scheduleTraining->nama_pelatihan }}</h5>
+                                <div class="d-flex flex-wrap gap-3 text-muted small">
+                                    <span><i class="bx bx-calendar me-1"></i>{{ \Carbon\Carbon::parse($scheduleTraining->tgl_mulai)->translatedFormat('d M') }}&ndash;{{ \Carbon\Carbon::parse($scheduleTraining->tgl_selesai)->translatedFormat('d M Y') }}</span>
+                                    <span><i class="bx bx-list-ul me-1"></i>{{ $scheduleTraining->schedules->count() }} sesi</span>
+                                    <span><i class="bx bx-time-five me-1"></i>{{ $scheduleTraining->schedules->sum('jp') }} JP</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body p-4 bg-light">
+                            @forelse($scheduleTraining->schedules->groupBy(fn ($schedule) => (string) $schedule->date) as $date => $daySchedules)
+                                <section class="schedule-modal-day bg-white border rounded-3 mb-3 overflow-hidden">
+                                    <div class="px-3 py-3 border-bottom bg-label-primary d-flex justify-content-between align-items-center gap-2">
+                                        <div class="fw-bold text-primary"><i class="bx bx-calendar me-1"></i>{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}</div>
+                                        <span class="badge bg-primary">{{ $daySchedules->count() }} sesi</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="min-width: 125px">Waktu</th>
+                                                    <th style="min-width: 240px">Materi / Kegiatan</th>
+                                                    <th>JP</th>
+                                                    <th style="min-width: 190px">Pengajar / PIC</th>
+                                                    <th style="min-width: 210px">Tempat & Akses</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($daySchedules as $schedule)
+                                                    @php
+                                                        $assetNames = $schedule->bookings->pluck('asset.name')->filter()->values();
+                                                        $scheduleLocation = $schedule->venue_type === 'internal'
+                                                            ? ($assetNames->implode(', ') ?: $scheduleTraining->lokasi)
+                                                            : ($schedule->external_place ?: $scheduleTraining->lokasi);
+                                                    @endphp
+                                                    <tr>
+                                                        <td><strong class="text-primary">{{ substr($schedule->start_time, 0, 5) }}&ndash;{{ substr($schedule->end_time, 0, 5) }}</strong><small class="text-muted d-block">WIB</small></td>
+                                                        <td><span class="fw-semibold text-dark">{{ $schedule->activity }}</span></td>
+                                                        <td><span class="badge bg-label-info">{{ $schedule->jp }} JP</span></td>
+                                                        <td>
+                                                            <span class="fw-semibold d-block">{{ $schedule->pengajar?->name ?: ($schedule->pic ?: 'Belum ditentukan') }}</span>
+                                                            @if($schedule->pengajar && $schedule->pic && $schedule->pic !== $schedule->pengajar->name)
+                                                                <small class="text-muted">PIC: {{ $schedule->pic }}</small>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <span class="d-block"><i class="bx bx-map text-danger me-1"></i>{{ $scheduleLocation ?: 'Belum ditentukan' }}</span>
+                                                            @if($schedule->link_zoom)
+                                                                <a href="{{ $schedule->link_zoom }}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-xs mt-2"><i class="bx bx-video me-1"></i>Join Zoom</a>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                            @empty
+                                <div class="text-center py-5 bg-white border border-dashed rounded">
+                                    <i class="bx bx-calendar-x display-5 text-muted d-block mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Jadwal belum tersedia</h6>
+                                    <p class="text-muted small mb-0">Jadwal akan tampil setelah disusun oleh penyelenggara.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                        <div class="modal-footer border-top">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x me-1"></i>Tutup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
 
     {{-- MODAL JOIN GLOBAL --}}
     <div class="modal fade" id="modalJoinGlobal" tabindex="-1" aria-hidden="true">
@@ -218,6 +313,9 @@
             100% { box-shadow: 0 0 0 0 rgba(105, 108, 255, 0); }
         }
 
+        .schedule-modal-day:last-child { margin-bottom: 0 !important; }
+        .schedule-modal-day th,
+        .schedule-modal-day td { vertical-align: middle; }
         .task-section {
             background-color: #fcfcfd;
         }

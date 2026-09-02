@@ -88,6 +88,7 @@
     @endforeach
 
     <tr><th colspan="8" style="font-weight:bold;background-color:#70AD47;color:#FFFFFF;">RATA-RATA SKOR DAMPAK (L4)</th></tr>
+    <tr style="font-weight:bold;background-color:#E2F0D9;"><td>Perspektif</td><td>Rata-rata Skor</td><td>Jumlah Jawaban</td></tr>
     @foreach($roles as $roleKey => $roleName)
         @php
             $roleImpactResults = $results->where('evaluator_role', $roleKey)

@@ -20,7 +20,7 @@ class CertificationSummarySheet implements FromArray, WithTitle, ShouldAutoSize,
         $rows = [
             ['REKAPITULASI SERTIFIKASI TAHUN '.$this->year],
             [],
-            ['No', 'Jenis Sertifikasi', 'Pelaksanaan', 'Peserta', 'Lulus', 'Tidak Lulus', 'Belum Ditentukan', 'Persentase Kelulusan'],
+            ['No', 'Jenis Sertifikasi', 'Pelaksanaan', 'Peserta', 'Laki-laki', 'Perempuan', 'Lulus', 'Tidak Lulus', 'Belum Ditentukan', 'Persentase Kelulusan'],
         ];
 
         foreach ($this->types as $index => $type) {
@@ -32,6 +32,8 @@ class CertificationSummarySheet implements FromArray, WithTitle, ShouldAutoSize,
                 $type->name,
                 $type->events->count(),
                 $participants->count(),
+                $participants->whereIn('gender', ['Laki-laki', 'Laki-Laki', 'L', 'Pria'])->count(),
+                $participants->whereIn('gender', ['Perempuan', 'P', 'Wanita'])->count(),
                 $graduates,
                 $participants->where('result', 'tidak_lulus')->count(),
                 $participants->where('result', 'belum_ditentukan')->count(),
@@ -43,7 +45,9 @@ class CertificationSummarySheet implements FromArray, WithTitle, ShouldAutoSize,
         $graduates = $all->where('result', 'lulus')->count();
         $decided = $all->whereIn('result', ['lulus', 'tidak_lulus'])->count();
         $rows[] = [
-            '', 'TOTAL', $this->types->sum(fn ($type) => $type->events->count()), $all->count(), $graduates,
+            '', 'TOTAL', $this->types->sum(fn ($type) => $type->events->count()), $all->count(),
+            $all->whereIn('gender', ['Laki-laki', 'Laki-Laki', 'L', 'Pria'])->count(),
+            $all->whereIn('gender', ['Perempuan', 'P', 'Wanita'])->count(), $graduates,
             $all->where('result', 'tidak_lulus')->count(), $all->where('result', 'belum_ditentukan')->count(),
             $decided > 0 ? round(($graduates / $decided) * 100, 2).'%' : '0%',
         ];
@@ -55,13 +59,13 @@ class CertificationSummarySheet implements FromArray, WithTitle, ShouldAutoSize,
     {
         return [AfterSheet::class => function (AfterSheet $event) {
             $last = 4 + $this->types->count();
-            $event->sheet->mergeCells('A1:H1');
-            $event->sheet->getStyle('A1:H1')->getFont()->setBold(true)->setSize(14);
-            $event->sheet->getStyle('A3:H3')->getFont()->setBold(true);
-            $event->sheet->getStyle("A3:H{$last}")->getBorders()->getAllBorders()->setBorderStyle('thin');
-            $event->sheet->getStyle("A{$last}:H{$last}")->getFont()->setBold(true);
+            $event->sheet->mergeCells('A1:J1');
+            $event->sheet->getStyle('A1:J1')->getFont()->setBold(true)->setSize(14);
+            $event->sheet->getStyle('A3:J3')->getFont()->setBold(true);
+            $event->sheet->getStyle("A3:J{$last}")->getBorders()->getAllBorders()->setBorderStyle('thin');
+            $event->sheet->getStyle("A{$last}:J{$last}")->getFont()->setBold(true);
             $event->sheet->freezePane('A4');
-            $event->sheet->setAutoFilter("A3:H{$last}");
+            $event->sheet->setAutoFilter("A3:J{$last}");
         }];
     }
 }

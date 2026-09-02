@@ -28,6 +28,7 @@ class PengajarController extends Controller
     public function manage(Training $training)
     {
         $user = Auth::user();
+        $this->ensureAccess($user);
         abort_unless($training->schedules()->where('pengajar_id', $user->id)->exists(), 403);
         $user->load('pengajar');
         $schedules = $training->schedules()->with('pengajarDocuments')->where('pengajar_id', $user->id)
@@ -51,6 +52,7 @@ class PengajarController extends Controller
     public function uploadRequirements(Request $request, Training $training)
     {
         $user = Auth::user();
+        $this->ensureAccess($user);
         abort_unless($training->schedules()->where('pengajar_id', $user->id)->exists(), 403);
         $request->validate([
             'file_cv' => 'nullable|required_without_all:file_sertifikat,file_surat_tugas|file|mimes:pdf|max:5120',
@@ -77,6 +79,7 @@ class PengajarController extends Controller
     public function uploadSession(Request $request, Schedule $schedule)
     {
         $user = Auth::user();
+        $this->ensureAccess($user);
         abort_unless((int) $schedule->pengajar_id === (int) $user->id, 403);
         $request->validate([
             'bahan_ajar' => 'nullable|required_without_all:rbpmp_rp,bukti_mengajar|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|max:20480',
@@ -103,7 +106,7 @@ class PengajarController extends Controller
 
     private function ensureAccess($user): void
     {
-        abort_unless($user && ($user->role === 'pengajar' || Schedule::where('pengajar_id', $user->id)->exists()), 403);
+        abort_unless($user?->canAccessNarasumberPortal(), 403);
     }
 
     private function archiveUpload($user, Training $training, ?Schedule $schedule, $uploadedFile, string $path, string $label): void

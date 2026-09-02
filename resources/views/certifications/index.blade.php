@@ -9,8 +9,8 @@
 @if(session('error'))<div class="alert alert-danger">{{session('error')}}</div>@endif
 @if($errors->any())<div class="alert alert-danger">{{$errors->first()}}</div>@endif
 <div class="row g-3 mb-4">
- @foreach([['bx-category','Jenis Sertifikasi',$stats['types'],'primary'],['bx-calendar-event','Pelaksanaan',$stats['events'],'info'],['bx-group','Total Peserta',$stats['participants'],'warning'],['bx-certification','Total Lulusan',$stats['graduates'],'success']] as [$icon,$label,$value,$color])
- <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><span class="avatar-initial rounded bg-label-{{$color}} p-3"><i class="bx {{$icon}} fs-4"></i></span><div><small class="text-muted">{{$label}}</small><h4 class="mb-0 fw-bold">{{$value}}</h4></div></div></div></div>
+ @foreach([['bx-category','Jenis Sertifikasi',$stats['types'],'primary'],['bx-calendar-event','Pelaksanaan',$stats['events'],'info'],['bx-group','Total Peserta',$stats['participants'],'warning'],['bx-certification','Total Lulusan',$stats['graduates'],'success'],['bx-male-sign','Laki-laki',$stats['male'],'primary'],['bx-female-sign','Perempuan',$stats['female'],'danger']] as [$icon,$label,$value,$color])
+ <div class="col-6 col-xl-2"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><span class="avatar-initial rounded bg-label-{{$color}} p-3"><i class="bx {{$icon}} fs-4"></i></span><div><small class="text-muted">{{$label}}</small><h4 class="mb-0 fw-bold">{{$value}}</h4></div></div></div></div>
  @endforeach
 </div>
 <div class="row g-4">
@@ -20,7 +20,7 @@
   <h5 class="fw-bold mb-2">{{$event->title}}</h5>
   <div class="small text-muted mb-2"><i class="bx bx-calendar me-1"></i>{{$event->start_date->translatedFormat('d M Y')}} - {{$event->end_date->translatedFormat('d M Y')}}</div>
   <div class="small text-muted mb-3"><i class="bx bx-map me-1"></i>{{$event->location}}</div>
-  <div class="row g-2 mt-auto mb-3"><div class="col-6"><div class="rounded bg-label-info p-3 text-center"><h4 class="mb-0">{{$event->participants_count}}</h4><small>Peserta</small></div></div><div class="col-6"><div class="rounded bg-label-success p-3 text-center"><h4 class="mb-0">{{$event->graduates_count}}</h4><small>Lulusan</small></div></div></div>
+  <div class="row g-2 mt-auto mb-3"><div class="col-6"><div class="rounded bg-label-info p-2 text-center"><h5 class="mb-0">{{$event->participants_count}}</h5><small>Peserta</small></div></div><div class="col-6"><div class="rounded bg-label-success p-2 text-center"><h5 class="mb-0">{{$event->graduates_count}}</h5><small>Lulusan</small></div></div><div class="col-6"><div class="rounded bg-label-primary p-2 text-center"><h5 class="mb-0">{{$event->male_count}}</h5><small>Laki-laki</small></div></div><div class="col-6"><div class="rounded bg-label-danger p-2 text-center"><h5 class="mb-0">{{$event->female_count}}</h5><small>Perempuan</small></div></div></div>
   <a href="{{route('certifications.show',$event)}}" class="btn btn-primary"><i class="bx bx-cog me-1"></i>Kelola</a>
  </div></div></div>
 @empty <div class="col-12"><div class="card"><div class="card-body py-5 text-center text-muted"><i class="bx bx-certification display-4"></i><h5 class="mt-3">Belum ada pelaksanaan sertifikasi</h5></div></div></div>

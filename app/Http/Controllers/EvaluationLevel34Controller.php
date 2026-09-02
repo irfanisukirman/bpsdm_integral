@@ -253,16 +253,17 @@ class EvaluationLevel34Controller extends Controller
         // Eager loading agar performa cepat
         $training = Training::with(['participants.alumniProfile', 'participants.evaluationResultsL34.question'])->findOrFail($id);
         
-        $templatePath = public_path('templates/template_laporan_lv34.docx');
+        $templatePath = public_path('templates/templateevaluasi34_integral.docx');
         if (!file_exists($templatePath)) {
             return redirect()->back()->with('error', 'File template tidak ditemukan.');
         }
 
         $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+        $chartFiles = [];
 
 
         // --- 1. DATA INFORMASI UMUM ---
-        $templateProcessor->setValue('nama_pelatihan', strtoupper($training->nama_pelatihan));
+        $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
         $templateProcessor->setValue('tahunberjalan', date('Y'));
         $templateProcessor->setValue('tahunpelaksanaan', \Carbon\Carbon::parse($training->tgl_mulai)->format('Y'));
         $templateProcessor->setValue('tanggal_mulai', \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y'));
@@ -273,6 +274,11 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('jumlah_peserta', $training->participants->count());
         $templateProcessor->setValue('bidang', $training->bidang ?: '-');
         $templateProcessor->setValue('metode', $training->metode ? ucwords(str_replace('_', ' ', $training->metode)) : '-');
+        $surveyStart = $training->tgl_sebar_l34 ? \Carbon\Carbon::parse($training->tgl_sebar_l34) : null;
+        $surveyEnd = $surveyStart?->copy()->addMonth();
+        $templateProcessor->setValue('periode_evaluasi', $surveyStart
+            ? $surveyStart->translatedFormat('d F Y').' sampai dengan '.$surveyEnd->translatedFormat('d F Y')
+            : 'belum ditentukan');
 
         // --- 2. STATISTIK RESPONDEN ---
        $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
@@ -287,6 +293,13 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('response_rate_mandiri', round(($respondenAlumni / $targetResponden) * 100, 1) . '%');
         $templateProcessor->setValue('response_rate_atasan', round(($respondenAtasan / $targetResponden) * 100, 1) . '%');
         $templateProcessor->setValue('response_rate_rekan', round(($respondenRekan / $targetResponden) * 100, 1) . '%');
+        $templateProcessor->setValue('narasi_target_evaluasi',
+            'Target kegiatan evaluasi pasca pelatihan adalah alumni '.$training->nama_pelatihan.' di lingkungan Pemerintah Provinsi Jawa Barat, yang pelatihannya telah dilaksanakan pada tanggal '.
+            \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y').' sampai dengan '.
+            \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y').
+            ' dengan jumlah alumni pelatihan '.$training->participants->count().' orang. Sampai dengan tanggal terakhir pengisian kuesioner, sebanyak '.$respondenAlumni.' alumni, '.$respondenAtasan.' atasan alumni, dan '.$respondenRekan.' rekan kerja berpartisipasi.');
+        $templateProcessor->setValue('narasi_hasil_umum',
+            'Evaluasi pasca '.$training->nama_pelatihan.' di lingkungan Pemerintah Provinsi Jawa Barat dilaksanakan terhadap '.$training->participants->count().' alumni. Sampai waktu penyusunan laporan terdapat '.$respondenAlumni.' alumni, '.$respondenAtasan.' atasan alumni, dan '.$respondenRekan.' rekan kerja yang berpartisipasi mengisi survei.');
 
         // --- A. INFORMASI UMUM (PENDIDIKAN & GOLONGAN) ---
         $profiles = AlumniProfile::where('training_id', $id)->get();
@@ -300,9 +313,28 @@ class EvaluationLevel34Controller extends Controller
 
         $golLevels = ['IV', 'III', 'II', 'I'];
         foreach($golLevels as $gol) {
-            $templateProcessor->setValue('gol_'.$gol.'_before', $profiles->filter(fn($p) => str_contains($p->rank_during_training, $gol))->count());
-            $templateProcessor->setValue('gol_'.$gol.'_after', $profiles->filter(fn($p) => str_contains($p->rank_current, $gol))->count());
+            $templateProcessor->setValue('gol_'.$gol.'_before', $profiles->filter(fn($p) => str_contains((string) $p->rank_during_training, $gol))->count());
+            $templateProcessor->setValue('gol_'.$gol.'_after', $profiles->filter(fn($p) => str_contains((string) $p->rank_current, $gol))->count());
         }
+        $educationChart = $this->createEvaluationSummaryBarChart(
+            'Perbandingan Pendidikan Alumni',
+            $eduLevels,
+            [
+                ['label' => 'Saat Pelatihan', 'values' => collect($eduLevels)->map(fn ($edu) => $profiles->where('edu_during_training', $edu)->count())->all(), 'color' => [47, 84, 150]],
+                ['label' => 'Saat Evaluasi', 'values' => collect($eduLevels)->map(fn ($edu) => $profiles->where('edu_current', $edu)->count())->all(), 'color' => [112, 173, 71]],
+            ]
+        );
+        $rankChart = $this->createEvaluationSummaryBarChart(
+            'Perbandingan Pangkat/Golongan Alumni',
+            collect($golLevels)->map(fn ($gol) => 'Golongan '.$gol)->all(),
+            [
+                ['label' => 'Saat Pelatihan', 'values' => collect($golLevels)->map(fn ($gol) => $profiles->filter(fn ($profile) => str_contains((string) $profile->rank_during_training, $gol))->count())->all(), 'color' => [47, 84, 150]],
+                ['label' => 'Saat Evaluasi', 'values' => collect($golLevels)->map(fn ($gol) => $profiles->filter(fn ($profile) => str_contains((string) $profile->rank_current, $gol))->count())->all(), 'color' => [112, 173, 71]],
+            ]
+        );
+        array_push($chartFiles, $educationChart, $rankChart);
+        $templateProcessor->setImageValue('ringkasan_pendidikan', ['path' => $educationChart, 'width' => 620, 'height' => 285, 'ratio' => false]);
+        $templateProcessor->setImageValue('ringkasan_pangkat', ['path' => $rankChart, 'width' => 620, 'height' => 270, 'ratio' => false]);
 
         // Perubahan Jabatan & Unit Kerja
         $jabatanBerubah = $profiles->filter(fn($p) => $p->pos_during_training != $p->pos_current)->count();
@@ -314,7 +346,17 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('unit_berubah', $unitBerubah);
         $templateProcessor->setValue('unit_tetap', $respondenAlumni - $unitBerubah);
         $templateProcessor->setValue('dept_berubah', $deptBerubah);
-        $templateProcessor->setValue('dept_tetap', $respondenAlumni - $deptBerubah);
+        $templateProcessor->setValue('dept_tetap', max(0, $respondenAlumni - $deptBerubah));
+        $positionChart = $this->createEvaluationSummaryBarChart('Perubahan Jabatan Alumni', ['Berubah', 'Tetap'], [
+            ['label' => 'Jumlah Alumni', 'values' => [$jabatanBerubah, max(0, $respondenAlumni - $jabatanBerubah)], 'color' => [91, 155, 213]],
+        ]);
+        $unitChart = $this->createEvaluationSummaryBarChart('Perubahan Unit Kerja Alumni', ['Berubah', 'Tetap'], [
+            ['label' => 'Jumlah Alumni', 'values' => [$unitBerubah, max(0, $respondenAlumni - $unitBerubah)], 'color' => [237, 125, 49]],
+        ]);
+        array_push($chartFiles, $positionChart, $unitChart);
+        $templateProcessor->setImageValue('ringkasan_jabatan', ['path' => $positionChart, 'width' => 620, 'height' => 235, 'ratio' => false]);
+        $templateProcessor->setImageValue('ringkasan_unit', ['path' => $unitChart, 'width' => 620, 'height' => 235, 'ratio' => false]);
+        $templateProcessor->setValue('jumlah_instansi', $training->participants->pluck('instansi')->filter()->unique()->count());
 
         // --- B. PENUGASAN (BAGIAN 2) ---
         $taskQuestions = Question::forTraining($training, 'l34_mandiri')
@@ -446,6 +488,60 @@ class EvaluationLevel34Controller extends Controller
         $l3Score = $l3Values->isNotEmpty() ? round($l3Values->avg(), 1) : 0;
         $l4Score = $l4Values->isNotEmpty() ? round($l4Values->avg(), 1) : 0;
 
+        // Isi bagian hasil pada template standar berdasarkan butir pertanyaan yang berlaku.
+        $summarizeQuestionAnswers = function ($question) use ($allRoleQuestions, $results, $toScore): string {
+            $roleLabels = ['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan kerja'];
+            return collect($roleLabels)->map(function ($label, $role) use ($question, $allRoleQuestions, $results, $toScore) {
+                $questionIds = $allRoleQuestions
+                    ->where('category', 'l34_'.$role)
+                    ->where('sub_category', $question->sub_category)
+                    ->where('question_text', $question->question_text)
+                    ->pluck('id');
+                $roleResults = $results->where('evaluator_role', $role)->whereIn('question_id', $questionIds);
+                $scores = $roleResults->map($toScore)->filter(fn ($score) => $score !== null)->values();
+                if ($scores->isNotEmpty()) {
+                    return $label.': rata-rata '.number_format($scores->avg(), 1, ',', '.').'/100 (n='.$scores->count().')';
+                }
+
+                $answers = $roleResults->flatMap(function ($result) {
+                    $note = trim((string) $result->note);
+                    if ($note === '') return [];
+                    $decoded = json_decode($note, true);
+                    return is_array($decoded) ? array_values(array_filter($decoded, fn ($value) => trim((string) $value) !== '')) : [$note];
+                });
+                if ($answers->isEmpty()) return $label.': belum ada jawaban';
+
+                $distribution = $answers->countBy()
+                    ->sortDesc()
+                    ->take(5)
+                    ->map(fn ($count, $answer) => $answer.' ('.$count.')')
+                    ->implode(', ');
+                return $label.': '.$distribution;
+            })->implode('; ');
+        };
+        $fillQuestionSlots = function (string $prefix, int $slotCount, $questions) use ($templateProcessor, $summarizeQuestionAnswers): void {
+            $contents = $questions->values()->map(function ($question, $index) use ($summarizeQuestionAnswers) {
+                return ($index + 1).'. '.$question->question_text.' Hasil: '.$summarizeQuestionAnswers($question).'.';
+            })->all();
+            if (empty($contents)) {
+                $contents = ['Belum tersedia butir pertanyaan atau jawaban untuk bagian ini.'];
+            }
+            if (count($contents) > $slotCount) {
+                $overflow = array_splice($contents, $slotCount - 1);
+                $contents[] = implode(' ', $overflow);
+            }
+            for ($slot = 1; $slot <= $slotCount; $slot++) {
+                $templateProcessor->setValue($prefix.'_'.$slot, $contents[$slot - 1] ?? '');
+            }
+        };
+        $placementQuestions = Question::forTraining($training, 'l34_mandiri')
+            ->where('sub_category', 'Penempatan Tugas dan Transfer Learning')
+            ->orderBy('id')
+            ->get();
+        $fillQuestionSlots('placement_content', 8, $placementQuestions);
+        $fillQuestionSlots('l3_content', 6, $canonicalQuestions->where('sub_category', 'Perubahan Perilaku'));
+        $fillQuestionSlots('l4_content', 6, $canonicalQuestions->where('sub_category', 'Dampak Pelatihan'));
+
         foreach (['l3' => $l3Rows, 'l4' => $l4Rows] as $prefix => $rows) {
             if (empty($rows)) {
                 $rows = [[
@@ -567,7 +663,9 @@ class EvaluationLevel34Controller extends Controller
                 $currRow = $index + 1;
                 $templateProcessor->setValue("res_nama#$currRow", $p->name . " | " . $p->nip_nik);
                 $templateProcessor->setValue("res_jabatan#$currRow", $p->jabatan);
-                $templateProcessor->setValue("res_instansi#$currRow", $p->instansi);
+                $templateProcessor->setValue("res_instansi#$currRow", $p->instansi ?: '-');
+                $templateProcessor->setValue("res_lingkup#$currRow", collect([$p->kota, $p->provinsi])->filter()->implode(', ') ?: '-');
+                $templateProcessor->setValue("res_status#$currRow", $p->status_kepegawaian ?: $p->user?->status_kepegawaian ?: '-');
                 
                 $statusRoles = $results->where('participant_id', $p->id)->pluck('evaluator_role')->unique()->all();
 
@@ -579,6 +677,8 @@ class EvaluationLevel34Controller extends Controller
             $templateProcessor->setValue('res_nama', 'Belum tersedia peserta');
             $templateProcessor->setValue('res_jabatan', '-');
             $templateProcessor->setValue('res_instansi', '-');
+            $templateProcessor->setValue('res_lingkup', '-');
+            $templateProcessor->setValue('res_status', '-');
             $templateProcessor->setValue('res_m', '-');
             $templateProcessor->setValue('res_a', '-');
             $templateProcessor->setValue('res_r', '-');
@@ -588,11 +688,99 @@ class EvaluationLevel34Controller extends Controller
         $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
         $templateProcessor->saveAs($tempFile);
         $fileContent = file_get_contents($tempFile);
+        foreach ($chartFiles as $chartFile) {
+            if (is_file($chartFile)) {
+                unlink($chartFile);
+            }
+        }
 
         \App\Http\Controllers\DocumentController::archiveInternal($training->id, 'LAPORAN AKHIR DAMPAK', $fileName, $fileContent, 'docx');
         unlink($tempFile);
 
         return response()->streamDownload(function() use($fileContent) { echo $fileContent; }, $fileName);
+    }
+
+    /**
+     * Membuat grafik batang PNG sederhana untuk menggantikan placeholder ringkasan
+     * pada template Word tanpa mengubah narasi baku dokumen.
+     */
+    private function createEvaluationSummaryBarChart(string $title, array $labels, array $series): string
+    {
+        $width = 1000;
+        $rowHeight = 54;
+        $height = max(300, 145 + (count($labels) * $rowHeight));
+        $image = imagecreatetruecolor($width, $height);
+
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $text = imagecolorallocate($image, 40, 40, 40);
+        $muted = imagecolorallocate($image, 100, 100, 100);
+        $grid = imagecolorallocate($image, 220, 225, 232);
+        imagefilledrectangle($image, 0, 0, $width, $height, $white);
+        if (function_exists('imageantialias')) {
+            imageantialias($image, true);
+        }
+
+        $titleX = max(20, (int) (($width - (imagefontwidth(5) * strlen($title))) / 2));
+        imagestring($image, 5, $titleX, 18, $title, $text);
+
+        $legendX = 220;
+        foreach ($series as $item) {
+            [$red, $green, $blue] = $item['color'];
+            $seriesColor = imagecolorallocate($image, $red, $green, $blue);
+            imagefilledrectangle($image, $legendX, 51, $legendX + 18, 64, $seriesColor);
+            imagestring($image, 3, $legendX + 25, 50, $item['label'], $text);
+            $legendX += 55 + (imagefontwidth(3) * strlen($item['label']));
+        }
+
+        $allValues = collect($series)->flatMap(fn ($item) => $item['values'])->map(fn ($value) => (int) $value);
+        $maxValue = max(1, (int) $allValues->max());
+        $axisMax = max(5, (int) (ceil($maxValue / 5) * 5));
+        $left = 190;
+        $right = 55;
+        $top = 92;
+        $bottom = 42;
+        $plotWidth = $width - $left - $right;
+        $plotHeight = $height - $top - $bottom;
+
+        for ($tick = 0; $tick <= 5; $tick++) {
+            $x = $left + (int) (($plotWidth / 5) * $tick);
+            imageline($image, $x, $top, $x, $top + $plotHeight, $grid);
+            $tickValue = (string) (int) round(($axisMax / 5) * $tick);
+            imagestring($image, 2, $x - (int) ((imagefontwidth(2) * strlen($tickValue)) / 2), $top + $plotHeight + 8, $tickValue, $muted);
+        }
+
+        $seriesCount = max(1, count($series));
+        $barHeight = $seriesCount > 1 ? 15 : 23;
+        $barGap = 4;
+        $groupHeight = ($seriesCount * $barHeight) + (($seriesCount - 1) * $barGap);
+
+        foreach (array_values($labels) as $labelIndex => $label) {
+            $centerY = $top + (int) (($plotHeight / max(1, count($labels))) * ($labelIndex + 0.5));
+            $shortLabel = \Illuminate\Support\Str::limit((string) $label, 24);
+            $labelX = max(5, $left - 12 - (imagefontwidth(3) * strlen($shortLabel)));
+            imagestring($image, 3, $labelX, $centerY - 7, $shortLabel, $text);
+            $groupTop = $centerY - (int) ($groupHeight / 2);
+
+            foreach (array_values($series) as $seriesIndex => $item) {
+                $value = max(0, (int) ($item['values'][$labelIndex] ?? 0));
+                [$red, $green, $blue] = $item['color'];
+                $seriesColor = imagecolorallocate($image, $red, $green, $blue);
+                $barTop = $groupTop + ($seriesIndex * ($barHeight + $barGap));
+                $barRight = $left + (int) (($value / $axisMax) * $plotWidth);
+                if ($value > 0) {
+                    imagefilledrectangle($image, $left, $barTop, max($left + 2, $barRight), $barTop + $barHeight, $seriesColor);
+                }
+                imagestring($image, 2, min($width - 28, max($left + 5, $barRight + 6)), $barTop + 1, (string) $value, $text);
+            }
+        }
+
+        $temporaryBase = tempnam(sys_get_temp_dir(), 'l34_chart_');
+        $path = $temporaryBase.'.png';
+        rename($temporaryBase, $path);
+        imagepng($image, $path, 6);
+        imagedestroy($image);
+
+        return $path;
     }
 
     public function exportInvitation($id)

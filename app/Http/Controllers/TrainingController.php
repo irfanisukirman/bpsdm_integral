@@ -277,10 +277,10 @@ class TrainingController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
 
-        // Kandidat pengajar adalah akun non-administratif yang tidak terikat bidang
-        // (termasuk narasumber/pengajar dari luar instansi).
-        $pengajars = User::whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
-            ->where(fn ($query) => $query->whereNull('bidang')->orWhere('bidang', ''))
+        // Hanya akun Narasumber yang telah disetujui dan memiliki akses Pengajar.
+        $pengajars = User::where('role', 'pengajar')
+            ->where('user_type', 'narasumber')
+            ->where('user_type_status', 'approved')
             ->orderBy('name', 'asc')
             ->get();
         $assets = Asset::where('is_active', true)->orderBy('name')->get();
@@ -324,8 +324,9 @@ class TrainingController extends Controller
             'pengajar_id' => [
                 'nullable',
                 Rule::exists('users', 'id')->where(fn ($query) => $query
-                    ->whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
-                    ->where(fn ($scope) => $scope->whereNull('bidang')->orWhere('bidang', ''))),
+                    ->where('role', 'pengajar')
+                    ->where('user_type', 'narasumber')
+                    ->where('user_type_status', 'approved')),
             ],
             'venue_type' => 'required|in:internal,external',
             'external_place' => 'nullable|string|max:255',
@@ -378,15 +379,10 @@ class TrainingController extends Controller
             'pic'         => 'required|string|max:255',
             'pengajar_id' => [
                 'nullable',
-                Rule::exists('users', 'id')->where(function ($query) use ($schedule) {
-                    $query->where(function ($candidate) {
-                        $candidate->whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
-                            ->where(fn ($scope) => $scope->whereNull('bidang')->orWhere('bidang', ''));
-                    });
-                    if ($schedule->pengajar_id) {
-                        $query->orWhere('id', $schedule->pengajar_id);
-                    }
-                }),
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->where('role', 'pengajar')
+                    ->where('user_type', 'narasumber')
+                    ->where('user_type_status', 'approved')),
             ],
             'venue_type' => 'required|in:internal,external',
             'external_place' => 'nullable|string|max:255',
@@ -752,12 +748,21 @@ class TrainingController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil semua pelatihan di mana user ini ditugaskan sebagai pengajar pada sesinya
-        $myTrainings = Training::whereHas('schedules', function($q) use ($user) {
-            $q->where('pengajar_id', $user->id);
-        })->with(['schedules' => function($q) use ($user) {
-            $q->where('pengajar_id', $user->id)->orderBy('date', 'asc')->orderBy('start_time', 'asc');
-        }])->latest()->get();
+        abort_unless(
+            $user?->canAccessNarasumberPortal(),
+            403,
+            'Anda belum memiliki akses sebagai pengajar.'
+        );
+
+        // Ambil hanya pelatihan dan sesi yang ditugaskan kepada akun yang sedang login.
+        $myTrainings = Training::whereHas('schedules', function ($query) use ($user) {
+            $query->where('pengajar_id', $user->id);
+        })->with(['schedules' => function ($query) use ($user) {
+            $query->where('pengajar_id', $user->id)
+                ->with(['bookings.asset', 'pengajarDocuments'])
+                ->orderBy('date')
+                ->orderBy('start_time');
+        }])->orderByDesc('tgl_mulai')->get();
 
         return view('pengajar.schedule', compact('myTrainings', 'user'));
     }
@@ -793,34 +798,49 @@ class TrainingController extends Controller
     public function pengajarHistory(Request $request)
     {
         $user = Auth::user();
-        $search = $request->query('search');
+        $search = trim((string) $request->query('search'));
 
-        // Ambil pelatihan yang SUDAH SELESAI (tgl_selesai < sekarang) dan pernah diajar oleh user ini
-        $trainings = Training::whereHas('schedules', function($q) use ($user) {
-                $q->where('pengajar_id', $user->id);
+        abort_unless(
+            $user?->canAccessNarasumberPortal(),
+            403,
+            'Anda belum memiliki akses sebagai pengajar.'
+        );
+
+        $historySchedules = Schedule::where('pengajar_id', $user->id)
+            ->whereHas('training', fn ($query) => $query->whereDate('tgl_selesai', '<', now('Asia/Jakarta')->toDateString()));
+
+        $totalJpRiwayat = (clone $historySchedules)->sum('jp');
+        $totalSesiRiwayat = (clone $historySchedules)->count();
+        $totalPelatihanRiwayat = (clone $historySchedules)->distinct('training_id')->count('training_id');
+
+        $trainings = Training::whereHas('schedules', function ($query) use ($user) {
+                $query->where('pengajar_id', $user->id);
             })
-            ->where('tgl_selesai', '<', now()) // Hanya pelatihan yang sudah selesai
-            ->when($search, function($q) use ($search) {
-                $q->where(function($query) use ($search) {
-                    $query->where('nama_pelatihan', 'LIKE', "%{$search}%")
-                          ->orWhere('bidang', 'LIKE', "%{$search}%")
-                          ->orWhere('lokasi', 'LIKE', "%{$search}%");
+            ->whereDate('tgl_selesai', '<', now('Asia/Jakarta')->toDateString())
+            ->when($search !== '', function ($query) use ($search, $user) {
+                $query->where(function ($filter) use ($search, $user) {
+                    $filter->where('nama_pelatihan', 'LIKE', "%{$search}%")
+                        ->orWhere('bidang', 'LIKE', "%{$search}%")
+                        ->orWhere('lokasi', 'LIKE', "%{$search}%")
+                        ->orWhereHas('schedules', function ($scheduleQuery) use ($search, $user) {
+                            $scheduleQuery->where('pengajar_id', $user->id)
+                                ->where('activity', 'LIKE', "%{$search}%");
+                        });
                 });
             })
-            ->with(['schedules' => function($q) use ($user) {
-                $q->where('pengajar_id', $user->id)->orderBy('date', 'asc')->orderBy('start_time', 'asc');
+            ->with(['schedules' => function ($query) use ($user) {
+                $query->where('pengajar_id', $user->id)
+                    ->with(['bookings.asset', 'pengajarDocuments'])
+                    ->orderBy('date')
+                    ->orderBy('start_time');
             }])
             ->latest('tgl_selesai')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
-        // Total akumulasi JP dari seluruh riwayat pelatihan yang selesai
-        $totalJpRiwayat = Schedule::where('pengajar_id', $user->id)
-            ->whereHas('training', function($q) {
-                $q->where('tgl_selesai', '<', now());
-            })
-            ->sum('jp');
-
-        return view('pengajar.history', compact('trainings', 'user', 'search', 'totalJpRiwayat'));
+        return view('pengajar.history', compact(
+            'trainings', 'user', 'search', 'totalJpRiwayat', 'totalSesiRiwayat', 'totalPelatihanRiwayat'
+        ));
     }
 
 
