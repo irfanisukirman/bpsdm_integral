@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Sep 2026 pada 00.58
+-- Waktu pembuatan: 04 Sep 2026 pada 08.49
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -86,6 +86,13 @@ CREATE TABLE `agendas` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `agendas`
+--
+
+INSERT INTO `agendas` (`id`, `scope`, `agenda_type`, `name`, `description`, `bidang`, `is_public`, `created_by`, `created_at`, `updated_at`) VALUES
+(12, 'internal', 'bidang', 'Super Administrator', 'vasvasvasv', 'Bidang Pengembangan Kompetensi Teknis Umum', 0, 5, '2026-09-04 06:22:10', '2026-09-04 06:22:10');
+
 -- --------------------------------------------------------
 
 --
@@ -105,6 +112,13 @@ CREATE TABLE `agenda_schedules` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `agenda_schedules`
+--
+
+INSERT INTO `agenda_schedules` (`id`, `agenda_id`, `title`, `starts_at`, `ends_at`, `external_place`, `zoom_link`, `participants_info`, `notes`, `created_at`, `updated_at`) VALUES
+(11, 12, 'Super Administrator', '2026-09-04 08:00:00', '2026-09-04 09:00:00', NULL, NULL, 'asfasfasfafasfasfasffass fasf as', 'vasvasvasv', '2026-09-04 06:22:10', '2026-09-04 06:22:10');
 
 -- --------------------------------------------------------
 
@@ -214,7 +228,8 @@ CREATE TABLE `asset_bookings` (
 --
 
 INSERT INTO `asset_bookings` (`id`, `asset_id`, `bookable_type`, `bookable_id`, `starts_at`, `ends_at`, `created_by`, `created_at`, `updated_at`) VALUES
-(24, 28, 'App\\Models\\Schedule', 20, '2026-09-03 08:00:00', '2026-09-03 12:00:00', 2, '2026-09-03 13:12:34', '2026-09-03 13:12:34');
+(24, 28, 'App\\Models\\Schedule', 20, '2026-09-03 08:00:00', '2026-09-03 12:00:00', 2, '2026-09-03 13:12:34', '2026-09-03 13:12:34'),
+(25, 28, 'App\\Models\\AgendaSchedule', 11, '2026-09-04 08:00:00', '2026-09-04 09:00:00', 5, '2026-09-04 06:22:59', '2026-09-04 06:22:59');
 
 -- --------------------------------------------------------
 
@@ -334,7 +349,8 @@ CREATE TABLE `asset_loan_requests` (
 --
 
 INSERT INTO `asset_loan_requests` (`id`, `requestable_type`, `requestable_id`, `asset_ids`, `letter_path`, `purpose`, `contact_person`, `attendee_count`, `status`, `review_note`, `submitted_by`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(7, 'App\\Models\\Schedule', 20, '[\"28\"]', 'asset-loan-letters/EtkWcO59yM5BK5Ds9Rt49VRqubfcDOts8c0bLwDs.pdf', 'dasdasdasd', '03408293482394723', 1, 'approved', NULL, 2, 2, '2026-09-03 13:12:34', '2026-09-03 12:59:25', '2026-09-03 13:12:34');
+(7, 'App\\Models\\Schedule', 20, '[\"28\"]', 'asset-loan-letters/EtkWcO59yM5BK5Ds9Rt49VRqubfcDOts8c0bLwDs.pdf', 'dasdasdasd', '03408293482394723', 1, 'approved', NULL, 2, 2, '2026-09-03 13:12:34', '2026-09-03 12:59:25', '2026-09-03 13:12:34'),
+(8, 'App\\Models\\AgendaSchedule', 11, '[28]', 'asset-loan-letters/zmRiJH0QE2EYb3ds2htdqYy6nfrUOCoXvG1E44XD.pdf', 'dvzxvxzzxzvzxvzxv', '575685685886', 23, 'approved', NULL, 5, 9, '2026-09-04 06:22:59', '2026-09-04 06:22:11', '2026-09-04 06:22:59');
 
 -- --------------------------------------------------------
 
@@ -1238,7 +1254,8 @@ INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`
 (163, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14261, 2, '2026-09-02 08:07:39', '2026-09-02 08:07:39'),
 (164, 91, 'Rapat Koordinasi Penataan Aplikasi Integral Penunjang Kegiatan Diklat 2026-09-02 09_27(GMT+7_00).pdf', 'documents/BIODATA_simpan_aku_aja_22_87f742dd-e3a4-412a-820e-9cbcba1aea90.pdf', 'pdf', 95150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
 (165, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_a0ea01a8-5e5a-49e0-b085-060f2398901b.pdf', 'pdf', 888150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
-(166, 91, 'EXWdBJTB8ZnnGX8Im7Bqcqqot80FoS9GaFIQycLq.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_8f9c01ea-ab65-4382-8115-8b7b54067bf8.jpg', 'jpg', 30134, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09');
+(166, 91, 'EXWdBJTB8ZnnGX8Im7Bqcqqot80FoS9GaFIQycLq.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_8f9c01ea-ab65-4382-8115-8b7b54067bf8.jpg', 'jpg', 30134, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
+(167, 93, 'JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'documents/JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'pdf', 3231, 2, '2026-09-04 01:48:47', '2026-09-04 01:48:47');
 
 -- --------------------------------------------------------
 
@@ -1312,7 +1329,8 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (89, 9, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:24:13', '2026-09-02 04:24:13'),
 (90, 9, 'KELENGKAPAN PESERTA', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-02 06:04:50'),
 (91, 9, 'SIMPAN AKU AJA 22', 'Bidang Pengembangan Kompetensi Teknis Umum', 90, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-02 06:04:50'),
-(92, 9, 'KELENGKAPAN PENYELENGGARA', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 2, 0, NULL, '2026-09-02 06:48:42', '2026-09-02 06:48:42');
+(92, 9, 'KELENGKAPAN PENYELENGGARA', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 2, 0, NULL, '2026-09-02 06:48:42', '2026-09-02 06:48:42'),
+(93, 9, 'JADWAL PELATIHAN', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-04 01:48:47', '2026-09-04 01:48:47');
 
 -- --------------------------------------------------------
 
@@ -1854,13 +1872,6 @@ CREATE TABLE `training_activity_documentations` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `training_activity_documentations`
---
-
-INSERT INTO `training_activity_documentations` (`id`, `training_id`, `title`, `caption`, `category`, `taken_at`, `file_path`, `sort_order`, `include_in_report`, `is_featured`, `uploaded_by`, `created_at`, `updated_at`) VALUES
-(1, 9, 'sdasfdsa', 'fasfasfasf', 'pembukaan', '2026-09-02', 'activity-documentation/9/9QGKmqtykllXZxUmGB6z14ocgzFC1YCSly4ZA3dA.jpg', 1, 1, 0, 2, '2026-09-03 22:57:34', '2026-09-03 22:57:34');
-
 -- --------------------------------------------------------
 
 --
@@ -1896,7 +1907,7 @@ CREATE TABLE `training_activity_reports` (
 --
 
 INSERT INTO `training_activity_reports` (`id`, `training_id`, `report_number`, `background`, `legal_basis`, `objectives`, `implementation`, `achievements`, `constraints`, `follow_up`, `conclusion`, `recommendations`, `signatory_name`, `signatory_nip`, `signatory_position`, `approval_date`, `template_path`, `status`, `updated_by`, `created_at`, `updated_at`) VALUES
-(2, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-03 22:57:34');
+(2, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-04 06:47:38');
 
 -- --------------------------------------------------------
 
@@ -2482,13 +2493,13 @@ ALTER TABLE `activity_logs`
 -- AUTO_INCREMENT untuk tabel `agendas`
 --
 ALTER TABLE `agendas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `agenda_schedules`
 --
 ALTER TABLE `agenda_schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `alumni_profiles`
@@ -2506,7 +2517,7 @@ ALTER TABLE `assets`
 -- AUTO_INCREMENT untuk tabel `asset_bookings`
 --
 ALTER TABLE `asset_bookings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT untuk tabel `asset_images`
@@ -2518,7 +2529,7 @@ ALTER TABLE `asset_images`
 -- AUTO_INCREMENT untuk tabel `asset_loan_requests`
 --
 ALTER TABLE `asset_loan_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `attendances`
@@ -2590,7 +2601,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=167;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=168;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -2602,7 +2613,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -2710,7 +2721,7 @@ ALTER TABLE `training_activity_documentations`
 -- AUTO_INCREMENT untuk tabel `training_activity_reports`
 --
 ALTER TABLE `training_activity_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_activity_report_versions`

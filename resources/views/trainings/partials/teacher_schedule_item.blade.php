@@ -1,5 +1,5 @@
 @php
-    $canManage = auth()->user()->role === 'superadmin' || auth()->user()->bidang === $schedule->training?->bidang;
+    $canManage = (int) $schedule->training?->created_by === (int) auth()->id();
     $initial = collect(explode(' ', trim($schedule->pengajar?->name ?: '?')))->filter()->take(2)->map(fn($word)=>mb_substr($word,0,1))->implode('');
 @endphp
 <article class="schedule-item {{ $schedule->has_conflict ? 'is-conflict' : '' }}">

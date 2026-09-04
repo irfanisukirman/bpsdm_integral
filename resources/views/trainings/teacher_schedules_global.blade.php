@@ -85,7 +85,7 @@
         <div class="agenda-empty"><span><i class="bx bx-calendar-x"></i></span><h4>Jadwal tidak ditemukan</h4><p>Belum ada jadwal pengajar pada periode atau filter yang dipilih.</p><a href="{{ route('teacher-schedules.index',['date_from'=>$todayKey,'date_to'=>$now->copy()->endOfMonth()->toDateString()]) }}" class="btn btn-primary">Lihat Jadwal Terdekat</a></div>
     @endif
 
-    <div class="coordination-note mt-4"><i class="bx bx-info-circle"></i><div><strong>Informasi lintas bidang</strong><span>Seluruh admin bidang dapat melihat agenda ini untuk koordinasi. Perubahan jadwal hanya dapat dilakukan oleh bidang penyelenggara atau superadmin.</span></div></div>
+    <div class="coordination-note mt-4"><i class="bx bx-info-circle"></i><div><strong>Informasi lintas bidang</strong><span>Seluruh admin bidang dan superadmin dapat melihat agenda ini untuk koordinasi. Tombol buka jadwal hanya tersedia bagi akun yang membuat pelatihan tersebut.</span></div></div>
 </div>
 
 @push('css')
