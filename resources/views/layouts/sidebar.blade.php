@@ -39,9 +39,20 @@
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
                 <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div></a>
             </li>
+            <li class="menu-item {{ request()->routeIs('teacher-monitoring.*') ? 'active' : '' }}">
+                <a href="{{ route('teacher-monitoring.index') }}" class="menu-link"><i class="menu-icon bx bx-chalkboard"></i><div>Monitoring Pengajar</div></a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('teacher-schedules.*') ? 'active' : '' }}">
+                <a href="{{ route('teacher-schedules.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-week"></i><div>Jadwal Pengajar</div></a>
+            </li>
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
                 <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div></a>
+            </li>
+        @endif
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
+            <li class="menu-item {{ request()->routeIs('daily-schedule.*') ? 'active' : '' }}">
+                <a href="{{ route('daily-schedule.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-check"></i><div>Monitoring Jadwal Harian</div></a>
             </li>
         @endif
 
@@ -59,6 +70,7 @@
             @endif
             <li class="menu-item {{ request()->routeIs('assets.index') ? 'active' : '' }}"><a href="{{ route('assets.index') }}" class="menu-link"><i class="menu-icon bx bx-cube"></i><div>Kelola Aset</div></a></li>
             <li class="menu-item {{ request()->routeIs('assets.monitoring') ? 'active' : '' }}"><a href="{{ route('assets.monitoring') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Monitoring Aset</div></a></li>
+            <li class="menu-item {{ request()->routeIs('asset-loans.*') ? 'active' : '' }}"><a href="{{ route('asset-loans.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div>Persetujuan Peminjaman</div></a></li>
             <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div></a></li>
         @endif
         @if(Auth::user()->role === 'admin_bidang')

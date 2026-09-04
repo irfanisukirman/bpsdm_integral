@@ -161,21 +161,21 @@
     <!-- TABEL JADWAL SESI -->
     <table class="schedule-table">
         <thead>
-            <tr>
+            <tr @if(($s->schedule_type ?? 'learning') === 'break') style="background-color:#fff3cd;" @endif>
                 <th width="4%">No</th>
                 <th width="14%">Hari / Tanggal</th>
                 <th width="11%">Waktu (WIB)</th>
                 <th width="24%">Materi / Kegiatan</th>
-                <th width="5%">JP</th>
+                <th width="7%">Durasi</th>
                 <th width="18%">Tenaga Pengajar / Fasilitator</th>
                 <th width="13%">Link Virtual / Zoom</th>
                 <th width="11%">PIC Sesi</th>
             </tr>
         </thead>
         <tbody>
-            @php $totalJp = 0; @endphp
+            @php $durationTotals = collect(); @endphp
             @forelse($schedules as $index => $s)
-            @php $totalJp += (int) $s->jp; @endphp
+            @php $unit = strtoupper($s->duration_unit ?: 'JP'); $durationTotals[$unit] = ($durationTotals[$unit] ?? 0) + (int) $s->jp; @endphp
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
                 <td>
@@ -187,12 +187,15 @@
                 </td>
                 <td>
                     <span class="text-bold">{{ $s->activity }}</span>
+                    @if(($s->schedule_type ?? 'learning') === 'break')<br><span style="font-size:7.5pt;color:#9a6700;">ISTIRAHAT / JEDA</span>@endif
                 </td>
                 <td class="text-center text-bold">
-                    {{ $s->jp ?? '-' }}
+                    {{ ($s->schedule_type ?? 'learning') === 'break' ? '-' : $s->duration_label }}
                 </td>
                 <td>
-                    @if($s->pengajar)
+                    @if(($s->schedule_type ?? 'learning') === 'break')
+                        <span style="color:#777;">-</span>
+                    @elseif($s->pengajar)
                         <span class="text-bold">{{ $s->pengajar->name }}</span>
                         @if($s->pengajar->nip_nik)
                             <br><span style="font-size: 7.5pt; color: #555;">NIP: {{ $s->pengajar->nip_nik }}</span>
@@ -230,9 +233,9 @@
         <tfoot>
             <tr style="background-color: #edf2f7; font-weight: bold;">
                 <td colspan="4" style="text-align: right; padding-right: 10px;">
-                    TOTAL JP {{ isset($isPengajar) && $isPengajar ? 'YANG DIAJARKAN' : 'PELATIHAN' }}:
+                    TOTAL DURASI {{ isset($isPengajar) && $isPengajar ? 'YANG DIAJARKAN' : 'PELATIHAN' }}:
                 </td>
-                <td class="text-center">{{ $totalJp }} JP</td>
+                <td class="text-center">{{ $durationTotals->map(fn($total,$unit) => $total.' '.$unit)->join(' + ') }}</td>
                 <td colspan="3"></td>
             </tr>
         </tfoot>

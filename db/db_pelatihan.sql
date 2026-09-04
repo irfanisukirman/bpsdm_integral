@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 01 Sep 2026 pada 18.11
+-- Waktu pembuatan: 04 Sep 2026 pada 00.58
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -58,7 +58,14 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `activity`, `module`, `ip_address`
 (15, 12, 'Membagikan folder Sertifikasi kepada Simpan Aku aja 22 sebagai contributor', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-08-30 13:27:35', '2026-08-30 13:27:35'),
 (16, 1, 'Mengunggah 1 file ke folder Berita Acara', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-08-30 13:29:39', '2026-08-30 13:29:39'),
 (17, 12, 'Membuat pelatihan & folder dokumen: Pelatihan Pengkajian Kebutuhan Pascabencana', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-08-30 13:43:37', '2026-08-30 13:43:37'),
-(18, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-08-31 00:05:34', '2026-08-31 00:05:34');
+(18, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-08-31 00:05:34', '2026-08-31 00:05:34'),
+(19, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 02:06:49', '2026-09-02 02:06:49'),
+(20, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pealtihan Keuangan Daerah beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 02:07:01', '2026-09-02 02:07:01'),
+(21, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pealtihan Keuangan Daerah beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 02:09:32', '2026-09-02 02:09:32'),
+(22, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pealtihan Keuangan Daerah beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 02:32:07', '2026-09-02 02:32:07'),
+(23, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 05:50:32', '2026-09-02 05:50:32'),
+(24, 2, 'Menghapus kepesertaan Simpan Aku aja 22 dari pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 06:03:48', '2026-09-02 06:03:48'),
+(25, 2, 'Mengunggah kelengkapan penyelenggara SEesrersreser.pdf untuk pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana', 'Dokumen', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-02 06:48:43', '2026-09-02 06:48:43');
 
 -- --------------------------------------------------------
 
@@ -202,6 +209,13 @@ CREATE TABLE `asset_bookings` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `asset_bookings`
+--
+
+INSERT INTO `asset_bookings` (`id`, `asset_id`, `bookable_type`, `bookable_id`, `starts_at`, `ends_at`, `created_by`, `created_at`, `updated_at`) VALUES
+(24, 28, 'App\\Models\\Schedule', 20, '2026-09-03 08:00:00', '2026-09-03 12:00:00', 2, '2026-09-03 13:12:34', '2026-09-03 13:12:34');
+
 -- --------------------------------------------------------
 
 --
@@ -294,6 +308,37 @@ INSERT INTO `asset_images` (`id`, `asset_id`, `path`, `sort_order`, `created_at`
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `asset_loan_requests`
+--
+
+CREATE TABLE `asset_loan_requests` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `requestable_type` varchar(255) NOT NULL,
+  `requestable_id` bigint(20) UNSIGNED NOT NULL,
+  `asset_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`asset_ids`)),
+  `letter_path` varchar(255) NOT NULL,
+  `purpose` text DEFAULT NULL,
+  `contact_person` varchar(255) DEFAULT NULL,
+  `attendee_count` int(10) UNSIGNED DEFAULT NULL,
+  `status` varchar(255) NOT NULL DEFAULT 'pending',
+  `review_note` text DEFAULT NULL,
+  `submitted_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `reviewed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `asset_loan_requests`
+--
+
+INSERT INTO `asset_loan_requests` (`id`, `requestable_type`, `requestable_id`, `asset_ids`, `letter_path`, `purpose`, `contact_person`, `attendee_count`, `status`, `review_note`, `submitted_by`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(7, 'App\\Models\\Schedule', 20, '[\"28\"]', 'asset-loan-letters/EtkWcO59yM5BK5Ds9Rt49VRqubfcDOts8c0bLwDs.pdf', 'dasdasdasd', '03408293482394723', 1, 'approved', NULL, 2, 2, '2026-09-03 13:12:34', '2026-09-03 12:59:25', '2026-09-03 13:12:34');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `attendances`
 --
 
@@ -326,10 +371,8 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('integral-cache-bidangpktu@gmail.com|127.0.0.1', 'i:1;', 1788182791),
-('integral-cache-bidangpktu@gmail.com|127.0.0.1:timer', 'i:1788182791;', 1788182791),
-('integral-cache-bidangskpk@bpsdm.go.id|127.0.0.1', 'i:2;', 1788166339),
-('integral-cache-bidangskpk@bpsdm.go.id|127.0.0.1:timer', 'i:1788166339;', 1788166339);
+('integral-cache-adminpktu@bpsdm.go.id|127.0.0.1', 'i:1;', 1788438597),
+('integral-cache-adminpktu@bpsdm.go.id|127.0.0.1:timer', 'i:1788438597;', 1788438597);
 
 -- --------------------------------------------------------
 
@@ -466,8 +509,33 @@ CREATE TABLE `evaluation_forms` (
 --
 
 INSERT INTO `evaluation_forms` (`id`, `training_id`, `type`, `name`, `schedule_id`, `target_name`, `materi`, `created_at`, `updated_at`) VALUES
-(5, 9, 'penyelenggara', 'Evaluasi Penyelenggara', NULL, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, '2026-08-30 13:58:37', '2026-08-30 13:58:37'),
-(6, 9, 'narasumber', 'Evaluasi Narasumber', NULL, 'Simpan Aku', 'Matei I untuk kegiatan itu', '2026-08-30 13:58:50', '2026-08-30 13:58:50');
+(7, 8, 'penyelenggara', 'Evaluasi Penyelenggara', NULL, 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, '2026-09-02 02:20:53', '2026-09-02 02:20:53'),
+(8, 9, 'penyelenggara', 'Evaluasi Penyelenggara', NULL, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, '2026-09-02 03:09:11', '2026-09-02 03:09:11'),
+(9, 9, 'narasumber', 'narusmber', NULL, 'simpan aja aku 6', 'Materi Building Learning Caracter Peserta Latsar CPNS', '2026-09-02 04:14:25', '2026-09-02 04:14:25');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `evaluation_l1_text_summaries`
+--
+
+CREATE TABLE `evaluation_l1_text_summaries` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `conclusion` longtext NOT NULL,
+  `follow_up` longtext NOT NULL,
+  `reviewed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `evaluation_l1_text_summaries`
+--
+
+INSERT INTO `evaluation_l1_text_summaries` (`id`, `training_id`, `conclusion`, `follow_up`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(1, 9, 'selasdiuasifuas hfuioash fiuoash fiuoashf ioashf ioashgiaos ughsaiuo hgiuoash giouashg iuashg iaoushg asiugh asiugas gas goipasygpoasiyg aospiyg asopigyasopiga sygopy asigfopas hgopaisy ghoaisg haosigh asoipgh asoigha soipghasopig hasoipgh asogh asgoph', 'selasdiuasifuas hfuioash fiuoash fiuoashf ioashf ioashgiaos ughsaiuo hgiuoash giouashg iuashg iaoushg asiugh asiugas gas goipasygpoasiyg aospiyg asopigyasopiga sygopy asigfopas hgopaisy ghoaisg haosigh asoipgh asoigha soipghasopig hasoipgh asogh asgoph', 2, '2026-09-02 07:57:21', '2026-09-02 07:57:21', '2026-09-02 07:57:21');
 
 -- --------------------------------------------------------
 
@@ -864,7 +932,147 @@ INSERT INTO `evaluation_questions` (`id`, `training_type`, `bidang`, `program_ev
 (574, 'Semua', NULL, 'PKTI/PKTU', NULL, 'Monitoring Sarana Prasarana', 'blended learning', NULL, 'Tersedia alat peraga pendukung (Papan tulis, flipchart, spidol, alat tulis) - Luring', 'ya_tidak', NULL, '2026-08-29 02:44:39', '2026-08-29 02:44:39'),
 (575, 'Semua', NULL, 'PKTI/PKTU', NULL, 'Monitoring Sarana Prasarana', 'blended learning', NULL, 'Jaringan internet / Wi-Fi di area kelas dan asrama memadai untuk peserta - Luring', 'ya_tidak', NULL, '2026-08-29 02:44:39', '2026-08-29 02:44:39'),
 (576, 'Semua', NULL, 'PKTI/PKTU', NULL, 'Monitoring Sarana Prasarana', 'blended learning', NULL, 'Ketersediaan prasarana pendukung: Toilet bersih, Ruang Ibadah, dan Ruang Makan.Luring7Ketersediaan Perlengkapan P3K / akses kesehatan dasar di lokasi pelatihan - Luring', 'ya_tidak', NULL, '2026-08-29 02:44:39', '2026-08-29 02:44:39'),
-(577, 'Semua', NULL, 'PKTI/PKTU', NULL, 'Monitoring Sarana Prasarana', 'blended learning', NULL, 'Ruang Istirahat (Kamar/Wisma/Asrama) bersih dan layak (apabila pelatihan diinapkan) - Luring', 'ya_tidak', NULL, '2026-08-29 02:44:39', '2026-08-29 02:44:39');
+(577, 'Semua', NULL, 'PKTI/PKTU', NULL, 'Monitoring Sarana Prasarana', 'blended learning', NULL, 'Ruang Istirahat (Kamar/Wisma/Asrama) bersih dan layak (apabila pelatihan diinapkan) - Luring', 'ya_tidak', NULL, '2026-08-29 02:44:39', '2026-08-29 02:44:39'),
+(578, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Kesesuaian materi pembelajaran dengan harapan/kebutuhan peserta pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(579, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Kepuasan terhadap manfaat materi pelatihan yang sudah diberikan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(580, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Peningkatan pengetahuan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(581, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Sajian Materi dalam pelatihan dalam membantu tugas-tugas peserta', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(582, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Perubahan Sikap/Perilaku', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(583, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Kerapian pakaian yang digunakan oleh panitia', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(584, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Pelayanan panitia kepada peserta dengan 3 S (senyum, sapa, salam)', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(585, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Kesigapan panitia terhadap kebutuhan peserta', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(586, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Ketersediaan panitia yang kompeten melayani peserta pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(587, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Penyelenggaraan pelatihan secara keseluruhan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(588, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Administrasi Program (undangan, pendaftaran peserta, dll)', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(589, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Kesesuaian soal pre & post test dengan materi yang diajarkan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(590, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Ketersediaan waktu yang cukup dalam pengerjaan soal pre & post test', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(591, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Ketertiban penyelenggaraan pre & post test', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(592, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Profesionalitas panitia dalam memandu pre & post test', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(593, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Materi / Paparan yang sudah sesuai dengan kebutuhan Bapak / Ibu :', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(594, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Materi / Paparan yang perlu diperbaiki :', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(595, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'klasikal', NULL, 'Mohon Saudara berikan komentar untuk perbaikan kinerja kami :', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(596, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kerapian dan kesopanan pakaian yang dikenakan oleh Pengajar', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(597, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kedisiplinan kehadiran sesuai jadwal', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(598, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan memberikan motivasi kepada peserta diklat', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(599, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan menggunakan media pembelajaran', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(600, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan berkomunikasi dan berinteraksi dengan peserta diklat', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(601, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan menyampaikan konsep / materi', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(602, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan menghubungkan konsep / materi dengan praktek', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(603, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan merespon pertanyaan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(604, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kualitas bahan ajar dalam membantu proses pembelajaran peserta diklat', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(605, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kesesuaian bahan ajar dengan kurikulum yang digunakan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(606, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kesesuaian materi pembelajaran dengan keadaan terkini', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(607, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Manfaat materi bagi perkembangan / perbaikan diri di masa yang akan datang', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(608, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Bahan ajar disajikan dalam keadaan baik dan bisa digunakan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(609, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Metode pembelajaran yang digunakan pengajar memudahkan peserta diklat memahami materi', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(610, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Kemampuan mengelola waktu pembelajaran', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(611, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Sistematika penyampaian materi pembelajaran', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(612, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Menciptakan suasana kelas yang kondusif untuk belajar', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(613, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Memberikan contoh yang membantu memahami konsep yang sulit', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(614, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_narasumber', 'semua', NULL, 'Memberikan umpan balik yang konstruktif', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(615, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Pedoman Penggunaan web\'elearning informatif dan mudah dipahami', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(616, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Website e-learning mudah diakses', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(617, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Kemudahan Fitur yang tersedia', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(618, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Sistematika penyajian materi', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(619, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Tampilan tayangan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(620, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Tujuan pembelajaran dapat tercapai secara optimal', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(621, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Kualitas bahan ajar', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(622, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Komposisi materi pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(623, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Sekuensi materi pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(624, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Durasi penyelenggaraan pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(625, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'full learning', NULL, 'Catatan / Saran', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(626, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Persyaratan administrative sesuai ketentuan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(627, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Kecepatan atau responsivitas penyelenggara dalam memberikan layanan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(628, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Keramahan penyelenggara', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(629, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Sarana dan prasarana (daring) sudah memadai', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(630, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Kemudahan mengakses jadwal', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(631, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Kedisiplinan penerapan jadwal pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(632, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Kecukupan waktu tutorial dan praktek', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(633, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Efektifitas pembimbingan dengan distance learning', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(634, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Tujuan pembelajaran dapat tercapai secara optimal', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(635, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Kualitas bahan ajar', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(636, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Komposisi materi pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(637, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Sekuensi pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(638, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Durasi Penyelenggaraan pelatihan', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(639, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Apa yang paling berkesan bagi anda dalam pelatihan ini', 'slider', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(640, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Apa yang membuat anda kurang/tidak puas dari pelatihan ini', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(641, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Secara umum penilaian anda terhadap penyelenggaraan', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(642, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Menurut anda, kedepannya apa yang perlu ditambahkan dalam pelatihan ini?', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(643, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l1_penyelenggara', 'blended', NULL, 'Catatan / Saran', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(645, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Pendidikan terakhir (saat ini)', 'dropdown', '[\"SD\\/SMP\",\"SMA\\/SMK\",\"D3\",\"S1\\/D4\",\"S2\\/S3\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(646, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Pangkat golongan (saat pelatihan)', 'dropdown', '[\"I\\/a\",\"II\\/a\",\"II\\/b\",\"II\\/c\",\"II\\/d\",\"III\\/a\",\"III\\/b\",\"III\\/c\",\"III\\/d\",\"IV\\/a\",\"IV\\/b\",\"IV\\/b\",\"IV\\/c\",\"IV\\/d\",\"IV\\/e\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(647, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Pangkat golongan (saat ini)', 'dropdown', '[\"I\\/a\",\"II\\/a\",\"II\\/b\",\"II\\/c\",\"II\\/d\",\"III\\/a\",\"III\\/b\",\"III\\/c\",\"III\\/d\",\"IV\\/a\",\"IV\\/b\",\"IV\\/b\",\"IV\\/c\",\"IV\\/d\",\"IV\\/e\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(648, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Jabatan (saat pelatihan)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(649, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Jabatan (saat ini)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(650, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Unit kerja (saat pelatihan)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(651, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Unit kerja (saat ini)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(652, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Perangkat daerah (saat pelatihan)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(653, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Data Diri Alumni', 'Perangkat daerah (saat ini)', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(654, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah saat ini Anda sedang bertugas yang berkaitan dengan pelatihan?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(655, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Iya, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(656, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(657, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pelatihan memiliki keterkaitan dengan bidang tugas Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(658, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah Anda sudah melakukan transfer learning hasil pelatihan pada rekan kerja di tempat kerja Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(659, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila sudah transfer learning, bagaimana cara Anda melakukan transfer learning?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(660, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Saya memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(661, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam menunjang pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(662, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam keberhasilan pelaksanaan pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(663, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam penyelesaian pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(664, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Saya berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(665, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Perubahan Perilaku', 'Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah Cukup, Kurang, Sangat Kurang, maka alasannya adalah (bisa pilih lebih dari satu jawaban)', 'checkbox', '[\"Saya tidak mempunyai pengetahuan dan keterampilan yang memadai\",\"Saya tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur\",\"Saya mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran\",\"Saya tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran\",\"Pembelajaran yang saya ikuti tidak memberikan nilai tambah bagi saya\",\"Saya merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan saya\",\"Saya merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(666, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap unit kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(667, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap pengetahuan teoritis atau konsep Anda', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(668, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan produktivitas', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(669, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap perbaikan kualitas hasil kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(670, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan kepuasan pelanggan', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(671, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_mandiri', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(672, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Data Diri Alumni', 'Nama Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(673, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Data Diri Alumni', 'NIP (ASN) / NIK (Non ASN) Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(674, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Data Diri Alumni', 'Jabatan Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(675, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Data Diri Alumni', 'Unit Kerja Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(676, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Data Diri Alumni', 'Perangkat Daerah Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(677, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Data Diri Alumni', 'Nama Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(678, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Data Diri Alumni', 'NIP (ASN) / NIK (Non ASN) Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(679, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Data Diri Alumni', 'Jabatan Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(680, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Data Diri Alumni', 'Unit Kerja Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(681, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Data Diri Alumni', 'Perangkat Daerah Anda', 'text', NULL, '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(682, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah saat ini Anda sedang bertugas yang berkaitan dengan pelatihan?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(683, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Iya, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(684, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(685, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pelatihan memiliki keterkaitan dengan bidang tugas Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(686, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah Anda sudah melakukan transfer learning hasil pelatihan pada rekan kerja di tempat kerja Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(687, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila sudah transfer learning, bagaimana cara Anda melakukan transfer learning?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(688, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Saya memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(689, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam menunjang pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(690, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam keberhasilan pelaksanaan pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(691, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam penyelesaian pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(692, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Saya berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(693, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Perubahan Perilaku', 'Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah Cukup, Kurang, Sangat Kurang, maka alasannya adalah (bisa pilih lebih dari satu jawaban)', 'checkbox', '[\"Saya tidak mempunyai pengetahuan dan keterampilan yang memadai\",\"Saya tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur\",\"Saya mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran\",\"Saya tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran\",\"Pembelajaran yang saya ikuti tidak memberikan nilai tambah bagi saya\",\"Saya merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan saya\",\"Saya merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(694, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap unit kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(695, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap pengetahuan teoritis atau konsep Anda', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(696, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan produktivitas', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(697, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap perbaikan kualitas hasil kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(698, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan kepuasan pelanggan', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(699, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_rekan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(700, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah saat ini Anda sedang bertugas yang berkaitan dengan pelatihan?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(701, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Iya, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(702, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(703, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila jawaban nomor 1 adalah Tidak, apakah pelatihan memiliki keterkaitan dengan bidang tugas Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(704, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Apakah Anda sudah melakukan transfer learning hasil pelatihan pada rekan kerja di tempat kerja Anda?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(705, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Penempatan Tugas dan Transfer Learning', 'Bila sudah transfer learning, bagaimana cara Anda melakukan transfer learning?', 'dropdown', '[\"YA\",\"TIDAK\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(706, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Saya memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(707, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam menunjang pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(708, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam keberhasilan pelaksanaan pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(709, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam penyelesaian pekerjaan saya', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(710, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Saya berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59');
+INSERT INTO `evaluation_questions` (`id`, `training_type`, `bidang`, `program_evaluasi`, `training_id`, `category`, `metode`, `sub_category`, `question_text`, `type`, `options`, `created_at`, `updated_at`) VALUES
+(711, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Perubahan Perilaku', 'Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah Cukup, Kurang, Sangat Kurang, maka alasannya adalah (bisa pilih lebih dari satu jawaban)', 'checkbox', '[\"Saya tidak mempunyai pengetahuan dan keterampilan yang memadai\",\"Saya tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur\",\"Saya mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran\",\"Saya tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran\",\"Pembelajaran yang saya ikuti tidak memberikan nilai tambah bagi saya\",\"Saya merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan saya\",\"Saya merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(712, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap unit kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(713, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap pengetahuan teoritis atau konsep Anda', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(714, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan produktivitas', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(715, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap perbaikan kualitas hasil kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(716, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap peningkatan kepuasan pelanggan', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59'),
+(717, 'Bidang Pengembangan Kompetensi Manajerial', 'Bidang Pengembangan Kompetensi Manajerial', 'PKTI/PKTU', NULL, 'l34_atasan', 'semua', 'Dampak Pelatihan', 'Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja', 'dropdown', '[\"Sangat Kurang\",\"Kurang\",\"Cukup\",\"Baik\",\"Sangat Baik\"]', '2026-09-02 00:19:59', '2026-09-02 00:19:59');
 
 -- --------------------------------------------------------
 
@@ -884,6 +1092,30 @@ CREATE TABLE `evaluation_results_l1` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `evaluation_results_l1`
+--
+
+INSERT INTO `evaluation_results_l1` (`id`, `training_id`, `participant_id`, `schedule_id`, `question_id`, `score`, `note`, `created_at`, `updated_at`) VALUES
+(69, 9, 25, NULL, 1, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(70, 9, 25, NULL, 2, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(71, 9, 25, NULL, 3, 94, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(72, 9, 25, NULL, 4, 94, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(73, 9, 25, NULL, 5, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(74, 9, 25, NULL, 6, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(75, 9, 25, NULL, 7, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(76, 9, 25, NULL, 8, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(77, 9, 25, NULL, 9, 96, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(78, 9, 25, NULL, 10, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(79, 9, 25, NULL, 11, 95, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(80, 9, 25, NULL, 12, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(81, 9, 25, NULL, 13, 96, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(82, 9, 25, NULL, 14, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(83, 9, 25, NULL, 15, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(84, 9, 25, NULL, 16, NULL, 'semuanya sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(85, 9, 25, NULL, 17, NULL, 'cukuo baik kata akumah yah', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(86, 9, 25, NULL, 18, NULL, 'sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34');
+
 -- --------------------------------------------------------
 
 --
@@ -899,6 +1131,13 @@ CREATE TABLE `evaluation_results_l2` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `evaluation_results_l2`
+--
+
+INSERT INTO `evaluation_results_l2` (`id`, `participant_id`, `pretest`, `postest`, `created_at`, `updated_at`) VALUES
+(3, 25, 80.00, 100.00, '2026-09-02 08:31:05', '2026-09-02 08:31:05');
 
 -- --------------------------------------------------------
 
@@ -974,7 +1213,32 @@ INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`
 (138, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 12306, 5, '2026-08-31 13:35:03', '2026-08-31 13:35:03'),
 (139, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 440229, 5, '2026-08-31 14:13:07', '2026-08-31 14:13:07'),
 (140, 78, 'LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 39249, 5, '2026-08-31 14:59:22', '2026-08-31 14:59:22'),
-(141, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 412473, 5, '2026-08-31 15:00:13', '2026-08-31 15:00:13');
+(141, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 412473, 5, '2026-08-31 15:00:13', '2026-08-31 15:00:13'),
+(142, 81, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9350, 2, '2026-09-02 00:13:40', '2026-09-02 00:13:40'),
+(143, 81, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9323, 2, '2026-09-02 00:30:43', '2026-09-02 00:30:43'),
+(144, 82, 'REKAP_KEHADIRAN_TOTAL_Pealtihan_Keuangan_Daerah.xlsx', 'documents/REKAP_KEHADIRAN_TOTAL_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 6897, 2, '2026-09-02 02:15:46', '2026-09-02 02:15:46'),
+(145, 83, 'DATA_PESERTA_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/DATA_PESERTA_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6620, 2, '2026-09-02 02:18:43', '2026-09-02 02:18:43'),
+(146, 84, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6777, 2, '2026-09-02 02:21:28', '2026-09-02 02:21:28'),
+(147, 84, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6777, 2, '2026-09-02 02:23:52', '2026-09-02 02:23:52'),
+(148, 85, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11582, 2, '2026-09-02 02:24:57', '2026-09-02 02:24:57'),
+(149, 86, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9200, 2, '2026-09-02 04:02:14', '2026-09-02 04:02:14'),
+(150, 87, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6876, 2, '2026-09-02 04:17:22', '2026-09-02 04:17:22'),
+(151, 88, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11961, 2, '2026-09-02 04:18:03', '2026-09-02 04:18:03'),
+(152, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13928, 2, '2026-09-02 04:24:13', '2026-09-02 04:24:13'),
+(153, 91, 'Rapat Koordinasi Penataan Aplikasi Integral Penunjang Kegiatan Diklat 2026-09-02 09_27(GMT+7_00).pdf', 'documents/BIODATA_simpan_aku_aja_22_c0646111-f0ad-4629-9a5a-2955ceccc4bd.pdf', 'pdf', 95150, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
+(154, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_b5c64b67-32a2-43d0-b847-8c49a53880c3.pdf', 'pdf', 888150, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
+(155, 91, 'CN6WOJEPrbhvpJscS6qkqdUHvJhg6m5gVjcAH7Qn.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_ed490fd2-ccdd-494f-a1cb-08b6baf0b933.jpg', 'jpg', 626870, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
+(156, 92, 'SEesrersreser.pdf', 'documents/PENYELENGGARA_c625af12-f41c-4e66-a6de-b87dc48e5335.pdf', 'pdf', 95150, 2, '2026-09-02 06:48:43', '2026-09-02 06:48:43'),
+(157, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11722, 2, '2026-09-02 07:27:49', '2026-09-02 07:27:49'),
+(158, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13214, 2, '2026-09-02 07:30:24', '2026-09-02 07:30:24'),
+(159, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13183, 2, '2026-09-02 07:33:05', '2026-09-02 07:33:05'),
+(160, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13267, 2, '2026-09-02 07:57:24', '2026-09-02 07:57:24'),
+(161, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13226, 2, '2026-09-02 08:02:01', '2026-09-02 08:02:01'),
+(162, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13238, 2, '2026-09-02 08:03:54', '2026-09-02 08:03:54'),
+(163, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14261, 2, '2026-09-02 08:07:39', '2026-09-02 08:07:39'),
+(164, 91, 'Rapat Koordinasi Penataan Aplikasi Integral Penunjang Kegiatan Diklat 2026-09-02 09_27(GMT+7_00).pdf', 'documents/BIODATA_simpan_aku_aja_22_87f742dd-e3a4-412a-820e-9cbcba1aea90.pdf', 'pdf', 95150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
+(165, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_a0ea01a8-5e5a-49e0-b085-060f2398901b.pdf', 'pdf', 888150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
+(166, 91, 'EXWdBJTB8ZnnGX8Im7Bqcqqot80FoS9GaFIQycLq.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_8f9c01ea-ab65-4382-8115-8b7b54067bf8.jpg', 'jpg', 30134, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09');
 
 -- --------------------------------------------------------
 
@@ -1025,18 +1289,30 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (56, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-08-30 13:23:22'),
 (57, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-08-30 13:23:22'),
 (66, NULL, 'Biodata Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 11:08:51', '2026-08-30 13:23:22'),
-(68, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 13:43:37', '2026-09-01 15:45:37'),
-(69, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-01 15:45:37'),
-(70, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 69, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-01 15:45:37'),
+(68, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 13:43:37', '2026-09-02 04:23:21'),
+(69, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-02 04:23:21'),
+(70, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 69, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-02 04:23:21'),
 (71, NULL, 'Pengajuan Mitra', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
 (72, NULL, 'Kabupaten', 'Bidang Pengembangan Kompetensi Teknis Umum', 71, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
 (73, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
 (75, NULL, 'SERTIFIKASI PBJ LEBEL 1 SUBANG', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 54, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
 (76, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
 (77, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-08-31 08:56:30'),
-(78, 8, 'HASIL EVALUASI DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:29', '2026-08-31 13:33:29'),
+(78, 8, 'HASIL EVALUASI DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:29', '2026-09-02 06:35:53'),
 (79, 8, 'LAPORAN AKHIR DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:57', '2026-08-31 13:33:57'),
-(80, 8, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:34:11', '2026-08-31 13:34:11');
+(80, 8, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:34:11', '2026-08-31 13:34:11'),
+(81, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 00:13:40', '2026-09-02 04:23:21'),
+(82, 8, 'REKAP KEHADIRAN EXCEL', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 2, 0, NULL, '2026-09-02 02:15:46', '2026-09-02 02:15:46'),
+(83, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:18:43', '2026-09-02 04:23:21'),
+(84, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:21:28', '2026-09-02 04:23:21'),
+(85, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:24:57', '2026-09-02 04:23:21'),
+(86, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:02:14', '2026-09-02 04:23:21'),
+(87, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:17:22', '2026-09-02 04:23:21'),
+(88, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:18:02', '2026-09-02 04:23:21'),
+(89, 9, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:24:13', '2026-09-02 04:24:13'),
+(90, 9, 'KELENGKAPAN PESERTA', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-02 06:04:50'),
+(91, 9, 'SIMPAN AKU AJA 22', 'Bidang Pengembangan Kompetensi Teknis Umum', 90, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-02 06:04:50'),
+(92, 9, 'KELENGKAPAN PENYELENGGARA', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 2, 0, NULL, '2026-09-02 06:48:42', '2026-09-02 06:48:42');
 
 -- --------------------------------------------------------
 
@@ -1198,7 +1474,15 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (82, '2026_08_30_170000_create_document_collaboration_tables', 18),
 (83, '2026_08_30_171000_add_seen_at_to_folder_permissions', 19),
 (84, '2026_08_31_100000_add_user_type_to_users_table', 20),
-(85, '2026_08_31_110000_create_partner_submission_tables', 21);
+(85, '2026_08_31_110000_create_partner_submission_tables', 21),
+(86, '2026_09_02_120000_create_evaluation_l1_text_summaries_table', 22),
+(87, '2026_09_02_120000_create_asset_loan_requests_table', 23),
+(88, '2026_09_03_080000_add_duration_unit_to_schedules_table', 24),
+(89, '2026_09_03_120000_add_schedule_type_to_schedules_table', 25),
+(90, '2026_09_04_000001_create_training_certificates_tables', 26),
+(91, '2026_09_04_000002_add_photo_size_to_training_certificate_settings', 27),
+(92, '2026_09_04_000003_add_downloaded_at_to_participant_certificates', 28),
+(93, '2026_09_04_100000_create_training_activity_reports_tables', 29);
 
 -- --------------------------------------------------------
 
@@ -1283,7 +1567,39 @@ CREATE TABLE `participants` (
 --
 
 INSERT INTO `participants` (`id`, `training_id`, `user_id`, `nip_nik`, `phone`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `status_kepegawaian`, `registration_status`, `created_at`, `updated_at`, `biodata_file_id`, `surat_tugas_file_id`, `pas_foto_file_id`) VALUES
-(19, 9, 1, '12387126387126438', NULL, 'Simpan Aku aja 22', 'Laki-Laki', 'Pengelola Layanan', 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', NULL, 'PARONGPONG', 'CIGUGUR GIRANG', 'PNS', 'approved', '2026-08-31 00:06:45', '2026-08-31 00:08:11', NULL, NULL, NULL);
+(25, 9, 1, '12387126387126438', NULL, 'Simpan Aku aja 22', 'Laki-Laki', 'Pengelola Layanan', 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'PNS', 'approved', '2026-09-02 06:04:50', '2026-09-03 13:39:50', 164, 165, 166),
+(26, 9, 11, '34554834689342342', '0988653845345', 'Simpan Aku', 'Perempuan', 'GURU AHLI PERTAMA', 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', 'PPPK', 'approved', '2026-09-03 13:40:33', '2026-09-03 13:40:33', NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `participant_certificates`
+--
+
+CREATE TABLE `participant_certificates` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_certificate_setting_id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `participant_id` bigint(20) UNSIGNED NOT NULL,
+  `sequence_number` int(10) UNSIGNED NOT NULL,
+  `certificate_number` varchar(255) NOT NULL,
+  `generated_file_path` varchar(255) DEFAULT NULL,
+  `final_file_path` varchar(255) DEFAULT NULL,
+  `generated_at` timestamp NULL DEFAULT NULL,
+  `uploaded_at` timestamp NULL DEFAULT NULL,
+  `downloaded_at` timestamp NULL DEFAULT NULL,
+  `uploaded_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `participant_certificates`
+--
+
+INSERT INTO `participant_certificates` (`id`, `training_certificate_setting_id`, `training_id`, `participant_id`, `sequence_number`, `certificate_number`, `generated_file_path`, `final_file_path`, `generated_at`, `uploaded_at`, `downloaded_at`, `uploaded_by`, `created_at`, `updated_at`) VALUES
+(1, 1, 9, 26, 1, '32.1/KPG.03.01.03/BPSDM/2026', 'certificates/generated/9/34554834689342342.pdf', 'certificates/final/9/34554834689342342.pdf', '2026-09-03 21:53:35', '2026-09-03 21:54:07', NULL, 2, '2026-09-03 21:42:58', '2026-09-03 21:54:07'),
+(2, 1, 9, 25, 2, '32.2/KPG.03.01.03/BPSDM/2026', 'certificates/generated/9/12387126387126438.pdf', 'certificates/final/9/12387126387126438.pdf', '2026-09-03 21:53:35', '2026-09-03 21:54:07', NULL, 2, '2026-09-03 21:42:58', '2026-09-03 21:54:07');
 
 -- --------------------------------------------------------
 
@@ -1320,14 +1636,6 @@ CREATE TABLE `partner_submissions` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `partner_submissions`
---
-
-INSERT INTO `partner_submissions` (`id`, `user_id`, `type`, `target_bidang`, `title`, `background`, `objective`, `scope`, `participant_target`, `estimated_participants`, `competency`, `preferred_start`, `preferred_end`, `method`, `location`, `period_start`, `period_end`, `pic_name`, `pic_contact`, `status`, `assigned_to`, `folder_id`, `submitted_at`, `finalized_at`, `created_at`, `updated_at`) VALUES
-(1, 15, 'training', 'Bidang Pengembangan Kompetensi Teknis Umum', 'pasdjsdbjasfasf', 'kjsbdckjzdbaskd baskjd askdbasjkdasd', 'iudgadiasg diasgdi asdiuasdasd', NULL, 'dfsdfsdgfsdgsdg', 23, 'sdbasjdasd askdas dasjkdas', '2026-08-31', '2026-09-04', 'Klasikal', 'fasfasfasfasfasf', NULL, NULL, 'Kabupaten', '6281382830814', 'draft', 5, NULL, '2026-08-31 07:33:09', NULL, '2026-08-31 07:26:30', '2026-08-31 08:47:29'),
-(2, 15, 'cooperation', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'sadjkbasdasd askd askdas', 'daskjdakjsd kasdkajsdasd', 'djasd jasgd ajdg asjd', 'kjasbxasd asid ashkdhasd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-31', '2026-09-01', 'Kabupaten', '6281382830814', 'draft', NULL, NULL, NULL, NULL, '2026-08-31 07:34:52', '2026-08-31 07:34:52');
-
 -- --------------------------------------------------------
 
 --
@@ -1342,18 +1650,6 @@ CREATE TABLE `partner_submission_comments` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `partner_submission_comments`
---
-
-INSERT INTO `partner_submission_comments` (`id`, `partner_submission_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
-(1, 1, 5, 'hsayduasudyausdaidauosdas', '2026-08-31 07:27:12', '2026-08-31 07:27:12'),
-(2, 1, 15, 'dkashdasjkd asfasf haksf asfas', '2026-08-31 07:27:26', '2026-08-31 07:27:26'),
-(3, 1, 5, 'syipass', '2026-08-31 07:27:39', '2026-08-31 07:27:39'),
-(4, 1, 15, 'soalnya itu haruny asesuai dengan yang saya minta', '2026-08-31 07:31:53', '2026-08-31 07:31:53'),
-(5, 1, 5, 'okhays jika itu memang seperti itu apa bisa saya ini', '2026-08-31 07:32:23', '2026-08-31 07:32:23'),
-(6, 1, 5, 'ada apa ini teh', '2026-08-31 08:47:38', '2026-08-31 08:47:38');
 
 -- --------------------------------------------------------
 
@@ -1375,13 +1671,6 @@ CREATE TABLE `partner_submission_documents` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `partner_submission_documents`
---
-
-INSERT INTO `partner_submission_documents` (`id`, `partner_submission_id`, `uploaded_by`, `version_number`, `display_name`, `file_path`, `file_type`, `file_size`, `change_note`, `is_final`, `created_at`, `updated_at`) VALUES
-(1, 1, 15, 1, 'Biodata - Contoh Peserta - 19950332026211005 (2).pdf', 'partner-submissions/1/9quAbWuUgVGndiGVSF7EjJFTAzwk1t3D3IjhoofI.pdf', 'pdf', 888150, 'adjkabsdjasdjasjdasd', 0, '2026-08-31 07:33:01', '2026-08-31 08:47:29');
 
 -- --------------------------------------------------------
 
@@ -1412,7 +1701,8 @@ CREATE TABLE `pengajars` (
 
 INSERT INTO `pengajars` (`id`, `user_id`, `npwp`, `nama_bank`, `nomor_rekening`, `nama_rekening`, `bidang_keahlian`, `pangkat_golongan`, `instansi`, `cv_path`, `sertifikat_path`, `surat_tugas_path`, `created_at`, `updated_at`) VALUES
 (2, 1, '34242352523523', 'asfsdfsdfsd', '5235235235235', 'dasfasfasfafsasf', NULL, NULL, NULL, 'pengajar/kelengkapan/XqeG8xWazeXKytqpmmwnP1eCnk1sy9dHMWnHS0wZ.pdf', 'pengajar/kelengkapan/3c8crnwPcBn4FVNOaU8Rpcj8Jxyag0awXohD8TEz.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', '2026-08-30 05:42:30', '2026-08-30 05:42:39'),
-(3, 4, '673248264293428935235', 'sdfsdgsdgsdgsdgsdg', '423423423235235235', 'simpanakuaja delapan', NULL, NULL, 'afasasfasfasfasf', NULL, NULL, NULL, '2026-09-01 15:42:59', '2026-09-01 15:42:59');
+(3, 4, '673248264293428935235', 'sdfsdgsdgsdgsdgsdg', '423423423235235235', 'simpanakuaja delapan', NULL, NULL, 'afasasfasfasfasf', NULL, NULL, NULL, '2026-09-01 15:42:59', '2026-09-01 15:42:59'),
+(4, 17, '34qeqwrqwrqwr', 'dsfdsgdsgsdg', '3425325235', 'simpan aja aku 6', NULL, NULL, 'faswefasfasf', NULL, NULL, NULL, '2026-09-02 02:04:34', '2026-09-02 02:04:34');
 
 -- --------------------------------------------------------
 
@@ -1482,7 +1772,9 @@ CREATE TABLE `schedules` (
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
   `activity` varchar(255) NOT NULL,
+  `schedule_type` varchar(20) NOT NULL DEFAULT 'learning',
   `jp` int(11) DEFAULT NULL,
+  `duration_unit` varchar(2) NOT NULL DEFAULT 'JP',
   `link_zoom` text DEFAULT NULL,
   `pic` varchar(255) NOT NULL,
   `pengajar_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1498,9 +1790,9 @@ CREATE TABLE `schedules` (
 -- Dumping data untuk tabel `schedules`
 --
 
-INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `jp`, `link_zoom`, `pic`, `pengajar_id`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`, `venue_type`, `external_place`) VALUES
-(10, 9, '2026-08-31', '08:00:00', '11:00:00', 'Matei I untuk kegiatan itu', 4, 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-08-31 02:52:13', '2026-09-01 15:43:47', NULL, NULL, 'external', 'melalu Zoom Meeting'),
-(12, 8, '2026-09-01', '08:00:00', '09:30:00', 'Materi Kebangsaan', 2, 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-09-01 15:49:58', '2026-09-01 15:49:58', NULL, NULL, 'external', 'melalu Zoom Meeting');
+INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `schedule_type`, `jp`, `duration_unit`, `link_zoom`, `pic`, `pengajar_id`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`, `venue_type`, `external_place`) VALUES
+(12, 8, '2026-09-01', '08:00:00', '09:30:00', 'Materi Kebangsaan', 'learning', 2, 'JP', 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-09-01 15:49:58', '2026-09-02 02:15:14', '07:30:00', '10:00:00', 'external', 'melalu Zoom Meeting'),
+(20, 9, '2026-09-03', '08:00:00', '12:00:00', 'Materi Building Learning Caracter Peserta Latsar CPNS', 'learning', 4, 'OJ', NULL, 'Super Administrator', 17, '2026-09-03 12:59:25', '2026-09-03 13:31:34', '07:30:00', '22:00:00', 'internal', NULL);
 
 -- --------------------------------------------------------
 
@@ -1538,7 +1830,118 @@ CREATE TABLE `trainings` (
 
 INSERT INTO `trainings` (`id`, `created_by`, `bidang`, `program_evaluasi`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
 (8, 2, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pealtihan Keuangan Daerah', 'MQFO9Q', NULL, 'standar', 'klasikal', 'Gedung kelas lantai 2', NULL, NULL, '1', 1, 24, '2026-08-27', '2026-08-28', NULL, NULL, '2026-08-30 09:11:51', '2026-08-30 09:32:04'),
-(9, 12, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'PKTI/PKTU', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '20U5QG', NULL, 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 30, 29, '2026-08-30', '2026-08-31', NULL, NULL, '2026-08-30 13:43:37', '2026-09-01 15:45:37');
+(9, 12, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '20U5QG', 'https://jabarcorputalent.jabarprov.go.id/pelatihan/jitupasna-angk1/preview', 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 30, 29, '2026-08-31', '2026-09-01', NULL, NULL, '2026-08-30 13:43:37', '2026-09-02 04:23:21');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_activity_documentations`
+--
+
+CREATE TABLE `training_activity_documentations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `caption` text DEFAULT NULL,
+  `category` varchar(255) NOT NULL DEFAULT 'lainnya',
+  `taken_at` date DEFAULT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `sort_order` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `include_in_report` tinyint(1) NOT NULL DEFAULT 1,
+  `is_featured` tinyint(1) NOT NULL DEFAULT 0,
+  `uploaded_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_activity_documentations`
+--
+
+INSERT INTO `training_activity_documentations` (`id`, `training_id`, `title`, `caption`, `category`, `taken_at`, `file_path`, `sort_order`, `include_in_report`, `is_featured`, `uploaded_by`, `created_at`, `updated_at`) VALUES
+(1, 9, 'sdasfdsa', 'fasfasfasf', 'pembukaan', '2026-09-02', 'activity-documentation/9/9QGKmqtykllXZxUmGB6z14ocgzFC1YCSly4ZA3dA.jpg', 1, 1, 0, 2, '2026-09-03 22:57:34', '2026-09-03 22:57:34');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_activity_reports`
+--
+
+CREATE TABLE `training_activity_reports` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `report_number` varchar(255) DEFAULT NULL,
+  `background` longtext DEFAULT NULL,
+  `legal_basis` longtext DEFAULT NULL,
+  `objectives` longtext DEFAULT NULL,
+  `implementation` longtext DEFAULT NULL,
+  `achievements` longtext DEFAULT NULL,
+  `constraints` longtext DEFAULT NULL,
+  `follow_up` longtext DEFAULT NULL,
+  `conclusion` longtext DEFAULT NULL,
+  `recommendations` longtext DEFAULT NULL,
+  `signatory_name` varchar(255) DEFAULT NULL,
+  `signatory_nip` varchar(255) DEFAULT NULL,
+  `signatory_position` varchar(255) DEFAULT NULL,
+  `approval_date` date DEFAULT NULL,
+  `template_path` varchar(255) DEFAULT NULL,
+  `status` enum('draft','final') NOT NULL DEFAULT 'draft',
+  `updated_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_activity_reports`
+--
+
+INSERT INTO `training_activity_reports` (`id`, `training_id`, `report_number`, `background`, `legal_basis`, `objectives`, `implementation`, `achievements`, `constraints`, `follow_up`, `conclusion`, `recommendations`, `signatory_name`, `signatory_nip`, `signatory_position`, `approval_date`, `template_path`, `status`, `updated_by`, `created_at`, `updated_at`) VALUES
+(2, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-03 22:57:34');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_activity_report_versions`
+--
+
+CREATE TABLE `training_activity_report_versions` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_activity_report_id` bigint(20) UNSIGNED NOT NULL,
+  `version` int(10) UNSIGNED NOT NULL,
+  `docx_path` varchar(255) DEFAULT NULL,
+  `pdf_path` varchar(255) DEFAULT NULL,
+  `snapshot` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`snapshot`)),
+  `generated_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `training_certificate_settings`
+--
+
+CREATE TABLE `training_certificate_settings` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL DEFAULT 'Sertifikat Pelatihan',
+  `template_path` varchar(255) DEFAULT NULL,
+  `number_format` varchar(255) NOT NULL,
+  `start_sequence` int(10) UNSIGNED NOT NULL DEFAULT 1,
+  `issued_at` date DEFAULT NULL,
+  `photo_size` varchar(10) NOT NULL DEFAULT '3x4',
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_certificate_settings`
+--
+
+INSERT INTO `training_certificate_settings` (`id`, `training_id`, `name`, `template_path`, `number_format`, `start_sequence`, `issued_at`, `photo_size`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 9, 'Sertifikat Pelatihan', 'certificate-templates/NE7pEumviJWe2P38ZpC07xiKkhOOWPqD5jtrMjk2.docx', '434.{X}/KPG.03.01.03/BPSDM/{TAHUN}', 1, '2026-09-04', '2x3', 2, '2026-09-03 21:42:53', '2026-09-03 21:53:31');
 
 -- --------------------------------------------------------
 
@@ -1560,9 +1963,12 @@ CREATE TABLE `training_forum_reads` (
 --
 
 INSERT INTO `training_forum_reads` (`id`, `training_id`, `user_id`, `last_read_message_id`, `created_at`, `updated_at`) VALUES
-(6, 9, 1, 11, '2026-08-31 02:55:41', '2026-09-01 15:54:58'),
-(7, 9, 2, 10, '2026-08-31 03:03:28', '2026-08-31 03:04:15'),
-(8, 9, 4, 11, '2026-09-01 15:44:18', '2026-09-01 15:44:31');
+(6, 9, 1, 12, '2026-08-31 02:55:41', '2026-09-03 13:40:53'),
+(7, 9, 2, 12, '2026-08-31 03:03:28', '2026-09-03 12:46:14'),
+(8, 9, 4, 11, '2026-09-01 15:44:18', '2026-09-01 15:44:31'),
+(9, 8, 2, NULL, '2026-09-02 02:18:19', '2026-09-02 02:18:19'),
+(10, 9, 5, 12, '2026-09-03 12:43:40', '2026-09-03 12:46:05'),
+(11, 9, 17, 12, '2026-09-03 14:16:36', '2026-09-03 14:16:36');
 
 -- --------------------------------------------------------
 
@@ -1586,7 +1992,8 @@ CREATE TABLE `training_messages` (
 INSERT INTO `training_messages` (`id`, `training_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
 (9, 9, 2, 'apadkakad', '2026-08-31 03:03:32', '2026-08-31 03:03:32'),
 (10, 9, 1, 'sapasdasjdasd', '2026-08-31 03:03:56', '2026-08-31 03:03:56'),
-(11, 9, 4, 'oke', '2026-09-01 15:44:31', '2026-09-01 15:44:31');
+(11, 9, 4, 'oke', '2026-09-01 15:44:31', '2026-09-01 15:44:31'),
+(12, 9, 5, 'dasdakjsfasf', '2026-09-03 12:46:05', '2026-09-03 12:46:05');
 
 -- --------------------------------------------------------
 
@@ -1715,6 +2122,16 @@ ALTER TABLE `asset_images`
   ADD KEY `asset_images_asset_id_foreign` (`asset_id`);
 
 --
+-- Indeks untuk tabel `asset_loan_requests`
+--
+ALTER TABLE `asset_loan_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `asset_loan_requests_requestable_type_requestable_id_unique` (`requestable_type`,`requestable_id`),
+  ADD KEY `asset_loan_requests_requestable_type_requestable_id_index` (`requestable_type`,`requestable_id`),
+  ADD KEY `asset_loan_requests_submitted_by_foreign` (`submitted_by`),
+  ADD KEY `asset_loan_requests_reviewed_by_foreign` (`reviewed_by`);
+
+--
 -- Indeks untuk tabel `attendances`
 --
 ALTER TABLE `attendances`
@@ -1771,6 +2188,14 @@ ALTER TABLE `evaluation_forms`
   ADD PRIMARY KEY (`id`),
   ADD KEY `evaluation_forms_training_id_foreign` (`training_id`),
   ADD KEY `evaluation_forms_schedule_id_foreign` (`schedule_id`);
+
+--
+-- Indeks untuk tabel `evaluation_l1_text_summaries`
+--
+ALTER TABLE `evaluation_l1_text_summaries`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `evaluation_l1_text_summaries_training_id_unique` (`training_id`),
+  ADD KEY `evaluation_l1_text_summaries_reviewed_by_foreign` (`reviewed_by`);
 
 --
 -- Indeks untuk tabel `evaluation_questions`
@@ -1899,6 +2324,17 @@ ALTER TABLE `participants`
   ADD KEY `participants_pas_foto_file_id_foreign` (`pas_foto_file_id`);
 
 --
+-- Indeks untuk tabel `participant_certificates`
+--
+ALTER TABLE `participant_certificates`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `participant_certificates_training_id_participant_id_unique` (`training_id`,`participant_id`),
+  ADD UNIQUE KEY `participant_certificates_certificate_number_unique` (`certificate_number`),
+  ADD KEY `participant_certificates_training_certificate_setting_id_foreign` (`training_certificate_setting_id`),
+  ADD KEY `participant_certificates_participant_id_foreign` (`participant_id`),
+  ADD KEY `participant_certificates_uploaded_by_foreign` (`uploaded_by`);
+
+--
 -- Indeks untuk tabel `partner_submissions`
 --
 ALTER TABLE `partner_submissions`
@@ -1971,6 +2407,38 @@ ALTER TABLE `trainings`
   ADD KEY `trainings_program_evaluasi_index` (`program_evaluasi`);
 
 --
+-- Indeks untuk tabel `training_activity_documentations`
+--
+ALTER TABLE `training_activity_documentations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `training_activity_documentations_training_id_foreign` (`training_id`),
+  ADD KEY `training_activity_documentations_uploaded_by_foreign` (`uploaded_by`);
+
+--
+-- Indeks untuk tabel `training_activity_reports`
+--
+ALTER TABLE `training_activity_reports`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `training_activity_reports_training_id_unique` (`training_id`),
+  ADD KEY `training_activity_reports_updated_by_foreign` (`updated_by`);
+
+--
+-- Indeks untuk tabel `training_activity_report_versions`
+--
+ALTER TABLE `training_activity_report_versions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tar_versions_report_version_uq` (`training_activity_report_id`,`version`),
+  ADD KEY `tar_versions_user_fk` (`generated_by`);
+
+--
+-- Indeks untuk tabel `training_certificate_settings`
+--
+ALTER TABLE `training_certificate_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `training_certificate_settings_training_id_unique` (`training_id`),
+  ADD KEY `training_certificate_settings_created_by_foreign` (`created_by`);
+
+--
 -- Indeks untuk tabel `training_forum_reads`
 --
 ALTER TABLE `training_forum_reads`
@@ -2008,7 +2476,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT untuk tabel `agendas`
@@ -2038,7 +2506,7 @@ ALTER TABLE `assets`
 -- AUTO_INCREMENT untuk tabel `asset_bookings`
 --
 ALTER TABLE `asset_bookings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT untuk tabel `asset_images`
@@ -2047,10 +2515,16 @@ ALTER TABLE `asset_images`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
+-- AUTO_INCREMENT untuk tabel `asset_loan_requests`
+--
+ALTER TABLE `asset_loan_requests`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT untuk tabel `attendances`
 --
 ALTER TABLE `attendances`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `certification_events`
@@ -2074,25 +2548,31 @@ ALTER TABLE `certification_types`
 -- AUTO_INCREMENT untuk tabel `evaluation_forms`
 --
 ALTER TABLE `evaluation_forms`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT untuk tabel `evaluation_l1_text_summaries`
+--
+ALTER TABLE `evaluation_l1_text_summaries`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_questions`
 --
 ALTER TABLE `evaluation_questions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=578;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=718;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l1`
 --
 ALTER TABLE `evaluation_results_l1`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l2`
 --
 ALTER TABLE `evaluation_results_l2`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l34`
@@ -2110,7 +2590,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=167;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -2122,7 +2602,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -2140,7 +2620,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -2158,7 +2638,13 @@ ALTER TABLE `monitoring_summaries`
 -- AUTO_INCREMENT untuk tabel `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT untuk tabel `participant_certificates`
+--
+ALTER TABLE `participant_certificates`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `partner_submissions`
@@ -2182,7 +2668,7 @@ ALTER TABLE `partner_submission_documents`
 -- AUTO_INCREMENT untuk tabel `pengajars`
 --
 ALTER TABLE `pengajars`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `pengajar_schedule_documents`
@@ -2206,7 +2692,7 @@ ALTER TABLE `questions`
 -- AUTO_INCREMENT untuk tabel `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT untuk tabel `trainings`
@@ -2215,16 +2701,40 @@ ALTER TABLE `trainings`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT untuk tabel `training_activity_documentations`
+--
+ALTER TABLE `training_activity_documentations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `training_activity_reports`
+--
+ALTER TABLE `training_activity_reports`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `training_activity_report_versions`
+--
+ALTER TABLE `training_activity_report_versions`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `training_certificate_settings`
+--
+ALTER TABLE `training_certificate_settings`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT untuk tabel `training_forum_reads`
 --
 ALTER TABLE `training_forum_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_messages`
 --
 ALTER TABLE `training_messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_stages`
@@ -2287,6 +2797,13 @@ ALTER TABLE `asset_images`
   ADD CONSTRAINT `asset_images_asset_id_foreign` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `asset_loan_requests`
+--
+ALTER TABLE `asset_loan_requests`
+  ADD CONSTRAINT `asset_loan_requests_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `asset_loan_requests_submitted_by_foreign` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
 -- Ketidakleluasaan untuk tabel `attendances`
 --
 ALTER TABLE `attendances`
@@ -2315,6 +2832,13 @@ ALTER TABLE `certification_participants`
 ALTER TABLE `evaluation_forms`
   ADD CONSTRAINT `evaluation_forms_schedule_id_foreign` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `evaluation_forms_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `evaluation_l1_text_summaries`
+--
+ALTER TABLE `evaluation_l1_text_summaries`
+  ADD CONSTRAINT `evaluation_l1_text_summaries_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `evaluation_l1_text_summaries_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `evaluation_questions`
@@ -2403,6 +2927,15 @@ ALTER TABLE `participants`
   ADD CONSTRAINT `participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `participant_certificates`
+--
+ALTER TABLE `participant_certificates`
+  ADD CONSTRAINT `participant_certificates_participant_id_foreign` FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `participant_certificates_training_certificate_setting_id_foreign` FOREIGN KEY (`training_certificate_setting_id`) REFERENCES `training_certificate_settings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `participant_certificates_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `participant_certificates_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
 -- Ketidakleluasaan untuk tabel `partner_submissions`
 --
 ALTER TABLE `partner_submissions`
@@ -2449,6 +2982,34 @@ ALTER TABLE `schedules`
 --
 ALTER TABLE `trainings`
   ADD CONSTRAINT `trainings_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `training_activity_documentations`
+--
+ALTER TABLE `training_activity_documentations`
+  ADD CONSTRAINT `training_activity_documentations_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `training_activity_documentations_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `training_activity_reports`
+--
+ALTER TABLE `training_activity_reports`
+  ADD CONSTRAINT `training_activity_reports_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `training_activity_reports_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `training_activity_report_versions`
+--
+ALTER TABLE `training_activity_report_versions`
+  ADD CONSTRAINT `tar_versions_report_fk` FOREIGN KEY (`training_activity_report_id`) REFERENCES `training_activity_reports` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tar_versions_user_fk` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `training_certificate_settings`
+--
+ALTER TABLE `training_certificate_settings`
+  ADD CONSTRAINT `training_certificate_settings_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `training_certificate_settings_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `training_forum_reads`

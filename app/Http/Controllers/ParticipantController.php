@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
 use App\Models\File;
 use App\Models\Attendance;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Throwable;
 
 class ParticipantController extends Controller
 {
@@ -95,7 +99,16 @@ class ParticipantController extends Controller
 
     public function enrollByCode(Request $request)
     {
-        $request->validate(['invitation_code' => 'required|string']);
+        $request->validate([
+            'invitation_code' => ['required', 'string'],
+            'biodata' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+            'surat_tugas' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+            'pas_foto' => ['required', 'file', 'mimes:jpeg,jpg,png', 'max:5120'],
+        ], [
+            'biodata.required' => 'Dokumen biodata wajib diunggah.',
+            'surat_tugas.required' => 'Surat tugas wajib diunggah.',
+            'pas_foto.required' => 'Pas foto wajib diunggah.',
+        ]);
 
         $enrollments = Participant::with('training')
             ->where('user_id', auth()->id())
@@ -206,13 +219,14 @@ class ParticipantController extends Controller
             return redirect()->back()->with('error', 'Kode Undangan Salah!');
         }
 
-        // OTOMATIS COPY DATA DARI USER KE PARTICIPANT
-        \App\Models\Participant::updateOrCreate(
-            [
+        $storedPaths = [];
+
+        try {
+            DB::transaction(function () use ($request, $training, $user, $id, &$storedPaths) {
+                $participant = Participant::updateOrCreate([
                 'training_id' => $id,
-                'nip_nik' => $user->nip_nik // Kunci utama pencocokan
-            ],
-            [
+                'nip_nik' => $user->nip_nik,
+                ], [
                 'user_id'            => $user->id,
                 'registration_status' => 'pending',
                 'name'               => $user->name,
@@ -220,15 +234,70 @@ class ParticipantController extends Controller
                 'jabatan'            => $user->jabatan,
                 'instansi'           => $user->instansi,
                 'provinsi'           => $user->provinsi,
-                'kabupaten_kota'     => $user->kabupaten_kota,
+                'kota'               => $user->kota,
                 'kecamatan'          => $user->kecamatan,
                 'kelurahan'          => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,
+                ]);
+
+                foreach (['biodata', 'surat_tugas', 'pas_foto'] as $type) {
+                    $storedPaths[] = $this->storeRequirementFile(
+                        $request->file($type), $type, $training, $participant, $user
+                    );
+                }
+            });
+        } catch (Throwable $exception) {
+            foreach ($storedPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+            report($exception);
+
+            return redirect()->back()->withInput($request->only('invitation_code'))
+                ->with('error', 'Pendaftaran gagal disimpan. Silakan coba unggah kembali dokumen Anda.');
+        }
+
+        return redirect()->route('participant.trainings')
+            ->with('success', 'Pendaftaran dan dokumen kelengkapan berhasil dikirim. Silakan menunggu pemeriksaan admin.');
+    }
+
+    private function storeRequirementFile($uploadedFile, string $type, Training $training, Participant $participant, User $user): string
+    {
+        $parentFolder = Folder::firstOrCreate(
+            ['training_id' => $training->id, 'parent_id' => null],
+            [
+                'name' => $training->nama_pelatihan . ' - Angkatan ' . $training->angkatan,
+                'bidang' => $training->bidang,
+                'user_id' => $user->id,
             ]
         );
+        $requirementsFolder = Folder::firstOrCreate([
+            'name' => 'KELENGKAPAN PESERTA',
+            'parent_id' => $parentFolder->id,
+            'training_id' => $training->id,
+            'bidang' => $training->bidang,
+        ], ['user_id' => $user->id]);
+        $participantFolder = Folder::firstOrCreate([
+            'name' => strtoupper($participant->name),
+            'parent_id' => $requirementsFolder->id,
+            'training_id' => $training->id,
+            'bidang' => $training->bidang,
+        ], ['user_id' => $user->id]);
 
-        return redirect()->route('participant.training.show', ['id' => $id, 'tab' => 'kelengkapan'])
-            ->with('success_enroll', 'Pendaftaran Berhasil! Data profil Anda telah disinkronkan ke pelatihan ini.');
+        $extension = strtolower($uploadedFile->getClientOriginalExtension());
+        $fileName = strtoupper($type) . '_' . Str::slug($user->name, '_') . '_' . Str::uuid() . '.' . $extension;
+        $path = $uploadedFile->storeAs('documents', $fileName, 'public');
+        $fileRecord = File::create([
+            'folder_id' => $participantFolder->id,
+            'display_name' => $uploadedFile->getClientOriginalName(),
+            'file_path' => $path,
+            'file_type' => $extension,
+            'file_size' => $uploadedFile->getSize(),
+            'user_id' => $user->id,
+        ]);
+
+        $participant->update([$type . '_file_id' => $fileRecord->id]);
+
+        return $path;
     }
 
     public function showTrainingDetail($id)
@@ -287,21 +356,56 @@ class ParticipantController extends Controller
             ->sortBy('date')
             ->values();
 
-        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays'));
+        $participantCertificate = \App\Models\ParticipantCertificate::where('training_id', $training->id)
+            ->where('participant_id', $participant->id)
+            ->first();
+
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays', 'participantCertificate'));
     }
 
-    public function myHistory()
+    public function myHistory(Request $request)
     {
         $user = auth()->user();
+        $search = trim((string) $request->query('search'));
 
-        $history = Participant::with('training')
-            ->where('user_id', $user->id)
+        $historyItems = Participant::with(['training', 'certificate'])
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+                if (filled($user->nip_nik)) {
+                    $query->orWhere('nip_nik', $user->nip_nik);
+                }
+            })
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereHas('training', function ($training) use ($search) {
+                    $training->where('nama_pelatihan', 'like', '%'.$search.'%')
+                        ->orWhere('bidang', 'like', '%'.$search.'%')
+                        ->orWhere('model', 'like', '%'.$search.'%')
+                        ->orWhereYear('tgl_mulai', is_numeric($search) ? (int) $search : 0);
+                });
+            })
             ->get()
             ->filter(fn ($participant) => $participant->is_core_training_complete)
             ->sortByDesc(fn ($participant) => $participant->training?->tgl_selesai)
             ->values();
 
-        return view('participant.history', compact('history'));
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 10;
+        $history = new \Illuminate\Pagination\LengthAwarePaginator(
+            $historyItems->forPage($page, $perPage)->values(),
+            $historyItems->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+        $summary = [
+            'trainings' => $historyItems->count(),
+            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path))->count(),
+            'latest_year' => $historyItems->first()?->training?->tgl_selesai
+                ? \Carbon\Carbon::parse($historyItems->first()->training->tgl_selesai)->year
+                : null,
+        ];
+
+        return view('participant.history', compact('history', 'summary', 'search'));
     }
 
     // Upload Kelengkapan & Masuk Folder Otomatis

@@ -16,6 +16,7 @@ use App\Models\TrainingForumRead;
 use App\Models\TrainingMessage;
 use App\Models\User;
 use App\Models\AssetBooking;
+use App\Models\AssetLoanRequest;
 use App\Models\AgendaSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -55,6 +56,7 @@ class NotificationCenter
             $items = $items->merge($this->adminPartnerItems($user));
         }
         if (in_array($user->role, ['superadmin', 'admin_aset', 'admin_bidang'], true)) {
+            $items = $items->merge($this->assetLoanItems($user));
             $items = $items->merge($this->assetAgendaItems($user));
         }
 
@@ -101,7 +103,7 @@ class NotificationCenter
     private function participantItems(User $user): Collection
     {
         $items = collect();
-        $participants = Participant::with(['training.schedules'])
+        $participants = Participant::with(['training.schedules', 'certificate'])
             ->where(function ($query) {
                 $query->where('registration_status', 'approved')
                     ->orWhereNull('registration_status');
@@ -118,6 +120,19 @@ class NotificationCenter
             }
 
             $detailUrl = route('participant.training.show', $training->id);
+            $certificate = $participant->certificate;
+            if ($certificate?->final_file_path && !$certificate->downloaded_at) {
+                $items->push($this->item(
+                    'certificate-issued-'.$certificate->id.'-'.$certificate->uploaded_at?->timestamp,
+                    'Sertifikat pelatihan telah terbit',
+                    $training->nama_pelatihan.' - sertifikat Anda sudah tersedia dan dapat diunduh.',
+                    'success',
+                    'bx-medal',
+                    route('participant-certificates.download', $certificate),
+                    'Download sertifikat',
+                    $certificate->uploaded_at?->format('Y-m-d H:i:s')
+                ));
+            }
             $missingDocuments = collect([
                 'Biodata' => $participant->biodata_file_id,
                 'Surat tugas' => $participant->surat_tugas_file_id,
@@ -369,10 +384,7 @@ class NotificationCenter
             ->when($user->role !== 'superadmin', function ($query) use ($user) {
                 $query->where(function ($access) use ($user) {
                     if ($user->role === 'admin_bidang') {
-                        $access->where('created_by', $user->id)
-                            ->orWhere(function ($legacy) use ($user) {
-                                $legacy->whereNull('created_by')->where('bidang', $user->bidang);
-                            });
+                        $access->where('bidang', $user->bidang);
                     } else {
                         $access->whereHas('schedules', fn ($schedule) => $schedule->where('pengajar_id', $user->id))
                             ->orWhereHas('participants', function ($participant) use ($user) {
@@ -441,5 +453,78 @@ class NotificationCenter
             }
         }
         return $items;
+    }
+
+    private function assetLoanItems(User $user): Collection
+    {
+        $items = collect();
+        if (in_array($user->role, ['superadmin', 'admin_aset'], true)) {
+            $pending = AssetLoanRequest::where('status', 'pending')->latest('updated_at')->get();
+            if ($pending->isNotEmpty()) {
+                $items->push($this->item(
+                    'asset-loans-pending-'.$user->id,
+                    'Peminjaman aset menunggu persetujuan',
+                    $pending->count().' pengajuan pelatihan/nonpelatihan perlu diperiksa. Notifikasi akan hilang setelah seluruh pengajuan ditindaklanjuti.',
+                    'warning',
+                    'bx-check-shield',
+                    route('asset-loans.index', ['status' => 'pending']),
+                    'Periksa pengajuan',
+                    $pending->first()?->updated_at?->format('Y-m-d H:i:s')
+                ));
+            }
+        }
+
+        $loanQuery = AssetLoanRequest::with('requestable')->latest('updated_at');
+        if ($user->role === 'superadmin') {
+            $loanQuery->whereIn('status', ['approved', 'revision', 'rejected'])
+                ->where('updated_at', '>=', now('Asia/Jakarta')->subDays(14));
+        } else {
+            $loanQuery->where('submitted_by', $user->id);
+        }
+        $loans = $loanQuery->get();
+        $loans->loadMorph('requestable', [
+            Schedule::class => ['training'],
+            AgendaSchedule::class => ['agenda'],
+        ]);
+
+        $decisionItems = $loans->filter(function ($loan) use ($user) {
+            $source = $loan->requestable;
+            if (!$source) return false;
+            if ($loan->status !== 'approved') return true;
+
+            $end = $source instanceof Schedule
+                ? Carbon::parse($source->date.' '.$source->end_time)
+                : $source?->ends_at;
+            return $end && $end->isFuture();
+        })->map(function ($loan) use ($user) {
+            $source = $loan->requestable;
+            $isTraining = $source instanceof Schedule;
+            $activity = $isTraining ? ($source?->activity ?: 'Sesi pelatihan') : ($source?->title ?: $source?->agenda?->name ?: 'Agenda');
+            $field = $isTraining ? ($source?->training?->bidang ?: '-') : ($source?->agenda?->bidang ?: '-');
+            $sourceUrl = $isTraining ? route('trainings.schedules', $source->training_id) : route('agendas.edit', $source->agenda_id);
+            $url = $user->role === 'superadmin'
+                ? route('asset-loans.index', ['status' => $loan->status])
+                : $sourceUrl;
+            [$title, $message, $level, $action] = match ($loan->status) {
+                'pending' => ['Peminjaman aset sedang diperiksa', $activity.' - pengajuan sudah diterima dan menunggu keputusan pengelola aset.', 'info', 'Lihat pengajuan'],
+                'approved' => ['Peminjaman aset disetujui', $field.' / '.$activity.' - aset telah disetujui dan resmi terjadwal.', 'success', 'Lihat jadwal'],
+                'revision' => ['Peminjaman aset perlu diperbaiki', $field.' / '.$activity.' - '.$loan->review_note, 'warning', $user->role === 'superadmin' ? 'Lihat keputusan' : 'Perbaiki pengajuan'],
+                'rejected' => ['Peminjaman aset ditolak', $field.' / '.$activity.' - '.$loan->review_note, 'danger', 'Tinjau pengajuan'],
+                default => ['Status peminjaman aset diperbarui', $activity, 'info', 'Lihat pengajuan'],
+            };
+
+            return $this->item(
+                'asset-loan-'.$loan->id.'-'.$loan->status,
+                $title,
+                $message,
+                $level,
+                'bx-cube',
+                $url,
+                $action,
+                $loan->updated_at?->format('Y-m-d H:i:s')
+            );
+        })->values();
+
+        return $items->merge($decisionItems);
     }
 }

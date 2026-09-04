@@ -111,6 +111,7 @@
                             <th style="width: 180px;" class="fw-bold">JABATAN</th>
                             <th style="width: 220px;" class="fw-bold">INSTANSI & WILAYAH</th>
                             <th style="width: 120px;" class="fw-bold text-center">KONTAK</th>
+                            <th style="width: 155px;" class="fw-bold text-center">KELENGKAPAN</th>
                             <th style="width: 110px;" class="fw-bold text-center">STATUS</th>
                             <th style="width: 130px;" class="text-center fw-bold">AKSI</th>
                         </tr>
@@ -119,10 +120,12 @@
                         @forelse($participants as $p)
                             <tr class="participant-row">
                                 <td class="align-top text-center">
-                                    @if($p->registration_status === 'pending')
+                                    @if($p->registration_status === 'pending' && $p->has_completed_documents)
                                         <input type="checkbox" class="form-check-input participant-checkbox"
                                                name="participant_ids[]" value="{{ $p->id }}"
                                                form="bulk-approve-form" aria-label="Pilih {{ $p->name }}">
+                                    @elseif($p->registration_status === 'pending')
+                                        <i class="bx bx-error-circle text-danger" title="Dokumen belum lengkap"></i>
                                     @else
                                         <i class="bx bx-check-circle text-success" title="Sudah disetujui"></i>
                                     @endif
@@ -207,6 +210,24 @@
                                     @endif
                                 </td>
 
+                                <!-- Dokumen kelengkapan untuk dasar approval -->
+                                <td class="align-top text-center">
+                                    @if($p->has_completed_documents)
+                                        <div class="dropdown">
+                                            <button type="button" class="btn btn-xs btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bx bx-folder-open me-1"></i>Lihat Dokumen
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" target="_blank" href="{{ route('documents.file.view', $p->biodataFile->id) }}"><i class="bx bx-file me-2"></i>Biodata</a></li>
+                                                <li><a class="dropdown-item" target="_blank" href="{{ route('documents.file.view', $p->suratTugasFile->id) }}"><i class="bx bx-file me-2"></i>Surat Tugas</a></li>
+                                                <li><a class="dropdown-item" target="_blank" href="{{ route('documents.file.view', $p->pasFotoFile->id) }}"><i class="bx bx-image me-2"></i>Pas Foto</a></li>
+                                            </ul>
+                                        </div>
+                                    @else
+                                        <span class="badge bg-label-danger">Belum Lengkap</span>
+                                    @endif
+                                </td>
+
                                 <!-- Kolom Status Approval -->
                                 <td class="align-top text-center">
                                     @if($p->registration_status == 'pending')
@@ -247,7 +268,7 @@
                             </tr>
                             @empty
                         <tr>
-                            <td colspan="9" class="text-center py-5">
+                            <td colspan="10" class="text-center py-5">
                                 <img src="{{ asset('assets/img/illustrations/empty-box.png') }}" width="100" class="mb-3 opacity-50">
                                 <p class="text-muted fw-light">Tidak ada data peserta yang ditemukan.</p>
                             </td>

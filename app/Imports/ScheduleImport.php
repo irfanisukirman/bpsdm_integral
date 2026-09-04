@@ -34,13 +34,25 @@ class ScheduleImport implements ToModel, WithHeadingRow
 
         // Format Waktu
         $startTime = $this->formatTime($row['jam_mulai'] ?? '08:00');
-        $endTime   = $this->formatTime($row['jam_selesai'] ?? '10:00');
+        $typeInput = strtolower(trim($row['jenis_jadwal'] ?? $row['jenis'] ?? 'pembelajaran'));
+        $scheduleType = in_array($typeInput, ['istirahat', 'break', 'jeda', 'ishoma', 'coffee break'], true) ? 'break' : 'learning';
+        $unit = strtoupper(trim($row['satuan'] ?? 'JP'));
+        $unit = in_array($unit, ['JP', 'OJ'], true) ? $unit : 'JP';
+        $amount = isset($row['jumlah']) && is_numeric($row['jumlah'])
+            ? (int) $row['jumlah']
+            : (isset($row['jp']) && is_numeric($row['jp']) ? (int) $row['jp'] : null);
+        $endTime = !empty($row['jam_selesai'])
+            ? $this->formatTime($row['jam_selesai'])
+            : Carbon::parse($startTime)->addMinutes(($amount ?? 0) * ($unit === 'OJ' ? 60 : 45))->format('H:i');
+        if ($scheduleType === 'break' && empty($row['jam_selesai'])) {
+            throw new \InvalidArgumentException('Jam selesai wajib diisi untuk jadwal istirahat.');
+        }
 
         // Pencocokan Pengajar
         $pengajarId = null;
         $pengajarKeyword = trim($row['tenaga_pengajar_fasilitator'] ?? '');
 
-        if (!empty($pengajarKeyword)) {
+        if ($scheduleType === 'learning' && !empty($pengajarKeyword)) {
             $pengajar = User::whereNotIn('role', ['superadmin', 'admin_bidang', 'admin_aset'])
                 ->where(fn ($query) => $query->whereNull('bidang')->orWhere('bidang', ''))
                 ->where(function($q) use ($pengajarKeyword) {
@@ -63,10 +75,12 @@ class ScheduleImport implements ToModel, WithHeadingRow
             'start_time'  => $startTime,
             'end_time'    => $endTime,
             'activity'    => $row['materi_kegiatan'],
-            'jp'          => isset($row['jp']) && is_numeric($row['jp']) ? (int) $row['jp'] : null,
-            'link_zoom'   => !empty($zoomLink) ? trim($zoomLink) : null,
+            'schedule_type' => $scheduleType,
+            'jp'          => $scheduleType === 'learning' ? $amount : null,
+            'duration_unit' => $scheduleType === 'learning' ? $unit : null,
+            'link_zoom'   => $scheduleType === 'learning' && !empty($zoomLink) ? trim($zoomLink) : null,
             'pengajar_id' => $pengajarId,
-            'pic'         => $row['penanggung_jawab_pic'] ?? 'Panitia',
+            'pic'         => $scheduleType === 'learning' ? ($row['penanggung_jawab_pic'] ?? 'Panitia') : 'Istirahat',
         ]);
     }
 

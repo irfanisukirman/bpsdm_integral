@@ -45,13 +45,140 @@ class EvaluationLevel34Controller extends Controller
         return view('evaluasi.l34_index', compact('training', 'participants'));
     }
 
+    public function dashboard($id)
+    {
+        $training = Training::with('participants')->findOrFail($id);
+        abort_unless(Auth::user()->role === 'superadmin' || Auth::user()->bidang === $training->bidang, 403);
+
+        $roleLabels = collect(['mandiri' => 'Alumni / Mandiri', 'atasan' => 'Atasan Langsung', 'rekan' => 'Rekan Kerja']);
+        $roleQuestions = $roleLabels->mapWithKeys(fn ($label, $role) => [
+            $role => Question::forTraining($training, 'l34_'.$role)
+                ->whereIn('sub_category', ['Perubahan Perilaku', 'Dampak Pelatihan'])
+                ->orderBy('sub_category')->orderBy('id')->get(),
+        ]);
+        $activeRoles = $roleLabels->filter(fn ($label, $role) => $roleQuestions[$role]->isNotEmpty());
+        $results = EvaluationResultL34::with(['question', 'participant'])
+            ->where('training_id', $training->id)
+            ->whereIn('question_id', $roleQuestions->flatten()->pluck('id'))
+            ->get();
+        $toScore = static function ($result): ?float {
+            if ($result->score !== null && is_numeric($result->score)) return (float) $result->score;
+            return match (strtolower(trim((string) $result->note))) {
+                'ya', 'sangat baik' => 100, 'baik' => 80, 'cukup' => 60,
+                'kurang' => 40, 'tidak', 'sangat kurang' => 20, default => null,
+            };
+        };
+        $scoreCategory = static fn (?float $score): string => $score === null ? 'Belum dapat dinilai' : match (true) {
+            $score > 90 => 'Sangat Baik', $score > 80 => 'Baik', $score > 70 => 'Cukup',
+            $score > 60 => 'Kurang', default => 'Sangat Kurang',
+        };
+
+        $participantTotal = $training->participants->count();
+        $respondentsByRole = $activeRoles->mapWithKeys(fn ($label, $role) => [
+            $role => $results->where('evaluator_role', $role)->pluck('participant_id')->unique()->count(),
+        ]);
+        $coverageByRole = $respondentsByRole->map(fn ($count) => $participantTotal ? round($count / $participantTotal * 100, 1) : 0);
+        $targetPairs = $participantTotal * $activeRoles->count();
+        $completedPairs = $results->map(fn ($result) => $result->participant_id.'|'.$result->evaluator_role)->unique()->count();
+        $overallCoverage = $targetPairs ? round($completedPairs / $targetPairs * 100, 1) : 0;
+        $fullyAssessed = $activeRoles->isEmpty() ? 0 : $training->participants->filter(function ($participant) use ($results, $activeRoles) {
+            $filled = $results->where('participant_id', $participant->id)->pluck('evaluator_role')->unique();
+            return $activeRoles->keys()->diff($filled)->isEmpty();
+        })->count();
+
+        $canonicalRole = $activeRoles->keys()->first();
+        $canonicalQuestions = $canonicalRole ? $roleQuestions[$canonicalRole] : collect();
+        $buildIndicators = function (string $subCategory) use ($canonicalQuestions, $roleQuestions, $activeRoles, $results, $toScore) {
+            return $canonicalQuestions->where('sub_category', $subCategory)->values()->map(function ($question) use ($roleQuestions, $activeRoles, $results, $toScore) {
+                $roleScores = $activeRoles->mapWithKeys(function ($label, $role) use ($question, $roleQuestions, $results, $toScore) {
+                    $ids = $roleQuestions[$role]->where('sub_category', $question->sub_category)
+                        ->where('question_text', $question->question_text)->pluck('id');
+                    return [$role => $results->where('evaluator_role', $role)->whereIn('question_id', $ids)
+                        ->map($toScore)->filter(fn ($score) => $score !== null)->values()];
+                });
+                $combined = $roleScores->flatten()->values();
+                return ['label' => $question->question_text,
+                    'average' => $combined->isNotEmpty() ? round($combined->avg(), 1) : null,
+                    'responses' => $combined->count(),
+                    'roles' => $roleScores->map(fn ($scores) => $scores->isNotEmpty() ? round($scores->avg(), 1) : null)];
+            });
+        };
+        $l3Indicators = $buildIndicators('Perubahan Perilaku');
+        $l4Indicators = $buildIndicators('Dampak Pelatihan');
+        $l3Values = $l3Indicators->pluck('average')->filter(fn ($value) => $value !== null);
+        $l4Values = $l4Indicators->pluck('average')->filter(fn ($value) => $value !== null);
+        $l3Average = $l3Values->isNotEmpty() ? round($l3Values->avg(), 1) : null;
+        $l4Average = $l4Values->isNotEmpty() ? round($l4Values->avg(), 1) : null;
+        $averagesByRole = $activeRoles->mapWithKeys(function ($label, $role) use ($results, $toScore) {
+            return [$role => collect(['Perubahan Perilaku', 'Dampak Pelatihan'])->mapWithKeys(function ($subCategory) use ($results, $role, $toScore) {
+                $scores = $results->where('evaluator_role', $role)
+                    ->filter(fn ($result) => $result->question?->sub_category === $subCategory)
+                    ->map($toScore)->filter(fn ($score) => $score !== null);
+                return [$subCategory => $scores->isNotEmpty() ? round($scores->avg(), 1) : null];
+            })];
+        });
+        $impactDistribution = collect(['Sangat Baik'=>0, 'Baik'=>0, 'Cukup'=>0, 'Kurang'=>0, 'Sangat Kurang'=>0]);
+        $training->participants->each(function ($participant) use ($results, $toScore, $scoreCategory, $impactDistribution) {
+            $scores = $results->where('participant_id', $participant->id)
+                ->filter(fn ($result) => $result->question?->sub_category === 'Dampak Pelatihan')
+                ->map($toScore)->filter(fn ($score) => $score !== null);
+            if ($scores->isNotEmpty()) $impactDistribution[$scoreCategory($scores->avg())]++;
+        });
+
+        $lowestL3 = $l3Indicators->whereNotNull('average')->sortBy('average')->first();
+        $lowestL4 = $l4Indicators->whereNotNull('average')->sortBy('average')->first();
+        $recommendations = collect();
+        $coverageByRole->each(function ($coverage, $role) use ($recommendations, $roleLabels, $participantTotal, $respondentsByRole) {
+            if ($coverage < 100) $recommendations->push(['title' => 'Lengkapi perspektif '.$roleLabels[$role],
+                'detail' => $respondentsByRole[$role].' dari '.$participantTotal.' alumni telah dinilai ('.$coverage.'%). Kirim pengingat dan verifikasi alasan ketidakisian.',
+                'icon' => 'bx-user-check', 'color' => $coverage < 75 ? 'danger' : 'warning']);
+        });
+        foreach ([[$lowestL3, 'Level 3', 'pendampingan penerapan kompetensi dan dukungan atasan'], [$lowestL4, 'Level 4', 'penyelarasan hasil pelatihan dengan indikator kinerja unit']] as [$item, $level, $action]) {
+            if ($item && $item['average'] <= 80) $recommendations->push(['title' => 'Prioritaskan '.$level.': '.$item['label'],
+                'detail' => 'Skor '.$item['average'].'/100. Susun '.$action.' serta ukur kembali dalam 1-3 bulan.',
+                'icon' => 'bx-target-lock', 'color' => 'warning']);
+        }
+        if ($recommendations->isEmpty()) $recommendations->push(['title' => 'Pertahankan dan replikasi praktik baik',
+            'detail' => 'Cakupan respons dan indikator utama telah memadai. Dokumentasikan bukti perubahan serta replikasi praktik efektif pada unit kerja.',
+            'icon' => 'bx-badge-check', 'color' => 'success']);
+        $executiveNarrative = $l3Average !== null && $l4Average !== null
+            ? 'Perubahan perilaku berada pada kategori '.$scoreCategory($l3Average).' ('.$l3Average.'/100) dan dampak pelatihan pada kategori '.$scoreCategory($l4Average).' ('.$l4Average.'/100). Cakupan penilaian lintas perspektif mencapai '.$overallCoverage.'%.'
+            : 'Data Level 3 dan Level 4 belum cukup untuk menyusun kesimpulan hasil. Prioritaskan kelengkapan respons dari seluruh perspektif yang berlaku.';
+
+        return view('evaluasi.l34_dashboard', compact('training', 'roleLabels', 'activeRoles',
+            'participantTotal', 'respondentsByRole', 'coverageByRole', 'overallCoverage', 'fullyAssessed',
+            'l3Average', 'l4Average', 'scoreCategory', 'averagesByRole', 'l3Indicators', 'l4Indicators',
+            'impactDistribution', 'lowestL3', 'lowestL4', 'recommendations', 'executiveNarrative'));
+    }
+
     /**
      * SISI PUBLIK: Halaman Gateway (Pilih Peran)
      */
     public function publicGateway($training_id)
     {
         $training = Training::findOrFail($training_id);
-        return view('evaluasi.l34_public_gateway', compact('training'));
+        $roleOptions = collect([
+            'mandiri' => [
+                'label' => 'PESERTA / ALUMNI',
+                'icon' => 'bx-user-pin',
+                'color' => 'primary',
+                'description' => 'Isi penilaian berdasarkan pengalaman Anda setelah mengikuti pelatihan.',
+            ],
+            'atasan' => [
+                'label' => 'ATASAN LANGSUNG',
+                'icon' => 'bx-briefcase',
+                'color' => 'info',
+                'description' => 'Berikan penilaian atas perubahan perilaku dan kinerja alumni di tempat kerja.',
+            ],
+            'rekan' => [
+                'label' => 'REKAN KERJA',
+                'icon' => 'bx-group',
+                'color' => 'success',
+                'description' => 'Nilai perubahan yang Anda amati saat bekerja bersama alumni.',
+            ],
+        ])->filter(fn ($option, $role) => Question::forTraining($training, 'l34_'.$role)->exists());
+
+        return view('evaluasi.l34_public_gateway', compact('training', 'roleOptions'));
     }
 
     /**
@@ -61,6 +188,12 @@ class EvaluationLevel34Controller extends Controller
     {
         abort_unless(in_array($role, ['mandiri', 'rekan', 'atasan'], true), 404);
         $training = Training::findOrFail($training_id);
+        $categorySearch = 'l34_' . strtolower($role);
+        abort_unless(
+            Question::forTraining($training, $categorySearch)->exists(),
+            404,
+            'Instrumen penilaian untuk peran ini belum tersedia.'
+        );
         
         // 1. Ambil ID peserta yang SUDAH mengisi untuk role ini
         $filledIds = EvaluationResultL34::where('evaluator_role', $role)
@@ -75,13 +208,33 @@ class EvaluationLevel34Controller extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $selfParticipant = null;
+        $isSelfService = $role === 'mandiri' && Auth::check() && Auth::user()->role === 'participant';
+        if ($isSelfService) {
+            $user = Auth::user();
+            $selfParticipant = Participant::with('user')
+                ->where('training_id', $training_id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->first();
+
+            abort_unless($selfParticipant, 403, 'Akun Anda tidak terdaftar sebagai peserta pelatihan ini.');
+            $formParticipants = $participants->where('id', $selfParticipant->id)->values();
+        } else {
+            $formParticipants = $participants;
+        }
+
         // 3. Peserta yang SUDAH mengisi (Untuk Daftar Antrean/Progres)
         $alreadyFilled = Participant::where('training_id', $training_id)
             ->whereIn('id', $filledIds)
             ->orderBy('name', 'asc')
             ->get();
 
-        $categorySearch = 'l34_' . strtolower($role);
         $questions = Question::forTraining($training, $categorySearch)
             ->orderBy('id')
             ->get()
@@ -94,7 +247,7 @@ class EvaluationLevel34Controller extends Controller
         ];
 
         return view('evaluasi.l34_public_form', compact(
-            'training', 'participants', 'alreadyFilled', 'role', 'questions', 'questionSections'
+            'training', 'participants', 'formParticipants', 'alreadyFilled', 'role', 'questions', 'questionSections', 'selfParticipant', 'isSelfService'
         ));
     }
 
@@ -131,7 +284,21 @@ class EvaluationLevel34Controller extends Controller
 
         $request->validate($rules);
         $training = Training::findOrFail($training_id);
-        Participant::where('training_id', $training_id)->findOrFail($request->participant_id);
+        if ($role === 'mandiri' && Auth::check() && Auth::user()->role === 'participant') {
+            $user = Auth::user();
+            $participant = Participant::where('training_id', $training_id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->firstOrFail();
+            abort_unless((int) $participant->id === $request->integer('participant_id'), 403, 'Anda hanya dapat mengisi evaluasi mandiri atas nama sendiri.');
+        } else {
+            Participant::where('training_id', $training_id)->findOrFail($request->participant_id);
+        }
         $applicableQuestions = Question::forTraining($training, 'l34_' . $role)->get();
         $allowedQuestionIds = $applicableQuestions
             ->whereIn('id', array_keys($request->scores))

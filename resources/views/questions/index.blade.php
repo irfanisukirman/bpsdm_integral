@@ -83,7 +83,19 @@
 </div>
 @endif
 
-<div class="d-flex justify-content-end mb-3">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <form id="bulkDeleteQuestionsForm" action="{{ route('questions.destroy-selected') }}" method="POST" onsubmit="return confirmSelectedQuestions()">
+            @csrf @method('DELETE')
+            <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
+            @if($selectedProgram)<input type="hidden" name="program" value="{{ $selectedProgram }}">@endif
+            <button type="submit" id="deleteSelectedQuestions" class="btn btn-danger" disabled>
+                <i class="bx bx-trash me-1"></i>Hapus Terpilih
+                <span id="selectedQuestionCount" class="badge bg-white text-danger ms-1">0</span>
+            </button>
+        </form>
+        <small class="text-muted d-none d-md-inline">Centang butir yang ingin dihapus.</small>
+    </div>
     <form action="{{ route('questions.destroy-bundle') }}" method="POST"
           onsubmit="return confirm('Hapus seluruh pertanyaan evaluasi pada bidang ini? Semua jawaban yang terkait dengan pertanyaan tersebut juga akan dihapus permanen.')">
         @csrf @method('DELETE')
@@ -226,6 +238,9 @@
         <table class="table table-hover" style="table-layout: fixed; width: 100%;">
             <thead class="table-light">
                 <tr>
+                    <th style="width: 52px;" class="text-center">
+                        <input type="checkbox" id="selectAllQuestions" class="form-check-input" title="Pilih semua pertanyaan yang tampil" aria-label="Pilih semua pertanyaan">
+                    </th>
                     <th style="width: 240px;">Bidang</th>
                     <th style="width: 190px;">Klasifikasi</th>
                     <th>Pertanyaan & Preview</th>
@@ -241,7 +256,10 @@
                         $q->type !== 'ya_tidak')
                         
                         @php $count++; @endphp
-                        <tr>
+                        <tr class="question-row">
+                            <td class="text-center align-top">
+                                <input type="checkbox" name="question_ids[]" value="{{ $q->id }}" form="bulkDeleteQuestionsForm" class="form-check-input question-select" aria-label="Pilih pertanyaan {{ $count }}">
+                            </td>
                             <td class="align-top"><span class="badge bg-label-primary text-wrap text-start">{{ $q->bidang ?: $q->training_type }}</span></td>
                             <td class="align-top text-wrap">
                                 <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
@@ -297,7 +315,7 @@
                 @endforeach
                 
                 @if($count == 0)
-                <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3, L4).</td></tr>
+                <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3, L4).</td></tr>
                 @endif
             </tbody>
         </table>
@@ -557,8 +575,42 @@
         $('#duplicateSourceBidang').val(sourceBidang);
     }
 
+    function updateQuestionSelection() {
+        const checkboxes = Array.from(document.querySelectorAll('.question-select'));
+        const selected = checkboxes.filter(checkbox => checkbox.checked);
+        const selectAll = document.getElementById('selectAllQuestions');
+        const deleteButton = document.getElementById('deleteSelectedQuestions');
+        const countBadge = document.getElementById('selectedQuestionCount');
+
+        if (selectAll) {
+            selectAll.checked = checkboxes.length > 0 && selected.length === checkboxes.length;
+            selectAll.indeterminate = selected.length > 0 && selected.length < checkboxes.length;
+        }
+        if (deleteButton) deleteButton.disabled = selected.length === 0;
+        if (countBadge) countBadge.textContent = selected.length;
+
+        checkboxes.forEach(checkbox => {
+            checkbox.closest('.question-row')?.classList.toggle('table-active', checkbox.checked);
+        });
+    }
+
+    function confirmSelectedQuestions() {
+        const total = document.querySelectorAll('.question-select:checked').length;
+        if (total === 0) return false;
+        return confirm(`Hapus ${total} pertanyaan terpilih? Semua jawaban yang terkait juga akan dihapus permanen.`);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         syncMethodField('create');
+
+        const selectAll = document.getElementById('selectAllQuestions');
+        const checkboxes = document.querySelectorAll('.question-select');
+        selectAll?.addEventListener('change', function() {
+            checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+            updateQuestionSelection();
+        });
+        checkboxes.forEach(checkbox => checkbox.addEventListener('change', updateQuestionSelection));
+        updateQuestionSelection();
     });
 </script>
 @endpush

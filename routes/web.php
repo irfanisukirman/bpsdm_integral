@@ -27,7 +27,10 @@ use App\Http\Controllers\PengajarController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TrainingForumController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetLoanRequestController;
 use App\Http\Controllers\CertificationController;
+use App\Http\Controllers\TrainingCertificateController;
+use App\Http\Controllers\TrainingActivityReportController;
 use App\Http\Controllers\PublicCertificationBiodataController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PartnerSubmissionController;
@@ -112,6 +115,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('certification-participants/{participant}/result', [CertificationController::class, 'updateResult'])->name('certifications.participants.result');
     Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
     Route::get('assets/monitoring', [AssetController::class, 'monitoring'])->name('assets.monitoring');
+    Route::get('assets/persetujuan', [AssetLoanRequestController::class, 'index'])->name('asset-loans.index');
+    Route::get('assets/persetujuan/{loan}/surat', [AssetLoanRequestController::class, 'document'])->name('asset-loans.document');
+    Route::put('assets/persetujuan/{loan}', [AssetLoanRequestController::class, 'review'])->name('asset-loans.review');
+    Route::get('monitoring/jadwal-harian', [AssetController::class, 'dailySchedule'])->name('daily-schedule.index');
     // Jangan gunakan URI tepat /assets karena bertabrakan dengan folder public/assets.
     Route::get('assets/kelola', [AssetController::class, 'index'])->name('assets.index');
     Route::post('assets/kelola', [AssetController::class, 'store'])->name('assets.store');
@@ -180,6 +187,28 @@ Route::middleware(['auth'])->group(function () {
 
     // --- 03 & 04. KELOLA PELATIHAN ---
     Route::resource('trainings', TrainingController::class);
+    Route::get('monitoring-pengajar', [TrainingController::class, 'teacherMonitoring'])->name('teacher-monitoring.index');
+    Route::get('monitoring-pengajar/export', [TrainingController::class, 'exportTeacherMonitoring'])->name('teacher-monitoring.export');
+    Route::get('trainings/{training}/certificates', [TrainingCertificateController::class, 'index'])->name('training-certificates.index');
+    Route::get('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'index'])->name('training-activity-report.index');
+    Route::put('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'update'])->name('training-activity-report.update');
+    Route::post('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'uploadTemplate'])->name('training-activity-report.template.upload');
+    Route::delete('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'resetTemplate'])->name('training-activity-report.template.reset');
+    Route::get('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'downloadTemplate'])->name('training-activity-report.template.download');
+    Route::post('trainings/{training}/activity-report/photos', [TrainingActivityReportController::class, 'storePhotos'])->name('training-activity-report.photos.store');
+    Route::put('activity-report/photos/{documentation}', [TrainingActivityReportController::class, 'updatePhoto'])->name('training-activity-report.photos.update');
+    Route::delete('activity-report/photos/{documentation}', [TrainingActivityReportController::class, 'destroyPhoto'])->name('training-activity-report.photos.destroy');
+    Route::get('activity-report/photos/{documentation}', [TrainingActivityReportController::class, 'viewPhoto'])->name('training-activity-report.photos.view');
+    Route::post('trainings/{training}/activity-report/generate', [TrainingActivityReportController::class, 'generate'])->name('training-activity-report.generate');
+    Route::get('activity-report/versions/{version}/{format}', [TrainingActivityReportController::class, 'downloadVersion'])->name('training-activity-report.versions.download');
+    Route::post('trainings/{training}/certificates/setting', [TrainingCertificateController::class, 'storeSetting'])->name('training-certificates.setting');
+    Route::get('trainings/{training}/certificates/template', [TrainingCertificateController::class, 'downloadTemplate'])->name('training-certificates.template');
+    Route::post('trainings/{training}/certificates/generate', [TrainingCertificateController::class, 'generate'])->name('training-certificates.generate');
+    Route::post('trainings/{training}/certificates/final-zip', [TrainingCertificateController::class, 'uploadFinalZip'])->name('training-certificates.final-zip');
+    Route::post('participant-certificates/{certificate}/final', [TrainingCertificateController::class, 'uploadFinal'])->name('training-certificates.final');
+    Route::get('participant-certificates/{certificate}/download', [TrainingCertificateController::class, 'downloadFinal'])->name('participant-certificates.download');
+    Route::get('jadwal-pengajar', [TrainingController::class, 'teacherSchedulesGlobal'])->name('teacher-schedules.index');
+    Route::get('jadwal-pengajar/export', [TrainingController::class, 'exportTeacherSchedulesGlobal'])->name('teacher-schedules.export');
 
     // Kelola Dokumen & Folder
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
@@ -200,6 +229,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
     Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
     Route::delete('questions/delete-bundle', [QuestionController::class, 'destroyBundle'])->name('questions.destroy-bundle');
+    Route::delete('questions/delete-selected', [QuestionController::class, 'destroySelected'])->name('questions.destroy-selected');
     Route::post('questions/duplicate-bundle', [QuestionController::class, 'duplicateBundle'])->name('questions.duplicate-bundle');
     Route::post('questions/{question}/duplicate', [QuestionController::class, 'duplicateQuestion'])->name('questions.duplicate');
     Route::resource('questions', QuestionController::class);
@@ -214,9 +244,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-l34', [EvaluationLevel34Controller::class, 'exportExcel'])->name('evall34.export');
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
     Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
+    Route::get('trainings/{id}/evaluasi-l12/dashboard', [EvaluationLevel12ReportController::class, 'dashboard'])->name('evall12.dashboard');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
-    Route::get('trainings/{id}/monitoring-pengajar', [TrainingController::class, 'teacherMonitoring'])->name('trainings.teacher-monitoring');
+    Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');
     Route::delete('participants/{id}', [TrainingController::class, 'destroyParticipant'])->name('participants.destroy');
@@ -236,6 +267,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
+    Route::get('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'organizerTextSummary'])->name('evall1.organizer-summary');
+    Route::put('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'storeOrganizerTextSummary'])->name('evall1.organizer-summary.store');
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
@@ -304,6 +337,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Level 3 & 4: Impact (360)
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
+    Route::get('trainings/{id}/evaluasi-l34/dashboard', [EvaluationLevel34Controller::class, 'dashboard'])->name('evall34.dashboard');
     Route::get('trainings/{id}/evaluasi-l34', [EvaluationLevel34Controller::class, 'index'])->name('evall34.index'); // Detail L34
 
     // Kelola Alumni

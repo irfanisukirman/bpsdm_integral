@@ -43,6 +43,21 @@ class Participant extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function biodataFile()
+    {
+        return $this->belongsTo(File::class, 'biodata_file_id');
+    }
+
+    public function suratTugasFile()
+    {
+        return $this->belongsTo(File::class, 'surat_tugas_file_id');
+    }
+
+    public function pasFotoFile()
+    {
+        return $this->belongsTo(File::class, 'pas_foto_file_id');
+    }
+
     /**
      * Menghitung rata-rata skor Level 4 (Dampak)
      */
@@ -72,6 +87,11 @@ class Participant extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function certificate()
+    {
+        return $this->hasOne(ParticipantCertificate::class, 'participant_id');
     }
 
     public function hasFilledL34($role)

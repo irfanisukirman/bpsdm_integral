@@ -78,7 +78,16 @@
                             </div>
                         </td>
                         <td>
-                            <div class="dropdown">
+                            <div class="d-flex align-items-center gap-2">
+                                @if($form->type === 'penyelenggara')
+                                    <a href="{{ route('evall1.organizer-summary', $training->id) }}" class="btn btn-sm btn-outline-warning text-nowrap">
+                                        <i class="bx bx-message-square-detail me-1"></i>Rangkuman
+                                        @if($organizerTextResponsesCount > 0)
+                                            <span class="badge bg-warning text-dark ms-1">{{ $organizerTextResponsesCount }}</span>
+                                        @endif
+                                    </a>
+                                @endif
+                                <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ $publicLink }}')">
@@ -98,6 +107,7 @@
                                         @csrf @method('DELETE')
                                         <button type="submit" class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i> Hapus Form</button>
                                     </form>
+                                </div>
                                 </div>
                             </div>
                         </td>

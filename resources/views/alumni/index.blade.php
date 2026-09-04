@@ -9,13 +9,24 @@
                 <span class="text-muted fw-light">INTEGRAL /</span> Analitik Data Alumni
             </h4>
             <div class="d-flex gap-2">
-                <a href="{{ route('alumni.export') }}" class="btn btn-success shadow-sm">
+                <a href="{{ route('alumni.export', ['year' => $year, 'institution' => $institutionFilter, 'minimum_frequency' => $minimumFrequency]) }}" class="btn btn-success shadow-sm">
                     <i class="bx bxs-file-export me-1"></i> Export Statistik Excel
                 </a>
                 <span class="badge bg-primary"><br>Total: {{ $totalAlumni }} Alumni</span>
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-2">
+                <ul class="nav nav-pills flex-column flex-md-row gap-2">
+                    <li class="nav-item"><a class="nav-link {{ $analysisTab === 'overview' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'overview']) }}"><i class="bx bx-bar-chart-alt-2 me-1"></i>Data Alumni</a></li>
+                    <li class="nav-item"><a class="nav-link {{ $analysisTab === 'repeat' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'repeat', 'year' => $year]) }}"><i class="bx bx-repeat me-1"></i>Peserta Berulang</a></li>
+                    <li class="nav-item"><a class="nav-link {{ $analysisTab === 'institution' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'institution', 'year' => $year]) }}"><i class="bx bx-buildings me-1"></i>Pemerataan Instansi</a></li>
+                </ul>
+            </div>
+        </div>
+
+        @if($analysisTab === 'overview')
         <div class="row">
             <!-- 1. GENDER & 3T (Pie & Donut) -->
             <div class="col-md-6 col-lg-4 mb-4">
@@ -138,6 +149,59 @@
                 </div>
             </div>
         </div>
+        @else
+            <div class="alert alert-info border-0 shadow-sm d-flex gap-2 align-items-start">
+                <i class="bx bx-info-circle fs-4 flex-shrink-0"></i>
+                <div><strong>Indikator informasi, bukan larangan.</strong><div class="small">Data ini membantu melihat pemerataan kesempatan. Keikutsertaan berulang tetap dapat dibenarkan berdasarkan kebutuhan kompetensi dan penugasan.</div></div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                @foreach([
+                    ['label'=>'Peserta Unik','value'=>$fairnessSummary['unique_people'],'suffix'=>'orang','icon'=>'bx-group','color'=>'primary'],
+                    ['label'=>'Mengikuti > 1 Pelatihan','value'=>$fairnessSummary['repeat_people'],'suffix'=>'orang','icon'=>'bx-repeat','color'=>'warning'],
+                    ['label'=>'Persentase Berulang','value'=>$fairnessSummary['repeat_percentage'],'suffix'=>'%','icon'=>'bx-pie-chart-alt','color'=>'info'],
+                    ['label'=>'Frekuensi Tertinggi','value'=>$fairnessSummary['highest_frequency'],'suffix'=>'pelatihan','icon'=>'bx-up-arrow-alt','color'=>'danger'],
+                ] as $stat)
+                    <div class="col-6 col-xl-3"><div class="card h-100 border-0 shadow-sm"><div class="card-body p-3 p-md-4"><span class="avatar-initial rounded bg-label-{{ $stat['color'] }} p-2 d-inline-flex mb-3"><i class="bx {{ $stat['icon'] }} fs-4"></i></span><small class="text-muted d-block">{{ $stat['label'] }}</small><h3 class="fw-bold mb-0">{{ number_format($stat['value'], $stat['suffix']==='%' ? 1 : 0, ',', '.') }} <small class="fs-6 text-muted">{{ $stat['suffix'] }}</small></h3></div></div></div>
+                @endforeach
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header border-bottom"><h6 class="fw-bold mb-0"><i class="bx bx-filter-alt me-1"></i>Filter Analisis</h6></div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3 align-items-end">
+                        <input type="hidden" name="analysis_tab" value="{{ $analysisTab }}">
+                        <div class="col-md-2"><label class="form-label">Tahun</label><select name="year" class="form-select">@foreach($availableYears as $yearOption)<option value="{{ $yearOption }}" @selected($year === $yearOption)>{{ $yearOption }}</option>@endforeach</select></div>
+                        <div class="col-md-4"><label class="form-label">Instansi</label><select name="institution" class="form-select"><option value="">Semua instansi</option>@foreach($institutionOptions as $institution)<option value="{{ $institution }}" @selected($institutionFilter === $institution)>{{ $institution }}</option>@endforeach</select></div>
+                        @if($analysisTab === 'repeat')<div class="col-md-2"><label class="form-label">Minimal Pelatihan</label><input type="number" name="minimum_frequency" min="2" max="20" class="form-control" value="{{ $minimumFrequency }}"></div>@endif
+                        <div class="col-md-3"><label class="form-label">Cari Peserta</label><input type="search" name="search" class="form-control" value="{{ $search }}" placeholder="Nama atau NIP/NIK"></div>
+                        <div class="col-md-auto"><button class="btn btn-primary"><i class="bx bx-search me-1"></i>Terapkan</button></div>
+                    </form>
+                </div>
+            </div>
+
+            @if($analysisTab === 'repeat')
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header border-bottom d-flex justify-content-between align-items-center"><div><h5 class="fw-bold mb-1">Frekuensi Keikutsertaan</h5><small class="text-muted">Peserta yang mengikuti minimal {{ $minimumFrequency }} pelatihan pada {{ $year }}.</small></div><span class="badge bg-label-primary">{{ $repeatedPeople->count() }} peserta</span></div>
+                    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Peserta</th><th>Instansi</th><th class="text-center">Jumlah</th><th>Bidang Pelatihan</th><th>Pelatihan Terakhir</th><th>Indikator</th><th>Aksi</th></tr></thead><tbody>
+                        @forelse($repeatedPeople as $index => $person)
+                            @php $indicator = $person['frequency'] >= 4 ? ['Prioritas Pemeriksaan','danger'] : ($person['frequency'] >= 3 ? ['Sering Mengikuti','warning'] : ['Perlu Diperhatikan','info']); @endphp
+                            <tr><td><strong>{{ $person['name'] }}</strong><br><small class="text-muted">NIP/NIK: {{ $person['nip_nik'] }}</small></td><td>{{ $person['institution'] }}</td><td class="text-center"><span class="badge bg-label-primary fs-6">{{ $person['frequency'] }}</span></td><td>@foreach($person['fields'] as $field)<span class="badge bg-label-secondary me-1 mb-1">{{ $field }}</span>@endforeach</td><td>{{ $person['last_training']?->nama_pelatihan ?: '-' }}<br><small class="text-muted">{{ $person['last_training']?->tgl_mulai ? \Carbon\Carbon::parse($person['last_training']->tgl_mulai)->translatedFormat('d M Y') : '-' }}</small></td><td><span class="badge bg-label-{{ $indicator[1] }}">{{ $indicator[0] }}</span></td><td><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#historyModal{{ $index }}"><i class="bx bx-history me-1"></i>Riwayat</button></td></tr>
+                        @empty<tr><td colspan="7" class="text-center text-muted py-5"><i class="bx bx-check-circle fs-1 d-block mb-2"></i>Tidak ada peserta berulang sesuai filter.</td></tr>@endforelse
+                    </tbody></table></div>
+                </div>
+                @foreach($repeatedPeople as $index => $person)
+                    <div class="modal fade" id="historyModal{{ $index }}" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><h5 class="modal-title">Riwayat Pelatihan {{ $year }}</h5><small class="text-muted">{{ $person['name'] }} | {{ $person['nip_nik'] }}</small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="list-group list-group-flush">@foreach($person['trainings'] as $record)<div class="list-group-item px-0 py-3"><div class="d-flex justify-content-between gap-3"><div><strong>{{ $record->training?->nama_pelatihan }}</strong><div class="small text-muted mt-1">{{ $record->training?->bidang }} | {{ $record->training?->tgl_mulai ? \Carbon\Carbon::parse($record->training->tgl_mulai)->translatedFormat('d F Y') : '-' }}</div></div><span class="badge bg-label-primary align-self-start">{{ ucfirst($record->registration_status) }}</span></div></div>@endforeach</div></div></div></div></div>
+                @endforeach
+            @else
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Pemerataan Perwakilan Instansi</h5><small class="text-muted">Rasio = peserta unik dibagi total keikutsertaan. Semakin rendah, semakin sering kuota diisi orang yang sama.</small></div>
+                    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Instansi</th><th class="text-center">Total Keikutsertaan</th><th class="text-center">Peserta Unik</th><th class="text-center">Peserta Berulang</th><th style="min-width:220px">Rasio Pemerataan</th><th>Status</th></tr></thead><tbody>
+                        @forelse($institutionRows as $row)<tr><td><strong>{{ $row['institution'] }}</strong></td><td class="text-center">{{ $row['participations'] }}</td><td class="text-center">{{ $row['uniquePeople'] }}</td><td class="text-center">{{ $row['repeatPeople'] }}</td><td><div class="d-flex justify-content-between small mb-1"><span>Peserta unik</span><strong>{{ $row['ratio'] }}%</strong></div><div class="progress" style="height:8px"><div class="progress-bar bg-{{ $row['color'] }}" style="width:{{ $row['ratio'] }}%"></div></div></td><td><span class="badge bg-label-{{ $row['color'] }}">{{ $row['label'] }}</span></td></tr>@empty<tr><td colspan="6" class="text-center text-muted py-5">Data instansi tidak ditemukan.</td></tr>@endforelse
+                    </tbody></table></div>
+                </div>
+            @endif
+        @endif
     </div>
 
     @push('css')
@@ -182,6 +246,7 @@
     @endpush
 
     @push('js')
+        @if($analysisTab === 'overview')
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
@@ -596,5 +661,6 @@
                 }
             });
         </script>
+        @endif
     @endpush
 @endsection

@@ -97,11 +97,31 @@ class AttendanceController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        // Jika form dibuka dari halaman detail peserta, pilih otomatis nama
-        // peserta tersebut selama ia memang terdaftar dan belum presensi.
-        $selectedParticipantId = $request->integer('participant_id');
-        if (!$notAttended->contains('id', $selectedParticipantId)) {
-            $selectedParticipantId = null;
+        // Akun peserta hanya boleh mengisi presensi untuk dirinya sendiri.
+        // Daftar progres tetap memuat seluruh peserta agar dapat saling mengingatkan.
+        $selfParticipant = null;
+        $isSelfService = Auth::check() && Auth::user()->role === 'participant';
+        if ($isSelfService) {
+            $user = Auth::user();
+            $selfParticipant = Participant::where('training_id', $training_id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->first();
+
+            abort_unless($selfParticipant, 403, 'Akun Anda tidak terdaftar sebagai peserta pelatihan ini.');
+            $formParticipants = $notAttended->where('id', $selfParticipant->id)->values();
+            $selectedParticipantId = $selfParticipant->id;
+        } else {
+            $formParticipants = $notAttended;
+            $selectedParticipantId = $request->integer('participant_id');
+            if (!$notAttended->contains('id', $selectedParticipantId)) {
+                $selectedParticipantId = null;
+            }
         }
 
         // Peserta yang SUDAH absen (untuk Daftar Progres)
@@ -111,7 +131,7 @@ class AttendanceController extends Controller
             ->get();
 
         $status = 'open';
-        return view('attendance.public_form_daily', compact('training', 'date', 'notAttended', 'attended', 'status', 'setup', 'selectedParticipantId'));
+        return view('attendance.public_form_daily', compact('training', 'date', 'notAttended', 'attended', 'status', 'setup', 'selectedParticipantId', 'formParticipants', 'selfParticipant', 'isSelfService'));
     }
 
     /**
@@ -122,12 +142,28 @@ class AttendanceController extends Controller
         $request->validate([
             'participant_id' => 'required|integer',
             'status' => 'required|in:hadir,izin,sakit',
+            'keterangan' => 'nullable|required_if:status,izin,sakit|string|min:10|max:500',
             'local_checkin_time' => 'required|date_format:Y-m-d H:i:s',
             'timezone_label' => 'required|string|max:20'
         ]);
 
-        $participant = Participant::where('training_id', $training_id)
-            ->findOrFail($request->integer('participant_id'));
+        if (Auth::check() && Auth::user()->role === 'participant') {
+            $user = Auth::user();
+            $participant = Participant::where('training_id', $training_id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->firstOrFail();
+
+            abort_unless((int) $participant->id === $request->integer('participant_id'), 403, 'Anda hanya dapat mengisi presensi atas nama sendiri.');
+        } else {
+            $participant = Participant::where('training_id', $training_id)
+                ->findOrFail($request->integer('participant_id'));
+        }
 
         // Sesuai probis harian: absen dicatat ke sesi pertama di hari tersebut
         $firstSchedule = Schedule::where('training_id', $training_id)->where('date', $date)->firstOrFail();
@@ -139,6 +175,9 @@ class AttendanceController extends Controller
             ],
             [
                 'status' => $request->status,
+                'keterangan' => in_array($request->status, ['izin', 'sakit'], true)
+                    ? trim($request->keterangan)
+                    : null,
                 'check_in_at' => $request->local_checkin_time, // Gunakan waktu dari perangkat peserta
                 'timezone_label' => $request->timezone_label, // Simpan WIB/WITA/WIT
             ]
