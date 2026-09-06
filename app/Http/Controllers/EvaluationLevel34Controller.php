@@ -6,6 +6,8 @@ use App\Models\Training;
 use App\Models\Participant;
 use App\Models\Question;
 use App\Models\EvaluationResultL34;
+use App\Models\AiGeneration;
+use App\Services\AiEvaluationDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -145,15 +147,55 @@ class EvaluationLevel34Controller extends Controller
             ? 'Perubahan perilaku berada pada kategori '.$scoreCategory($l3Average).' ('.$l3Average.'/100) dan dampak pelatihan pada kategori '.$scoreCategory($l4Average).' ('.$l4Average.'/100). Cakupan penilaian lintas perspektif mencapai '.$overallCoverage.'%.'
             : 'Data Level 3 dan Level 4 belum cukup untuk menyusun kesimpulan hasil. Prioritaskan kelengkapan respons dari seluruh perspektif yang berlaku.';
 
+        $aiAnalysis = session('l34_ai_analysis') ?: AiGeneration::where('training_id', $training->id)->where('feature', 'evaluation_dashboard_l34')->where('status', 'completed')->latest()->value('generated_content');
+
         return view('evaluasi.l34_dashboard', compact('training', 'roleLabels', 'activeRoles',
             'participantTotal', 'respondentsByRole', 'coverageByRole', 'overallCoverage', 'fullyAssessed',
             'l3Average', 'l4Average', 'scoreCategory', 'averagesByRole', 'l3Indicators', 'l4Indicators',
-            'impactDistribution', 'lowestL3', 'lowestL4', 'recommendations', 'executiveNarrative'));
+            'impactDistribution', 'lowestL3', 'lowestL4', 'recommendations', 'executiveNarrative', 'aiAnalysis'));
     }
 
     /**
      * SISI PUBLIK: Halaman Gateway (Pilih Peran)
      */
+    public function generateAiAnalysis($id, AiEvaluationDashboardService $ai)
+    {
+        $training = Training::withCount('participants')->findOrFail($id); $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || $user->bidang === $training->bidang, 403);
+        $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
+        $toScore = static fn ($result) => $result->score !== null && is_numeric($result->score) ? (float) $result->score : match (strtolower(trim((string) $result->note))) {
+            'ya', 'sangat baik' => 100, 'baik' => 80, 'cukup' => 60, 'kurang' => 40, 'tidak', 'sangat kurang' => 20, default => null,
+        };
+        $pairs = $results->map(fn ($x) => $x->participant_id.'|'.$x->evaluator_role)->unique()->count();
+        $roles = $results->pluck('evaluator_role')->filter()->unique()->values();
+        $payload = [
+            'pelatihan' => ['nama' => $training->nama_pelatihan, 'angkatan' => $training->angkatan, 'bidang' => $training->bidang],
+            'cakupan' => ['jumlah_alumni' => $training->participants_count, 'perspektif_aktif' => $roles->all(),
+                'pasangan_penilaian_terisi' => $pairs, 'target_pasangan' => $training->participants_count * $roles->count(),
+                'per_perspektif' => $roles->mapWithKeys(fn ($role) => [$role => $results->where('evaluator_role', $role)->pluck('participant_id')->unique()->count()])->all()],
+            'rerata_level' => collect(['Perubahan Perilaku', 'Dampak Pelatihan'])->mapWithKeys(function ($category) use ($results, $toScore) {
+                $scores = $results->filter(fn ($x) => $x->question?->sub_category === $category)->map($toScore)->filter(fn ($x) => $x !== null);
+                return [$category => $scores->isNotEmpty() ? round($scores->avg(), 1) : null];
+            })->all(),
+            'indikator' => $results->filter(fn ($x) => $x->question && in_array($x->question->sub_category, ['Perubahan Perilaku', 'Dampak Pelatihan'], true))
+                ->groupBy(fn ($x) => $x->question->sub_category.'|'.$x->question->question_text)->map(function ($items) use ($toScore) {
+                    $scores = $items->map($toScore)->filter(fn ($x) => $x !== null); $question = $items->first()->question;
+                    return ['level' => $question->sub_category, 'label' => $question->question_text,
+                        'rerata' => $scores->isNotEmpty() ? round($scores->avg(), 1) : null, 'respons' => $scores->count()];
+                })->values()->all(),
+        ];
+        $generation = AiGeneration::create(['training_id' => $training->id, 'user_id' => $user->id, 'feature' => 'evaluation_dashboard_l34',
+            'model' => $ai->provider().':'.$ai->model(), 'source_hash' => hash('sha256', json_encode($payload)), 'status' => 'processing',
+            'input_summary' => ['aggregate_only' => true, 'participant_identities_sent' => false]]);
+        try {
+            $analysis = $ai->generate('Level 3 dan 4', $payload);
+            $generation->update(['status' => 'completed', 'generated_content' => $analysis, 'generated_at' => now()]);
+            return back()->with('l34_ai_analysis', $analysis)->with('success', 'Analisis eksekutif AI berhasil dibuat.');
+        } catch (\Throwable $exception) {
+            report($exception); $generation->update(['status' => 'failed', 'error_message' => mb_substr($exception->getMessage(), 0, 2000)]);
+            return back()->with('l34_ai_analysis_error', $exception->getMessage());
+        }
+    }
     public function publicGateway($training_id)
     {
         $training = Training::findOrFail($training_id);

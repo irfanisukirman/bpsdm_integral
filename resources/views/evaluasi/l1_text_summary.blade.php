@@ -3,6 +3,7 @@
 @section('title', 'Rangkuman Saran & Masukan Penyelenggara')
 
 @section('content')
+@php($aiDraft = session('ai_draft'))
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
         <div>
@@ -114,20 +115,29 @@
             @endif
         </div>
         <div class="card-body p-3 p-md-4">
-            <div class="alert alert-info border-0 small">
+            <div class="ai-draft-panel mb-4">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div class="d-flex align-items-start gap-3"><span class="ai-draft-icon"><i class="bx bx-bot"></i></span><div><strong class="d-block">Asisten AI untuk Draf Rangkuman</strong><small class="text-muted">AI hanya menerima pertanyaan dan jawaban anonim, tanpa nama, NIP/NIK, atau identitas peserta.</small></div></div>
+                    <form method="POST" action="{{ route('evall1.organizer-summary.ai', $training->id) }}" onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').innerHTML='Menganalisis...';">@csrf
+                        <button class="btn btn-primary text-nowrap" @disabled($responses->isEmpty())><i class="bx bx-sparkles me-1"></i>Buat Draf dengan AI</button>
+                    </form>
+                </div>
+                @if(session('ai_error'))<div class="alert alert-danger small mb-0 mt-3"><i class="bx bx-error-circle me-1"></i><strong>AI belum dapat membuat draf.</strong><div>{{ session('ai_error') }}</div></div>@endif
+                @if($aiDraft)<div class="alert alert-warning small mb-0 mt-3"><i class="bx bx-check-shield me-1"></i><strong>Draf AI sudah dimasukkan ke editor.</strong> Periksa sebelum menyimpan ke laporan.</div>@endif
+            </div>            <div class="alert alert-info border-0 small">
                 <i class="bx bx-info-circle me-1"></i>Jawaban asli dan identitas peserta hanya menjadi bahan telaah internal. Laporan Word hanya mencantumkan kesimpulan dan tindak lanjut yang ditulis pada form ini.
             </div>
             <form method="POST" action="{{ route('evall1.organizer-summary.store', $training->id) }}">
                 @csrf @method('PUT')
                 <div class="mb-4">
                     <label class="form-label fw-bold">Kesimpulan Umum Saran dan Masukan <span class="text-danger">*</span></label>
-                    <textarea name="conclusion" class="form-control @error('conclusion') is-invalid @enderror" rows="6" maxlength="10000" placeholder="Contoh: Secara umum peserta menilai materi dan pelayanan penyelenggara telah berjalan dengan baik..." required>{{ old('conclusion', $adminSummary?->conclusion) }}</textarea>
+                    <textarea name="conclusion" class="form-control @error('conclusion') is-invalid @enderror" rows="6" maxlength="10000" placeholder="Contoh: Secara umum peserta menilai materi dan pelayanan penyelenggara telah berjalan dengan baik..." required>{{ old('conclusion', $aiDraft['conclusion'] ?? $adminSummary?->conclusion) }}</textarea>
                     @error('conclusion')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text">Rangkum pola utama dari keseluruhan jawaban peserta dengan bahasa laporan yang objektif.</div>
                 </div>
                 <div class="mb-4">
                     <label class="form-label fw-bold">Rencana Tindak Lanjut <span class="text-danger">*</span></label>
-                    <textarea name="follow_up" class="form-control @error('follow_up') is-invalid @enderror" rows="5" maxlength="10000" placeholder="Contoh: Penyelenggara akan menambahkan studi kasus, menyempurnakan rundown, dan memperkuat koordinasi panitia..." required>{{ old('follow_up', $adminSummary?->follow_up) }}</textarea>
+                    <textarea name="follow_up" class="form-control @error('follow_up') is-invalid @enderror" rows="5" maxlength="10000" placeholder="Contoh: Penyelenggara akan menambahkan studi kasus, menyempurnakan rundown, dan memperkuat koordinasi panitia..." required>{{ old('follow_up', $aiDraft['follow_up'] ?? $adminSummary?->follow_up) }}</textarea>
                     @error('follow_up')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text">Tuliskan tindakan konkret yang akan dilakukan berdasarkan kesimpulan tersebut.</div>
                 </div>
@@ -185,5 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .feedback-item:hover { border-color: #696cff !important; transform: translateY(-1px); }
     .feedback-text { white-space: pre-line; line-height: 1.65; }
     .min-w-0 { min-width: 0; }
+    .ai-draft-panel { padding: 1rem; border: 1px solid #d9dcff; border-radius: .8rem; background: linear-gradient(135deg, #f7f7ff, #fff); }
+    .ai-draft-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 12px; background: #696cff; color: #fff; font-size: 1.35rem; }
 </style>
 @endsection

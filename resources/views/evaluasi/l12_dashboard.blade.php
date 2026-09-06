@@ -37,6 +37,11 @@
         </div>
     </div>
 
+    @include('evaluasi.partials.ai_dashboard_analysis', [
+        'analysis' => $aiAnalysis,
+        'aiError' => session('l12_ai_analysis_error'),
+        'aiRoute' => route('evall12.dashboard.ai', $training->id),
+    ])
     <div class="row g-3 mb-4">
         @foreach([
             ['icon'=>'bx-check-circle','color'=>$responseClass,'label'=>'Tingkat Respons L1','value'=>number_format($l1ResponseRate,1,',','.').' %','detail'=>$l1Respondents.' dari '.$participantsTotal.' peserta'],

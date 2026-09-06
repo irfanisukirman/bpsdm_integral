@@ -11,6 +11,8 @@ use App\Models\Training;
 use App\Models\TrainingActivityDocumentation;
 use App\Models\TrainingActivityReport;
 use App\Models\TrainingActivityReportVersion;
+use App\Models\AiGeneration;
+use App\Services\AiActivityReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +40,42 @@ class TrainingActivityReportController extends Controller
         return view('trainings.activity-report.index', compact('training', 'report', 'photos', 'data', 'checks', 'codes'));
     }
 
+    public function generateAiDraft(Training $training, AiActivityReportService $ai)
+    {
+        $this->authorizeTraining($training);
+        $report = TrainingActivityReport::firstOrCreate(['training_id' => $training->id]);
+        $data = $this->reportData($training, $report); $values = $data['values'];
+        $payload = [
+            'pelatihan' => ['nama' => $values['nama_pelatihan'], 'angkatan' => $values['angkatan'], 'jenis' => $values['jenis_pelatihan'],
+                'bidang' => $values['bidang_penyelenggara'], 'periode' => $values['periode_pelatihan'], 'lokasi' => $values['lokasi_pelatihan'],
+                'metode' => $values['metode_pelatihan'], 'total_jp' => $values['total_jp'], 'total_oj' => $values['total_oj']],
+            'statistik_agregat' => ['pendaftar' => $values['jumlah_pendaftar'], 'peserta_disetujui' => $values['jumlah_peserta'],
+                'jumlah_instansi' => $values['jumlah_instansi'], 'rata_rata_kehadiran' => $values['rata_rata_kehadiran'],
+                'hadir' => $values['jumlah_hadir'], 'izin' => $values['jumlah_izin'], 'sakit' => $values['jumlah_sakit'],
+                'tanpa_keterangan' => $values['jumlah_tanpa_keterangan'], 'jumlah_pengajar' => $values['jumlah_pengajar']],
+            'evaluasi_agregat' => ['level_1' => $values['nilai_evaluasi_l1'], 'level_2' => $values['nilai_evaluasi_l2'],
+                'level_3' => $values['nilai_evaluasi_l3'], 'level_4' => $values['nilai_evaluasi_l4'],
+                'jumlah_saran' => $values['jumlah_saran'], 'kesimpulan_admin_anonim' => $values['kesimpulan_evaluasi']],
+            'agenda_tanpa_identitas' => collect($data['schedules'])->map(fn ($schedule) => [
+                'tanggal' => $schedule['schedule_date'], 'waktu' => $schedule['schedule_time'],
+                'materi' => $schedule['schedule_activity'], 'durasi' => $schedule['schedule_duration']])->all(),
+        ];
+        $generation = AiGeneration::create([
+            'training_id' => $training->id, 'user_id' => Auth::id(), 'feature' => 'training_activity_report',
+            'model' => $ai->provider().':'.$ai->model(), 'source_hash' => hash('sha256', json_encode($payload)),
+            'status' => 'processing', 'input_summary' => ['schedules' => count($data['schedules']),
+                'participants_sent' => false, 'participant_identities_sent' => false],
+        ]);
+        try {
+            $draft = $ai->generate($payload);
+            $generation->update(['status' => 'completed', 'generated_content' => $draft, 'generated_at' => now()]);
+            return back()->with('activity_report_ai_draft', $draft)->with('success', 'Draf narasi laporan berhasil dibuat. Periksa seluruh bagian sebelum menyimpan.');
+        } catch (\Throwable $exception) {
+            report($exception);
+            $generation->update(['status' => 'failed', 'error_message' => mb_substr($exception->getMessage(), 0, 2000)]);
+            return back()->with('activity_report_ai_error', $exception->getMessage())->with('error', 'AI belum dapat membuat draf laporan.');
+        }
+    }
     public function update(Request $request, Training $training)
     {
         $this->authorizeTraining($training);

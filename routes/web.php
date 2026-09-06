@@ -11,6 +11,7 @@ use App\Http\Controllers\EvaluationLevel34Controller;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringIndicatorController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InternalAiAssistantController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\FollowUpController; 
 use App\Http\Controllers\ProfileController;
@@ -165,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('pengajuan-mitra/{submission}/reopen', [PartnerSubmissionController::class, 'reopen'])->name('mitra.admin.reopen');
     Route::delete('pengajuan-mitra/{submission}', [PartnerSubmissionController::class, 'destroy'])->name('mitra.admin.destroy');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/asisten-ai', [InternalAiAssistantController::class, 'index'])->name('ai-assistant.index');
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
@@ -203,6 +205,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{training}/certificates', [TrainingCertificateController::class, 'index'])->name('training-certificates.index');
     Route::get('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'index'])->name('training-activity-report.index');
     Route::put('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'update'])->name('training-activity-report.update');
+    Route::post('trainings/{training}/activity-report/ai-draft', [TrainingActivityReportController::class, 'generateAiDraft'])->name('training-activity-report.ai-draft');
     Route::post('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'uploadTemplate'])->name('training-activity-report.template.upload');
     Route::delete('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'resetTemplate'])->name('training-activity-report.template.reset');
     Route::get('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'downloadTemplate'])->name('training-activity-report.template.download');
@@ -256,6 +259,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
     Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
     Route::get('trainings/{id}/evaluasi-l12/dashboard', [EvaluationLevel12ReportController::class, 'dashboard'])->name('evall12.dashboard');
+    Route::post('trainings/{id}/evaluasi-l12/dashboard/ai', [EvaluationLevel12ReportController::class, 'generateAiAnalysis'])->name('evall12.dashboard.ai');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
     Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
@@ -280,6 +284,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
     Route::get('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'organizerTextSummary'])->name('evall1.organizer-summary');
     Route::put('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'storeOrganizerTextSummary'])->name('evall1.organizer-summary.store');
+    Route::post('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara/ai', [EvaluationLevel1Controller::class, 'generateOrganizerTextSummary'])->name('evall1.organizer-summary.ai');
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
@@ -349,6 +354,7 @@ Route::middleware(['auth'])->group(function () {
     // Level 3 & 4: Impact (360)
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
     Route::get('trainings/{id}/evaluasi-l34/dashboard', [EvaluationLevel34Controller::class, 'dashboard'])->name('evall34.dashboard');
+    Route::post('trainings/{id}/evaluasi-l34/dashboard/ai', [EvaluationLevel34Controller::class, 'generateAiAnalysis'])->name('evall34.dashboard.ai');
     Route::get('trainings/{id}/evaluasi-l34', [EvaluationLevel34Controller::class, 'index'])->name('evall34.index'); // Detail L34
 
     // Kelola Alumni

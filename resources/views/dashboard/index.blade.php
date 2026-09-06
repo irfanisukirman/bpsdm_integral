@@ -11,6 +11,8 @@
     .chart-box { position: relative; min-height: 285px; }
     .training-name { max-width: 300px; white-space: normal; }
     .empty-chart { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8592a3; pointer-events: none; }
+    .dashboard-ai-search { max-width: 680px; padding: .35rem; border-radius: 14px; background: rgba(255,255,255,.96); }
+    .dashboard-ai-search .form-control { border: 0; box-shadow: none; min-height: 43px; }
 </style>
 @endpush
 
@@ -28,6 +30,11 @@
                     <p class="mb-4 opacity-75">
                         Ringkasan pelaksanaan, peserta, kehadiran, evaluasi, dan dokumen diperbarui dari data sistem.
                     </p>
+                    <form action="{{ route('ai-assistant.index') }}" method="GET" class="dashboard-ai-search d-flex align-items-center mb-3">
+                        <i class="bx bx-bot fs-4 text-primary ms-2"></i>
+                        <input type="search" name="q" maxlength="300" class="form-control px-2" placeholder="Tanyakan data pelatihan, evaluasi, laporan, pengajar, atau aset...">
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-search me-sm-1"></i><span class="d-none d-sm-inline">Cari</span></button>
+                    </form>
                     <div class="d-flex flex-wrap gap-2">
                         <a href="{{ route('trainings.index') }}" class="btn btn-light text-primary">
                             <i class="bx bx-calendar-event me-1"></i>Kelola Pelatihan

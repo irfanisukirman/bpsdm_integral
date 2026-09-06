@@ -21,6 +21,11 @@
 
     <ul class="menu-inner py-3">
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
+            <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
+                <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
+            </li>
+        @endif
         @if(Auth::user()->role === 'admin_aset')
             <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
         @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
