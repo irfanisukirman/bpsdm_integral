@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 05 Sep 2026 pada 15.59
+-- Waktu pembuatan: 06 Sep 2026 pada 05.51
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -124,6 +124,42 @@ CREATE TABLE `agenda_schedules` (
 INSERT INTO `agenda_schedules` (`id`, `agenda_id`, `title`, `starts_at`, `ends_at`, `external_place`, `zoom_link`, `participants_info`, `notes`, `created_at`, `updated_at`) VALUES
 (11, 12, 'Super Administrator', '2026-09-04 08:00:00', '2026-09-04 09:00:00', NULL, NULL, 'asfasfasfafasfasfasffass fasf as', 'vasvasvasv', '2026-09-04 06:22:10', '2026-09-04 06:22:10'),
 (12, 13, 'dasdsafsafasf', '2026-09-05 19:00:00', '2026-09-05 22:00:00', NULL, NULL, 'gsdgsdgsdgsdg', 'gsdgsdgsd', '2026-09-05 12:16:59', '2026-09-05 12:16:59');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `ai_generations`
+--
+
+CREATE TABLE `ai_generations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `feature` varchar(80) NOT NULL,
+  `model` varchar(120) DEFAULT NULL,
+  `source_hash` varchar(64) DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'processing',
+  `input_summary` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`input_summary`)),
+  `generated_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`generated_content`)),
+  `error_message` text DEFAULT NULL,
+  `generated_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `ai_generations`
+--
+
+INSERT INTO `ai_generations` (`id`, `training_id`, `user_id`, `feature`, `model`, `source_hash`, `status`, `input_summary`, `generated_content`, `error_message`, `generated_at`, `created_at`, `updated_at`) VALUES
+(1, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 01:59:52', '2026-09-06 02:00:01'),
+(2, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 02:01:24', '2026-09-06 02:01:27'),
+(3, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 02:02:25', '2026-09-06 02:02:30'),
+(4, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-2.5-flash', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash for the latest features and improvements. We recommend you to use the Interactions API.', NULL, '2026-09-06 02:20:56', '2026-09-06 02:20:57'),
+(5, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-3.6-flash', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'completed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', '{\"conclusion\":\"Secara keseluruhan, peserta menilai bahwa materi pelatihan dan kinerja penyelenggaraan sudah baik, serta tidak terdapat catatan spesifik terkait materi yang perlu diperbaiki.\",\"follow_up\":\"Mempertahankan kualitas materi dan layanan penyelenggaraan pelatihan yang ada, serta melakukan evaluasi berkala pada pelaksanaan berikutnya guna menjaga mutu secara konsisten.\"}', NULL, '2026-09-06 02:22:18', '2026-09-06 02:22:13', '2026-09-06 02:22:18'),
+(6, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-3.6-flash', 'bf128c83f1200107522c79043c84fb4e71c767243c1ad9765da235cedac7231a', 'completed', '{\"questions\":3,\"responses\":6,\"respondents\":2,\"identities_sent\":false}', '{\"conclusion\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"follow_up\":\"Melakukan koordinasi dengan tim pengajar untuk merevisi dan memperjelas paparan materi pengelolaan keuangan, serta meningkatkan pengawasan dan kebersihan fasilitas pelatihan khususnya area ruang makan secara berkala.\"}', NULL, '2026-09-06 02:25:10', '2026-09-06 02:25:02', '2026-09-06 02:25:10'),
+(7, 9, 2, 'training_activity_report', 'gemini:gemini-3.6-flash', '7f5d780c19f54dd813efc516044f569c3a4732ea4cf0f74e26c44dbe300bbc30', 'completed', '{\"schedules\":1,\"participants_sent\":false,\"participant_identities_sent\":false}', '{\"background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\"}', NULL, '2026-09-06 02:37:21', '2026-09-06 02:37:03', '2026-09-06 02:37:21'),
+(8, 9, 2, 'evaluation_dashboard_l12', 'gemini:gemini-3.6-flash', '16cc30d30d39a82842e07dcff120bf1c63590496a0d684be54340ac4eb1a418d', 'completed', '{\"aggregate_only\":true,\"participant_identities_sent\":false}', '{\"executive_summary\":\"Evaluasi Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I mencatatkan rerata kepuasan Level 1 sebesar 92,9 dan peningkatan rerata Level 2 sebesar 20 poin (dari 80 menjadi 100). Meskipun skor tergolong tinggi, efektivitas dan kepuasan pelatihan ini belum dapat disimpulkan secara mutlak karena jumlah peserta yang sangat terbatas dan ketiadaan data evaluasi narasumber.\",\"key_findings\":\"1. Rerata kepuasan Level 1 penyelenggara mencapai 92,9, dengan indikator tertinggi ketersediaan panitia kompeten (98,0) dan terendah pada kesesuaian soal serta profesionalitas pemanduan pre & post test (88,5). 2. Evaluasi Level 2 menunjukkan peningkatan nilai sebesar 20 poin dari pretest (80) ke posttest (100) pada 1 peserta. 3. Data penilaian evaluasi narasumber bernilai null (tidak tersedia). 4. Masukan anonim mencatat perlunya kejelasan materi pengelolaan keuangan serta peningkatan kebersihan ruang makan.\",\"priority_actions\":\"1. Evaluasi dan perbaiki kualitas soal pre & post test serta profesionalitas panitia dalam memandu ujian. 2. Memperjelas penyampaian substansi materi pengelolaan keuangan dalam kurikulum pelatihan. 3. Meningkatkan standar kebersihan fasilitas penunjang, khususnya area ruang makan. 4. Memastikan mekanisme pengumpulan data evaluasi narasumber dan cakupan peserta berjalan lengkap pada angkatan berikutnya.\",\"data_caution\":\"Tingkat keterwakilan data sangat rendah karena hanya melibatkan 2 responden pada Level 1 dan 1 peserta pada Level 2, serta tidak mencakup data evaluasi narasumber (null). Hasil evaluasi ini tidak dapat digeneralisasi dan hanya berlaku sebagai bahan pertimbangan terbatas.\"}', NULL, '2026-09-06 02:57:38', '2026-09-06 02:57:23', '2026-09-06 02:57:38');
 
 -- --------------------------------------------------------
 
@@ -561,7 +597,7 @@ CREATE TABLE `evaluation_l1_text_summaries` (
 --
 
 INSERT INTO `evaluation_l1_text_summaries` (`id`, `training_id`, `conclusion`, `follow_up`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(1, 9, 'selasdiuasifuas hfuioash fiuoash fiuoashf ioashf ioashgiaos ughsaiuo hgiuoash giouashg iuashg iaoushg asiugh asiugas gas goipasygpoasiyg aospiyg asopigyasopiga sygopy asigfopas hgopaisy ghoaisg haosigh asoipgh asoigha soipghasopig hasoipgh asogh asgoph', 'selasdiuasifuas hfuioash fiuoash fiuoashf ioashf ioashgiaos ughsaiuo hgiuoash giouashg iuashg iaoushg asiugh asiugas gas goipasygpoasiyg aospiyg asopigyasopiga sygopy asigfopas hgopaisy ghoaisg haosigh asoipgh asoigha soipghasopig hasoipgh asogh asgoph', 2, '2026-09-02 07:57:21', '2026-09-02 07:57:21', '2026-09-02 07:57:21');
+(1, 9, 'Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.', 'Melakukan koordinasi dengan tim pengajar untuk merevisi dan memperjelas paparan materi pengelolaan keuangan, serta meningkatkan pengawasan dan kebersihan fasilitas pelatihan khususnya area ruang makan secara berkala.', 2, '2026-09-06 02:25:34', '2026-09-02 07:57:21', '2026-09-06 02:25:34');
 
 -- --------------------------------------------------------
 
@@ -1140,7 +1176,25 @@ INSERT INTO `evaluation_results_l1` (`id`, `training_id`, `participant_id`, `sch
 (83, 9, 25, NULL, 15, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
 (84, 9, 25, NULL, 16, NULL, 'semuanya sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
 (85, 9, 25, NULL, 17, NULL, 'cukuo baik kata akumah yah', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(86, 9, 25, NULL, 18, NULL, 'sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34');
+(86, 9, 25, NULL, 18, NULL, 'sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
+(87, 9, 26, NULL, 1, 94, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(88, 9, 26, NULL, 2, 95, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(89, 9, 26, NULL, 3, 96, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(90, 9, 26, NULL, 4, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(91, 9, 26, NULL, 5, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(92, 9, 26, NULL, 6, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(93, 9, 26, NULL, 7, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(94, 9, 26, NULL, 8, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(95, 9, 26, NULL, 9, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(96, 9, 26, NULL, 10, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(97, 9, 26, NULL, 11, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(98, 9, 26, NULL, 12, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(99, 9, 26, NULL, 13, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(100, 9, 26, NULL, 14, 98, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(101, 9, 26, NULL, 15, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(102, 9, 26, NULL, 16, NULL, 'belum tolong untuk diperbaiki paparannya agar sesuai dengan yang saya harapkan', '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(103, 9, 26, NULL, 17, NULL, 'dibagian pengelolaan keuangan tidak jelas', '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
+(104, 9, 26, NULL, 18, NULL, 'tolong sarana prasarana dan ruang makannya di bersihkan', '2026-09-06 02:24:50', '2026-09-06 02:24:50');
 
 -- --------------------------------------------------------
 
@@ -1266,7 +1320,10 @@ INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`
 (165, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_a0ea01a8-5e5a-49e0-b085-060f2398901b.pdf', 'pdf', 888150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
 (166, 91, 'EXWdBJTB8ZnnGX8Im7Bqcqqot80FoS9GaFIQycLq.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_8f9c01ea-ab65-4382-8115-8b7b54067bf8.jpg', 'jpg', 30134, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
 (167, 93, 'JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'documents/JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'pdf', 3231, 2, '2026-09-04 01:48:47', '2026-09-04 01:48:47'),
-(168, 94, 'Biodata Narasumber - samsidin - 199503032025211003.docx', 'documents/certification-speakers/52246378-ce8f-47c0-9ca9-b89971fb002d.docx', 'docx', 2660590, 12, '2026-09-05 10:46:05', '2026-09-05 10:46:05');
+(168, 94, 'Biodata Narasumber - samsidin - 199503032025211003.docx', 'documents/certification-speakers/52246378-ce8f-47c0-9ca9-b89971fb002d.docx', 'docx', 2660590, 12, '2026-09-05 10:46:05', '2026-09-05 10:46:05'),
+(169, 97, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14752, 2, '2026-09-06 02:25:43', '2026-09-06 02:25:43'),
+(170, 98, 'Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', 'documents/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', 'pdf', 5178, 2, '2026-09-06 02:38:22', '2026-09-06 02:38:22'),
+(171, 98, 'Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', 'documents/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', 'docx', 9629, 2, '2026-09-06 02:38:57', '2026-09-06 02:38:57');
 
 -- --------------------------------------------------------
 
@@ -1343,7 +1400,9 @@ INSERT INTO `folders` (`id`, `training_id`, `name`, `bidang`, `parent_id`, `user
 (92, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 2, 0, NULL, '2026-09-02 06:48:42', '2026-09-05 12:13:30'),
 (93, 9, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-04 01:48:47', '2026-09-05 12:13:30'),
 (94, NULL, 'Biodata Narasumber', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-09-05 10:46:05', '2026-09-05 10:49:14'),
-(96, 11, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 2, 0, NULL, '2026-09-05 12:57:53', '2026-09-05 13:19:59');
+(96, 11, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 2, 0, NULL, '2026-09-05 12:57:53', '2026-09-05 13:19:59'),
+(97, 9, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-06 02:25:42', '2026-09-06 02:25:42'),
+(98, 9, 'LAPORAN PENYELENGGARAAN PELATIHAN', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-06 02:38:22', '2026-09-06 02:38:22');
 
 -- --------------------------------------------------------
 
@@ -1515,7 +1574,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (92, '2026_09_04_000003_add_downloaded_at_to_participant_certificates', 28),
 (93, '2026_09_04_100000_create_training_activity_reports_tables', 29),
 (94, '2026_09_05_000001_add_certificate_submission_to_certification_participants', 30),
-(95, '2026_09_05_000002_create_notification_reads_table', 31);
+(95, '2026_09_05_000002_create_notification_reads_table', 31),
+(96, '2026_09_06_000001_create_ai_generations_table', 32);
 
 -- --------------------------------------------------------
 
@@ -1956,7 +2016,7 @@ CREATE TABLE `training_activity_reports` (
 --
 
 INSERT INTO `training_activity_reports` (`id`, `training_id`, `report_number`, `background`, `legal_basis`, `objectives`, `implementation`, `achievements`, `constraints`, `follow_up`, `conclusion`, `recommendations`, `signatory_name`, `signatory_nip`, `signatory_position`, `approval_date`, `template_path`, `status`, `updated_by`, `created_at`, `updated_at`) VALUES
-(2, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-04 06:47:38');
+(2, 9, '8000/BPSDM/2026', 'Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.', 'Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.', 'Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.', 'Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00–22:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.', 'Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.', 'Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.', 'Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.', 'Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.', 'Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.', 'IKA MARDIAH', '1998523759235235', 'Kepala Bpsdm Jabar', '2026-09-06', NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-06 02:38:01');
 
 -- --------------------------------------------------------
 
@@ -1975,6 +2035,14 @@ CREATE TABLE `training_activity_report_versions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `training_activity_report_versions`
+--
+
+INSERT INTO `training_activity_report_versions` (`id`, `training_activity_report_id`, `version`, `docx_path`, `pdf_path`, `snapshot`, `generated_by`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.docx', 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', '{\"nama_pelatihan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana\",\"angkatan\":\"I\",\"jenis_pelatihan\":\"PKTI\\/PKTU\",\"bidang_penyelenggara\":\"Bidang Pengembangan Kompetensi Teknis Umum\",\"tahun_pelatihan\":2026,\"nomor_laporan\":\"8000\\/BPSDM\\/2026\",\"tanggal_mulai\":\"30 Agustus 2026\",\"tanggal_selesai\":\"01 September 2026\",\"periode_pelatihan\":\"30 Agustus 2026 s.d. 01 September 2026\",\"lokasi_pelatihan\":\"Zoom\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":0,\"total_oj\":4,\"jumlah_pendaftar\":2,\"jumlah_peserta\":2,\"jumlah_instansi\":2,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":2,\"jumlah_pengajar\":1,\"nilai_evaluasi_l1\":\"92,9\",\"nilai_evaluasi_l2\":\"100,0\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"kesimpulan_evaluasi\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"jumlah_saran\":6,\"nama_penandatangan\":\"IKA MARDIAH\",\"nip_penandatangan\":\"1998523759235235\",\"jabatan_penandatangan\":\"Kepala Bpsdm Jabar\",\"tanggal_pengesahan\":\"06 September 2026\",\"tanggal_generate\":\"06 September 2026 09:38\",\"narasi_background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"narasi_tindak_lanjut\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_latar_belakang\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_dasar_hukum\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_tujuan\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_pelaksanaan\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_capaian\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_kendala\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_kesimpulan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_rekomendasi\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"versi_laporan\":1}', 2, '2026-09-06 02:38:22', '2026-09-06 02:38:22'),
+(2, 2, 2, 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', NULL, '{\"nama_pelatihan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana\",\"angkatan\":\"I\",\"jenis_pelatihan\":\"PKTI\\/PKTU\",\"bidang_penyelenggara\":\"Bidang Pengembangan Kompetensi Teknis Umum\",\"tahun_pelatihan\":2026,\"nomor_laporan\":\"8000\\/BPSDM\\/2026\",\"tanggal_mulai\":\"30 Agustus 2026\",\"tanggal_selesai\":\"01 September 2026\",\"periode_pelatihan\":\"30 Agustus 2026 s.d. 01 September 2026\",\"lokasi_pelatihan\":\"Zoom\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":0,\"total_oj\":4,\"jumlah_pendaftar\":2,\"jumlah_peserta\":2,\"jumlah_instansi\":2,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":2,\"jumlah_pengajar\":1,\"nilai_evaluasi_l1\":\"92,9\",\"nilai_evaluasi_l2\":\"100,0\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"kesimpulan_evaluasi\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"jumlah_saran\":6,\"nama_penandatangan\":\"IKA MARDIAH\",\"nip_penandatangan\":\"1998523759235235\",\"jabatan_penandatangan\":\"Kepala Bpsdm Jabar\",\"tanggal_pengesahan\":\"06 September 2026\",\"tanggal_generate\":\"06 September 2026 09:38\",\"narasi_background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"narasi_tindak_lanjut\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_latar_belakang\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_dasar_hukum\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_tujuan\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_pelaksanaan\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_capaian\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_kendala\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_kesimpulan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_rekomendasi\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"versi_laporan\":2}', 2, '2026-09-06 02:38:57', '2026-09-06 02:38:57');
 
 -- --------------------------------------------------------
 
@@ -2149,6 +2217,15 @@ ALTER TABLE `agendas`
 ALTER TABLE `agenda_schedules`
   ADD PRIMARY KEY (`id`),
   ADD KEY `agenda_schedules_agenda_id_foreign` (`agenda_id`);
+
+--
+-- Indeks untuk tabel `ai_generations`
+--
+ALTER TABLE `ai_generations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ai_generations_training_id_foreign` (`training_id`),
+  ADD KEY `ai_generations_user_id_foreign` (`user_id`),
+  ADD KEY `ai_generations_source_hash_index` (`source_hash`);
 
 --
 -- Indeks untuk tabel `alumni_profiles`
@@ -2559,6 +2636,12 @@ ALTER TABLE `agenda_schedules`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT untuk tabel `ai_generations`
+--
+ALTER TABLE `ai_generations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT untuk tabel `alumni_profiles`
 --
 ALTER TABLE `alumni_profiles`
@@ -2634,7 +2717,7 @@ ALTER TABLE `evaluation_questions`
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l1`
 --
 ALTER TABLE `evaluation_results_l1`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l2`
@@ -2658,7 +2741,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=169;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=172;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -2670,7 +2753,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -2688,7 +2771,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -2790,7 +2873,7 @@ ALTER TABLE `training_activity_reports`
 -- AUTO_INCREMENT untuk tabel `training_activity_report_versions`
 --
 ALTER TABLE `training_activity_report_versions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_certificate_settings`
@@ -2843,6 +2926,13 @@ ALTER TABLE `agendas`
 --
 ALTER TABLE `agenda_schedules`
   ADD CONSTRAINT `agenda_schedules_agenda_id_foreign` FOREIGN KEY (`agenda_id`) REFERENCES `agendas` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `ai_generations`
+--
+ALTER TABLE `ai_generations`
+  ADD CONSTRAINT `ai_generations_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ai_generations_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Ketidakleluasaan untuk tabel `alumni_profiles`
