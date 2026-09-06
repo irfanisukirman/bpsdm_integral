@@ -3,6 +3,8 @@
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
  <div class="d-flex flex-wrap justify-content-between gap-3 mb-4"><div><h4 class="fw-bold mb-1">Persetujuan Peminjaman Aset</h4><p class="text-muted mb-0">Verifikasi surat, jadwal, bidang pemohon, dan ketersediaan aset.</p></div><a href="{{route('assets.dashboard')}}" class="btn btn-outline-primary">Dashboard Aset</a></div>
+@if(session('success'))<div class="alert alert-success alert-dismissible fade show"><i class="bx bx-check-circle me-1"></i>{{session('success')}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
+@if($errors->any())<div class="alert alert-danger"><i class="bx bx-error-circle me-1"></i><strong>Keputusan belum dapat disimpan.</strong><div>{{$errors->first()}}</div></div>@endif
  <div class="row g-3 mb-4">@foreach(['pending'=>['Menunggu','warning'],'revision'=>['Perlu Perbaikan','info'],'approved'=>['Disetujui','success'],'rejected'=>['Ditolak','danger']] as $key=>$meta)<div class="col-6 col-xl-3"><a href="{{route('asset-loans.index',['status'=>$key])}}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body"><small class="text-muted">{{$meta[0]}}</small><h3 class="fw-bold text-{{$meta[1]}} mb-0">{{$counts[$key]??0}}</h3></div></a></div>@endforeach</div>
  <div class="card border-0 shadow-sm"><div class="card-header border-bottom d-flex flex-wrap justify-content-between gap-2"><h5 class="fw-bold mb-0">Daftar Pengajuan</h5><div class="btn-group btn-group-sm">@foreach(['pending'=>'Menunggu','revision'=>'Perbaikan','approved'=>'Disetujui','rejected'=>'Ditolak','all'=>'Semua'] as $key=>$label)<a href="{{route('asset-loans.index',['status'=>$key])}}" class="btn btn-{{$status===$key?'primary':'outline-secondary'}}">{{$label}}</a>@endforeach</div></div>
  <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Kegiatan</th><th>Bidang / Pemohon</th><th>Waktu</th><th>Aset</th><th>Surat</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
@@ -14,7 +16,7 @@
  <td><a href="{{route('asset-loans.document',$loan)}}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bx bxs-file-pdf me-1"></i>Lihat PDF</a></td>
  <td><span class="badge bg-label-{{$color}}">{{['pending'=>'Menunggu','approved'=>'Disetujui','revision'=>'Perlu Perbaikan','rejected'=>'Ditolak'][$loan->status]??$loan->status}}</span>@if($loan->review_note)<small class="d-block text-muted mt-1">{{$loan->review_note}}</small>@endif</td>
  <td><button type="button" class="btn btn-sm btn-primary review-button" data-bs-toggle="modal" data-bs-target="#reviewLoanModal"
-   data-action="{{route('asset-loans.review',$loan)}}" data-document="{{route('asset-loans.document',$loan)}}"
+   data-loan-id="{{$loan->id}}" data-action="{{route('asset-loans.review',$loan)}}" data-document="{{route('asset-loans.document',$loan)}}"
    data-kind="{{$training?'Pelatihan':'Nonpelatihan'}}" data-activity="{{e($training?($source?->activity):($source?->title??$parent?->name))}}"
    data-parent="{{e($parent?->nama_pelatihan??$parent?->name??'-')}}" data-field="{{e($parent?->bidang??$loan->submitter?->bidang??'-')}}"
    data-applicant="{{e($loan->submitter?->name??'-')}}" data-contact="{{e($loan->contact_person??'-')}}"
@@ -28,10 +30,10 @@
 <div class="modal fade" id="reviewLoanModal" tabindex="-1" aria-hidden="true">
  <div class="modal-dialog modal-lg modal-dialog-centered">
   <form method="POST" action="" id="reviewLoanForm" class="modal-content review-modal">
-   @csrf @method('PUT')
+   @csrf @method('PUT')<input type="hidden" name="review_loan_id" id="reviewLoanId">
    <div class="modal-header border-bottom"><div><span id="reviewKind" class="badge bg-label-primary mb-2"></span><h5 class="modal-title fw-bold">Pemeriksaan Peminjaman Aset</h5></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
    <div class="modal-body p-4">
-    <div class="alert alert-info border-0"><i class="bx bx-info-circle me-2"></i>Pastikan surat, aset, dan waktu pemakaian sudah sesuai sebelum memberikan keputusan.</div>
+    @if($errors->any())<div class="alert alert-danger border-0"><i class="bx bx-error-circle me-2"></i>{{$errors->first()}}</div>@endif<div class="alert alert-info border-0"><i class="bx bx-info-circle me-2"></i>Pastikan surat, aset, dan waktu pemakaian sudah sesuai sebelum memberikan keputusan.</div>
     <div class="card bg-light border mb-4"><div class="card-body"><h5 id="reviewActivity" class="fw-bold mb-1"></h5><p id="reviewParent" class="text-muted mb-3"></p>
      <div class="row g-3">
       <div class="col-md-6"><small class="text-muted d-block">Bidang Pemohon</small><strong id="reviewField"></strong></div>
@@ -59,7 +61,7 @@
 <script>
 document.addEventListener('DOMContentLoaded',function(){
  const modal=document.getElementById('reviewLoanModal'),form=document.getElementById('reviewLoanForm'),decision=document.getElementById('reviewDecision'),note=document.getElementById('reviewNote');
- modal.addEventListener('show.bs.modal',function(event){const d=event.relatedTarget.dataset;form.action=d.action;
+ modal.addEventListener('show.bs.modal',function(event){const d=event.relatedTarget.dataset;form.action=d.action;document.getElementById('reviewLoanId').value=d.loanId;
   document.getElementById('reviewKind').textContent=d.kind;document.getElementById('reviewActivity').textContent=d.activity;
   document.getElementById('reviewParent').textContent=d.parent;document.getElementById('reviewField').textContent=d.field;
   document.getElementById('reviewApplicant').textContent=d.applicant;document.getElementById('reviewContact').textContent=' / '+d.contact;
@@ -69,6 +71,7 @@ document.addEventListener('DOMContentLoaded',function(){
  });
  function toggleRequired(){const required=decision.value!=='approved';note.required=required;document.getElementById('noteRequired').classList.toggle('d-none',!required);}
  decision.addEventListener('change',toggleRequired);
+ const failedLoanId=@json(old('review_loan_id'));if(failedLoanId){const failedButton=document.querySelector('.review-button[data-loan-id="'+failedLoanId+'"]');if(failedButton)setTimeout(()=>failedButton.click(),150);}
 });
 </script>
 @endpush

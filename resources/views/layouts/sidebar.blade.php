@@ -1,3 +1,4 @@
+@php $menuNoticeCount = fn (string $key) => (int) ($menuNotificationCounts[$key] ?? 0); @endphp
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme shadow-sm">
     <!-- Logo & Brand -->
     <div class="app-brand demo" style="height: 75px;">
@@ -37,7 +38,7 @@
         @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
-                <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div></a>
+                <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('trainings')>99?'99+':$menuNoticeCount('trainings')}}</span>@endif</a>
             </li>
             <li class="menu-item {{ request()->routeIs('teacher-monitoring.*') ? 'active' : '' }}">
                 <a href="{{ route('teacher-monitoring.index') }}" class="menu-link"><i class="menu-icon bx bx-chalkboard"></i><div>Monitoring Pengajar</div></a>
@@ -47,7 +48,7 @@
             </li>
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
-                <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div></a>
+                <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('participant_trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('participant_trainings')>99?'99+':$menuNoticeCount('participant_trainings')}}</span>@endif</a>
             </li>
         @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
@@ -69,13 +70,13 @@
                 <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div>Dashboard Aset</div></a></li>
             @endif
             <li class="menu-item {{ request()->routeIs('assets.index') ? 'active' : '' }}"><a href="{{ route('assets.index') }}" class="menu-link"><i class="menu-icon bx bx-cube"></i><div>Kelola Aset</div></a></li>
-            <li class="menu-item {{ request()->routeIs('assets.monitoring') ? 'active' : '' }}"><a href="{{ route('assets.monitoring') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Monitoring Aset</div></a></li>
-            <li class="menu-item {{ request()->routeIs('asset-loans.*') ? 'active' : '' }}"><a href="{{ route('asset-loans.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div>Persetujuan Peminjaman</div></a></li>
-            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div></a></li>
+            <li class="menu-item {{ request()->routeIs('assets.monitoring') ? 'active' : '' }}"><a href="{{ route('assets.monitoring') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Monitoring Aset</div>@if($menuNoticeCount('asset_monitoring'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('asset_monitoring')>99?'99+':$menuNoticeCount('asset_monitoring')}}</span>@endif</a></li>
+            <li class="menu-item {{ request()->routeIs('asset-loans.*') ? 'active' : '' }}"><a href="{{ route('asset-loans.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div>Persetujuan Peminjaman</div>@if($menuNoticeCount('asset_loans'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('asset_loans')>99?'99+':$menuNoticeCount('asset_loans')}}</span>@endif</a></li>
+            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div>@if($menuNoticeCount('agendas'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('agendas')>99?'99+':$menuNoticeCount('agendas')}}</span>@endif</a></li>
         @endif
         @if(Auth::user()->role === 'admin_bidang')
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Agenda Kegiatan</span></li>
-            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div></a></li>
+            <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div>@if($menuNoticeCount('agendas'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('agendas')>99?'99+':$menuNoticeCount('agendas')}}</span>@endif</a></li>
         @endif
         
         <!-- ========================================================= -->
@@ -90,14 +91,14 @@
             ], true))
                 <li class="menu-header small text-uppercase"><span class="menu-header-text">Kemitraan</span></li>
                 <li class="menu-item {{ request()->routeIs('mitra.admin.*') || (request()->routeIs('mitra.submissions.show') && Auth::user()->role !== 'mitra') ? 'active' : '' }}">
-                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Pengajuan Mitra</div></a>
+                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
                 </li>
             @endif
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
             <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
                 <a href="{{ route('followup.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-task"></i>
-                    <div>Rekomendasi Monitoring</div>
+                    <div>Rekomendasi Monitoring</div>@if($menuNoticeCount('followup'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('followup')>99?'99+':$menuNoticeCount('followup')}}</span>@endif
                 </a>
             </li>
 
@@ -131,7 +132,7 @@
             <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
                 <a href="{{ route('documents.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-folder"></i>
-                    <div>Manajemen Dokumen</div>
+                    <div>Manajemen Dokumen</div>@if($menuNoticeCount('documents'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('documents')>99?'99+':$menuNoticeCount('documents')}}</span>@endif
                 </a>
             </li>
 
@@ -178,7 +179,7 @@
             <li class="menu-item {{ request()->routeIs('pengajar.schedule') ? 'active' : '' }}">
                 <a href="{{ route('pengajar.schedule') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar"></i>
-                    <div>Jadwal Mengajar</div>
+                    <div>Jadwal Mengajar</div>@if($menuNoticeCount('teacher_portal'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('teacher_portal')>99?'99+':$menuNoticeCount('teacher_portal')}}</span>@endif
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
@@ -194,8 +195,16 @@
 </aside>
 
 {{-- CSS CUSTOM UNTUK INTERAKTIVITAS --}}
-@push('css')
 <style>
+
+    .menu-notification-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 1.35rem; height: 1.35rem; margin-left: auto; padding: 0 .36rem;
+        border: 2px solid #fff; border-radius: 50rem; background: #ff3e1d; color: #fff;
+        font-size: .62rem; font-weight: 700; line-height: 1;
+        box-shadow: 0 .15rem .45rem rgba(255, 62, 29, .3);
+    }
+    .menu-item.active > .menu-link .menu-notification-badge { border-color: rgba(255,255,255,.65); }
     /* Transisi menu */
     .menu-vertical .menu-item .menu-link {
         transition: all 0.2s ease-in-out;
@@ -255,4 +264,3 @@
         flex: 0 0 2rem;
     }
 </style>
-@endpush

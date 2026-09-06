@@ -29,7 +29,7 @@ class AgendaController extends Controller {
    });
   $allEvents=$agendaEvents->concat($trainingEvents)->sortByDesc('starts_at')->values();$page=LengthAwarePaginator::resolveCurrentPage();$perPage=20;
   $events=new LengthAwarePaginator($allEvents->forPage($page,$perPage)->values(),$allEvents->count(),$perPage,$page,['path'=>request()->url(),'query'=>request()->query()]);
-  return view('agendas.index',compact('events'));
+  $publicDailyScheduleUrl=\App\Support\PublicScheduleAccess::url();return view('agendas.index',compact('events','publicDailyScheduleUrl'));
  }
  public function create(){ $this->guard();$assets=Asset::where('is_active',true)->where('type','ruangan')->orderBy('name')->get();return view('agendas.create',compact('assets')); }
  public function availability(Request $r){

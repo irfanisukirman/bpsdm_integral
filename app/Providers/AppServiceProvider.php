@@ -19,12 +19,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\View::composer('layouts.navbar', function ($view) {
-            $notifications = auth()->check()
-                ? app(\App\Services\NotificationCenter::class)->forUser(auth()->user())
-                : collect();
-
-            $view->with('navbarNotifications', $notifications);
+        \Illuminate\Support\Facades\View::composer(['layouts.navbar', 'layouts.sidebar'], function ($view) {
+            $user = auth()->user();
+            if (! $user) {
+                $view->with(['navbarNotifications' => collect(), 'menuNotificationCounts' => collect()]);
+                return;
+            }
+            $request = request();
+            if (! $request->attributes->has('_integral_notifications')) {
+                $center = app(\App\Services\NotificationCenter::class);
+                $items = $center->forUser($user);
+                $request->attributes->set('_integral_notifications', [$items, $center->menuCounts($items)]);
+            }
+            [$items, $counts] = $request->attributes->get('_integral_notifications');
+            $view->with(['navbarNotifications' => $items, 'menuNotificationCounts' => $counts]);
         });
 
         

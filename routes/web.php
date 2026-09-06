@@ -32,7 +32,10 @@ use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\TrainingCertificateController;
 use App\Http\Controllers\TrainingActivityReportController;
 use App\Http\Controllers\PublicCertificationBiodataController;
+use App\Http\Controllers\PublicCertificationSpeakerController;
+use App\Http\Controllers\PublicCertificationCertificateController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PublicDailyScheduleController;
 use App\Http\Controllers\PartnerSubmissionController;
 
 /*
@@ -49,6 +52,7 @@ use App\Http\Controllers\PartnerSubmissionController;
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::get('jadwalharian/{token?}', [PublicDailyScheduleController::class, 'index'])->where('token', '[a-f0-9]{64}')->name('public.daily-schedule');
 
 // Search Global (Hanya hasil, aksi di dalam auth)
 Route::get('/search', [SearchController::class, 'index'])->name('global.search');
@@ -89,6 +93,12 @@ Route::get('sertifikasi/biodata/{token}', [PublicCertificationBiodataController:
 Route::post('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'verify'])->name('certifications.public.verify');
 Route::get('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'form'])->name('certifications.public.form');
 Route::post('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'submit'])->name('certifications.public.submit');
+Route::get('sertifikasi/narasumber/{token}', [PublicCertificationSpeakerController::class, 'form'])->middleware('throttle:30,1')->name('certifications.speakers.public');
+Route::post('sertifikasi/narasumber/{token}', [PublicCertificationSpeakerController::class, 'submit'])->middleware('throttle:10,1')->name('certifications.speakers.public.submit');
+Route::get('sertifikasi/sertifikat/{token}', [PublicCertificationCertificateController::class, 'index'])->middleware('throttle:30,1')->name('certifications.certificates.public');
+Route::post('sertifikasi/sertifikat/{token}', [PublicCertificationCertificateController::class, 'verify'])->middleware('throttle:20,1')->name('certifications.certificates.public.verify');
+Route::get('sertifikasi/sertifikat/{token}/{participantToken}', [PublicCertificationCertificateController::class, 'form'])->middleware('throttle:30,1')->name('certifications.certificates.public.form');
+Route::post('sertifikasi/sertifikat/{token}/{participantToken}', [PublicCertificationCertificateController::class, 'submit'])->middleware('throttle:10,1')->name('certifications.certificates.public.submit');
 
 Route::get('/logout', function() {
     Auth::logout();
@@ -132,6 +142,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('agendas/{agenda}', [AgendaController::class, 'update'])->name('agendas.update');
     Route::delete('agendas/{agenda}', [AgendaController::class, 'destroy'])->name('agendas.destroy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/asset-loans/{loan}/{status}', [NotificationController::class, 'openAssetLoan'])->where('status', 'approved|revision|rejected')->name('notifications.asset-loan.open');
     Route::get('/trainings/{training}/forum', [TrainingForumController::class, 'index'])->name('training.forum.index');
     Route::get('/trainings/{training}/forum/messages', [TrainingForumController::class, 'messages'])->name('training.forum.messages');
     Route::post('/trainings/{training}/forum/messages', [TrainingForumController::class, 'store'])->name('training.forum.store');
