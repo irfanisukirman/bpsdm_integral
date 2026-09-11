@@ -34,7 +34,7 @@ class ProfileController extends Controller
         $rules = [
             'name'               => 'required|string|max:255',
             'whatsapp'           => 'required|numeric',
-            'profile_photo'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'profile_photo'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'gender'             => 'required',
             'status_kepegawaian' => 'required',
             'nip_nik'            => 'required|string|max:50',
@@ -63,6 +63,9 @@ class ProfileController extends Controller
         }
 
         $request->validate($rules, [
+            'profile_photo.image'    => 'Foto profil harus berupa gambar.',
+            'profile_photo.mimes'    => 'Foto profil harus berformat JPG, PNG, atau WebP.',
+            'profile_photo.max'      => 'Ukuran foto profil maksimal 5 MB.',
             'file_cv.mimes'          => 'Berkas CV harus berformat PDF.',
             'file_sertifikat.mimes'  => 'Berkas Sertifikat harus berformat PDF.',
             'file_surat_tugas.mimes' => 'Berkas Surat Tugas harus berformat PDF.',

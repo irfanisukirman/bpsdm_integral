@@ -88,12 +88,13 @@ class Training extends Model
     {
         $selesai = Carbon::parse($this->tgl_selesai);
 
-        // Jika Bidang Manajerial -> 1 Tahun
-        if ($this->bidang == 'Bidang Pengembangan Kompetensi Manajerial') {
+        // Program manajerial dievaluasi satu tahun setelah pelatihan,
+        // terlepas dari bidang yang menjadi penyelenggara.
+        $program = strtoupper(trim((string) ($this->program_evaluasi ?: 'PKTI/PKTU')));
+        if (in_array($program, ['CPNS', 'PKP', 'PKA', 'PKN'], true)) {
             return $selesai->addYear();
         }
 
-        // Selain itu (Teknis/Sertifikasi) -> 4 Bulan
         return $selesai->addMonths(4);
     }
 
@@ -122,5 +123,7 @@ class Training extends Model
 
     public function activityReport() { return $this->hasOne(TrainingActivityReport::class); }
     public function activityDocumentations() { return $this->hasMany(TrainingActivityDocumentation::class); }
+    public function executionNotes() { return $this->hasMany(TrainingExecutionNote::class); }
+    public function participantCertificates() { return $this->hasMany(ParticipantCertificate::class); }
 
 }

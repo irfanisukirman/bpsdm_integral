@@ -37,3 +37,55 @@
 .asset-card{border:0;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease}.asset-card:hover{transform:translateY(-3px);box-shadow:0 .5rem 1.5rem rgba(67,89,113,.14)!important}.asset-image,.asset-placeholder{height:210px}.asset-image{object-fit:cover}.asset-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:#a1acb8;background:#f5f5f9}.asset-placeholder i{font-size:2.5rem}.image-count{position:absolute;right:.75rem;bottom:.75rem;z-index:2;opacity:.85}
 </style>
 @endpush
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let rateIndex = Date.now();
+
+    function syncRentalEditor(editor) {
+        const enabled = editor.querySelector('.rentable-toggle')?.checked ?? false;
+        const fields = editor.querySelector('.rental-fields');
+        if (fields) fields.classList.toggle('d-none', !enabled);
+        editor.querySelectorAll('.rental-fields input').forEach(input => input.disabled = !enabled);
+    }
+
+    document.querySelectorAll('.rental-editor').forEach(syncRentalEditor);
+
+    document.addEventListener('change', function (event) {
+        if (!event.target.matches('.rentable-toggle')) return;
+        syncRentalEditor(event.target.closest('.rental-editor'));
+    });
+
+    document.addEventListener('click', function (event) {
+        const addButton = event.target.closest('.add-rate');
+        if (addButton) {
+            const editor = addButton.closest('.rental-editor');
+            const container = editor.querySelector('.rate-rows');
+            const index = rateIndex++;
+            container.insertAdjacentHTML('beforeend', `
+                <div class="rate-row row g-2 align-items-end mb-2">
+                    <div class="col-md-3"><label class="form-label small">Mulai</label><input type="time" name="rental_rates[${index}][start_time]" class="form-control rate-start" required></div>
+                    <div class="col-md-3"><label class="form-label small">Selesai</label><input type="time" name="rental_rates[${index}][end_time]" class="form-control rate-end" required></div>
+                    <div class="col-md-5"><label class="form-label small">Harga per jam</label><div class="input-group"><span class="input-group-text">Rp</span><input type="number" min="0" step="1000" name="rental_rates[${index}][hourly_rate]" class="form-control rate-price" required></div></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100 remove-rate" title="Hapus tarif"><i class="bx bx-trash"></i></button></div>
+                </div>`);
+            container.lastElementChild.querySelector('.rate-start').focus();
+            return;
+        }
+
+        const removeButton = event.target.closest('.remove-rate');
+        if (removeButton) {
+            const container = removeButton.closest('.rate-rows');
+            if (container.querySelectorAll('.rate-row').length <= 1) {
+                const row = removeButton.closest('.rate-row');
+                row.querySelectorAll('input').forEach(input => input.value = '');
+                row.querySelector('.rate-start')?.focus();
+                return;
+            }
+            removeButton.closest('.rate-row').remove();
+        }
+    });
+});
+</script>
+@endpush

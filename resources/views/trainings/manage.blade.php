@@ -23,6 +23,7 @@
             'items' => [
                 ['title' => 'Kehadiran / Absensi', 'description' => 'Keterisian '.$dashboard['attendanceFilled'].'% · hadir '.$dashboard['attendanceRate'].'%', 'icon' => 'bx-user-check', 'tone' => 'success', 'url' => route('attendance.index', $training), 'status' => $dashboard['attendanceFilled'].'%', 'status_tone' => $dashboard['attendanceFilled'] >= 90 ? 'success' : 'info'],
                 ['title' => 'Forum Pelatihan', 'description' => 'Komunikasi peserta dan pengelola', 'icon' => 'bx-conversation', 'tone' => 'primary', 'url' => route('training.forum.index', $training), 'status' => $forumUnread ? $forumUnread.' baru' : 'Terbaca', 'status_tone' => $forumUnread ? 'danger' : 'success'],
+                ['title' => 'Catatan Pelaksanaan', 'description' => 'Catatan pengamatan kelas selama kegiatan', 'icon' => 'bx-note', 'tone' => 'secondary', 'url' => route('trainings.execution-notes.index', $training), 'status' => $training->execution_notes_count.' catatan', 'status_tone' => $training->execution_notes_count ? 'info' : 'secondary'],
                 ['title' => 'Instrumen Monitoring', 'description' => 'Periksa kesesuaian pelaksanaan', 'icon' => 'bx-search-alt', 'tone' => 'info', 'url' => route('monitoring.fill', $training), 'status' => $monitoringStats['total'].' temuan', 'status_tone' => $monitoringStats['open'] ? 'warning' : 'success'],
                 ['title' => 'Tindak Lanjut Monitoring', 'description' => $monitoringStats['verified'].' selesai · '.$monitoringStats['open'].' perlu aksi', 'icon' => 'bx-task', 'tone' => 'warning', 'url' => route('followup.index', ['training_id' => $training->id]), 'status' => $monitoringStats['overdue'] ? $monitoringStats['overdue'].' terlambat' : 'Terkendali', 'status_tone' => $monitoringStats['overdue'] ? 'danger' : 'success'],
             ],
@@ -123,8 +124,8 @@
             [route('attendance.excel.all',$training),'Rekap Kehadiran','Excel','bx-user-check','primary'],
             [route('trainings.export_evaluation',$training),'Rekap Evaluasi L1 & L2','Excel','bx-bar-chart','success'],
             [route('evall12.export_word',$training),'Laporan Evaluasi L1 & L2','Word','bx-file','primary'],
-            [route('evall34.export',$training),'Rekap Evaluasi L3 & L4','Excel','bx-spreadsheet','success'],
-            [route('evall34.export_word',$training),'Laporan Dampak 360°','Word','bx-file','info'],
+            [route('evall34.export',$training),'Rekap Evaluasi L3 & L4 (360°)','Excel','bx-spreadsheet','success'],
+            [route('evall34.export_word',$training),'Laporan Dampak 360° (Naratif)','Word','bx-file','info'],
             [route('evall34.export_invitation',$training),'Undangan Evaluasi 360°','Word','bx-envelope','danger'],
         ] as [$url,$title,$format,$icon,$tone])<a href="{{ $url }}" class="download-item"><span class="bg-label-{{ $tone }}"><i class="bx {{ $icon }}"></i></span><div><strong>{{ $title }}</strong><small>{{ $format }}</small></div><i class="bx bx-download ms-auto"></i></a>@endforeach</div></div></div></div>
     </section>

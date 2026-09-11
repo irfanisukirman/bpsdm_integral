@@ -29,6 +29,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TrainingForumController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetLoanRequestController;
+use App\Http\Controllers\AssetRentalController;
+use App\Http\Controllers\ElectronicSignatureController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\TrainingCertificateController;
 use App\Http\Controllers\TrainingActivityReportController;
@@ -54,6 +56,13 @@ use App\Http\Controllers\PartnerSubmissionController;
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
 Route::get('jadwalharian/{token?}', [PublicDailyScheduleController::class, 'index'])->where('token', '[a-f0-9]{64}')->name('public.daily-schedule');
+Route::get('reservasi-fasilitas', [AssetRentalController::class, 'catalog'])->name('public.asset-rentals.index');
+Route::post('reservasi-fasilitas/lacak', [AssetRentalController::class, 'lookup'])->middleware('throttle:10,1')->name('public.asset-rentals.lookup');
+Route::get('reservasi-fasilitas/{asset}', [AssetRentalController::class, 'show'])->name('public.asset-rentals.show');
+Route::post('reservasi-fasilitas/{asset}', [AssetRentalController::class, 'store'])->middleware('throttle:5,1')->name('public.asset-rentals.store');
+Route::get('reservasi/status/{token}/kwitansi', [AssetRentalController::class, 'receipt'])->name('public.asset-rentals.receipt');
+Route::get('reservasi/status/{token}', [AssetRentalController::class, 'status'])->name('public.asset-rentals.status');
+Route::post('reservasi/status/{token}/pembayaran', [AssetRentalController::class, 'uploadPayment'])->middleware('throttle:5,1')->name('public.asset-rentals.payment');
 
 // Search Global (Hanya hasil, aksi di dalam auth)
 Route::get('/search', [SearchController::class, 'index'])->name('global.search');
@@ -108,7 +117,30 @@ Route::get('/logout', function() {
     return redirect('/')->with('success', 'Anda telah berhasil keluar.');
 });
 
+Route::get('verifikasi-tte/{token}', [ElectronicSignatureController::class, 'verify'])
+    ->middleware('throttle:30,1')->name('electronic-signatures.verify');
+
 Route::middleware(['auth'])->group(function () {
+    Route::get('tanda-tangan-elektronik', [ElectronicSignatureController::class, 'index'])->name('electronic-signatures.index');
+    Route::get('tanda-tangan-elektronik/akun', [ElectronicSignatureController::class, 'accounts'])->name('electronic-signatures.accounts');
+    Route::post('tanda-tangan-elektronik/akun', [ElectronicSignatureController::class, 'storeAccount'])->name('electronic-signatures.accounts.store');
+    Route::put('tanda-tangan-elektronik/akun/{user}/password', [ElectronicSignatureController::class, 'updateAccountPassword'])->name('electronic-signatures.accounts.password');
+    Route::delete('tanda-tangan-elektronik/akun/{user}', [ElectronicSignatureController::class, 'destroyAccount'])->name('electronic-signatures.accounts.destroy');
+    Route::get('tanda-tangan-elektronik/integral', fn (\Illuminate\Http\Request $request) => app(ElectronicSignatureController::class)->category($request, 'training_certificates'))->name('electronic-signatures.integral');
+    Route::get('tanda-tangan-elektronik/jct', fn (\Illuminate\Http\Request $request) => app(ElectronicSignatureController::class)->category($request, 'jct_certificates'))->name('electronic-signatures.jct');
+    Route::get('tanda-tangan-elektronik/dokumen-lain', fn (\Illuminate\Http\Request $request) => app(ElectronicSignatureController::class)->category($request, 'other_documents'))->name('electronic-signatures.documents');
+    Route::get('tanda-tangan-elektronik/integral/create', [ElectronicSignatureController::class, 'createIntegral'])->name('electronic-signatures.integral.create');
+    Route::post('tanda-tangan-elektronik/integral', [ElectronicSignatureController::class, 'storeIntegral'])->name('electronic-signatures.integral.store');
+    Route::get('tanda-tangan-elektronik/jct/create', [ElectronicSignatureController::class, 'createJct'])->name('electronic-signatures.jct.create');
+    Route::post('tanda-tangan-elektronik/jct', [ElectronicSignatureController::class, 'storeJct'])->name('electronic-signatures.jct.store');
+    Route::get('tanda-tangan-elektronik/dokumen-lain/create', [ElectronicSignatureController::class, 'createDocuments'])->name('electronic-signatures.documents.create');
+    Route::post('tanda-tangan-elektronik/dokumen-lain', [ElectronicSignatureController::class, 'storeDocuments'])->name('electronic-signatures.documents.store');
+    Route::get('tanda-tangan-elektronik/create', [ElectronicSignatureController::class, 'create'])->name('electronic-signatures.create');
+    Route::post('tanda-tangan-elektronik', [ElectronicSignatureController::class, 'store'])->name('electronic-signatures.store');
+    Route::get('tanda-tangan-elektronik/{electronicSignature}', [ElectronicSignatureController::class, 'show'])->name('electronic-signatures.show');
+    Route::delete('tanda-tangan-elektronik/{electronicSignature}', [ElectronicSignatureController::class, 'destroyRequest'])->name('electronic-signatures.destroy');
+    Route::post('tanda-tangan-elektronik/actions/{action}/sign', [ElectronicSignatureController::class, 'sign'])->middleware('throttle:5,1')->name('electronic-signatures.sign');
+    Route::get('tanda-tangan-elektronik/documents/{document}/download', [ElectronicSignatureController::class, 'download'])->name('electronic-signatures.download');
     Route::get('certifications/template', [CertificationController::class, 'template'])->name('certifications.template');
     Route::get('certifications/export', [CertificationController::class, 'export'])->name('certifications.export');
     Route::post('certifications/types', [CertificationController::class, 'storeType'])->name('certifications.types.store');
@@ -125,6 +157,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('certifications/{event}/minutes', [CertificationController::class, 'uploadMinutes'])->name('certifications.minutes');
     Route::put('certification-participants/{participant}/result', [CertificationController::class, 'updateResult'])->name('certifications.participants.result');
     Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
+    Route::get('assets/reservasi', [AssetRentalController::class, 'adminIndex'])->name('asset-rentals.admin.index');
+    Route::put('assets/reservasi/pengaturan', [AssetRentalController::class, 'updateSettings'])->name('asset-rentals.settings.update');
+    Route::put('assets/reservasi/{reservation}', [AssetRentalController::class, 'review'])->name('asset-rentals.admin.review');
+    Route::get('assets/reservasi/{reservation}/bukti', [AssetRentalController::class, 'paymentProof'])->name('asset-rentals.admin.payment-proof');
     Route::get('assets/monitoring', [AssetController::class, 'monitoring'])->name('assets.monitoring');
     Route::get('assets/persetujuan', [AssetLoanRequestController::class, 'index'])->name('asset-loans.index');
     Route::get('assets/persetujuan/{loan}/surat', [AssetLoanRequestController::class, 'document'])->name('asset-loans.document');
@@ -218,8 +254,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{training}/certificates/setting', [TrainingCertificateController::class, 'storeSetting'])->name('training-certificates.setting');
     Route::get('trainings/{training}/certificates/template', [TrainingCertificateController::class, 'downloadTemplate'])->name('training-certificates.template');
     Route::post('trainings/{training}/certificates/generate', [TrainingCertificateController::class, 'generate'])->name('training-certificates.generate');
-    Route::post('trainings/{training}/certificates/final-zip', [TrainingCertificateController::class, 'uploadFinalZip'])->name('training-certificates.final-zip');
-    Route::post('participant-certificates/{certificate}/final', [TrainingCertificateController::class, 'uploadFinal'])->name('training-certificates.final');
+    Route::post('trainings/{training}/certificates/send-ready', [TrainingCertificateController::class, 'sendReady'])->name('training-certificates.send-ready');
+    Route::post('participant-certificates/{certificate}/send', [TrainingCertificateController::class, 'send'])->name('training-certificates.send');
     Route::get('participant-certificates/{certificate}/download', [TrainingCertificateController::class, 'downloadFinal'])->name('participant-certificates.download');
     Route::get('jadwal-pengajar', [TrainingController::class, 'teacherSchedulesGlobal'])->name('teacher-schedules.index');
     Route::get('jadwal-pengajar/export', [TrainingController::class, 'exportTeacherSchedulesGlobal'])->name('teacher-schedules.export');
@@ -227,6 +263,9 @@ Route::middleware(['auth'])->group(function () {
     // Kelola Dokumen & Folder
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('documents/folder', [DocumentController::class, 'createFolder'])->name('documents.folder.create');
+    Route::get('documents/archives', [DocumentController::class, 'archives'])->name('documents.archives');
+    Route::put('documents/folder/{folder}/archive', [DocumentController::class, 'archiveFolder'])->name('documents.folder.archive');
+    Route::put('documents/folder/{folder}/restore', [DocumentController::class, 'restoreFolder'])->name('documents.folder.restore');
     Route::post('documents/upload', [DocumentController::class, 'uploadFiles'])->name('documents.upload');
     Route::put('documents/folder/{id}/privacy', [DocumentController::class, 'togglePrivacy'])->name('documents.folder.privacy');
     Route::get('documents/share-users/search', [DocumentController::class, 'searchShareUsers'])->name('documents.share-users.search');
@@ -262,6 +301,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{id}/evaluasi-l12/dashboard/ai', [EvaluationLevel12ReportController::class, 'generateAiAnalysis'])->name('evall12.dashboard.ai');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
+    Route::get('trainings/{id}/execution-notes', [TrainingController::class, 'executionNotes'])->name('trainings.execution-notes.index');
+    Route::post('trainings/{id}/execution-notes', [TrainingController::class, 'storeExecutionNote'])->name('trainings.execution-notes.store');
     Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');

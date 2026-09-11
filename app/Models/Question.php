@@ -21,6 +21,26 @@ class Question extends Model
         'options'
     ];
 
+    public const L34_SUB_CATEGORIES = [
+        'Data Diri Alumni',
+        'Data Diri Atasan',
+        'Penempatan Tugas dan Transfer Learning',
+        'Perubahan Perilaku',
+        'Perubahan Sikap Perilaku',
+        'Dampak Pelatihan',
+        'Faktor Pendukung Aktualisasi',
+        'Faktor Penghambat Aktualisasi',
+        'Faktor Pendukung Aksi Perubahan',
+        'Faktor Penghambat Aksi Perubahan',
+        'Faktor Pendukung Proyek Perubahan',
+        'Kesesuaian Rekomendasi Kebijakan Dengan Kebutuhan Instansi',
+        'Kemanfaatan Rekomendasi',
+    ];
+
+    public static function l34SubCategoryOptions(): array
+    {
+        return self::L34_SUB_CATEGORIES;
+    }
     protected $casts = [
         'options' => 'array',
     ];
@@ -32,9 +52,14 @@ class Question extends Model
 
         return $query
             ->when($category !== '', fn ($q) => $q->where('category', $category))
-            ->where(function ($q) use ($training) {
+            ->where(function ($q) use ($training, $category) {
                 $q->where('bidang', $training->bidang)
                     ->orWhere('bidang', 'Semua Bidang');
+
+                $program = strtoupper(trim((string) ($training->program_evaluasi ?: 'PKTI/PKTU')));
+                if (str_starts_with($category, 'l34_') && in_array($program, ['CPNS', 'PKP', 'PKA', 'PKN'], true)) {
+                    $q->orWhere('bidang', 'Bidang Pengembangan Kompetensi Manajerial');
+                }
             })
             ->where(function ($q) use ($category, $method) {
                 if (in_array($category, ['l1_penyelenggara', 'l1_narasumber'], true)) {

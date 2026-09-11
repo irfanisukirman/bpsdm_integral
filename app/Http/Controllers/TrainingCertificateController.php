@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Participant;
 use App\Models\ParticipantCertificate;
+use App\Models\ElectronicSignatureDocument;
+use App\Models\ElectronicSignatureRequest as SignatureRequest;
+use App\Models\User;
 use App\Models\Training;
 use App\Models\TrainingCertificateSetting;
 use Illuminate\Http\Request;
@@ -11,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\IOFactory;
@@ -25,9 +29,10 @@ class TrainingCertificateController extends Controller
         $setting = TrainingCertificateSetting::where('training_id',$training->id)->first();
         $participants = Participant::with(['user','pasFotoFile'])
             ->where('training_id',$training->id)->where('registration_status','approved')->orderBy('name')->get();
-        $certificates = ParticipantCertificate::where('training_id',$training->id)->get()->keyBy('participant_id');
+        $certificates = ParticipantCertificate::with(['electronicSignatureDocuments.actions'])->where('training_id',$training->id)->get()->keyBy('participant_id');
+        $signers = User::where('role','penandatangan')->whereNotNull('nip_nik')->where('nip_nik','!=','')->orderBy('name')->get(['id','name','nip_nik','jabatan','profile_photo','avatar']);
         $preview = $participants->take(5)->values()->map(fn($p,$i)=>$this->formatNumber($setting?->number_format ?: '222.{X}/KPG.03.01.03/BPSDM/{TAHUN}',($setting?->start_sequence ?: 1)+$i,$setting?->issued_at?->year ?: now()->year));
-        return view('trainings.certificates.index',compact('training','setting','participants','certificates','preview'));
+        return view('trainings.certificates.index',compact('training','setting','participants','certificates','preview','signers'));
     }
 
     public function storeSetting(Request $request, Training $training)
@@ -69,59 +74,169 @@ class TrainingCertificateController extends Controller
     public function generate(Request $request, Training $training)
     {
         $this->authorizeTraining($training);
-        $setting=TrainingCertificateSetting::where('training_id',$training->id)->firstOrFail();
-        abort_unless($setting->template_path&&Storage::disk('local')->exists($setting->template_path),422,'Template DOCX belum diunggah.');
-        $ids=collect($request->input('participant_ids',[]))->map(fn($id)=>(int)$id)->filter();
-        $query=Participant::with(['user','pasFotoFile'])->where('training_id',$training->id)->where('registration_status','approved');
-        if($ids->isNotEmpty())$query->whereIn('id',$ids);
-        $participants=$query->orderBy('name')->get();abort_if($participants->isEmpty(),422,'Tidak ada peserta yang dipilih.');
+        $data = $request->validate([
+            'participant_ids' => 'nullable|array',
+            'participant_ids.*' => 'integer|exists:participants,id',
+            'reviewer_ids' => 'nullable|array|max:10',
+            'reviewer_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')->where('role', 'penandatangan')],
+            'signer_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'penandatangan'), Rule::notIn($request->input('reviewer_ids', []))],
+        ], ['signer_id.required' => 'Pilih penandatangan akhir sebelum generate sertifikat.']);
+
+        $setting = TrainingCertificateSetting::where('training_id', $training->id)->firstOrFail();
+        abort_unless($setting->template_path && Storage::disk('local')->exists($setting->template_path), 422, 'Template DOCX belum diunggah.');
+
+        $ids = collect($data['participant_ids'] ?? [])->map(fn ($id) => (int) $id)->filter();
+        $query = Participant::with(['user', 'pasFotoFile'])->where('training_id', $training->id)->where('registration_status', 'approved');
+        if ($ids->isNotEmpty()) $query->whereIn('id', $ids);
+        $participants = $query->orderBy('name')->get();
+        abort_if($participants->isEmpty(), 422, 'Tidak ada peserta yang dipilih.');
+
+        $activeCertificateIds = ParticipantCertificate::where('training_id', $training->id)
+            ->whereIn('participant_id', $participants->pluck('id'))
+            ->whereHas('electronicSignatureDocuments', fn ($query) => $query->where('status', '!=', 'completed'))
+            ->pluck('participant_id');
+        abort_if($activeCertificateIds->isNotEmpty(), 422, 'Sebagian sertifikat masih berada dalam proses TTE. Selesaikan pengajuan sebelumnya sebelum generate ulang.');
+
         Settings::setPdfRendererName(Settings::PDF_RENDERER_DOMPDF);
         Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
-        $zipPath=tempnam(sys_get_temp_dir(),'certificate-bundle-');$zip=new ZipArchive();$zip->open($zipPath,ZipArchive::OVERWRITE);
-        $temporaryFiles=[];
-        DB::transaction(function()use($participants,$training,$setting,$zip,&$temporaryFiles){
-            $next=max((int)$setting->start_sequence,(int)ParticipantCertificate::where('training_id',$training->id)->max('sequence_number')+1);
-            foreach($participants as $participant){
-                abort_if(blank($participant->nip_nik),422,'NIP/NIK peserta '.$participant->name.' belum tersedia.');
-                $certificate=ParticipantCertificate::firstOrNew(['training_id'=>$training->id,'participant_id'=>$participant->id]);
-                if(!$certificate->exists){$certificate->fill(['training_certificate_setting_id'=>$setting->id,'sequence_number'=>$next,'certificate_number'=>$this->formatNumber($setting->number_format,$next,$setting->issued_at->year)]);$next++;}
-                $template=new TemplateProcessor(Storage::disk('local')->path($setting->template_path));$vars=$template->getVariables();
-                $values=['nama'=>$participant->name,'nip_nik'=>$participant->nip_nik,'jabatan'=>$participant->jabatan?:$participant->user?->jabatan?:'-','instansi'=>$participant->instansi?:$participant->user?->instansi?:'-','nomor_sertifikat'=>$certificate->certificate_number,'nama_pelatihan'=>$training->nama_pelatihan,'tanggal_mulai'=>$training->tgl_mulai?\Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y'):'-','tanggal_selesai'=>$training->tgl_selesai?\Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'):'-','tanggal_sertifikat'=>$setting->issued_at->translatedFormat('d F Y')];
-                foreach($values as $key=>$value)if(in_array($key,$vars,true))$template->setValue($key,htmlspecialchars((string)$value));
-                if(in_array('foto',$vars,true)){if($participant->pasFotoFile&&Storage::disk('public')->exists($participant->pasFotoFile->file_path)){$photoSize=$setting->photo_size==='2x3'?['width'=>76,'height'=>113]:['width'=>113,'height'=>151];$template->setImageValue('foto',['path'=>Storage::disk('public')->path($participant->pasFotoFile->file_path),'width'=>$photoSize['width'],'height'=>$photoSize['height'],'ratio'=>false]);}else $template->setValue('foto','Foto belum tersedia');}
-                $safeNip=preg_replace('/[^A-Za-z0-9_-]/','',(string)$participant->nip_nik);
-                $tmpDocx=tempnam(sys_get_temp_dir(),'certificate-').'.docx';$tmpPdf=tempnam(sys_get_temp_dir(),'certificate-').'.pdf';
-                $template->saveAs($tmpDocx);$temporaryFiles[]=$tmpDocx;$temporaryFiles[]=$tmpPdf;
-                try{$document=IOFactory::load($tmpDocx,'Word2007');IOFactory::createWriter($document,'PDF')->save($tmpPdf);}catch(\Throwable $exception){throw new \RuntimeException('Template gagal dikonversi ke PDF untuk peserta '.$participant->name.'. Sederhanakan elemen Word atau pasang LibreOffice pada server.',0,$exception);}
-                abort_unless(is_file($tmpPdf)&&filesize($tmpPdf)>0,422,'PDF gagal dibuat untuk peserta '.$participant->name.'.');
-                $stored='certificates/generated/'.$training->id.'/'.$safeNip.'.pdf';Storage::disk('local')->put($stored,file_get_contents($tmpPdf));$zip->addFile($tmpPdf,$safeNip.'.pdf');
-                $certificate->fill(['generated_file_path'=>$stored,'generated_at'=>now()])->save();
-            }
-        });$zip->close();foreach($temporaryFiles as $temporaryFile)@unlink($temporaryFile);
-        return response()->download($zipPath,'BUNDEL_SERTIFIKAT_'.Str::slug($training->nama_pelatihan,'_').'.zip')->deleteFileAfterSend(true);
+        $temporaryFiles = [];
+
+        try {
+            $generatedCertificates = DB::transaction(function () use ($participants, $training, $setting, &$temporaryFiles) {
+                $generated = collect();
+                $next = max((int) $setting->start_sequence, (int) ParticipantCertificate::where('training_id', $training->id)->max('sequence_number') + 1);
+
+                foreach ($participants as $participant) {
+                    abort_if(blank($participant->nip_nik), 422, 'NIP/NIK peserta '.$participant->name.' belum tersedia.');
+                    $certificate = ParticipantCertificate::firstOrNew(['training_id' => $training->id, 'participant_id' => $participant->id]);
+                    if (! $certificate->exists) {
+                        $certificate->fill([
+                            'training_certificate_setting_id' => $setting->id,
+                            'sequence_number' => $next,
+                            'certificate_number' => $this->formatNumber($setting->number_format, $next, $setting->issued_at->year),
+                        ]);
+                        $next++;
+                    }
+
+                    $template = new TemplateProcessor(Storage::disk('local')->path($setting->template_path));
+                    $vars = $template->getVariables();
+                    $values = [
+                        'nama' => $participant->name,
+                        'nip_nik' => $participant->nip_nik,
+                        'jabatan' => $participant->jabatan ?: $participant->user?->jabatan ?: '-',
+                        'instansi' => $participant->instansi ?: $participant->user?->instansi ?: '-',
+                        'nomor_sertifikat' => $certificate->certificate_number,
+                        'nama_pelatihan' => $training->nama_pelatihan,
+                        'tanggal_mulai' => $training->tgl_mulai ? \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y') : '-',
+                        'tanggal_selesai' => $training->tgl_selesai ? \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y') : '-',
+                        'tanggal_sertifikat' => $setting->issued_at->translatedFormat('d F Y'),
+                    ];
+                    foreach ($values as $key => $value) if (in_array($key, $vars, true)) $template->setValue($key, htmlspecialchars((string) $value));
+                    if (in_array('foto', $vars, true)) {
+                        if ($participant->pasFotoFile && Storage::disk('public')->exists($participant->pasFotoFile->file_path)) {
+                            $photoSize = $setting->photo_size === '2x3' ? ['width' => 76, 'height' => 113] : ['width' => 113, 'height' => 151];
+                            $template->setImageValue('foto', ['path' => Storage::disk('public')->path($participant->pasFotoFile->file_path), 'width' => $photoSize['width'], 'height' => $photoSize['height'], 'ratio' => false]);
+                        } else $template->setValue('foto', 'Foto belum tersedia');
+                    }
+
+                    $safeNip = $this->safeNip($participant->nip_nik);
+                    $tmpDocx = tempnam(sys_get_temp_dir(), 'certificate-').'.docx';
+                    $tmpPdf = tempnam(sys_get_temp_dir(), 'certificate-').'.pdf';
+                    $temporaryFiles[] = $tmpDocx;
+                    $temporaryFiles[] = $tmpPdf;
+                    $template->saveAs($tmpDocx);
+                    try {
+                        $document = IOFactory::load($tmpDocx, 'Word2007');
+                        IOFactory::createWriter($document, 'PDF')->save($tmpPdf);
+                    } catch (\Throwable $exception) {
+                        throw new \RuntimeException('Template gagal dikonversi ke PDF untuk peserta '.$participant->name.'. Sederhanakan elemen Word atau pasang LibreOffice pada server.', 0, $exception);
+                    }
+                    abort_unless(is_file($tmpPdf) && filesize($tmpPdf) > 0, 422, 'PDF gagal dibuat untuk peserta '.$participant->name.'.');
+
+                    $stored = 'certificates/generated/'.$training->id.'/'.Str::uuid().'-'.$safeNip.'.pdf';
+                    Storage::disk('local')->put($stored, file_get_contents($tmpPdf));
+                    $certificate->fill([
+                        'generated_file_path' => $stored,
+                        'generated_at' => now(),
+                        'final_file_path' => null,
+                        'uploaded_at' => null,
+                        'sent_at' => null,
+                        'sent_by' => null,
+                        'downloaded_at' => null,
+                        'uploaded_by' => null,
+                    ])->save();
+                    $certificate->setRelation('participant', $participant);
+                    $generated->push($certificate);
+                }
+
+                return $generated;
+            });
+
+            $signatureRequest = DB::transaction(function () use ($data, $training, $generatedCertificates) {
+                $signatureRequest = SignatureRequest::create([
+                    'uuid' => (string) Str::uuid(),
+                    'title' => 'Sertifikat - '.$training->nama_pelatihan,
+                    'description' => 'Penandatanganan '.$generatedCertificates->count().' sertifikat peserta hasil generate Integral.',
+                    'bidang' => $training->bidang,
+                    'source_type' => 'training_certificates',
+                    'training_id' => $training->id,
+                    'status' => 'in_progress',
+                    'created_by' => Auth::id(),
+                ]);
+                $actors = collect($data['reviewer_ids'] ?? [])->filter()->values()
+                    ->map(fn ($id, $index) => $signatureRequest->actors()->create(['user_id' => $id, 'role' => 'reviewer', 'sequence' => $index + 1]));
+                $actors->push($signatureRequest->actors()->create(['user_id' => $data['signer_id'], 'role' => 'signer', 'sequence' => $actors->count() + 1]));
+
+                foreach ($generatedCertificates as $certificate) {
+                    $document = $signatureRequest->documents()->create([
+                        'participant_certificate_id' => $certificate->id,
+                        'original_name' => $this->safeNip($certificate->participant->nip_nik).'.pdf',
+                        'original_path' => $certificate->generated_file_path,
+                        'current_path' => $certificate->generated_file_path,
+                        'file_size' => Storage::disk('local')->size($certificate->generated_file_path),
+                        'status' => 'waiting',
+                    ]);
+                    foreach ($actors as $index => $actor) {
+                        $document->actions()->create(['electronic_signature_actor_id' => $actor->id, 'status' => $index === 0 ? 'pending' : 'waiting']);
+                    }
+                }
+
+                return $signatureRequest;
+            });
+        } finally {
+            foreach ($temporaryFiles as $temporaryFile) if (is_file($temporaryFile)) @unlink($temporaryFile);
+        }
+
+        return redirect()->route('electronic-signatures.show', $signatureRequest)
+            ->with('success', $generatedCertificates->count().' sertifikat berhasil dibuat dan langsung dikirim ke antrean TTE Integral.');
     }
 
-    public function uploadFinal(Request $request, ParticipantCertificate $certificate)
+    public function send(ParticipantCertificate $certificate)
     {
-        $certificate->load('training');$this->authorizeTraining($certificate->training);$request->validate(['certificate_file'=>'required|file|mimes:pdf|max:10240']);
-        if($certificate->final_file_path)Storage::disk('local')->delete($certificate->final_file_path);
-        $path=$request->file('certificate_file')->storeAs('certificates/final/'.$certificate->training_id,$this->safeNip($certificate->participant->nip_nik).'.pdf','local');
-        $certificate->update(['final_file_path'=>$path,'uploaded_at'=>now(),'downloaded_at'=>null,'uploaded_by'=>Auth::id()]);return back()->with('success','Sertifikat final berhasil diunggah dan peserta akan menerima notifikasi.');
+        $certificate->load(['training', 'participant']);
+        $this->authorizeTraining($certificate->training);
+        abort_unless($certificate->final_file_path && Storage::disk('local')->exists($certificate->final_file_path), 422, 'Sertifikat belum selesai ditandatangani.');
+        $certificate->update(['sent_at' => now(), 'sent_by' => Auth::id(), 'downloaded_at' => null]);
+
+        return back()->with('success', 'Sertifikat '.$certificate->participant->name.' berhasil dikirim ke akun peserta.');
     }
 
-    public function uploadFinalZip(Request $request, Training $training)
+    public function sendReady(Training $training)
     {
-        $this->authorizeTraining($training);$request->validate(['certificate_zip'=>'required|file|mimes:zip|max:102400']);
-        $zip=new ZipArchive();abort_unless($zip->open($request->file('certificate_zip')->getRealPath())===true,422,'ZIP tidak dapat dibaca.');
-        $participants=Participant::where('training_id',$training->id)->get()->keyBy(fn($p)=>$this->safeNip($p->nip_nik));$matched=0;$unmatched=[];
-        for($i=0;$i<$zip->numFiles;$i++){ $name=$zip->getNameIndex($i);if(strtolower(pathinfo($name,PATHINFO_EXTENSION))!=='pdf')continue;$nip=$this->safeNip(pathinfo($name,PATHINFO_FILENAME));$participant=$participants->get($nip);$certificate=$participant?ParticipantCertificate::where('training_id',$training->id)->where('participant_id',$participant->id)->first():null;if(!$certificate){$unmatched[]=$name;continue;}$stream=$zip->getStream($name);$content=stream_get_contents($stream);fclose($stream);$path='certificates/final/'.$training->id.'/'.$nip.'.pdf';Storage::disk('local')->put($path,$content);$certificate->update(['final_file_path'=>$path,'uploaded_at'=>now(),'downloaded_at'=>null,'uploaded_by'=>Auth::id()]);$matched++;} $zip->close();
-        return back()->with('success',$matched.' sertifikat cocok dan tersimpan.'.(count($unmatched)?' '.count($unmatched).' file tidak cocok: '.implode(', ',array_slice($unmatched,0,5)):''));
+        $this->authorizeTraining($training);
+        $certificates = ParticipantCertificate::where('training_id', $training->id)
+            ->whereNotNull('final_file_path')->whereNull('sent_at')->get()
+            ->filter(fn ($certificate) => Storage::disk('local')->exists($certificate->final_file_path));
+        abort_if($certificates->isEmpty(), 422, 'Belum ada sertifikat selesai TTE yang siap dikirim.');
+        ParticipantCertificate::whereIn('id', $certificates->pluck('id'))->update(['sent_at' => now(), 'sent_by' => Auth::id(), 'downloaded_at' => null]);
+
+        return back()->with('success', $certificates->count().' sertifikat berhasil dikirim ke akun peserta.');
     }
 
     public function downloadFinal(ParticipantCertificate $certificate)
     {
         abort_unless($certificate->final_file_path&&Storage::disk('local')->exists($certificate->final_file_path),404);
-        $user=Auth::user();if($user->role==='participant'){abort_unless(Participant::whereKey($certificate->participant_id)->where(function($query)use($user){$query->where('user_id',$user->id);if(filled($user->nip_nik))$query->orWhere('nip_nik',$user->nip_nik);})->exists(),403);$certificate->update(['downloaded_at'=>now()]);}else{$certificate->load('training');$this->authorizeTraining($certificate->training);}
+        $user=Auth::user();if($user->role==='participant'){abort_unless($certificate->sent_at,403,'Sertifikat belum dikirim oleh pengelola.');abort_unless(Participant::whereKey($certificate->participant_id)->where(function($query)use($user){$query->where('user_id',$user->id);if(filled($user->nip_nik))$query->orWhere('nip_nik',$user->nip_nik);})->exists(),403);$certificate->update(['downloaded_at'=>now()]);}else{$certificate->load('training');$this->authorizeTraining($certificate->training);}
         return Storage::disk('local')->download($certificate->final_file_path,$this->safeNip($certificate->participant->nip_nik).'.pdf');
     }
 

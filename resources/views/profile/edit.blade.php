@@ -21,6 +21,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible border-0 shadow-sm mb-4" role="alert">
+            <div class="fw-bold mb-1"><i class="bx bx-error-circle me-1"></i>Profil belum dapat disimpan</div>
+            <ul class="mb-0 ps-3">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     <div class="row">
         <div class="col-md-12">
@@ -49,9 +56,10 @@
                                 <label for="upload" class="btn btn-primary me-2 mb-4" tabindex="0">
                                     <span class="d-none d-sm-block text-uppercase small fw-bold">Unggah Foto Baru</span>
                                     <i class="bx bx-upload d-block d-sm-none"></i>
-                                    <input type="file" id="upload" name="profile_photo" class="account-file-input" hidden accept="image/png, image/jpeg" />
+                                    <input type="file" id="upload" name="profile_photo" class="account-file-input" hidden accept="image/png,image/jpeg,image/webp" />
                                 </label>
-                                <p class="text-muted mb-0 small">Format: JPG atau PNG. Ukuran Maksimal: 2MB.</p>
+                                <p class="text-muted mb-0 small">Format: JPG, PNG, atau WebP. Ukuran maksimal 5 MB.</p>
+                                @error('profile_photo')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                             </div>
                         </div>
                     </div>

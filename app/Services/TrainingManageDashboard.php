@@ -57,7 +57,7 @@ class TrainingManageDashboard
         $organizerDocuments = $organizerFolder?->files()->with('user')->latest()->get() ?? collect();
         $photos = TrainingActivityDocumentation::where('training_id', $training->id)->where('include_in_report', true)->count();
         $report = $training->activityReport()->first();
-        $certificates = ParticipantCertificate::where('training_id', $training->id)->whereNotNull('final_file_path')->count();
+        $certificates = ParticipantCertificate::where('training_id', $training->id)->whereNotNull('final_file_path')->whereNotNull('sent_at')->count();
 
         $componentScores = [
             'Peserta' => ['weight' => 15, 'score' => $approved > 0 ? ($pending === 0 ? 100 : max(25, round(($approved / max(1, $participants->count())) * 100))) : 0],

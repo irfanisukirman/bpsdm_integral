@@ -7,6 +7,7 @@ use App\Models\EvaluationL1TextSummary;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL2;
 use App\Models\EvaluationResultL34;
+use App\Models\Question;
 use App\Models\Training;
 use App\Models\TrainingActivityDocumentation;
 use App\Models\TrainingActivityReport;
@@ -55,6 +56,7 @@ class TrainingActivityReportController extends Controller
                 'tanpa_keterangan' => $values['jumlah_tanpa_keterangan'], 'jumlah_pengajar' => $values['jumlah_pengajar']],
             'evaluasi_agregat' => ['level_1' => $values['nilai_evaluasi_l1'], 'level_2' => $values['nilai_evaluasi_l2'],
                 'level_3' => $values['nilai_evaluasi_l3'], 'level_4' => $values['nilai_evaluasi_l4'],
+                'ringkasan_per_bagian_l34' => $values['ringkasan_evaluasi_l34'],
                 'jumlah_saran' => $values['jumlah_saran'], 'kesimpulan_admin_anonim' => $values['kesimpulan_evaluasi']],
             'agenda_tanpa_identitas' => collect($data['schedules'])->map(fn ($schedule) => [
                 'tanggal' => $schedule['schedule_date'], 'waktu' => $schedule['schedule_time'],
@@ -301,7 +303,8 @@ class TrainingActivityReportController extends Controller
         $attendance = Attendance::whereIn('schedule_id', $schedules->pluck('id'))->get();
         $l1 = EvaluationResultL1::where('training_id', $training->id)->whereNotNull('score')->get();
         $l2 = EvaluationResultL2::whereIn('participant_id', $participants->pluck('id'))->get();
-        $l34 = EvaluationResultL34::where('training_id', $training->id)->whereNotNull('score')->get();
+        $l34 = EvaluationResultL34::with('question')->where('training_id', $training->id)->get();
+        $l34Data = $this->l34Summary($training, $l34);
         $summary = EvaluationL1TextSummary::where('training_id', $training->id)->first();
         $totalSlots = max(1, $participants->count() * max(1, $schedules->where('schedule_type', '!=', 'break')->count()));
         $present = $attendance->where('status', 'hadir')->count();
@@ -318,11 +321,18 @@ class TrainingActivityReportController extends Controller
             'jumlah_tanpa_keterangan' => max(0, $totalSlots - $attendance->count()), 'jumlah_pengajar' => $schedules->pluck('pengajar_id')->filter()->unique()->count(),
             'nilai_evaluasi_l1' => $l1->isNotEmpty() ? number_format($l1->avg('score'), 1, ',', '.') : '-',
             'nilai_evaluasi_l2' => $l2->isNotEmpty() ? number_format($l2->avg(fn ($x) => (float) $x->postest), 1, ',', '.') : '-',
-            'nilai_evaluasi_l3' => $l34->isNotEmpty() ? number_format($l34->avg('score'), 1, ',', '.') : '-', 'nilai_evaluasi_l4' => $l34->isNotEmpty() ? number_format($l34->avg('score'), 1, ',', '.') : '-',
+            'nilai_evaluasi_l3' => $l34Data['level_3'], 'nilai_evaluasi_l4' => $l34Data['level_4'],
+            'bagian_evaluasi_l3' => $l34Data['level_3_category'], 'bagian_evaluasi_l4' => $l34Data['level_4_category'],
+            'ringkasan_evaluasi_l34' => $l34Data['narrative'],
             'kesimpulan_evaluasi' => $summary?->conclusion ?: '-', 'jumlah_saran' => EvaluationResultL1::where('training_id', $training->id)->whereNotNull('note')->where('note', '!=', '')->count(),
             'nama_penandatangan' => $report->signatory_name ?: '-', 'nip_penandatangan' => $report->signatory_nip ?: '-', 'jabatan_penandatangan' => $report->signatory_position ?: '-',
             'tanggal_pengesahan' => $report->approval_date?->translatedFormat('d F Y') ?: '-', 'tanggal_generate' => now()->translatedFormat('d F Y H:i'),
         ];
+        foreach ($l34Data['sections'] as $section) {
+            $slug = Str::slug($section['name'], '_');
+            $values['nilai_l34_'.$slug] = $section['average'] !== null ? number_format($section['average'], 1, ',', '.') : '-';
+            $values['respons_l34_'.$slug] = $section['responses'];
+        }
         foreach (self::NARRATIVES as $field) {
             $values['narasi_'.$field] = $report->{$field} ?: '-';
         }
@@ -339,6 +349,7 @@ class TrainingActivityReportController extends Controller
             'values' => $values,
             'participants' => $participants->values()->map(fn ($p, $i) => ['participant_no' => $i + 1, 'participant_name' => $p->name, 'participant_nip' => $p->nip_nik, 'participant_position' => $p->jabatan ?: '-', 'participant_institution' => $p->instansi ?: '-'])->all(),
             'schedules' => $schedules->values()->map(fn ($s, $i) => ['schedule_no' => $i + 1, 'schedule_date' => Carbon::parse($s->date)->translatedFormat('d M Y'), 'schedule_time' => substr($s->start_time, 0, 5).'–'.substr($s->end_time, 0, 5), 'schedule_activity' => $s->activity, 'schedule_teacher' => $s->pengajar?->name ?: ($s->pic ?: '-'), 'schedule_duration' => $s->schedule_type === 'break' ? 'Istirahat' : $s->duration_label])->all(),
+            'evaluation_l34_sections' => $l34Data['sections'],
             'attendance_rows' => $participants->values()->map(function ($p, $i) use ($attendance) {
                 $rows = $attendance->where('participant_id', $p->id);
 
@@ -347,6 +358,57 @@ class TrainingActivityReportController extends Controller
         ];
     }
 
+    private function l34Summary(Training $training, $results): array
+    {
+        $toScore = static function ($result): ?float {
+            if ($result->score !== null && is_numeric($result->score)) {
+                return (float) $result->score;
+            }
+
+            return match (strtolower(trim((string) $result->note))) {
+                'ya', 'sangat baik' => 100, 'baik' => 80, 'cukup' => 60,
+                'kurang' => 40, 'tidak', 'sangat kurang' => 20, default => null,
+            };
+        };
+        $questionSections = collect(['mandiri', 'atasan', 'rekan'])
+            ->flatMap(fn ($role) => Question::forTraining($training, 'l34_'.$role)->pluck('sub_category'))
+            ->filter()->unique();
+        $orderedSections = collect(Question::l34SubCategoryOptions())
+            ->reject(fn ($name) => str_starts_with($name, 'Data Diri'))
+            ->filter(fn ($name) => $questionSections->contains($name))
+            ->values();
+        $sections = $orderedSections->map(function ($name) use ($results, $toScore) {
+            $items = $results->filter(fn ($result) => $result->question?->sub_category === $name);
+            $scores = $items->map($toScore)->filter(fn ($score) => $score !== null);
+
+            return [
+                'name' => $name,
+                'average' => $scores->isNotEmpty() ? round($scores->avg(), 1) : null,
+                'responses' => $items->count(),
+                'respondents' => $items->pluck('participant_id')->filter()->unique()->count(),
+            ];
+        });
+        $l3Category = collect(['Perubahan Sikap Perilaku', 'Perubahan Perilaku'])
+            ->first(fn ($name) => $orderedSections->contains($name)) ?: 'Perubahan Perilaku';
+        $l4Category = 'Dampak Pelatihan';
+        $format = fn ($category) => (($value = $sections->firstWhere('name', $category)['average'] ?? null) !== null)
+            ? number_format($value, 1, ',', '.') : '-';
+        $narrative = $sections->map(function ($section) {
+            $result = $section['average'] !== null
+                ? 'rata-rata '.number_format($section['average'], 1, ',', '.').'/100'
+                : ($section['responses'] > 0 ? $section['responses'].' jawaban kualitatif' : 'belum ada jawaban');
+            return $section['name'].': '.$result;
+        })->implode('; ');
+
+        return [
+            'level_3' => $format($l3Category),
+            'level_4' => $format($l4Category),
+            'level_3_category' => $l3Category,
+            'level_4_category' => $l4Category,
+            'sections' => $sections,
+            'narrative' => $narrative ?: 'Belum tersedia hasil Evaluasi Level 3 dan Level 4.',
+        ];
+    }
     private function completeness(Training $training, TrainingActivityReport $report, $photos, array $data): array
     {
         $filled = collect(self::NARRATIVES)->filter(fn ($field) => filled($report->{$field}))->count();
@@ -417,6 +479,8 @@ class TrainingActivityReportController extends Controller
         }
         $section->addTitle('Hasil Evaluasi', 2);
         $section->addText('Level 1: ${nilai_evaluasi_l1} | Level 2: ${nilai_evaluasi_l2} | Level 3: ${nilai_evaluasi_l3} | Level 4: ${nilai_evaluasi_l4}');
+        $section->addText('Ringkasan seluruh bagian Evaluasi Level 3 dan 4', ['bold' => true]);
+        $section->addText('${ringkasan_evaluasi_l34}');
         $section->addText('${kesimpulan_evaluasi}');
         $section->addPageBreak();
         $section->addTitle('V. DOKUMENTASI KEGIATAN', 1);
@@ -453,13 +517,21 @@ class TrainingActivityReportController extends Controller
         $codes = [
             'nama_pelatihan' => 'Nama pelatihan', 'angkatan' => 'Angkatan', 'bidang_penyelenggara' => 'Bidang penyelenggara', 'periode_pelatihan' => 'Rentang tanggal', 'lokasi_pelatihan' => 'Lokasi', 'metode_pelatihan' => 'Metode',
             'jumlah_peserta' => 'Jumlah peserta disetujui', 'jumlah_instansi' => 'Jumlah instansi', 'total_jp' => 'Total JP', 'total_oj' => 'Total OJ', 'rata_rata_kehadiran' => 'Persentase kehadiran',
-            'nilai_evaluasi_l1' => 'Rata-rata Level 1', 'nilai_evaluasi_l2' => 'Rata-rata post-test Level 2', 'nilai_evaluasi_l3' => 'Rata-rata Level 3', 'nilai_evaluasi_l4' => 'Rata-rata Level 4', 'kesimpulan_evaluasi' => 'Kesimpulan evaluasi admin',
+            'nilai_evaluasi_l1' => 'Rata-rata Level 1', 'nilai_evaluasi_l2' => 'Rata-rata post-test Level 2', 'nilai_evaluasi_l3' => 'Rata-rata Level 3 sesuai program', 'nilai_evaluasi_l4' => 'Rata-rata Level 4 sesuai program', 'ringkasan_evaluasi_l34' => 'Narasi ringkas seluruh bagian Evaluasi L3/L4', 'kesimpulan_evaluasi' => 'Kesimpulan evaluasi admin',
             'narasi_background' => 'Latar belakang', 'narasi_legal_basis' => 'Dasar hukum', 'narasi_objectives' => 'Tujuan', 'narasi_implementation' => 'Pelaksanaan', 'narasi_achievements' => 'Capaian', 'narasi_constraints' => 'Kendala', 'narasi_follow_up' => 'Tindak lanjut', 'narasi_conclusion' => 'Kesimpulan', 'narasi_recommendations' => 'Rekomendasi',
             'participant_no' => 'Anchor baris tabel peserta', 'participant_name' => 'Nama peserta', 'participant_nip' => 'NIP/NIK peserta', 'participant_position' => 'Jabatan peserta', 'participant_institution' => 'Instansi peserta',
             'schedule_no' => 'Anchor baris tabel jadwal', 'schedule_date' => 'Tanggal sesi', 'schedule_time' => 'Jam sesi', 'schedule_activity' => 'Materi/kegiatan', 'schedule_teacher' => 'Pengajar', 'schedule_duration' => 'Jumlah JP/OJ',
             'foto_1' => 'Foto dokumentasi pertama (tersedia foto_1 s.d. foto_20)', 'judul_foto_1' => 'Judul foto pertama', 'caption_foto_1' => 'Keterangan foto pertama', 'nama_penandatangan' => 'Nama penandatangan', 'nip_penandatangan' => 'NIP penandatangan', 'jabatan_penandatangan' => 'Jabatan penandatangan', 'tanggal_generate' => 'Waktu generate laporan',
         ];
 
+        foreach (Question::l34SubCategoryOptions() as $section) {
+            if (str_starts_with($section, 'Data Diri')) {
+                continue;
+            }
+            $slug = Str::slug($section, '_');
+            $codes['nilai_l34_'.$slug] = 'Rata-rata '.$section.' (jika berbentuk skor)';
+            $codes['respons_l34_'.$slug] = 'Jumlah jawaban pada bagian '.$section;
+        }
         return collect($codes)->map(fn ($description, $code) => compact('code', 'description'))->values()->all();
     }
 

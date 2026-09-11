@@ -284,6 +284,7 @@
                     </li>
                     <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#kalender-kegiatan">Kalender</a></li>
                     <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#aset-publik">Aset</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold px-3" href="{{ route('public.asset-rentals.index') }}">Reservasi Fasilitas</a></li>
                 </ul>
                 
                 <div class="ms-auto">

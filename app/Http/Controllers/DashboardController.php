@@ -36,6 +36,10 @@ class DashboardController extends Controller
             $user->refresh();
         }
 
+        if ($user->role === 'penandatangan') {
+            return redirect()->route('electronic-signatures.index');
+        }
+
         if ($user->role === 'admin_aset') {
             return redirect()->route('assets.dashboard');
         }

@@ -14,64 +14,76 @@ class QuestionImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // 1. VALIDASI: Jika baris 'pertanyaan' kosong, abaikan baris ini (skip)
-        // Ini mencegah error jika ada baris kosong di bawah data Excel Anda
-        if (!isset($row['pertanyaan']) || empty(trim($row['pertanyaan']))) {
+        $questionText = trim((string) ($row['pertanyaan'] ?? ''));
+        if ($questionText === '') {
             return null;
         }
 
-        // 2. Mapping Kategori (Level & Peran)
-        // Pastikan di Excel kolom 'level_peran' diisi: Mandiri, Atasan, atau Rekan
         $categoryMap = [
-            'mandiri'       => 'l34_mandiri',
-            'alumni'        => 'l34_mandiri',
-            'rekan'         => 'l34_rekan',
-            'atasan'        => 'l34_atasan',
+            'mandiri' => 'l34_mandiri',
+            'alumni' => 'l34_mandiri',
+            'peserta' => 'l34_mandiri',
+            'rekan' => 'l34_rekan',
+            'rekan kerja' => 'l34_rekan',
+            'atasan' => 'l34_atasan',
+            'atasan langsung' => 'l34_atasan',
             'penyelenggara' => 'l1_penyelenggara',
-            'narasumber'    => 'l1_narasumber',
+            'narasumber' => 'l1_narasumber',
         ];
+        $rawCategory = mb_strtolower(trim((string) ($row['level_peran'] ?? '')));
+        if (!isset($categoryMap[$rawCategory])) {
+            throw new \InvalidArgumentException('Level/peran wajib Penyelenggara, Narasumber, Mandiri/Alumni, Atasan, atau Rekan.');
+        }
+        $category = $categoryMap[$rawCategory];
+        $isLevel34 = str_starts_with($category, 'l34_');
 
-        $rawCategory = isset($row['level_peran']) ? strtolower(trim($row['level_peran'])) : '';
-        $category = $categoryMap[$rawCategory] ?? 'l34_mandiri'; // Default ke mandiri jika tidak cocok
-
-        // 3. Mapping Tipe Jawaban
-        // Pastikan di Excel kolom 'tipe_jawaban' diisi: slider, dropdown, atau text
-        $type = isset($row['tipe_jawaban']) ? strtolower(trim($row['tipe_jawaban'])) : 'slider';
+        $type = mb_strtolower(trim((string) ($row['tipe_jawaban'] ?? 'slider')));
         if (!in_array($type, ['slider', 'dropdown', 'checkbox', 'text'], true)) {
-            $type = 'slider';
+            throw new \InvalidArgumentException('Tipe jawaban wajib slider, dropdown, checkbox, atau text.');
         }
 
-        // 4. Proses pilihan jawaban (jika tipe dropdown)
         $options = null;
-        if (!empty($row['pilihan_jawaban'])) {
-            $options = array_map('trim', explode(',', $row['pilihan_jawaban']));
+        if (filled($row['pilihan_jawaban'] ?? null)) {
+            $options = array_values(array_filter(array_map('trim', explode(',', (string) $row['pilihan_jawaban']))));
         }
 
-        // Bidang tujuan selalu mengikuti halaman import, bukan nilai bebas dari file.
-        $bidang = $this->defaultBidang;
-        $metode = strtolower(trim((string) ($row['metode'] ?? 'semua')));
-        $program = trim((string) ($row['program_evaluasi'] ?? 'PKTI/PKTU'));
+        $programInput = strtoupper(trim((string) ($row['program_evaluasi'] ?? 'PKTI/PKTU')));
+        $program = $programInput === 'SEMUA' ? 'semua' : $programInput;
         if (!in_array($program, ['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'], true)) {
             throw new \InvalidArgumentException('Program evaluasi wajib semua, CPNS, PKP, PKA, PKN, atau PKTI/PKTU.');
         }
-        if (!in_array($category, ['l1_penyelenggara', 'l1_narasumber'], true)) {
+
+        $metode = mb_strtolower(trim((string) ($row['metode'] ?? 'semua')));
+        if (!$isLevel34 && !in_array($metode, ['semua', 'klasikal', 'full learning', 'blended'], true)) {
+            throw new \InvalidArgumentException('Metode Level 1 wajib semua, klasikal, full learning, atau blended.');
+        }
+        if ($isLevel34) {
             $metode = 'semua';
-        } elseif (!in_array($metode, ['semua', 'klasikal', 'full learning', 'blended'], true)) {
-            throw new \InvalidArgumentException(
-                'Metode pertanyaan Level 1 wajib semua, klasikal, full learning, atau blended.'
-            );
+        }
+
+        $subCategory = null;
+        if ($isLevel34) {
+            $subCategory = trim((string) ($row['sub_kategori'] ?? ''));
+            $aliases = [
+                'Perubahan Sikap Prilaku' => 'Perubahan Sikap Perilaku',
+                'Data Diri Peserta' => 'Data Diri Alumni',
+            ];
+            $subCategory = $aliases[$subCategory] ?? $subCategory;
+            if (!in_array($subCategory, Question::l34SubCategoryOptions(), true)) {
+                throw new \InvalidArgumentException('Sub kategori L3/L4 tidak dikenali: '.($subCategory ?: '(kosong)').'. Gunakan pilihan pada template terbaru.');
+            }
         }
 
         return new Question([
-            'training_type' => $bidang,
-            'bidang'        => $bidang,
-            'program_evaluasi' => str_starts_with($category, 'l34_') ? $program : 'PKTI/PKTU',
-            'metode'        => $metode,
-            'category'      => $category,
-            'sub_category'  => $row['sub_kategori'] ?? 'Perubahan Perilaku',
-            'type'          => $type,
-            'question_text' => trim($row['pertanyaan']),
-            'options'       => $options,
+            'training_type' => $this->defaultBidang,
+            'bidang' => $this->defaultBidang,
+            'program_evaluasi' => $isLevel34 ? $program : 'PKTI/PKTU',
+            'metode' => $metode,
+            'category' => $category,
+            'sub_category' => $subCategory,
+            'type' => $type,
+            'question_text' => $questionText,
+            'options' => $options,
         ]);
     }
 }

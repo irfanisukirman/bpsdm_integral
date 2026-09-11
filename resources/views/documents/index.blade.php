@@ -15,7 +15,8 @@
             <p class="text-muted mb-0">Kelola folder pelatihan, berkas administrasi, dan tautan berbagi dalam satu tempat.</p>
         </div>
         
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('documents.archives') }}" class="btn btn-outline-dark"><i class="bx bx-archive me-1"></i>Arsip</a>
             @if(Auth::user()->role === 'superadmin' && !request()->query('folder') && isset($currentBidang))
                 <a href="{{route('documents.index')}}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Daftar Bidang</a>
             @endif
@@ -117,6 +118,23 @@
             </div>
         </div>
 
+        @if($isArchivedContext ?? false)
+            <div class="alert alert-secondary border d-flex align-items-start gap-2"><i class="bx bx-archive fs-4"></i><div><strong>Folder arsip · mode baca saja</strong><div class="small">Folder ini berasal dari tahun sebelumnya atau telah diarsipkan manual. File otomatis dari proses sistem tetap dapat masuk ke folder terkait.</div></div></div>
+        @endif
+
+        @if(!($currentFolder ?? null))
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h5 class="mb-0">Folder Aktif</h5>
+                <form method="GET" action="{{ route('documents.index') }}" class="d-flex align-items-center gap-2">
+                    @if($currentBidang ?? null)<input type="hidden" name="bidang" value="{{ $currentBidang }}">@endif
+                    <label class="small text-muted text-nowrap">Tahun folder</label>
+                    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Semua tahun aktif</option>
+                        @foreach(range(now()->year,now()->year+1) as $year)<option value="{{ $year }}" @selected(($activeYear ?? null)===$year)>{{ $year }}</option>@endforeach
+                    </select>
+                </form>
+            </div>
+        @endif
         <!-- Grid Folder -->
         <div class="row g-4 mb-5">
             @forelse($folders as $folder)
@@ -128,7 +146,7 @@
                             // 1. Jika dia Superadmin, dia bisa melakukan apa saja.
                             // 2. Jika dia Admin Bidang, dia hanya bisa ubah/hapus foldernya sendiri.
                             $folderPermission = app(\App\Services\DocumentAccessService::class)->permission(Auth::user(), $folder);
-                            $canManage = app(\App\Services\DocumentAccessService::class)->canManage(Auth::user(), $folder);
+                            $canManage = !($isArchivedContext ?? false) && app(\App\Services\DocumentAccessService::class)->canManage(Auth::user(), $folder);
                         @endphp
                         <div class="dropdown position-absolute end-0 top-0 me-2 mt-2">
                             <button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
@@ -158,6 +176,9 @@
                                     </li>
                                 @endif
                                 @if($canManage)
+                                    @if(!$folder->parent_id)
+                                        <li><form action="{{ route('documents.folder.archive',$folder) }}" method="POST" onsubmit="return confirm('Arsipkan folder induk {{ $folder->name }} beserta seluruh isinya? File tidak akan dihapus.')">@csrf @method('PUT')<button class="dropdown-item text-warning"><i class="bx bx-archive-in me-2"></i>Arsipkan Folder</button></form></li>
+                                    @endif
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form action="{{ route('documents.folder.destroy', $folder->id) }}" method="POST" onsubmit="return confirm('Hapus folder dan seluruh isinya?')">
@@ -284,7 +305,13 @@
                 <div class="mb-0">
                     <label class="form-label fw-bold">Nama Folder</label>
                     <input type="text" name="name" class="form-control" placeholder="Masukkan nama folder..." required autofocus>
-                </div>
+                </div>                @if(!($currentFolder ?? null))
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Tahun Dokumen</label>
+                        <input type="number" name="document_year" min="2000" max="{{ now()->year + 1 }}" value="{{ old('document_year',now()->year) }}" class="form-control" required>
+                        <div class="form-text">Folder otomatis masuk arsip setelah melewati tahun ini.</div>
+                    </div>
+                @endif
             </div>
             <div class="modal-footer border-top">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>

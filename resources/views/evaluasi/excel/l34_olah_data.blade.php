@@ -1,11 +1,7 @@
 @php
     $roles = ['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan Kerja'];
     $labelScore = ['Sangat Kurang' => 20, 'Kurang' => 40, 'Cukup' => 60, 'Baik' => 80, 'Sangat Baik' => 100];
-    $sections = [
-        'PENEMPATAN TUGAS DAN TRANSFER LEARNING' => $questionsPlacement,
-        'PERUBAHAN PERILAKU (L3)' => $questionsL3,
-        'DAMPAK PELATIHAN (L4)' => $questionsL4,
-    ];
+    $sections = $questionsBySection;
 @endphp
 <table>
     <tr><th colspan="8" style="font-weight:bold;background-color:#2F5597;color:#FFFFFF;">OLAH DATA EVALUASI LEVEL 3 &amp; 4</th></tr>
@@ -68,8 +64,14 @@
                                 }
                                 if ($result->score !== null) {
                                     $numeric = (float) $result->score;
-                                    $target = $labelScore[$option] ?? null;
-                                    return $target !== null && $numeric === (float) $target;
+                                    return match ($option) {
+                                        'Sangat Kurang' => $numeric <= 60,
+                                        'Kurang' => $numeric > 60 && $numeric <= 70,
+                                        'Cukup' => $numeric > 70 && $numeric <= 80,
+                                        'Baik' => $numeric > 80 && $numeric <= 90,
+                                        'Sangat Baik' => $numeric > 90,
+                                        default => false,
+                                    };
                                 }
                                 return trim((string) $result->note) === (string) $option;
                             })->count();

@@ -60,6 +60,11 @@ class User extends Authenticatable
         return $this->hasMany(Schedule::class, 'pengajar_id');
     }
 
+    public function electronicSignatureActors()
+    {
+        return $this->hasMany(ElectronicSignatureActor::class, 'user_id');
+    }
+
     public function isNarasumber(): bool
     {
         return $this->role === 'pengajar'

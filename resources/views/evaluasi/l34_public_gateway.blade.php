@@ -14,6 +14,8 @@
         $startDate = filled($training->tgl_mulai) ? \Carbon\Carbon::parse($training->tgl_mulai)->locale('id') : null;
         $endDate = filled($training->tgl_selesai) ? \Carbon\Carbon::parse($training->tgl_selesai)->locale('id') : null;
         $dateLabel = null;
+        $surveyDate = $training->tgl_sebar_l34->copy()->locale('id');
+        $surveyIsOpen = $surveyDate->copy()->startOfDay()->lte(now('Asia/Jakarta')->startOfDay());
         if ($startDate && $endDate) {
             $dateLabel = $startDate->isSameDay($endDate)
                 ? $startDate->translatedFormat('d F Y')
@@ -332,8 +334,13 @@
                 @else
                     <div class="empty-state">
                         <span class="empty-icon"><i class="bx bx-info-circle"></i></span>
-                        <h3>Instrumen evaluasi belum tersedia</h3>
-                        <p>Belum ada pertanyaan Mandiri, Atasan, maupun Rekan yang sesuai dengan pelatihan ini.</p>
+                        @if($surveyIsOpen)
+                            <h3>Jadwal evaluasi sudah dibuka, instrumen belum tersedia</h3>
+                            <p>Evaluasi dijadwalkan mulai {{ $surveyDate->translatedFormat('d F Y') }}, tetapi bank soal program {{ $training->program_evaluasi ?: 'PKTI/PKTU' }} belum diimpor oleh pengelola.</p>
+                        @else
+                            <h3>Evaluasi belum dibuka</h3>
+                            <p>Formulir dijadwalkan tersedia mulai {{ $surveyDate->translatedFormat('d F Y') }}.</p>
+                        @endif
                     </div>
                 @endif
 

@@ -8,6 +8,10 @@ class Folder extends Model
 {
     protected $fillable = [
         'training_id',
+        'document_year',
+        'is_archived',
+        'archived_at',
+        'archived_by',
         'name',
         'bidang',
         'parent_id',
@@ -15,6 +19,18 @@ class Folder extends Model
         'is_public',
         'share_token'
     ];
+
+    protected $casts = ['is_archived' => 'boolean', 'archived_at' => 'datetime', 'document_year' => 'integer'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Folder $folder) {
+            if (!$folder->parent_id && !$folder->document_year) {
+                $date = $folder->training_id ? Training::whereKey($folder->training_id)->value('tgl_mulai') : null;
+                $folder->document_year = $date ? (int) substr((string) $date, 0, 4) : (int) now()->format('Y');
+            }
+        });
+    }
 
     public function files() { 
         return $this->hasMany(File::class); 
@@ -37,6 +53,8 @@ class Folder extends Model
         return $this->belongsTo(Folder::class, 'parent_id'); 
     }
     
+    public function archiver() { return $this->belongsTo(User::class, 'archived_by'); }
+
     public function user() {
         return $this->belongsTo(User::class);
     }

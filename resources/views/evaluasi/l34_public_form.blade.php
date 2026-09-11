@@ -42,11 +42,9 @@
     .form-card { overflow:hidden; }
     .form-card-body { padding:28px; }
 
-    .wizard-progress { --wizard-progress:0%; position:relative; display:grid; grid-template-columns:repeat(4,1fr); margin:0; padding:24px 28px 22px; border-bottom:1px solid var(--l34-line); background:#fbfcfe; }
-    .wizard-progress::before, .wizard-progress::after { content:""; position:absolute; left:calc(12.5% + 8px); right:calc(12.5% + 8px); top:41px; height:3px; border-radius:5px; }
-    .wizard-progress::before { background:#e7e9ef; }
-    .wizard-progress::after { right:auto; width:var(--wizard-progress); background:#635bff; transition:width .25s ease; }
-    .wizard-progress-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:7px; color:#98a2b3; text-align:center; }
+    .wizard-progress { position:relative; display:flex; gap:8px; overflow-x:auto; margin:0; padding:24px 28px 22px; border-bottom:1px solid var(--l34-line); background:#fbfcfe; scrollbar-width:thin; }
+    .wizard-progress::before, .wizard-progress::after { display:none; }
+    .wizard-progress-item { position:relative; z-index:1; flex:0 0 118px; display:flex; flex-direction:column; align-items:center; gap:7px; padding:5px 7px; color:#98a2b3; text-align:center; }
     .wizard-progress-item span { display:grid; place-items:center; width:36px; height:36px; border:3px solid #fbfcfe; border-radius:50%; background:#eaecf0; font-size:.8rem; font-weight:800; transition:.2s ease; }
     .wizard-progress-item small { font-size:.73rem; font-weight:700; }
     .wizard-progress-item.active { color:var(--l34-primary); }
@@ -165,8 +163,9 @@
                     <form action="{{ route('public.l34.store', [$training->id, $role]) }}" method="POST" id="l34WizardForm" novalidate>
                         @csrf
                         <div class="wizard-progress" id="wizardProgress">
-                            @foreach([1=>'Data Diri',2=>'Penempatan',3=>'Perilaku',4=>'Dampak'] as $step=>$label)
-                                <div class="wizard-progress-item {{ $step===1?'active':'' }}" data-indicator="{{ $step }}"><span>{{ $step }}</span><small>{{ $label }}</small></div>
+                            <div class="wizard-progress-item active" data-indicator="1"><span>1</span><small>Data Diri</small></div>
+                            @foreach($formSections as $sectionIndex => $section)
+                                <div class="wizard-progress-item" data-indicator="{{ $sectionIndex + 2 }}"><span>{{ $sectionIndex + 2 }}</span><small>{{ $section['short_title'] }}</small></div>
                             @endforeach
                         </div>
 
@@ -212,22 +211,27 @@
                                         </div>
                                     @endif
                                 </div>
-                                @include('evaluasi.partials.l34_questions',['items'=>$questionSections['profile']])
-                                <div class="step-actions justify-content-end"><button type="button" class="btn btn-primary wizard-next">Lanjut ke Penempatan <i class="bx bx-right-arrow-alt ms-1"></i></button></div>
+                                @include('evaluasi.partials.l34_questions',['items'=>$profileQuestions])
+                                <div class="step-actions justify-content-end">
+                                    @if($formSections->isNotEmpty())
+                                        <button type="button" class="btn btn-primary wizard-next">Lanjut <i class="bx bx-right-arrow-alt ms-1"></i></button>
+                                    @else
+                                        <button type="submit" class="btn btn-primary" id="submitEvaluation"><i class="bx bx-paper-plane me-1"></i>Kirim Penilaian</button>
+                                    @endif
+                                </div>
                             </section>
 
-                            @foreach([
-                                2=>['key'=>'placement','title'=>'Penempatan Tugas dan Transfer Learning','icon'=>'bx-transfer-alt','description'=>'Nilai penerapan hasil pelatihan dalam penugasan dan lingkungan kerja.'],
-                                3=>['key'=>'behavior','title'=>'Perubahan Perilaku','icon'=>'bx-trending-up','description'=>'Nilai perubahan perilaku kerja yang terlihat setelah mengikuti pelatihan.'],
-                                4=>['key'=>'impact','title'=>'Dampak Pelatihan','icon'=>'bx-bar-chart-alt-2','description'=>'Nilai dampak pelatihan terhadap kinerja individu maupun organisasi.'],
-                            ] as $step=>$section)
+                            @foreach($formSections as $sectionIndex => $section)
+                                @php $step = $sectionIndex + 2; @endphp
                                 <section class="wizard-step d-none" data-step="{{ $step }}">
-                                    <div class="step-header"><span class="step-icon"><i class="bx {{ $section['icon'] }}"></i></span><div><h2>{{ $section['title'] }}</h2><p>{{ $section['description'] }} Perspektif: <strong>{{ $roleLabel }}</strong>.</p></div></div>
-                                    @include('evaluasi.partials.l34_questions',['items'=>$questionSections[$section['key']]])
-                                    @if($questionSections[$section['key']]->isEmpty())<div class="section-empty"><i class="bx bx-info-circle me-1"></i>Belum ada pertanyaan pada bagian ini. Anda dapat melanjutkan ke bagian berikutnya.</div>@endif
+                                    <div class="step-header">
+                                        <span class="step-icon"><i class="bx {{ $section['icon'] }}"></i></span>
+                                        <div><h2>{{ $section['title'] }}</h2><p>{{ $section['description'] }} Perspektif: <strong>{{ $roleLabel }}</strong>.</p></div>
+                                    </div>
+                                    @include('evaluasi.partials.l34_questions',['items'=>$section['items']])
                                     <div class="step-actions">
                                         <button type="button" class="btn btn-outline-secondary wizard-prev"><i class="bx bx-left-arrow-alt me-1"></i><span class="btn-label">Kembali</span></button>
-                                        @if($step<4)
+                                        @if(!$loop->last)
                                             <button type="button" class="btn btn-primary wizard-next">Lanjut <i class="bx bx-right-arrow-alt ms-1"></i></button>
                                         @else
                                             <button type="submit" class="btn btn-primary" id="submitEvaluation"><i class="bx bx-paper-plane me-1"></i>Kirim Penilaian</button>
@@ -273,9 +277,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const steps = Array.from(form.querySelectorAll('.wizard-step'));
     const indicators = Array.from(form.querySelectorAll('.wizard-progress-item'));
     const progress = document.getElementById('wizardProgress');
+    const maxStep = steps.length;
 
     function showStep(step) {
-        currentStep = Math.max(1, Math.min(4, step));
+        currentStep = Math.max(1, Math.min(maxStep, step));
         steps.forEach(item => item.classList.toggle('d-none', Number(item.dataset.step) !== currentStep));
         indicators.forEach(item => {
             const number = Number(item.dataset.indicator);
@@ -284,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const circle = item.querySelector('span');
             circle.textContent = number < currentStep ? '✓' : number;
         });
-        progress.style.setProperty('--wizard-progress', (((currentStep - 1) / 3) * 75) + '%');
+        indicators.find(item => Number(item.dataset.indicator) === currentStep)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\EvaluationFormL1;
+use App\Models\ElectronicSignatureAction;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL34;
 use App\Models\FolderUserPermission;
@@ -18,6 +19,7 @@ use App\Models\TrainingMessage;
 use App\Models\User;
 use App\Models\AssetBooking;
 use App\Models\AssetLoanRequest;
+use App\Models\AssetPublicReservation;
 use App\Models\AgendaSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -59,8 +61,10 @@ class NotificationCenter
         if (in_array($user->role, ['superadmin', 'admin_aset', 'admin_bidang'], true)) {
             $items = $items->merge($this->assetLoanItems($user));
             $items = $items->merge($this->assetAgendaItems($user));
+            if (in_array($user->role, ['superadmin', 'admin_aset'], true)) { $items = $items->merge($this->assetRentalItems($user)); }
         }
 
+        $items = $items->merge($this->electronicSignatureItems($user));
         $items = $items->merge($this->forumItems($user));
         $items = $items->merge($this->folderShareItems($user));
 
@@ -72,6 +76,31 @@ class NotificationCenter
             $item['due_at'] ?? '9999-12-31 23:59:59',
             $item['title']
         ))->values();
+    }
+
+    private function electronicSignatureItems(User $user): Collection
+    {
+        $actions = ElectronicSignatureAction::with(['document.request'])
+            ->where('status', 'pending')
+            ->whereHas('actor', fn ($query) => $query->where('user_id', $user->id))
+            ->latest('updated_at')->get();
+
+        return $actions
+            ->filter(fn ($action) => $action->document?->request)
+            ->groupBy(fn ($action) => $action->document->electronic_signature_request_id)
+            ->map(function (Collection $requestActions) {
+                $latestAction = $requestActions->sortByDesc('updated_at')->first();
+                $signatureRequest = $latestAction->document->request;
+                $documentCount = $requestActions->pluck('electronic_signature_document_id')->unique()->count();
+
+                return $this->item(
+                    'electronic-signature-request-'.$signatureRequest->id,
+                    'Kegiatan menunggu tanda tangan Anda',
+                    $signatureRequest->title.' · '.$documentCount.' dokumen siap ditandatangani.',
+                    'warning', 'bx-pen', route('electronic-signatures.show', $signatureRequest),
+                    'Buka kegiatan', $latestAction->updated_at?->format('Y-m-d H:i:s')
+                );
+            })->values();
     }
 
     private function partnerItems(User $user): Collection
@@ -122,16 +151,16 @@ class NotificationCenter
 
             $detailUrl = route('participant.training.show', $training->id);
             $certificate = $participant->certificate;
-            if ($certificate?->final_file_path && !$certificate->downloaded_at) {
+            if ($certificate?->final_file_path && $certificate->sent_at && !$certificate->downloaded_at) {
                 $items->push($this->item(
-                    'certificate-issued-'.$certificate->id.'-'.$certificate->uploaded_at?->timestamp,
+                    'certificate-issued-'.$certificate->id.'-'.$certificate->sent_at?->timestamp,
                     'Sertifikat pelatihan telah terbit',
                     $training->nama_pelatihan.' - sertifikat Anda sudah tersedia dan dapat diunduh.',
                     'success',
                     'bx-medal',
                     route('participant-certificates.download', $certificate),
                     'Download sertifikat',
-                    $certificate->uploaded_at?->format('Y-m-d H:i:s')
+                    $certificate->sent_at?->format('Y-m-d H:i:s')
                 ));
             }
             $missingDocuments = collect([
@@ -388,6 +417,8 @@ class NotificationCenter
     private function menuFor(string $id): ?string
     {
         return match (true) {
+            str_starts_with($id, 'electronic-signature-') => 'electronic_signatures',
+            str_starts_with($id, 'asset-rentals-') => 'asset_rentals',
             str_starts_with($id, 'asset-loans-pending-') => 'asset_loans',
             str_starts_with($id, 'asset-usage-upcoming-') => 'asset_monitoring',
             str_starts_with($id, 'agenda-upcoming-') => 'agendas',
@@ -555,5 +586,25 @@ class NotificationCenter
         })->values();
 
         return $items->merge($decisionItems);
+    }
+    private function assetRentalItems(User $user): Collection
+    {
+        $pendingQuery = AssetPublicReservation::where('status', 'pending_review');
+        $paymentQuery = AssetPublicReservation::where('status', 'payment_uploaded');
+        $pending = (clone $pendingQuery)->count();
+        $payments = (clone $paymentQuery)->count();
+        $latestPending = (clone $pendingQuery)->latest('created_at')->first(['created_at']);
+        $latestPayment = (clone $paymentQuery)->latest('payment_uploaded_at')->first(['payment_uploaded_at']);
+        $pendingKey = $latestPending ? 'asset-rentals-pending-'.$latestPending->created_at->format('YmdHis') : null;
+        $paymentKey = $latestPayment ? 'asset-rentals-payment-'.$latestPayment->payment_uploaded_at?->format('YmdHis') : null;
+        $readKeys = NotificationRead::where('user_id', $user->id)->where('notification_key', 'like', 'asset-rentals-%')->pluck('notification_key');
+        $items = collect();
+        if ($pending && $pendingKey && !$readKeys->contains($pendingKey)) {
+            $items->push($this->item($pendingKey, 'Reservasi fasilitas baru', $pending.' pengajuan publik menunggu pemeriksaan jadwal.', 'warning', 'bx-calendar-plus', route('asset-rentals.admin.index', ['status' => 'pending_review']), 'Periksa reservasi'));
+        }
+        if ($payments && $paymentKey && !$readKeys->contains($paymentKey)) {
+            $items->push($this->item($paymentKey, 'Bukti pembayaran reservasi', $payments.' bukti pembayaran menunggu verifikasi.', 'info', 'bx-receipt', route('asset-rentals.admin.index', ['status' => 'payment_uploaded']), 'Verifikasi pembayaran'));
+        }
+        return $items;
     }
 }

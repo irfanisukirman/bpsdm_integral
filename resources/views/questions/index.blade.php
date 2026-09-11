@@ -1,6 +1,11 @@
 @extends('layouts.master')
 
 @section('title', 'Kelola Soal Evaluasi')
+@push('css')
+<style>
+.question-bank-card{border:0;border-radius:16px;overflow:hidden}.question-preview-select{max-width:380px;background:#fff!important;color:#566a7f!important;opacity:1!important}.question-row{transition:background-color .16s}.question-row:hover{background:#fafaff}.question-filter-card{border:0;border-radius:16px}@media(max-width:767.98px){.questions-table{min-width:900px}}
+</style>
+@endpush
 
 @section('content')
 <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4>
@@ -110,22 +115,11 @@
     <div class="card-body py-3">
         <form method="GET" action="{{ route('questions.index') }}" class="row g-3 align-items-end">
             @if($isSuperadmin)<input type="hidden" name="bidang" value="{{ $selectedBidang }}">@endif
-            <div class="col-md-5">
-                <label class="form-label fw-bold mb-1">Filter Program Evaluasi</label>
-                <select name="program" class="form-select" onchange="this.form.submit()">
-                    <option value="">Tampilkan Semua Program</option>
-                    @foreach($programOptions as $program)
-                        <option value="{{ $program }}" @selected($selectedProgram === $program)>
-                            {{ $program === 'semua' ? 'Semua Program' : $program }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-7">
-                <div class="alert alert-info py-2 mb-0">
-                    <small><i class="bx bx-info-circle me-1"></i>Bidang selain Manajerial otomatis menggunakan <strong>PKTI/PKTU</strong>. CPNS, PKP, PKA, dan PKN khusus Bidang Manajerial.</small>
-                </div>
-            </div>
+            <div class="col-lg-4"><label class="form-label fw-bold mb-1">Cari Pertanyaan</label><div class="input-group"><span class="input-group-text"><i class="bx bx-search"></i></span><input type="search" name="q" value="{{ $search }}" maxlength="100" class="form-control" placeholder="Ketik isi pertanyaan..."></div></div>
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Program</label><select name="program" class="form-select"><option value="">Semua</option>@foreach($programOptions as $program)<option value="{{ $program }}" @selected($selectedProgram === $program)>{{ $program === 'semua' ? 'Semua Program' : $program }}</option>@endforeach</select></div>
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Level / Peran</label><select name="category" class="form-select"><option value="">Semua</option>@foreach(['l1_penyelenggara'=>'L1 Penyelenggara','l1_narasumber'=>'L1 Narasumber','l34_mandiri'=>'L3/4 Mandiri','l34_atasan'=>'L3/4 Atasan','l34_rekan'=>'L3/4 Rekan'] as $value=>$label)<option value="{{ $value }}" @selected($selectedCategory === $value)>{{ $label }}</option>@endforeach</select></div>
+            <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Tipe Jawaban</label><select name="type" class="form-select"><option value="">Semua</option>@foreach(['slider'=>'Slider','dropdown'=>'Dropdown','checkbox'=>'Checkbox','text'=>'Teks'] as $value=>$label)<option value="{{ $value }}" @selected($selectedType === $value)>{{ $label }}</option>@endforeach</select></div>
+            <div class="col-sm-6 col-lg-2 d-flex gap-2"><button class="btn btn-primary flex-grow-1" type="submit"><i class="bx bx-filter-alt me-1"></i>Terapkan</button><a href="{{ route('questions.index', $isSuperadmin ? ['bidang'=>$selectedBidang] : []) }}" class="btn btn-outline-secondary" title="Reset"><i class="bx bx-reset"></i></a></div>
         </form>
     </div>
 </div>
@@ -142,13 +136,13 @@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold text-dark">Bidang</label>
                     @if($isSuperadmin)
-                        <select name="bidang" class="form-select border-primary" required>
+                        <select name="bidang" id="create_bidang" class="form-select border-primary" onchange="syncMethodField('create')" required>
                             @foreach($bidangOptions as $bidang)
                                 <option value="{{ $bidang }}" {{ $selectedBidang === $bidang ? 'selected' : '' }}>{{ $bidang }}</option>
                             @endforeach
                         </select>
                     @else
-                        <input type="hidden" name="bidang" value="{{ Auth::user()->bidang }}">
+                        <input type="hidden" name="bidang" id="create_bidang" value="{{ Auth::user()->bidang }}">
                         <input type="text" class="form-control bg-light" value="{{ Auth::user()->bidang }}" readonly>
                     @endif
                 </div>
@@ -178,7 +172,7 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold text-dark">Program Evaluasi</label>
-                    <select name="program_evaluasi" id="create_program_evaluasi" class="form-select border-primary">
+                    <select name="program_evaluasi" id="create_program_evaluasi" class="form-select border-primary" onchange="syncMethodField('create')">
                         <option value="semua">Semua Program</option>
                         @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
                             <option value="{{ $program }}">{{ $program }}</option>
@@ -233,9 +227,13 @@
 </div>
 
 <!-- DAFTAR SOAL -->
-<div class="card shadow-sm">
+<div class="card shadow-sm question-bank-card">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
+        <div><h5 class="mb-1">Daftar Pertanyaan</h5><small class="text-muted">Preview menunjukkan bentuk jawaban yang akan dilihat responden.</small></div>
+        <span class="badge bg-label-primary">{{ $questions->total() }} hasil</span>
+    </div>
     <div class="table-responsive text-wrap p-3">
-        <table class="table table-hover" style="table-layout: fixed; width: 100%;">
+        <table class="table table-hover questions-table" style="table-layout: fixed; width: 100%;">
             <thead class="table-light">
                 <tr>
                     <th style="width: 52px;" class="text-center">
@@ -274,21 +272,22 @@
                             <td class="align-top">
                                 <div class="fw-bold text-dark mb-2 text-wrap" style="line-height: 1.4;">{{ $q->question_text }}</div>
                                 
-                                @if($q->type == 'slider')
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="range" class="form-range w-25" disabled>
-                                        <span class="badge bg-label-secondary" style="font-size: 9px;">SKALA 10-100</span>
-                                    </div>
-                                @elseif(in_array($q->type, ['dropdown', 'checkbox']) && is_array($q->options))
-                                    <div class="d-flex flex-wrap gap-1">
-                                        @foreach($q->options as $opt)
-                                            <span class="badge bg-label-info" style="font-size: 9px;">
-                                                @if($q->type === 'checkbox')<i class="bx bx-checkbox me-1"></i>@endif{{ $opt }}
-                                            </span>
-                                        @endforeach
-                                    </div>
+                                @if($q->type === 'slider')
+                                    <div class="d-flex align-items-center gap-2"><input type="range" class="form-range" style="max-width:220px" value="80" disabled><span class="badge bg-label-secondary">Slider 10-100</span></div>
+                                @elseif($q->type === 'dropdown')
+                                    @if(!empty($q->options))
+                                        <select class="form-select form-select-sm question-preview-select" disabled><option>Preview pilihan jawaban</option>@foreach($q->options as $opt)<option>{{ $opt }}</option>@endforeach</select>
+                                    @else
+                                        <span class="badge bg-label-danger"><i class="bx bx-error-circle me-1"></i>Dropdown belum memiliki pilihan</span>
+                                    @endif
+                                @elseif($q->type === 'checkbox')
+                                    @if(!empty($q->options))
+                                        <div class="d-flex flex-wrap gap-2">@foreach($q->options as $opt)<span class="border rounded px-2 py-1 small"><i class="bx bx-checkbox me-1 text-primary"></i>{{ $opt }}</span>@endforeach</div>
+                                    @else
+                                        <span class="badge bg-label-danger"><i class="bx bx-error-circle me-1"></i>Checkbox belum memiliki pilihan</span>
+                                    @endif
                                 @else
-                                    <small class="text-muted"><i class="bx bx-align-left me-1"></i>Input Teks Paragraf</small>
+                                    <div class="border rounded bg-light p-2 text-muted small"><i class="bx bx-align-left me-1"></i>Peserta mengisi jawaban teks/paragraf.</div>
                                 @endif
                             </td>
                             <td class="text-center align-top">
@@ -320,6 +319,12 @@
             </tbody>
         </table>
     </div>
+    @if($questions->hasPages())
+        <div class="card-footer border-top d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <small class="text-muted">Menampilkan {{ $questions->firstItem() }}-{{ $questions->lastItem() }} dari {{ $questions->total() }} pertanyaan</small>
+            <div>{{ $questions->onEachSide(1)->links() }}</div>
+        </div>
+    @endif
 </div>
 
 <div class="modal fade" id="modalImportSoal" tabindex="-1" aria-hidden="true">
@@ -406,13 +411,13 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Bidang</label>
                         @if($isSuperadmin)
-                            <select name="bidang" id="edit_bidang" class="form-select">
+                            <select name="bidang" id="edit_bidang" class="form-select" onchange="syncMethodField('edit')">
                                 @foreach($bidangOptions as $bidang)
                                     <option value="{{ $bidang }}">{{ $bidang }}</option>
                                 @endforeach
                             </select>
                         @else
-                            <input type="hidden" name="bidang" value="{{ Auth::user()->bidang }}">
+                            <input type="hidden" name="bidang" id="edit_bidang" value="{{ Auth::user()->bidang }}">
                             <input type="text" class="form-control bg-light" value="{{ Auth::user()->bidang }}" readonly>
                         @endif
                     </div>
@@ -438,7 +443,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Program Evaluasi</label>
-                        <select name="program_evaluasi" id="edit_program_evaluasi" class="form-select">
+                        <select name="program_evaluasi" id="edit_program_evaluasi" class="form-select" onchange="syncMethodField('edit')">
                             <option value="semua">Semua Program</option>
                             @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
                                 <option value="{{ $program }}">{{ $program }}</option>
@@ -510,6 +515,54 @@
         }
     }
 
+    const defaultL34Sections = [
+        'Data Diri Alumni',
+        'Penempatan Tugas dan Transfer Learning',
+        'Perubahan Perilaku',
+        'Dampak Pelatihan'
+    ];
+    const managerialL34Sections = [
+        'Perubahan Sikap Perilaku',
+        'Dampak Pelatihan',
+        'Faktor Pendukung Aktualisasi',
+        'Faktor Penghambat Aktualisasi',
+        'Faktor Pendukung Aksi Perubahan',
+        'Faktor Penghambat Aksi Perubahan',
+        'Faktor Pendukung Proyek Perubahan',
+        'Kesesuaian Rekomendasi Kebijakan Dengan Kebutuhan Instansi',
+        'Kemanfaatan Rekomendasi'
+    ];
+
+    function syncSubcategoryOptions(prefix, preferredValue = null) {
+        const field = document.getElementById(prefix + '_sub_category');
+        const category = document.getElementById(prefix + '_category');
+        const program = document.getElementById(prefix + '_program_evaluasi');
+        const bidang = document.getElementById(prefix + '_bidang');
+        if (!field || !category || !program) return;
+
+        const selected = preferredValue || field.value;
+        const managerialPrograms = ['CPNS', 'PKP', 'PKA', 'PKN'];
+        const isManagerial = (bidang?.value || '') === 'Bidang Pengembangan Kompetensi Manajerial';
+        const useManagerialSections = isManagerial && managerialPrograms.includes(program.value);
+        let sections = [...defaultL34Sections];
+
+        if (useManagerialSections) {
+            const identity = category.value === 'l34_atasan'
+                ? ['Data Diri Atasan']
+                : (category.value === 'l34_mandiri' ? ['Data Diri Alumni'] : []);
+            sections = [...identity, ...managerialL34Sections];
+        }
+        if (selected && !sections.includes(selected)) sections.push(selected);
+
+        field.innerHTML = '';
+        sections.forEach((section, index) => {
+            const option = document.createElement('option');
+            option.value = section;
+            option.textContent = (index + 1) + '. ' + section;
+            field.appendChild(option);
+        });
+        field.value = sections.includes(selected) ? selected : (sections[0] || '');
+    }
     function syncMethodField(prefix) {
         const category = document.getElementById(prefix + '_category');
         const method = document.getElementById(prefix + '_metode');
@@ -531,6 +584,8 @@
             subcategoryWrapper.style.display = isLevel34 ? '' : 'none';
             subcategory.disabled = !isLevel34;
         }
+        if (isLevel34) syncSubcategoryOptions(prefix);
+
         if (program) {
             program.disabled = false;
             if (!isLevel34) program.value = 'PKTI/PKTU';
@@ -567,6 +622,7 @@
             $('#edit-options-wrapper').hide();
         }
         syncMethodField('edit');
+        syncSubcategoryOptions('edit', data.sub_category);
     }
 
     function duplicateQuestion(id, questionText, sourceBidang) {

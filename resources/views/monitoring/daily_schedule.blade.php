@@ -35,14 +35,14 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div><h5 class="fw-bold mb-1">{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}</h5><small class="text-muted">Urut berdasarkan waktu mulai kegiatan.</small></div>
-            <div class="d-flex gap-2"><span class="badge bg-label-primary">Pelatihan</span><span class="badge bg-label-success">Agenda</span></div>
+            <div class="d-flex flex-wrap gap-2"><span class="badge bg-label-primary">Pelatihan</span><span class="badge bg-label-success">Agenda</span><span class="badge bg-label-info">Reservasi Publik</span></div>
         </div>
         <div class="card-body p-0">
             @forelse($schedules as $item)
                 @php
                     $isRunning=$isToday && $currentTime >= $item['start'] && $currentTime <= $item['end'];
                     $isPast=$isToday && $currentTime > $item['end'];
-                    $typeColor=$item['type']==='Istirahat'?'warning':($item['type']==='Pelatihan'?'primary':'success');
+                    $typeColor=$item['type']==='Istirahat'?'warning':($item['type']==='Pelatihan'?'primary':($item['type']==='Reservasi Publik'?'info':'success'));
                 @endphp
                 <div class="schedule-row p-3 p-md-4 border-bottom {{ $isRunning ? 'running' : '' }}">
                     <div class="row g-3 align-items-start">
@@ -90,7 +90,7 @@
                     </div>
                 </div>
             @empty
-                <div class="text-center py-5 px-3"><span class="avatar-initial rounded-circle bg-label-secondary p-3 d-inline-flex mb-3"><i class="bx bx-calendar-x fs-2"></i></span><h5 class="fw-bold">Tidak ada jadwal</h5><p class="text-muted mb-0">Belum ada pelatihan atau agenda pada tanggal yang dipilih.</p></div>
+                <div class="text-center py-5 px-3"><span class="avatar-initial rounded-circle bg-label-secondary p-3 d-inline-flex mb-3"><i class="bx bx-calendar-x fs-2"></i></span><h5 class="fw-bold">Tidak ada jadwal</h5><p class="text-muted mb-0">Belum ada pelatihan, agenda, atau reservasi fasilitas pada tanggal yang dipilih.</p></div>
             @endforelse
         </div>
     </div>

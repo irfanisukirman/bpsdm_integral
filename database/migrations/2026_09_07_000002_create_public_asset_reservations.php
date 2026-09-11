@@ -1,0 +1,12 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration {
+ public function up():void {
+  Schema::table('assets',function(Blueprint $t){$t->boolean('is_rentable')->default(false)->after('is_public');$t->decimal('hourly_rate',12,2)->nullable()->after('is_rentable');$t->time('rental_open_time')->nullable()->after('hourly_rate');$t->time('rental_close_time')->nullable()->after('rental_open_time');$t->unsignedTinyInteger('rental_min_hours')->default(1)->after('rental_close_time');$t->unsignedTinyInteger('rental_max_hours')->default(8)->after('rental_min_hours');});
+  Schema::create('asset_rental_settings',function(Blueprint $t){$t->id();$t->string('manager_whatsapp',30)->nullable();$t->string('bank_name')->default('Bank BJB');$t->string('bank_account')->default('0025506995102');$t->string('bank_account_name')->default('BENDAHARA PENERIMAAN BPSDM PROV JBR');$t->unsignedInteger('payment_deadline_hours')->default(24);$t->text('public_note')->nullable();$t->timestamps();});
+  Schema::create('asset_public_reservations',function(Blueprint $t){$t->id();$t->foreignId('asset_id')->constrained()->cascadeOnDelete();$t->uuid('public_token')->unique();$t->string('booking_code',30)->unique();$t->string('full_name');$t->string('whatsapp',30);$t->string('email');$t->string('organization')->nullable();$t->date('rental_date');$t->time('start_time');$t->time('end_time');$t->unsignedTinyInteger('duration_hours');$t->string('usage_type',60);$t->string('usage_other')->nullable();$t->text('additional_note')->nullable();$t->decimal('hourly_rate',12,2);$t->decimal('total_amount',14,2);$t->string('status',40)->default('pending_review');$t->timestamp('rules_accepted_at');$t->timestamp('payment_due_at')->nullable();$t->string('payment_proof_path')->nullable();$t->timestamp('payment_uploaded_at')->nullable();$t->text('admin_note')->nullable();$t->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();$t->timestamp('reviewed_at')->nullable();$t->timestamps();$t->index(['asset_id','rental_date','start_time','end_time'],'apr_asset_schedule_idx');$t->index(['status','created_at'],'apr_status_created_idx');});
+ }
+ public function down():void {Schema::dropIfExists('asset_public_reservations');Schema::dropIfExists('asset_rental_settings');Schema::table('assets',fn(Blueprint $t)=>$t->dropColumn(['is_rentable','hourly_rate','rental_open_time','rental_close_time','rental_min_hours','rental_max_hours']));}
+};

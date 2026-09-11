@@ -399,7 +399,7 @@ class ParticipantController extends Controller
         );
         $summary = [
             'trainings' => $historyItems->count(),
-            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path))->count(),
+            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path) && filled($participant->certificate?->sent_at))->count(),
             'latest_year' => $historyItems->first()?->training?->tgl_selesai
                 ? \Carbon\Carbon::parse($historyItems->first()->training->tgl_selesai)->year
                 : null,

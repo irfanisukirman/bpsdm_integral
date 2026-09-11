@@ -12,7 +12,7 @@
     $l1Complete = $participant->hasCompletedAllL1();
     $isFilledL34 = $participant->hasFilledL34Mandiri();
     $evaluationComplete = $l1Complete && $isFilledL34;
-    $certificateComplete = filled($participantCertificate?->final_file_path);
+    $certificateComplete = filled($participantCertificate?->final_file_path) && filled($participantCertificate?->sent_at);
     $forumUnread = app(\App\Services\NotificationCenter::class)->unreadCountForTraining(auth()->user(), $training);
 @endphp
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -452,7 +452,7 @@
 
                     {{-- TAB: SERTIFIKAT --}}
                     <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
-                        @if($participantCertificate?->final_file_path)
+                        @if($participantCertificate?->final_file_path && $participantCertificate?->sent_at)
                         <div class="text-center py-5 bg-label-success rounded border border-success">
                             <div class="avatar avatar-xl bg-success mx-auto mb-4" style="width:100px;height:100px"><i class="bx bx-medal text-white" style="font-size:50px"></i></div>
                             <span class="badge bg-success mb-3">Sertifikat Tersedia</span>

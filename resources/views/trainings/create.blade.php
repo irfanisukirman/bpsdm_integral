@@ -43,7 +43,7 @@
                                 <option value="{{ $program }}" @selected(old('program_evaluasi', 'PKTI/PKTU') === $program)>{{ $program }}</option>
                             @endforeach
                         </select>
-                        <div class="form-text">Untuk Bidang Manajerial pilih CPNS, PKP, PKA, atau PKN. Bidang lainnya menggunakan PKTI/PKTU.</div>
+                        <div class="form-text">Pilih kelompok pertanyaan Evaluasi L3 & L4 yang sesuai dengan program pelatihan.</div>
                     </div>
 
                     @if($model === 'standar')

@@ -55,7 +55,7 @@
                         </td>
                         <td><span class="badge bg-label-success"><i class="bx bx-check-circle me-1"></i>Selesai</span></td>
                         <td class="text-center">
-                            @if($h->certificate?->final_file_path)
+                            @if($h->certificate?->final_file_path && $h->certificate?->sent_at)
                                 <a href="{{route('participant-certificates.download',$h->certificate)}}" class="btn btn-sm btn-icon btn-success" title="Download sertifikat PDF"><i class="bx bx-download"></i></a>
                             @else
                                 <button class="btn btn-sm btn-icon btn-outline-secondary" disabled title="Sertifikat belum tersedia"><i class="bx bx-lock-alt"></i></button>
