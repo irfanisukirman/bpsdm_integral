@@ -24,6 +24,16 @@
                 <i class="bx bx-error-circle me-1"></i> {{ session('error') }}
             </div>
         @endif
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                <i class="bx bx-error-circle me-1"></i>
+                <ul class="mb-0 mt-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="row justify-content-center g-4">
             @if($myTrainings->isNotEmpty())
@@ -272,8 +282,8 @@
 
     {{-- MODAL JOIN GLOBAL --}}
     <div class="modal fade" id="modalJoinGlobal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <form action="{{ route('participant.training.join_by_code') }}" method="POST"
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="{{ route('participant.training.join_by_code') }}" method="POST" enctype="multipart/form-data"
                 class="modal-content border-0 shadow-lg">
                 @csrf
                 <div class="modal-header bg-primary text-white border-0 py-4">
@@ -281,11 +291,28 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center py-4">
+                <div class="modal-body py-4">
                     <p class="text-muted small text-uppercase fw-bold">Kode Undangan</p>
                     <input type="text" name="invitation_code"
                         class="form-control form-control-lg text-center fw-bold border-primary" placeholder="------"
                         maxlength="6" style="letter-spacing: 5px; text-transform: uppercase;" required autofocus>
+                    <hr class="my-4">
+                    <p class="small text-muted">Unggah seluruh kelengkapan sekarang. Admin akan memeriksanya sebelum menyetujui pendaftaran.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Biodata <span class="text-danger">*</span></label>
+                        <input type="file" name="biodata" class="form-control" accept="application/pdf" required>
+                        <small class="text-muted">PDF, maksimal 5 MB</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Surat Tugas <span class="text-danger">*</span></label>
+                        <input type="file" name="surat_tugas" class="form-control" accept="application/pdf" required>
+                        <small class="text-muted">PDF, maksimal 5 MB</small>
+                    </div>
+                    <div>
+                        <label class="form-label fw-bold">Pas Foto <span class="text-danger">*</span></label>
+                        <input type="file" name="pas_foto" class="form-control" accept="image/jpeg,image/png" required>
+                        <small class="text-muted">JPG/PNG, maksimal 5 MB</small>
+                    </div>
                 </div>
                 <div class="modal-footer border-0 p-3">
                     <button type="submit" class="btn btn-primary btn-lg w-100 shadow">Verifikasi & Daftar</button>

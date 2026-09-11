@@ -39,10 +39,11 @@
         <thead>
             <tr>
                 <th width="5%" class="text-center">No</th>
-                <th width="20%">NIP / NIK</th>
-                <th width="35%">Nama Lengkap</th>
+                <th width="18%">NIP / NIK</th>
+                <th width="25%">Nama Lengkap</th>
                 <th width="15%" class="text-center">Status</th>
-                <th width="25%" class="text-center">Waktu Check-in</th>
+                <th width="17%" class="text-center">Waktu</th>
+                <th width="20%">Keterangan</th>
             </tr>
         </thead>
         <tbody>
@@ -68,6 +69,7 @@
                         -
                     @endif
                 </td>
+                <td>{{ $att?->keterangan ?: '-' }}</td>
             </tr>
             @endforeach
         </tbody>

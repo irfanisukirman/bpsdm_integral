@@ -13,11 +13,13 @@ class ScheduleTemplateExport implements FromArray, WithHeadings, WithStyles, Sho
     public function headings(): array
     {
         return [
+            'Jenis Jadwal',
             'Tanggal',
             'Jam Mulai',
             'Jam Selesai',
             'Materi / Kegiatan',
-            'JP',
+            'Jumlah',
+            'Satuan (JP/OJ)',
             'Link Zoom',
             'Tenaga Pengajar / Fasilitator',
             'Penanggung Jawab (PIC)'
@@ -29,23 +31,39 @@ class ScheduleTemplateExport implements FromArray, WithHeadings, WithStyles, Sho
         // Berikan 2 baris contoh pengisian
         return [
             [
+                'Pembelajaran',
                 '2026-09-01',
                 '08:00',
                 '09:30',
                 'Pengantar Transformasi Digital',
                 '2',
-                
+                'JP',
+                '',
                 'Budi Santoso', // Bisa diisi Nama atau NIP Pengajar yang terdaftar
                 'Panitia BPSDM'
             ],
             [
+                'Istirahat',
+                '2026-09-01',
+                '09:30',
+                '09:45',
+                'Coffee Break',
+                '',
+                '',
+                '',
+                '',
+                ''
+            ],
+            [
+                'Pembelajaran',
                 '2026-09-01',
                 '09:45',
-                '11:15',
+                '11:45',
                 'Praktik Implementasi SPBE',
                 '2',
+                'OJ',
                 '',
-                '', // Boleh dikosongkan jika tanpa pengajar khusus
+                '',
                 'Panitia BPSDM'
             ]
         ];

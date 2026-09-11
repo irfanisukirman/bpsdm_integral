@@ -53,6 +53,11 @@ class Training extends Model
         return $this->hasMany(Participant::class);
     }
 
+    public function evaluationL1TextSummary()
+    {
+        return $this->hasOne(EvaluationL1TextSummary::class);
+    }
+
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function messages() { return $this->hasMany(TrainingMessage::class); }
 
@@ -114,5 +119,8 @@ class Training extends Model
     public function folder() {
         return $this->hasOne(Folder::class, 'training_id');
     }
+
+    public function activityReport() { return $this->hasOne(TrainingActivityReport::class); }
+    public function activityDocumentations() { return $this->hasMany(TrainingActivityDocumentation::class); }
 
 }

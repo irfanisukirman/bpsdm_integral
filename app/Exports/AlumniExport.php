@@ -9,12 +9,13 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvents
+class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvents, WithTitle
 {
     protected $bidang;
     protected $isSuperadmin;
@@ -28,6 +29,11 @@ class AlumniExport implements FromArray, WithStyles, WithColumnWidths, WithEvent
     public function columnWidths(): array
     {
         return ['A' => 30, 'B' => 15, 'C' => 20];
+    }
+
+    public function title(): string
+    {
+        return 'Statistik Alumni';
     }
 
     public function array(): array

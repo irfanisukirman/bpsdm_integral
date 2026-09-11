@@ -3,332 +3,93 @@
 @section('title', 'Daftar Pelatihan')
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="fw-bold mb-1">Daftar Pelatihan</h4>
-            <p class="text-muted mb-0">Manajemen dan pemantauan seluruh program pelatihan aktif</p>
-        </div>
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle shadow" type="button" data-bs-toggle="dropdown">
-                <i class="bx bx-plus me-1"></i> Buat Pelatihan
-            </button>
-            <ul class="dropdown-menu shadow">
-                <li><a class="dropdown-item" href="{{ route('trainings.create', ['model' => 'standar']) }}"><i class="bx bx-chalkboard me-2"></i>Model Standar</a></li>
-                <li><a class="dropdown-item" href="{{ route('trainings.create', ['model' => 'blended']) }}"><i class="bx bx-sync me-2"></i>Model Blended Learning</a></li>
-            </ul>
-        </div>
+@php
+    $today = now('Asia/Jakarta');
+    $hasFilters = request()->filled('search') || request()->filled('status') || request()->filled('year') || request()->filled('model') || request('sort', 'newest') !== 'newest';
+@endphp
+
+<div class="training-portfolio">
+    <div class="portfolio-header mb-4">
+        <div class="min-w-0"><span class="portfolio-kicker">PENGELOLAAN PROGRAM</span><h3 class="fw-bold mb-1">Daftar Pelatihan</h3><p class="text-muted mb-0">Pantau seluruh program pelatihan dan buka pusat kendali dari satu halaman.</p></div>
+        <div class="dropdown flex-shrink-0"><button class="btn btn-primary dropdown-toggle px-4" data-bs-toggle="dropdown"><i class="bx bx-plus me-1"></i>Buat Pelatihan</button><ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><h6 class="dropdown-header">Pilih model pelatihan</h6></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'standar']) }}"><span class="create-option-icon bg-label-primary"><i class="bx bx-chalkboard"></i></span><span><strong class="d-block">Model Standar</strong><small class="text-muted">Satu metode pelaksanaan</small></span></a></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'blended']) }}"><span class="create-option-icon bg-label-warning"><i class="bx bx-sync"></i></span><span><strong class="d-block">Blended Learning</strong><small class="text-muted">Beberapa tahapan pembelajaran</small></span></a></li></ul></div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
-            <i class="bx bx-check-circle me-2"></i>
-            <div>{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+    @if(session('success'))<div class="alert alert-success alert-dismissible border-0 shadow-sm"><i class="bx bx-check-circle me-2"></i>{{ session('success') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>@endif
+    @if(session('error'))<div class="alert alert-danger alert-dismissible border-0 shadow-sm"><i class="bx bx-error-circle me-2"></i>{{ session('error') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>@endif
 
-    <!-- Search & Filter Bar (Opsional tapi keren) -->
-    <div class="card mb-4 border-0 shadow-none bg-transparent">
-        <div class="row g-3">
-            <div class="col-md-12">
-                <div class="input-group input-group-merge shadow-sm">
-                    <span class="input-group-text"><i class="bx bx-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Cari nama pelatihan, lokasi atau bidang...">
-                </div>
-            </div>
-        </div>
+    <div class="row g-3 mb-4">
+        @foreach([
+            ['Semua pelatihan',$dashboardStats['total'],'bx-book-open','primary',route('trainings.index')],
+            ['Sedang berlangsung',$dashboardStats['ongoing'],'bx-pulse','success',route('trainings.index',['status'=>'ongoing'])],
+            ['Akan datang',$dashboardStats['upcoming'],'bx-calendar-plus','info',route('trainings.index',['status'=>'upcoming'])],
+            ['Telah selesai',$dashboardStats['completed'],'bx-check-double','secondary',route('trainings.index',['status'=>'completed'])],
+            ['Peserta aktif',$dashboardStats['participants'],'bx-group','warning',null],
+        ] as [$label,$value,$icon,$tone,$url])
+            <div class="col-6 col-lg">@if($url)<a href="{{ $url }}" class="portfolio-stat">@else<div class="portfolio-stat">@endif<span class="portfolio-stat__icon bg-label-{{ $tone }}"><i class="bx {{ $icon }}"></i></span><div><strong>{{ number_format($value,0,',','.') }}</strong><small>{{ $label }}</small></div>@if($url)<i class="bx bx-chevron-right ms-auto text-muted"></i></a>@else</div>@endif</div>
+        @endforeach
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <small class="text-muted">
-            Menampilkan {{ $trainings->firstItem() ?? 0 }}-{{ $trainings->lastItem() ?? 0 }}
-            dari {{ $trainings->total() }} pelatihan
-        </small>
-    </div>
+    <div class="card border-0 shadow-sm filter-card mb-4"><form method="GET" action="{{ route('trainings.index') }}" class="card-body p-3"><div class="row g-2 align-items-end"><div class="col-12 col-xl"><label class="form-label small fw-semibold">Cari pelatihan</label><div class="input-group input-group-merge"><span class="input-group-text"><i class="bx bx-search"></i></span><input type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Nama, lokasi, bidang, atau angkatan..."></div></div><div class="col-6 col-md-3 col-xl-2"><label class="form-label small fw-semibold">Status</label><select name="status" class="form-select"><option value="">Semua status</option><option value="ongoing" @selected(request('status')==='ongoing')>Berlangsung</option><option value="upcoming" @selected(request('status')==='upcoming')>Akan datang</option><option value="completed" @selected(request('status')==='completed')>Selesai</option></select></div><div class="col-6 col-md-3 col-xl-2"><label class="form-label small fw-semibold">Tahun</label><select name="year" class="form-select"><option value="">Semua tahun</option>@foreach($years as $year)<option value="{{ $year }}" @selected((string)request('year')===(string)$year)>{{ $year }}</option>@endforeach</select></div><div class="col-6 col-md-3 col-xl-2"><label class="form-label small fw-semibold">Model</label><select name="model" class="form-select"><option value="">Semua model</option><option value="standar" @selected(request('model')==='standar')>Standar</option><option value="blended" @selected(request('model')==='blended')>Blended</option></select></div><div class="col-6 col-md-3 col-xl-2"><label class="form-label small fw-semibold">Urutkan</label><select name="sort" class="form-select"><option value="newest" @selected(request('sort','newest')==='newest')>Terbaru</option><option value="start_soon" @selected(request('sort')==='start_soon')>Segera dimulai</option><option value="oldest" @selected(request('sort')==='oldest')>Terlama</option><option value="name" @selected(request('sort')==='name')>Nama A–Z</option></select></div><div class="col-12 col-md-auto"><div class="d-flex gap-2"><button class="btn btn-primary flex-grow-1"><i class="bx bx-filter-alt me-1"></i>Terapkan</button>@if($hasFilters)<a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary"><i class="bx bx-reset"></i></a>@endif</div></div></div></form></div>
 
-    <!-- Main List -->
-    <div class="row pb-5">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3"><div><h5 class="fw-bold mb-0">Program Pelatihan</h5><small class="text-muted">Menampilkan {{ $trainings->firstItem() ?? 0 }}–{{ $trainings->lastItem() ?? 0 }} dari {{ $trainings->total() }} program</small></div>@if($hasFilters)<span class="badge bg-label-primary align-self-start align-self-sm-center"><i class="bx bx-filter me-1"></i>Filter aktif</span>@endif</div>
+
+    <div class="training-list mb-4">
         @forelse($trainings as $t)
-        <div class="col-12 mb-3">
-            <div class="card border-0 shadow-sm card-training-row">
-                <div class="card-body p-3">
-                    <div class="row align-items-center">
-                        <!-- 1. Info Pelatihan -->
-                        <div class="col-lg-4 border-end-lg">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="badge {{ $t->model == 'blended' ? 'bg-label-warning' : 'bg-label-info' }} btn-xs text-uppercase me-2" style="font-size: 10px;">
-                                    {{ $t->model }}
-                                </span>
-                                <small class="text-muted fw-bold" style="font-size: 10px; letter-spacing: 1px;">ANGKATAN {{ $t->angkatan }}</small>
-                            </div>
-                            <h5 class="fw-bold mb-1 text-dark">{{ $t->nama_pelatihan }}</h5>
-                            <div class="d-flex align-items-center">
-                                <i class="bx bx-map-pin text-danger me-1" style="font-size: 14px;"></i>
-                                <small class="text-muted">{{ $t->lokasi }}</small>
-                            </div>
-                        </div>
-
-                        <!-- 2. Bidang & Jadwal -->
-                        <div class="col-lg-3 py-2 py-lg-0 border-end-lg px-lg-4">
-                            <small class="text-muted d-block mb-1 text-uppercase fw-semibold" style="font-size: 10px;">Penyelenggara</small>
-                            <p class="mb-2 text-dark small fw-bold text-wrap" style="line-height: 1.3;">{{ $t->bidang }}</p>
-                            <div class="d-flex gap-3">
-                                <div>
-                                    <small class="text-muted d-block" style="font-size: 10px;">Mulai</small>
-                                    <small class="fw-bold text-dark">{{ \Carbon\Carbon::parse($t->tgl_mulai)->format('d/m/Y') }}</small>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block" style="font-size: 10px;">Selesai</small>
-                                    <small class="fw-bold text-dark">{{ \Carbon\Carbon::parse($t->tgl_selesai)->format('d/m/Y') }}</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. Status & Live Activity (HIGHLIGHT) -->
-                        <div class="col-lg-3 py-2 py-lg-0 px-lg-4">
-                            @php $current = $t->current_activity; @endphp
-                            @if($current)
-                                <small class="text-success fw-bold d-flex align-items-center mb-1" style="font-size: 10px;">
-                                    <span class="live-pulse me-2"></span> SEDANG BERLANGSUNG
-                                </small>
-                                <div class="bg-label-success p-2 rounded border border-success border-dashed">
-                                    <h6 class="mb-0 fw-bold text-dark small text-wrap">{{ $current->activity }}</h6>
-                                    <small class="text-muted">{{ substr($current->start_time, 0, 5) }} - {{ substr($current->end_time, 0, 5) }}</small>
-                                </div>
-                            @else
-                                <small class="text-muted d-block mb-1" style="font-size: 10px;">Status Pelatihan</small>
-                                @php $sisa = $t->sisa_hari; @endphp
-                                @if($sisa < 0)
-                                    <span class="badge bg-label-danger w-100 py-2"><i class="bx bx-check-double me-1"></i> Pelatihan Selesai</span>
-                                @elseif($sisa == 0)
-                                    <span class="badge bg-label-warning w-100 py-2 animate__animated animate__flash animate__infinite">Hari Terakhir</span>
-                                @else
-                                    <span class="badge bg-label-success w-100 py-2">{{ $sisa }} Hari Lagi</span>
-                                @endif
-                            @endif
-                        </div>
-
-                        <!-- 4. Aksi -->
-                        <div class="col-lg-2 text-center text-lg-end mt-3 mt-lg-0">
-                            <div class="d-flex justify-content-lg-end align-items-center gap-2">
-                                <a href="{{ route('trainings.manage', $t->id) }}" class="btn btn-primary btn-sm px-3">
-                                    <i class="bx bx-cog me-1"></i> Kelola
-                                </a>
-                                <div class="dropdown">
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-bs-toggle="dropdown" data-bs-boundary="viewport">
-                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end shadow-lg">
-                                        <a class="dropdown-item text-warning" href="{{ route('trainings.edit', $t->id) }}">
-                                            <i class="bx bx-edit-alt me-2"></i> Edit Pelatihan
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <form action="{{ route('trainings.destroy', $t->id) }}" method="POST" class="delete-training-form" data-training-name="{{ $t->nama_pelatihan }}">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bx bx-trash me-2"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            @php
+                $start = \Carbon\Carbon::parse($t->tgl_mulai,'Asia/Jakarta')->startOfDay();
+                $end = \Carbon\Carbon::parse($t->tgl_selesai,'Asia/Jakarta')->endOfDay();
+                if ($today->lt($start)) { $status='upcoming'; $statusLabel='Akan Datang'; $statusTone='info'; $statusIcon='bx-calendar-plus'; $progress=0; }
+                elseif ($today->gt($end)) { $status='completed'; $statusLabel='Selesai'; $statusTone='secondary'; $statusIcon='bx-check-double'; $progress=100; }
+                else { $status='ongoing'; $statusLabel='Berlangsung'; $statusTone='success'; $statusIcon='bx-pulse'; $total=max(1,$start->diffInDays($end)+1); $elapsed=$start->diffInDays($today->copy()->startOfDay())+1; $progress=min(100,(int)round($elapsed/$total*100)); }
+                $current = $t->schedules->first(function($schedule) use ($today) { $from=\Carbon\Carbon::parse($schedule->date.' '.$schedule->start_time,'Asia/Jakarta'); $until=\Carbon\Carbon::parse($schedule->date.' '.$schedule->end_time,'Asia/Jakarta'); return $today->between($from,$until); });
+            @endphp
+            <article class="training-row status-{{ $status }}">
+                <div class="training-row__line"></div>
+                <div class="training-row__content">
+                    <div class="training-row__identity">
+                        <div class="d-flex flex-wrap gap-2 mb-2"><span class="badge bg-label-{{ $statusTone }}"><i class="bx {{ $statusIcon }} me-1"></i>{{ $statusLabel }}</span><span class="badge {{ $t->model==='blended' ? 'bg-label-warning':'bg-label-primary' }}">{{ $t->model==='blended' ? 'Blended':'Standar' }}</span>@if($t->pending_participants_count)<span class="badge bg-label-danger">{{ $t->pending_participants_count }} peserta menunggu</span>@endif</div>
+                        <span class="training-row__program">{{ $t->program_evaluasi ?: 'PROGRAM PELATIHAN' }} · ANGKATAN {{ $t->angkatan }}</span>
+                        <h5 class="training-row__title">{{ $t->nama_pelatihan }}</h5>
+                        <div class="training-row__location"><i class="bx bx-map"></i><span>{{ $t->lokasi ?: 'Lokasi belum ditentukan' }}</span></div>
                     </div>
+
+                    <div class="training-row__details">
+                        <div class="detail-item"><span><i class="bx bx-calendar"></i>Periode</span><strong>{{ $start->translatedFormat('d M') }}–{{ $end->translatedFormat('d M Y') }}</strong></div>
+                        <div class="detail-item"><span><i class="bx bx-buildings"></i>Penyelenggara</span><strong>{{ $t->bidang }}</strong></div>
+                        <div class="compact-metrics"><div><strong>{{ $t->approved_participants_count }}/{{ $t->jumlah_peserta }}</strong><span>Peserta</span></div><div><strong>{{ $t->learning_schedules_count }}</strong><span>Jadwal</span></div><div><strong>{{ $t->jp }}</strong><span>JP</span></div></div>
+                    </div>
+
+                    <div class="training-row__monitor">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><small>{{ $status==='completed' ? 'Pelaksanaan selesai' : ($status==='upcoming' ? 'Belum dimulai' : 'Progres waktu') }}</small><strong>{{ $progress }}%</strong></div><div class="progress mb-3"><div class="progress-bar bg-{{ $statusTone }}" style="width:{{ $progress }}%"></div></div>
+                        @if($current)<div class="compact-live"><span class="live-dot"></span><div><small>SEDANG BERLANGSUNG</small><strong>{{ $current->activity }}</strong><span>{{ substr($current->start_time,0,5) }}–{{ substr($current->end_time,0,5) }} WIB</span></div></div>@elseif($t->pending_participants_count)<div class="compact-alert"><i class="bx bx-user-plus"></i><span>{{ $t->pending_participants_count }} pengajuan perlu diperiksa</span></div>@else<div class="compact-ready"><i class="bx bx-check-circle"></i><span>{{ $status==='completed' ? 'Seluruh agenda telah selesai' : 'Tidak ada perhatian mendesak' }}</span></div>@endif
+                    </div>
+
+                    <div class="training-row__actions"><a href="{{ route('trainings.manage',$t) }}" class="btn btn-primary"><i class="bx bx-grid-alt me-1"></i>Kelola</a><div class="dropdown"><button class="btn btn-icon btn-outline-secondary" data-bs-toggle="dropdown" data-bs-boundary="viewport"><i class="bx bx-dots-vertical-rounded"></i></button><div class="dropdown-menu dropdown-menu-end shadow border-0"><a class="dropdown-item" href="{{ route('trainings.edit',$t) }}"><i class="bx bx-edit-alt me-2 text-warning"></i>Edit Pelatihan</a><div class="dropdown-divider"></div><form action="{{ route('trainings.destroy',$t) }}" method="POST" class="delete-training-form" data-training-name="{{ $t->nama_pelatihan }}">@csrf @method('DELETE')<button class="dropdown-item text-danger"><i class="bx bx-trash me-2"></i>Hapus Pelatihan</button></form></div></div></div>
                 </div>
-            </div>
-        </div>
+            </article>
         @empty
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body py-5 text-center text-muted">
-                    <i class="bx bx-book-open fs-1 d-block mb-2"></i>
-                    Belum ada data pelatihan.
-                </div>
-            </div>
-        </div>
+            <div class="portfolio-empty"><span><i class="bx {{ $hasFilters ? 'bx-search-alt':'bx-book-open' }}"></i></span><h4>{{ $hasFilters ? 'Pelatihan tidak ditemukan':'Belum ada pelatihan' }}</h4><p>{{ $hasFilters ? 'Coba ubah kata kunci atau hapus beberapa filter pencarian.' : 'Buat program pelatihan pertama untuk mulai mengelola peserta dan jadwal.' }}</p>@if($hasFilters)<a href="{{ route('trainings.index') }}" class="btn btn-outline-primary"><i class="bx bx-reset me-1"></i>Reset Filter</a>@else<a href="{{ route('trainings.create',['model'=>'standar']) }}" class="btn btn-primary"><i class="bx bx-plus me-1"></i>Buat Pelatihan</a>@endif</div>
         @endforelse
     </div>
 
-    @if($trainings->hasPages())
-        <div class="d-flex justify-content-center mb-4">
-            {{ $trainings->onEachSide(1)->links() }}
-        </div>
-    @endif
+    @if($trainings->hasPages())<div class="card border-0 shadow-sm"><div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><small class="text-muted">Halaman {{ $trainings->currentPage() }} dari {{ $trainings->lastPage() }}</small><div>{{ $trainings->onEachSide(1)->links() }}</div></div></div>@endif
 </div>
 
-<div class="modal fade" id="deleteTrainingModal" tabindex="-1" aria-labelledby="deleteTrainingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg overflow-hidden">
-            <div class="modal-header border-0 bg-label-danger px-4 pt-4 pb-3">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="delete-warning-icon"><i class="bx bx-trash"></i></span>
-                    <div>
-                        <small class="text-danger fw-bold text-uppercase">Tindakan permanen</small>
-                        <h5 class="modal-title fw-bold mb-0" id="deleteTrainingModalLabel">Hapus Pelatihan?</h5>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="text-muted mb-2">Anda akan menghapus pelatihan:</p>
-                <div class="border border-danger rounded-3 p-3 bg-label-danger mb-4">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bx bx-book-open text-danger fs-4"></i>
-                        <strong class="text-dark" id="deleteTrainingName">-</strong>
-                    </div>
-                </div>
-
-                <h6 class="fw-bold mb-3">Seluruh data berikut akan ikut dihapus:</h6>
-                <div class="row g-2 mb-4">
-                    @foreach([
-                        ['bx-group', 'Peserta & profil alumni'],
-                        ['bx-fingerprint', 'Presensi peserta'],
-                        ['bx-bar-chart-alt-2', 'Evaluasi L1–L4'],
-                        ['bx-task-x', 'Monitoring & tindak lanjut'],
-                        ['bx-calendar-x', 'Jadwal & administrasi pengajar'],
-                        ['bx-conversation', 'Forum pelatihan'],
-                        ['bx-folder-minus', 'Folder & seluruh dokumen'],
-                        ['bx-cube', 'Reservasi aset pelatihan'],
-                    ] as [$icon, $label])
-                        <div class="col-sm-6">
-                            <div class="d-flex align-items-center gap-2 small text-muted p-2 rounded bg-light h-100">
-                                <i class="bx {{ $icon }} text-danger"></i><span>{{ $label }}</span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="alert alert-success border-0 d-flex align-items-start mb-0">
-                    <i class="bx bx-shield-quarter fs-4 me-2"></i>
-                    <div><strong>Akun user tetap aman.</strong><br><small>Akun pengguna dan data mereka pada pelatihan lain tidak akan dihapus.</small></div>
-                </div>
-            </div>
-            <div class="modal-footer border-top px-4 py-3">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteTraining">
-                    <i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('css')
-<style>
-    /* Card Row Effect */
-    .card-training-row {
-        transition: all 0.3s ease;
-        border: 1px solid transparent !important;
-    }
-    .card-training-row:hover {
-        transform: scale(1.01);
-        border-color: #696cff !important;
-        box-shadow: 0 10px 20px rgba(105, 108, 255, 0.1) !important;
-    }
-
-    /* Vertical Divider for Desktop */
-    @media (min-width: 992px) {
-        .border-end-lg {
-            border-right: 1px solid #eee;
-        }
-    }
-
-    /* Live Pulse Indicator */
-    .live-pulse {
-        width: 8px;
-        height: 8px;
-        background: #71dd37;
-        border-radius: 50%;
-        display: inline-block;
-        box-shadow: 0 0 0 rgba(113, 221, 55, 0.4);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(113, 221, 55, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(113, 221, 55, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(113, 221, 55, 0); }
-    }
-
-    .text-wrap {
-        white-space: normal !important;
-    }
-
-    .shadow-xs {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .card-training-row {
-        position: relative;
-        /* Pastikan container tidak memotong elemen yang keluar jalur */
-        overflow: visible !important; 
-    }
-
-    /* Saat dropdown diklik, naikkan posisi tumpukan kartu tersebut */
-    .card-training-row:focus-within {
-        z-index: 1050;
-    }
-
-    /* Memperbaiki tampilan dropdown menu agar lebih menonjol */
-    .dropdown-menu {
-        z-index: 1100 !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-        border: 1px solid #e7e7ff;
-    }
-    
-    /* Warna tombol hapus agar lebih tegas */
-    .dropdown-item.text-danger:hover {
-        background-color: #ffebee !important;
-    }
-
-    .delete-warning-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 52px;
-        color: #ff3e1d;
-        background: rgba(255, 62, 29, .14);
-        font-size: 1.7rem;
-    }
-</style>
-@endpush
+<div class="modal fade" id="deleteTrainingModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-header bg-label-danger border-0 p-4"><div class="d-flex align-items-center gap-3"><span class="delete-icon"><i class="bx bx-trash"></i></span><div><small class="text-danger fw-bold">TINDAKAN PERMANEN</small><h5 class="modal-title fw-bold mb-0">Hapus Pelatihan?</h5></div></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><p class="text-muted mb-2">Anda akan menghapus pelatihan:</p><div class="delete-target" id="deleteTrainingName">-</div><div class="alert alert-warning border-0 mt-3 mb-0"><i class="bx bx-error-circle me-1"></i>Seluruh data pelatihan terkait akan ikut dihapus. Akun pengguna tetap aman.</div></div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-danger" id="confirmDeleteTraining"><i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data</button></div></div></div></div>
 
 @push('js')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modalElement = document.getElementById('deleteTrainingModal');
-    const modal = new bootstrap.Modal(modalElement);
-    const trainingName = document.getElementById('deleteTrainingName');
-    const confirmButton = document.getElementById('confirmDeleteTraining');
-    let selectedForm = null;
-
-    document.querySelectorAll('.delete-training-form').forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            selectedForm = form;
-            trainingName.textContent = form.dataset.trainingName || 'Pelatihan ini';
-            confirmButton.disabled = false;
-            confirmButton.innerHTML = '<i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data';
-            modal.show();
-        });
-    });
-
-    confirmButton.addEventListener('click', function () {
-        if (!selectedForm) return;
-        this.disabled = true;
-        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
-        selectedForm.submit();
-    });
-
-    modalElement.addEventListener('hidden.bs.modal', function () {
-        selectedForm = null;
-    });
-});
+document.addEventListener('DOMContentLoaded',function(){const element=document.getElementById('deleteTrainingModal');const modal=new bootstrap.Modal(element);const name=document.getElementById('deleteTrainingName');const confirm=document.getElementById('confirmDeleteTraining');let form=null;document.querySelectorAll('.delete-training-form').forEach(item=>item.addEventListener('submit',event=>{event.preventDefault();form=item;name.textContent=item.dataset.trainingName||'Pelatihan ini';confirm.disabled=false;confirm.innerHTML='<i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data';modal.show()}));confirm.addEventListener('click',function(){if(!form)return;this.disabled=true;this.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';form.submit()});element.addEventListener('hidden.bs.modal',()=>form=null)});
 </script>
+@endpush
+
+@push('css')
+<style>
+.training-portfolio{width:100%;min-width:0}.min-w-0{min-width:0}.portfolio-header{display:flex;align-items:center;justify-content:space-between;gap:2rem}.portfolio-kicker{display:block;margin-bottom:.35rem;color:#696cff;font-size:.7rem;font-weight:700;letter-spacing:.12em}.create-option-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:10px;font-size:1.15rem}.dropdown-item{display:flex;align-items:center;gap:.7rem}.portfolio-stat{display:flex;align-items:center;gap:.7rem;height:100%;min-width:0;padding:.9rem;border:1px solid #ececf2;border-radius:.8rem;background:#fff;color:inherit;box-shadow:0 .15rem .55rem rgba(67,89,113,.06);transition:.2s}.portfolio-stat:hover{color:inherit;transform:translateY(-1px);box-shadow:0 .35rem .85rem rgba(67,89,113,.1)}.portfolio-stat__icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:10px;font-size:1.15rem}.portfolio-stat strong,.portfolio-stat small{display:block}.portfolio-stat strong{font-size:1.2rem;line-height:1.2}.portfolio-stat small{color:#8592a3;white-space:nowrap}.filter-card .form-label{margin-bottom:.3rem}.training-list{display:grid;gap:.8rem}.training-row{position:relative;overflow:visible;border:1px solid #e7e7ed;border-radius:.85rem;background:#fff;box-shadow:0 .15rem .55rem rgba(67,89,113,.05);transition:.2s}.training-row:hover{border-color:#c9cbff;box-shadow:0 .4rem 1rem rgba(67,89,113,.1)}.training-row:focus-within{z-index:5}.training-row__line{position:absolute;top:0;bottom:0;left:0;width:4px;border-radius:.85rem 0 0 .85rem;background:#a1acb8}.status-ongoing .training-row__line{background:#28a66a}.status-upcoming .training-row__line{background:#03c3ec}.training-row__content{display:grid;grid-template-columns:minmax(260px,1.45fr) minmax(235px,1fr) minmax(220px,.9fr) auto;align-items:center;gap:1.25rem;min-width:0;padding:1rem 1.1rem 1rem 1.35rem}.training-row__identity,.training-row__details,.training-row__monitor{min-width:0}.training-row__program{display:block;color:#696cff;font-size:.64rem;font-weight:700;letter-spacing:.06em}.training-row__title{margin:.25rem 0 .3rem;font-size:1rem;font-weight:700;line-height:1.35;overflow-wrap:anywhere}.training-row__location{display:flex;align-items:flex-start;gap:.35rem;color:#697a8d;font-size:.75rem}.training-row__location i{color:#ff5b3d}.training-row__details{display:grid;gap:.5rem}.detail-item span,.detail-item strong{display:block}.detail-item span{color:#8592a3;font-size:.65rem}.detail-item span i{margin-right:.3rem;color:#696cff}.detail-item strong{font-size:.73rem;line-height:1.3}.compact-metrics{display:flex;gap:.45rem}.compact-metrics>div{min-width:58px;padding:.35rem .5rem;border-radius:.5rem;background:#f7f7fa;text-align:center}.compact-metrics strong,.compact-metrics span{display:block}.compact-metrics strong{font-size:.75rem}.compact-metrics span{color:#8592a3;font-size:.6rem}.training-row__monitor .progress{height:5px}.training-row__monitor>div:first-child small{color:#8592a3;font-size:.68rem}.training-row__monitor>div:first-child strong{font-size:.72rem}.compact-live,.compact-alert,.compact-ready{display:flex;align-items:center;gap:.55rem;min-width:0;padding:.55rem .65rem;border-radius:.55rem}.compact-live{background:#f0faf5;color:#24794d}.compact-alert{background:#fff8e8;color:#946b10}.compact-ready{background:#f6f7f8;color:#697a8d}.compact-live small,.compact-live strong,.compact-live span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.compact-live small{font-size:.55rem;font-weight:700}.compact-live strong{font-size:.7rem}.compact-live span{font-size:.62rem}.compact-alert span,.compact-ready span{font-size:.68rem}.live-dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:#28a66a;animation:pulse 1.8s infinite}.training-row__actions{display:flex;align-items:center;justify-content:flex-end;gap:.45rem}.portfolio-empty{padding:4rem 1rem;border:1px dashed #d9dbe0;border-radius:.85rem;background:#fff;text-align:center}.portfolio-empty>span{display:grid;place-items:center;width:70px;height:70px;margin:0 auto 1rem;border-radius:50%;background:#eef0ff;color:#696cff;font-size:2rem}.portfolio-empty p{max-width:520px;margin:0 auto 1.25rem;color:#8592a3}.delete-icon{display:grid;place-items:center;flex:0 0 50px;width:50px;height:50px;border-radius:50%;background:rgba(255,62,29,.14);color:#ff3e1d;font-size:1.5rem}.delete-target{padding:1rem;border:1px solid #ffb8aa;border-radius:.7rem;background:#fff5f3;font-weight:700;overflow-wrap:anywhere}.pagination{margin-bottom:0}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(40,166,106,.45)}70%{box-shadow:0 0 0 8px rgba(40,166,106,0)}100%{box-shadow:0 0 0 0 rgba(40,166,106,0)}}
+@media(max-width:1199.98px){.training-row__content{grid-template-columns:minmax(250px,1.3fr) minmax(220px,1fr) auto}.training-row__monitor{display:none}.portfolio-stat small{white-space:normal}}
+@media(max-width:991.98px){.training-row__content{grid-template-columns:1fr auto}.training-row__details{grid-column:1/-1;grid-template-columns:1fr 1fr auto;padding-top:.75rem;border-top:1px solid #eee}.compact-metrics{justify-content:flex-end}}
+@media(max-width:767.98px){.portfolio-header{align-items:flex-start;flex-direction:column;gap:1rem}.portfolio-header .dropdown,.portfolio-header .dropdown-toggle{width:100%}.training-row__content{grid-template-columns:1fr}.training-row__actions{justify-content:stretch}.training-row__actions .btn-primary{flex:1}.training-row__details{grid-template-columns:1fr}.compact-metrics{justify-content:flex-start}.filter-card .btn{min-height:38px}}
+@media(max-width:479.98px){.portfolio-stat{align-items:flex-start;flex-direction:column}.portfolio-stat>.bx-chevron-right{display:none}.training-row__content{padding:.9rem .9rem .9rem 1.15rem}}
+</style>
 @endpush
 @endsection

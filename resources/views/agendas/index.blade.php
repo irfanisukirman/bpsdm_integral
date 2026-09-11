@@ -27,6 +27,14 @@
   @php
    $isPast=$event['ends_at']->isPast();$isOngoing=$event['starts_at']->isPast()&&$event['ends_at']->isFuture();
    $isTraining=$event['type']==='training';
+   $approvalMeta = [
+    'approved' => ['Disetujui', 'success', 'bx-check-circle'],
+    'pending' => ['Menunggu Persetujuan', 'warning', 'bx-time-five'],
+    'revision' => ['Perlu Perbaikan', 'info', 'bx-edit-alt'],
+    'rejected' => ['Ditolak', 'danger', 'bx-x-circle'],
+    'not_submitted' => ['Belum Diajukan', 'secondary', 'bx-file-blank'],
+    'not_required' => ['Tidak Perlu Persetujuan', 'secondary', 'bx-check-shield'],
+   ][$event['approval_status'] ?? 'not_required'];
   @endphp
   <div class="list-group-item p-3 p-lg-4">
    <div class="row align-items-center g-3">
@@ -36,6 +44,7 @@
       <h5 class="mb-0 fw-bold">{{$event['title']}}</h5>
       <span class="badge {{$isTraining?'bg-label-success':'bg-label-primary'}}">{{$isTraining?'Pelatihan':$event['subtitle']}}</span>
       <span class="badge bg-label-{{$isOngoing?'success':($isPast?'secondary':'info')}}">{{$isOngoing?'Sedang berlangsung':($isPast?'Selesai':'Akan datang')}}</span>
+      <span class="badge bg-label-{{$approvalMeta[1]}}"><i class="bx {{$approvalMeta[2]}} me-1"></i>{{$approvalMeta[0]}}</span>
      </div>
      @if($isTraining)<div class="fw-semibold text-dark small mb-1"><i class="bx bx-list-ul me-1"></i>{{$event['subtitle']}}</div>@endif
      <div class="text-muted small d-flex flex-wrap gap-3">
@@ -44,6 +53,13 @@
       <span><i class="bx bx-buildings me-1"></i>{{$event['bidang']}}</span>
      </div>
      @if($event['description'])<p class="mb-0 mt-2 text-muted">{{\Illuminate\Support\Str::limit($event['description'],180)}}</p>@endif
+     @if(!empty($event['approval_note']))
+      <div class="alert alert-{{$event['approval_status']==='rejected'?'danger':'info'}} py-2 px-3 mt-2 mb-0 small">
+       <i class="bx bx-message-square-detail me-1"></i><strong>Catatan pengelola:</strong> {{$event['approval_note']}}
+      </div>
+     @elseif(($event['approval_status'] ?? null)==='pending')
+      <div class="small text-warning mt-2"><i class="bx bx-info-circle me-1"></i>Pengajuan sedang menunggu pemeriksaan pengelola aset.</div>
+     @endif
     </div>
     <div class="col-md-3 col-xl-3">
      <div class="d-flex justify-content-md-end gap-2">

@@ -17,4 +17,14 @@ class EvaluationResultL1 extends Model
         'score',       
         'note'         
     ];
+
+    public function question()
+    {
+        return $this->belongsTo(Question::class, 'question_id');
+    }
+
+    public function participant()
+    {
+        return $this->belongsTo(Participant::class, 'participant_id');
+    }
 }

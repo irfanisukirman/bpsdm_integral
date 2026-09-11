@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div><h4 class="fw-bold mb-1">Forum Pelatihan</h4><p class="text-muted mb-0">{{ $training->nama_pelatihan }} · Angkatan {{ $training->angkatan }}</p></div>
-    <button class="btn btn-outline-secondary" onclick="history.back()"><i class="bx bx-arrow-back me-1"></i>Kembali</button>
+    <a class="btn btn-outline-secondary" href="{{ $backUrl }}"><i class="bx bx-arrow-back me-1"></i>Kembali</a>
 </div>
 <div class="card shadow-sm border-0 overflow-hidden">
     <div class="card-header bg-primary text-white d-flex justify-content-between">

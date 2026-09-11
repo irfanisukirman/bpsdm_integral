@@ -92,16 +92,28 @@
             </div>
         @endif
 
-        <div class="d-flex justify-content-end mb-3">
-            <form action="{{ route('questions.destroy-bundle') }}" method="POST"
-                onsubmit="return confirm('Hapus seluruh pertanyaan evaluasi pada bidang ini? Semua jawaban yang terkait dengan pertanyaan tersebut juga akan dihapus permanen.')">
-                @csrf @method('DELETE')
-                <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
-                <button type="submit" class="btn btn-outline-danger" {{ $questions->isEmpty() ? 'disabled' : '' }}>
-                    <i class="bx bx-trash me-1"></i>Hapus Semua Pertanyaan Bidang Ini
-                </button>
-            </form>
-        </div>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <form id="bulkDeleteQuestionsForm" action="{{ route('questions.destroy-selected') }}" method="POST" onsubmit="return confirmSelectedQuestions()">
+            @csrf @method('DELETE')
+            <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
+            @if($selectedProgram)<input type="hidden" name="program" value="{{ $selectedProgram }}">@endif
+            <button type="submit" id="deleteSelectedQuestions" class="btn btn-danger" disabled>
+                <i class="bx bx-trash me-1"></i>Hapus Terpilih
+                <span id="selectedQuestionCount" class="badge bg-white text-danger ms-1">0</span>
+            </button>
+        </form>
+        <small class="text-muted d-none d-md-inline">Centang butir yang ingin dihapus.</small>
+    </div>
+    <form action="{{ route('questions.destroy-bundle') }}" method="POST"
+          onsubmit="return confirm('Hapus seluruh pertanyaan evaluasi pada bidang ini? Semua jawaban yang terkait dengan pertanyaan tersebut juga akan dihapus permanen.')">
+        @csrf @method('DELETE')
+        <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
+        <button type="submit" class="btn btn-outline-danger" {{ $questions->isEmpty() ? 'disabled' : '' }}>
+            <i class="bx bx-trash me-1"></i>Hapus Semua Pertanyaan Bidang Ini
+        </button>
+    </form>
+</div>
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body py-3">
@@ -245,107 +257,95 @@
             </div>
         </div>
 
-        <!-- DAFTAR SOAL -->
-        <div class="card shadow-sm">
-            <div class="table-responsive text-wrap p-3">
-                <table class="table table-hover" style="table-layout: fixed; width: 100%;">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 240px;">Bidang</th>
-                            <th style="width: 190px;">Klasifikasi</th>
-                            <th>Pertanyaan & Preview</th>
-                            <th style="width: 100px;" class="text-center">Aksi</th>
+<!-- DAFTAR SOAL -->
+<div class="card shadow-sm">
+    <div class="table-responsive text-wrap p-3">
+        <table class="table table-hover" style="table-layout: fixed; width: 100%;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 52px;" class="text-center">
+                        <input type="checkbox" id="selectAllQuestions" class="form-check-input" title="Pilih semua pertanyaan yang tampil" aria-label="Pilih semua pertanyaan">
+                    </th>
+                    <th style="width: 240px;">Bidang</th>
+                    <th style="width: 190px;">Klasifikasi</th>
+                    <th>Pertanyaan & Preview</th>
+                    <th style="width: 100px;" class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $count = 0; @endphp
+                @foreach($questions as $q)
+                    {{-- Saringan: Hilangkan monitoring, level 2, dan tipe ya_tidak --}}
+                    @if(!str_contains(strtolower($q->category), 'monitoring') && 
+                        !str_contains(strtolower($q->category), 'l2') && 
+                        $q->type !== 'ya_tidak')
+                        
+                        @php $count++; @endphp
+                        <tr class="question-row">
+                            <td class="text-center align-top">
+                                <input type="checkbox" name="question_ids[]" value="{{ $q->id }}" form="bulkDeleteQuestionsForm" class="form-check-input question-select" aria-label="Pilih pertanyaan {{ $count }}">
+                            </td>
+                            <td class="align-top"><span class="badge bg-label-primary text-wrap text-start">{{ $q->bidang ?: $q->training_type }}</span></td>
+                            <td class="align-top text-wrap">
+                                <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
+                                    {{ str_replace('_', ' ', $q->category) }}
+                                </small>
+                                <div class="mt-1"><span class="badge bg-label-info">{{ in_array($q->category, ['l1_penyelenggara', 'l1_narasumber']) ? ucfirst($q->metode ?: 'semua') : 'Semua metode' }}</span></div>
+                                @if(str_starts_with($q->category, 'l34_'))
+                                    <div class="mt-1"><span class="badge bg-label-primary">{{ $q->program_evaluasi === 'semua' ? 'Semua Program' : ($q->program_evaluasi ?: 'PKTI/PKTU') }}</span></div>
+                                    <div class="mt-1"><span class="badge bg-label-warning">{{ $q->sub_category ?: 'Belum dikategorikan' }}</span></div>
+                                @endif
+                            </td>
+                            <td class="align-top">
+                                <div class="fw-bold text-dark mb-2 text-wrap" style="line-height: 1.4;">{{ $q->question_text }}</div>
+                                
+                                @if($q->type == 'slider')
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range w-25" disabled>
+                                        <span class="badge bg-label-secondary" style="font-size: 9px;">SKALA 10-100</span>
+                                    </div>
+                                @elseif(in_array($q->type, ['dropdown', 'checkbox']) && is_array($q->options))
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach($q->options as $opt)
+                                            <span class="badge bg-label-info" style="font-size: 9px;">
+                                                @if($q->type === 'checkbox')<i class="bx bx-checkbox me-1"></i>@endif{{ $opt }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <small class="text-muted"><i class="bx bx-align-left me-1"></i>Input Teks Paragraf</small>
+                                @endif
+                            </td>
+                            <td class="text-center align-top">
+                                <div class="d-flex justify-content-center gap-1">
+                                    @if($isSuperadmin)
+                                    <button type="button"
+                                            class="btn btn-xs btn-icon btn-outline-primary"
+                                            title="Duplikat pertanyaan"
+                                            onclick="duplicateQuestion({{ $q->id }}, {{ Illuminate\Support\Js::from($q->question_text) }}, {{ Illuminate\Support\Js::from($q->bidang) }})"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#duplicateQuestionModal">
+                                        <i class="bx bx-copy"></i>
+                                    </button>
+                                    @endif
+                                    <button class="btn btn-xs btn-icon btn-outline-warning" onclick="editQuestion({{ json_encode($q) }})" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bx bx-edit"></i></button>
+                                    <form action="{{ route('questions.destroy', $q->id) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-xs btn-icon btn-outline-danger" onclick="return confirm('Hapus soal ini?')"><i class="bx bx-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @php $count = 0; @endphp
-                        @foreach ($questions as $q)
-                            {{-- Saringan: Hilangkan monitoring, level 2, dan tipe ya_tidak --}}
-                            @if (
-                                !str_contains(strtolower($q->category), 'monitoring') &&
-                                    !str_contains(strtolower($q->category), 'l2') &&
-                                    $q->type !== 'ya_tidak')
-                                @php $count++; @endphp
-                                <tr>
-                                    <td class="align-top"><span
-                                            class="badge bg-label-primary text-wrap text-start">{{ $q->bidang ?: $q->training_type }}</span>
-                                    </td>
-                                    <td class="align-top text-wrap">
-                                        <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
-                                            {{ str_replace('_', ' ', $q->category) }}
-                                        </small>
-                                        <div class="mt-1"><span
-                                                class="badge bg-label-info">{{ in_array($q->category, ['l1_penyelenggara', 'l1_narasumber']) ? ucfirst($q->metode ?: 'semua') : 'Semua metode' }}</span>
-                                        </div>
-                                        @if (str_starts_with($q->category, 'l34_'))
-                                            <div class="mt-1"><span
-                                                    class="badge bg-label-primary">{{ $q->program_evaluasi === 'semua' ? 'Semua Program' : ($q->program_evaluasi ?: 'PKTI/PKTU') }}</span>
-                                            </div>
-                                            <div class="mt-1"><span
-                                                    class="badge bg-label-warning">{{ $q->sub_category ?: 'Belum dikategorikan' }}</span>
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td class="align-top">
-                                        <div class="fw-bold text-dark mb-2 text-wrap" style="line-height: 1.4;">
-                                            {{ $q->question_text }}</div>
-
-                                        @if ($q->type == 'slider')
-                                            <div class="d-flex align-items-center gap-2">
-                                                <input type="range" class="form-range w-25" disabled>
-                                                <span class="badge bg-label-secondary" style="font-size: 9px;">SKALA
-                                                    10-100</span>
-                                            </div>
-                                        @elseif(in_array($q->type, ['dropdown', 'checkbox']) && is_array($q->options))
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach ($q->options as $opt)
-                                                    <span class="badge bg-label-info" style="font-size: 9px;">
-                                                        @if ($q->type === 'checkbox')
-                                                            <i class="bx bx-checkbox me-1"></i>
-                                                        @endif{{ $opt }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <small class="text-muted"><i class="bx bx-align-left me-1"></i>Input Teks
-                                                Paragraf</small>
-                                        @endif
-                                    </td>
-                                    <td class="text-center align-top">
-                                        <div class="d-flex justify-content-center gap-1">
-                                            @if ($isSuperadmin)
-                                                <button type="button" class="btn btn-xs btn-icon btn-outline-primary"
-                                                    title="Duplikat pertanyaan"
-                                                    onclick="duplicateQuestion({{ $q->id }}, {{ Illuminate\Support\Js::from($q->question_text) }}, {{ Illuminate\Support\Js::from($q->bidang) }})"
-                                                    data-bs-toggle="modal" data-bs-target="#duplicateQuestionModal">
-                                                    <i class="bx bx-copy"></i>
-                                                </button>
-                                            @endif
-                                            <button class="btn btn-xs btn-icon btn-outline-warning"
-                                                onclick="editQuestion({{ json_encode($q) }})" data-bs-toggle="modal"
-                                                data-bs-target="#editModal"><i class="bx bx-edit"></i></button>
-                                            <form action="{{ route('questions.destroy', $q->id) }}" method="POST">
-                                                @csrf @method('DELETE')
-                                                <button class="btn btn-xs btn-icon btn-outline-danger"
-                                                    onclick="return confirm('Hapus soal ini?')"><i
-                                                        class="bx bx-trash"></i></button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endif
-                        @endforeach
-
-                        @if ($count == 0)
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3,
-                                    L4).</td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    @endif
+                @endforeach
+                
+                @if($count == 0)
+                <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3, L4).</td></tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
+</div>
 
         <div class="modal fade" id="modalImportSoal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -604,14 +604,48 @@
             syncMethodField('edit');
         }
 
-        function duplicateQuestion(id, questionText, sourceBidang) {
-            $('#duplicateQuestionForm').attr('action', "{{ url('questions') }}/" + id + '/duplicate');
-            $('#duplicateQuestionText').text(questionText);
-            $('#duplicateSourceBidang').val(sourceBidang);
-        }
+    function duplicateQuestion(id, questionText, sourceBidang) {
+        $('#duplicateQuestionForm').attr('action', "{{ url('questions') }}/" + id + '/duplicate');
+        $('#duplicateQuestionText').text(questionText);
+        $('#duplicateSourceBidang').val(sourceBidang);
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            syncMethodField('create');
+    function updateQuestionSelection() {
+        const checkboxes = Array.from(document.querySelectorAll('.question-select'));
+        const selected = checkboxes.filter(checkbox => checkbox.checked);
+        const selectAll = document.getElementById('selectAllQuestions');
+        const deleteButton = document.getElementById('deleteSelectedQuestions');
+        const countBadge = document.getElementById('selectedQuestionCount');
+
+        if (selectAll) {
+            selectAll.checked = checkboxes.length > 0 && selected.length === checkboxes.length;
+            selectAll.indeterminate = selected.length > 0 && selected.length < checkboxes.length;
+        }
+        if (deleteButton) deleteButton.disabled = selected.length === 0;
+        if (countBadge) countBadge.textContent = selected.length;
+
+        checkboxes.forEach(checkbox => {
+            checkbox.closest('.question-row')?.classList.toggle('table-active', checkbox.checked);
         });
-    </script>
+    }
+
+    function confirmSelectedQuestions() {
+        const total = document.querySelectorAll('.question-select:checked').length;
+        if (total === 0) return false;
+        return confirm(`Hapus ${total} pertanyaan terpilih? Semua jawaban yang terkait juga akan dihapus permanen.`);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        syncMethodField('create');
+
+        const selectAll = document.getElementById('selectAllQuestions');
+        const checkboxes = document.querySelectorAll('.question-select');
+        selectAll?.addEventListener('change', function() {
+            checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+            updateQuestionSelection();
+        });
+        checkboxes.forEach(checkbox => checkbox.addEventListener('change', updateQuestionSelection));
+        updateQuestionSelection();
+    });
+</script>
 @endpush

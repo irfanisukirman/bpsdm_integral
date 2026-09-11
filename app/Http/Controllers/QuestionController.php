@@ -223,6 +223,44 @@ class QuestionController extends Controller
         return redirect()->back()->with('success', 'Soal dan data jawaban terkait berhasil dihapus.');
     }
 
+    public function destroySelected(Request $request)
+    {
+        $data = $request->validate([
+            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
+            'question_ids' => ['required', 'array', 'min:1'],
+            'question_ids.*' => ['required', 'integer', 'distinct', 'exists:questions,id'],
+            'program' => ['nullable', Rule::in(['semua', 'PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'])],
+        ], [
+            'question_ids.required' => 'Pilih minimal satu pertanyaan yang akan dihapus.',
+            'question_ids.min' => 'Pilih minimal satu pertanyaan yang akan dihapus.',
+        ]);
+
+        $user = Auth::user();
+        $bidang = $user->role === 'superadmin' ? $data['bidang'] : $user->bidang;
+        abort_if(blank($bidang) || ($user->role !== 'superadmin' && $data['bidang'] !== $bidang), 403);
+
+        $questionIds = collect($data['question_ids'])->map(fn ($id) => (int) $id)->unique()->values();
+        $authorizedIds = $this->evaluationQuestions()
+            ->where('bidang', $bidang)
+            ->whereIn('id', $questionIds)
+            ->pluck('id');
+
+        abort_unless($authorizedIds->count() === $questionIds->count(), 403, 'Sebagian pertanyaan tidak dapat dihapus dari bidang ini.');
+
+        DB::transaction(function () use ($authorizedIds) {
+            \App\Models\EvaluationResultL1::whereIn('question_id', $authorizedIds)->delete();
+            \App\Models\EvaluationResultL34::whereIn('question_id', $authorizedIds)->delete();
+            Question::whereIn('id', $authorizedIds)->delete();
+        });
+
+        $parameters = $user->role === 'superadmin' ? ['bidang' => $bidang] : [];
+        if (filled($data['program'] ?? null)) {
+            $parameters['program'] = $data['program'];
+        }
+
+        return redirect()->route('questions.index', $parameters)
+            ->with('success', $authorizedIds->count().' pertanyaan terpilih beserta data jawaban terkait berhasil dihapus.');
+    }
     public function destroyBundle(Request $request)
     {
         $data = $request->validate([
@@ -268,9 +306,33 @@ class QuestionController extends Controller
             [$bidang, 'klasikal', 'PKTI/PKTU', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
             [$bidang, 'semua', 'PKTI/PKTU', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
         ];
-        foreach ($bidang === 'Bidang Pengembangan Kompetensi Manajerial' ? ['CPNS', 'PKP', 'PKA', 'PKN'] : ['PKTI/PKTU'] as $program) {
-            $header[] = [$bidang, 'semua', $program, 'Mandiri', 'Perubahan Perilaku', 'slider', 'Pertanyaan '.$program.' tentang perubahan perilaku...', ''];
-            $header[] = [$bidang, 'semua', $program, 'Mandiri', 'Dampak Pelatihan', 'checkbox', 'Pertanyaan '.$program.' tentang dampak pelatihan...', 'Produktivitas meningkat, Kualitas kerja meningkat'];
+        $programs = $bidang === 'Bidang Pengembangan Kompetensi Manajerial'
+            ? ['semua', 'CPNS', 'PKP', 'PKA', 'PKN']
+            : ['semua', 'PKTI/PKTU'];
+
+        foreach ($programs as $program) {
+            foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
+                $header[] = [
+                    $bidang,
+                    'semua',
+                    $program,
+                    $peran,
+                    'Perubahan Perilaku',
+                    'slider',
+                    'Sejauh mana kompetensi hasil pelatihan diterapkan dalam pekerjaan?',
+                    '',
+                ];
+                $header[] = [
+                    $bidang,
+                    'semua',
+                    $program,
+                    $peran,
+                    'Dampak Pelatihan',
+                    'checkbox',
+                    'Dampak pelatihan apa saja yang terlihat setelah pelatihan?',
+                    'Produktivitas meningkat, Kualitas kerja meningkat',
+                ];
+            }
         }
 
         return \Maatwebsite\Excel\Facades\Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromArray {

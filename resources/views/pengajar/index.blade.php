@@ -62,7 +62,7 @@
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-4">{{ \Carbon\Carbon::parse($schedule->date)->translatedFormat('d M Y') }}, {{ substr($schedule->start_time, 0, 5) }} - {{ substr($schedule->end_time, 0, 5) }}</p>
-                @foreach(['bahan_ajar'=>['Upload Bahan Ajar','bahan_ajar_path','.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx'],'rbpmp_rp'=>['Upload RBPMP/RP','rbpmp_rp_path','.pdf,.doc,.docx'],'bukti_mengajar'=>['Upload Bukti Mengajar (Foto)','bukti_mengajar_path','.jpg,.jpeg,.png,.pdf']] as $field=>$meta)
+                @foreach(['bahan_ajar'=>['Upload Bahan Ajar','bahan_ajar_path','.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx'],'rbpmp_rp'=>['Upload RBPMP/RP/KURIKULUM','rbpmp_rp_path','.pdf,.doc,.docx'],'bukti_mengajar'=>['Upload Bukti Mengajar (Foto)','bukti_mengajar_path','.jpg,.jpeg,.png,.pdf']] as $field=>$meta)
                     <div class="mb-3">
                         <label class="form-label">{{ $meta[0] }}</label>
                         <input type="file" name="{{ $field }}" class="form-control" accept="{{ $meta[2] }}">

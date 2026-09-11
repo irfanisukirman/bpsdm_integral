@@ -8,6 +8,11 @@
         ? request('tab')
         : 'info';
     $completedDocuments = collect([$participant->pas_foto_file_id, $participant->biodata_file_id, $participant->surat_tugas_file_id])->filter()->count();
+    $documentsComplete = $completedDocuments === 3;
+    $l1Complete = $participant->hasCompletedAllL1();
+    $isFilledL34 = $participant->hasFilledL34Mandiri();
+    $evaluationComplete = $l1Complete && $isFilledL34;
+    $certificateComplete = filled($participantCertificate?->final_file_path);
     $forumUnread = app(\App\Services\NotificationCenter::class)->unreadCountForTraining(auth()->user(), $training);
 @endphp
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -60,7 +65,7 @@
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'kelengkapan' ? 'active' : '' }}" role="tab" data-tab="kelengkapan" data-bs-toggle="tab" data-bs-target="#kelengkapan">
                             <i class="bx bx-file me-1"></i> Kelengkapan
-                            @if($completedDocuments < 3)
+                            @if(!$documentsComplete)
                                 <span class="badge badge-dot bg-danger ms-1"></span>
                             @else
                                 <i class="bx bxs-check-circle text-success ms-1"></i>
@@ -70,16 +75,20 @@
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'evaluasi' ? 'active' : '' }}" role="tab" data-tab="evaluasi" data-bs-toggle="tab" data-bs-target="#navs-pills-evaluasi">
                             <i class="bx bx-bar-chart-alt-2 me-1"></i> Evaluasi
-                            @if($participant->hasFilledL34Mandiri())
+                            @if($evaluationComplete)
                                 <i class="bx bxs-check-circle text-success ms-1"></i>
+                            @else
+                                <span class="badge badge-dot bg-danger ms-1"></span>
                             @endif
                         </button>
                     </li>
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'sertifikat' ? 'active' : '' }}" role="tab" data-tab="sertifikat" data-bs-toggle="tab" data-bs-target="#navs-pills-sertifikat">
                             <i class="bx bx-medal me-1"></i> Sertifikat
-                            @if($participant->sertifikat_file_id)
+                            @if($certificateComplete)
                                 <i class="bx bxs-check-circle text-success ms-1"></i>
+                            @else
+                                <span class="badge badge-dot bg-danger ms-1"></span>
                             @endif
                         </button>
                     </li>
@@ -187,7 +196,7 @@
                                                         @endif
                                                     </button>
                                                 @else
-                                                    <a href="{{ route('public.attendance.daily', ['training_id' => $training->id, 'date' => $day['date'], 'participant_id' => $participant->id]) }}"
+                                                    <a href="{{ route('public.attendance.daily', ['training_id' => $training->id, 'date' => $day['date']]) }}"
                                                        class="btn btn-danger btn-sm w-100" target="_blank">
                                                         <i class="bx bx-fingerprint me-1"></i> Belum Presensi - Isi Sekarang
                                                     </a>
@@ -402,9 +411,6 @@
                         </div>
 
                         {{-- BAGIAN B: LEVEL 3 & 4 (DAMPAK) --}}
-                        @php
-                            $isFilledL34 = $participant->hasFilledL34Mandiri();
-                        @endphp
                         <div class="card shadow-none border {{ $isFilledL34 ? 'border-info' : 'border-danger' }}">
                             <div class="card-body">
                                 <h6 class="fw-bold text-primary mb-3"><i class="bx bx-line-chart me-2"></i>B. Evaluasi Pasca Pelatihan (Level 3 & 4)</h6>
@@ -446,47 +452,23 @@
 
                     {{-- TAB: SERTIFIKAT --}}
                     <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
-                        @php
-                            $sertifikatFile = $participant->sertifikat_file_id ? \App\Models\File::find($participant->sertifikat_file_id) : null;
-                        @endphp
-
-                        @if($sertifikatFile)
-                            <div class="text-center py-5 bg-light rounded border border-success border-dashed">
-                                <div class="avatar avatar-xl bg-success mx-auto mb-4" style="width: 100px; height: 100px;">
-                                    <i class="bx bx-medal text-white" style="font-size: 50px;"></i>
-                                </div>
-                                <div class="badge bg-label-success mb-3"><i class="bx bx-check-double me-1"></i> Sertifikat Tersedia</div>
-                                <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
-                                <p class="text-muted px-lg-5">Sertifikat elektronik Anda telah tersedia dan dapat diunduh.</p>
-                                <div class="d-inline-flex gap-2 mt-2">
-                                    <a href="{{ asset('storage/'.($sertifikatFile->file_path ?? '')) }}" target="_blank" class="btn btn-success">
-                                        <i class="bx bx-show me-1"></i> Lihat Sertifikat
-                                    </a>
-                                    <a href="{{ asset('storage/'.($sertifikatFile->file_path ?? '')) }}" download class="btn btn-outline-success">
-                                        <i class="bx bx-download me-1"></i> Unduh
-                                    </a>
-                                </div>
-                            </div>
+                        @if($participantCertificate?->final_file_path)
+                        <div class="text-center py-5 bg-label-success rounded border border-success">
+                            <div class="avatar avatar-xl bg-success mx-auto mb-4" style="width:100px;height:100px"><i class="bx bx-medal text-white" style="font-size:50px"></i></div>
+                            <span class="badge bg-success mb-3">Sertifikat Tersedia</span>
+                            <h4 class="fw-bold text-dark">{{ strtoupper($participant->name) }}</h4>
+                            <p class="text-muted mb-1">Nomor Sertifikat</p><p class="fw-bold font-monospace">{{ $participantCertificate->certificate_number }}</p>
+                            <a href="{{route('participant-certificates.download',$participantCertificate)}}" class="btn btn-success px-5"><i class="bx bx-download me-1"></i>Download Sertifikat PDF</a>
+                        </div>
                         @else
-                            <div class="text-center py-5 bg-light rounded border border-dashed">
-                                <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
-                                    <i class="bx bx-medal" style="font-size: 50px;"></i>
-                                </div>
-                                <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
-
-                                @if($participant->is_all_finished)
-                                    <p class="text-muted px-lg-5">Anda telah melengkapi seluruh administrasi serta evaluasi. Silakan unggah sertifikat elektronik Anda.</p>
-                                    <form action="{{ route('participant.training.upload', ['id' => $training->id, 'tab' => 'sertifikat']) }}" method="POST" enctype="multipart/form-data" class="mx-auto mt-2" style="max-width: 400px;">
-                                        @csrf
-                                        <input type="hidden" name="type" value="sertifikat">
-                                        <input type="file" name="file" class="form-control form-control-sm mb-2" accept=".pdf" required>
-                                        <button type="submit" class="btn btn-success w-100"><i class="bx bx-cloud-upload me-1"></i> Unggah Sertifikat</button>
-                                    </form>
-                                @else
-                                    <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
-                                    <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
-                                @endif
+                        <div class="text-center py-5 bg-light rounded border border-dashed">
+                            <div class="avatar avatar-xl bg-label-warning mx-auto mb-4" style="width: 100px; height: 100px;">
+                                <i class="bx bx-medal" style="font-size: 50px;"></i>
                             </div>
+                            <h4 class="fw-bold text-dark">{{ strtoupper(auth()->user()->name) }}</h4>
+                            <p class="text-muted px-lg-5">Sertifikat elektronik akan muncul di sini jika Anda dinyatakan <strong>LULUS</strong> <br> dan telah melengkapi seluruh administrasi serta evaluasi.</p>
+                            <button class="btn btn-secondary disabled px-5 shadow-none"><i class="bx bx-lock-alt me-1"></i> Belum Tersedia</button>
+                        </div>
                         @endif
                     </div>
                 </div>

@@ -14,7 +14,14 @@ class TrainingForumController extends Controller
     {
         $this->authorizeAccess($training);
         $this->markRead($training);
-        return view('forum.index', compact('training'));
+        $user = Auth::user();
+        $backUrl = match ($user->role) {
+            'participant' => route('participant.training.show', $training->id),
+            'pengajar' => route('pengajar.schedule'),
+            'superadmin', 'admin_bidang' => route('trainings.manage', $training->id),
+            default => route('dashboard'),
+        };
+        return view('forum.index', compact('training', 'backUrl'));
     }
 
     public function messages(Request $request, Training $training)
@@ -56,11 +63,7 @@ class TrainingForumController extends Controller
         $user = Auth::user();
         if ($user->role === 'superadmin') return;
         if ($user->role === 'admin_bidang') {
-            abort_unless(
-                (int) $training->created_by === (int) $user->id
-                || (!$training->created_by && $training->bidang === $user->bidang),
-                403
-            );
+            abort_unless($training->bidang === $user->bidang, 403);
             return;
         }
         $isTeacher = $training->schedules()->where('pengajar_id', $user->id)->exists();
@@ -78,10 +81,7 @@ class TrainingForumController extends Controller
     {
         $user = Auth::user();
         return $user->role === 'superadmin'
-            || ($user->role === 'admin_bidang' && (
-                (int) $training->created_by === (int) $user->id
-                || (!$training->created_by && $training->bidang === $user->bidang)
-            ));
+            || ($user->role === 'admin_bidang' && $training->bidang === $user->bidang);
     }
 
     private function markRead(Training $training, ?int $messageId = null): void

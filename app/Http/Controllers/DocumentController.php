@@ -57,6 +57,9 @@ class DocumentController extends Controller
         $currentBidang = ($user->role === 'superadmin') ? $targetBidang : $user->bidang;
         $access = app(DocumentAccessService::class);
         $currentFolder = $parentId ? Folder::with('parent')->findOrFail($parentId) : null;
+        if ($user->role === 'superadmin' && !$currentBidang && $currentFolder) {
+            $currentBidang = $currentFolder->bidang;
+        }
         if ($currentFolder) abort_unless($access->canView($user, $currentFolder), 403);
         if ($currentFolder) FolderUserPermission::where('folder_id',$currentFolder->id)->where('user_id',$user->id)->whereNull('seen_at')->update(['seen_at'=>now()]);
 

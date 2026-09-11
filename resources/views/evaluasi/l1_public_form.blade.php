@@ -55,20 +55,35 @@
                                         <h6 class="alert-heading mb-1"><i class="bx bx-error-circle me-1"></i>Pertanyaan belum tersedia</h6>
                                         <p class="mb-0">Admin perlu menambahkan pertanyaan untuk bidang, kategori, dan metode pelatihan ini.</p>
                                     </div>
+                                @elseif(($isSelfService ?? false) && $formParticipants->isEmpty())
+                                    <div class="text-center py-5">
+                                        <i class="bx bxs-check-circle text-success mb-3" style="font-size: 5rem;"></i>
+                                        <h4 class="text-success fw-bold">Evaluasi Sudah Diisi</h4>
+                                        <p class="text-muted mb-0">{{ $selfParticipant->name }}, evaluasi Anda untuk bagian ini telah tercatat.</p>
+                                    </div>
                                 @else
                                 <form action="{{ route('public.evall1.store', $training->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="schedule_id" value="{{ $sid }}">
 
-                                    <div class="mb-4">
-                                        <label class="form-label fw-bold">Pilih Nama Anda</label>
-                                        <select name="participant_id" class="form-select form-select-lg border-primary" required>
-                                            <option value="">-- Cari Nama --</option>
-                                            @foreach($participants as $p)
-                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                    @if($isSelfService ?? false)
+                                        <div class="mb-4 p-3 border border-primary rounded bg-label-primary">
+                                            <small class="text-primary fw-bold d-block mb-2">EVALUASI ATAS NAMA</small>
+                                            <div class="fw-bold text-dark">{{ $selfParticipant->name }}</div>
+                                            <div class="small text-muted">NIP/NIK: {{ $selfParticipant->nip_nik ?: '-' }}</div>
+                                            <input type="hidden" name="participant_id" value="{{ $selfParticipant->id }}">
+                                        </div>
+                                    @else
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Pilih Nama Anda</label>
+                                            <select name="participant_id" class="form-select form-select-lg border-primary" required>
+                                                <option value="">-- Cari Nama --</option>
+                                                @foreach($formParticipants as $p)
+                                                    <option value="{{ $p->id }}" @selected((int)old('participant_id') === (int)$p->id)>{{ $p->name }} - {{ $p->nip_nik ?: 'NIP/NIK belum tersedia' }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    @endif
 
                                     @foreach($questions as $index => $q)
                                     <div class="question-card mb-5 p-3 border rounded">
@@ -129,13 +144,13 @@
                                     @foreach($alreadyFilled as $a)
                                         <li class="list-group-item d-flex align-items-center bg-transparent px-0 py-2">
                                             <i class="bx bxs-check-circle text-success me-2"></i>
-                                            <span class="text-dark small fw-bold">{{ $a->name }}</span>
+                                            <span><span class="text-dark small fw-bold d-block">{{ $a->name }}</span><small class="text-muted">NIP/NIK: {{ $a->nip_nik ?: '-' }}</small></span>
                                         </li>
                                     @endforeach
                                     @foreach($participants as $n)
                                         <li class="list-group-item d-flex align-items-center bg-transparent px-0 py-2 opacity-50">
                                             <i class="bx bx-minus-circle text-muted me-2"></i>
-                                            <span class="text-muted small">{{ $n->name }}</span>
+                                            <span><span class="text-muted small d-block">{{ $n->name }}</span><small class="text-muted">NIP/NIK: {{ $n->nip_nik ?: '-' }}</small></span>
                                         </li>
                                     @endforeach
                                 </ul>

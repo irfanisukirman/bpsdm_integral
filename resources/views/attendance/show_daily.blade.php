@@ -20,6 +20,7 @@
                     <th>Instansi</th>
                     <th>Status</th>
                     <th>Jam Check-in</th>
+                    <th>Keterangan</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,13 +35,13 @@
                     <td>{{ $p->instansi }}</td>
                     <td>
                         @if($att)
-                            <span class="fw-bold">{{ \Carbon\Carbon::parse($att->check_in_at)->format('H:i:s') }}</span>
-                            <small class="text-primary fw-bold">{{ $att->timezone_label }}</small>
+                            <span class="badge bg-label-{{ $att->status === 'hadir' ? 'success' : ($att->status === 'izin' ? 'warning' : 'danger') }}">{{ strtoupper($att->status) }}</span>
                         @else
                             -
                         @endif
                     </td>
                     <td>{{ $att ? \Carbon\Carbon::parse($att->check_in_at)->format('H:i:s') : '-' }}</td>
+                    <td style="min-width:240px">{{ $att?->keterangan ?: '-' }}</td>
                 </tr>
                 @endforeach
             </tbody>

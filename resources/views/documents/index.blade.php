@@ -48,10 +48,10 @@
     
 
     {{-- KONDISI 1: LANDING PAGE SUPERADMIN (DAFTAR BIDANG) --}}
-    @if(Auth::user()->role === 'superadmin' && !isset($currentBidang))
+    @if(Auth::user()->role === 'superadmin' && !request()->query('folder') && !isset($currentBidang))
     <h5 class="mb-3">Folder Global (Terlihat di Semua Bidang)</h5>
         <div class="row g-4 mb-5">
-            @foreach($globalFolders as $folder)
+            @foreach(($globalFolders ?? collect()) as $folder)
                 <div class="col-md-3 col-6 document-search-item" data-search="{{ strtolower($folder->name) }} global">
                     <div class="card shadow-none border text-center h-100 folder-card border-primary">
                         <div class="card-body position-relative">

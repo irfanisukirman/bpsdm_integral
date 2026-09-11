@@ -56,6 +56,12 @@
                                         <h5>Luar Biasa!</h5>
                                         <p class="text-muted">Seluruh peserta ({{ $attended->count() }} orang) telah melakukan absensi hari ini.</p>
                                     </div>
+                                @elseif(($isSelfService ?? false) && $formParticipants->isEmpty())
+                                    <div class="text-center py-5">
+                                        <i class="bx bxs-check-circle text-success mb-3" style="font-size: 4rem;"></i>
+                                        <h5 class="text-success">Presensi Sudah Tercatat</h5>
+                                        <p class="text-muted mb-0">{{ $selfParticipant->name }}, Anda telah mengisi presensi hari ini.</p>
+                                    </div>
                                 @else
                                     <h6 class="fw-bold mb-3 text-primary"><i class="bx bx-edit me-2"></i>Isi Presensi</h6>
                                     <form action="{{ route('public.attendance.store_daily', [$training->id, $date]) }}" method="POST">
@@ -70,34 +76,49 @@
                                             <h3 id="clock" class="fw-bold mb-0 text-primary">00:00:00</h3>
                                             <span id="timezone_display" class="badge bg-label-primary">Menghitung...</span>
                                         </div>
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold small">PILIH NAMA ANDA</label>
-                                            <select name="participant_id" class="form-select form-select-lg border-primary" required>
-                                                <option value="">-- Cari Nama --</option>
-                                                @foreach($notAttended as $p)
-                                                    <option value="{{ $p->id }}" @selected((int) old('participant_id', $selectedParticipantId ?? 0) === (int) $p->id)>
-                                                        {{ $p->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @if($isSelfService ?? false)
+                                            <div class="mb-4 p-3 border border-primary rounded bg-label-primary">
+                                                <small class="text-primary fw-bold d-block mb-2">PRESENSI ATAS NAMA</small>
+                                                <div class="fw-bold text-dark">{{ $selfParticipant->name }}</div>
+                                                <div class="small text-muted">NIP/NIK: {{ $selfParticipant->nip_nik ?: '-' }}</div>
+                                                <input type="hidden" name="participant_id" value="{{ $selfParticipant->id }}">
+                                            </div>
+                                        @else
+                                            <div class="mb-4">
+                                                <label class="form-label fw-bold small">PILIH NAMA ANDA</label>
+                                                <select name="participant_id" class="form-select form-select-lg border-primary" required>
+                                                    <option value="">-- Cari Nama --</option>
+                                                    @foreach($formParticipants as $p)
+                                                        <option value="{{ $p->id }}" @selected((int) old('participant_id', $selectedParticipantId ?? 0) === (int) $p->id)>
+                                                            {{ $p->name }} - {{ $p->nip_nik ?: 'NIP/NIK belum tersedia' }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @endif
 
                                         <div class="mb-4">
                                             <label class="form-label fw-bold small">STATUS</label>
                                             <div class="row g-2">
                                                 <div class="col-4">
-                                                    <input type="radio" class="btn-check" name="status" id="stHadir" value="hadir" checked>
+                                                    <input type="radio" class="btn-check" name="status" id="stHadir" value="hadir" @checked(old('status','hadir')==='hadir')>
                                                     <label class="btn btn-outline-success w-100 py-2" for="stHadir">HADIR</label>
                                                 </div>
                                                 <div class="col-4">
-                                                    <input type="radio" class="btn-check" name="status" id="stIzin" value="izin">
+                                                    <input type="radio" class="btn-check" name="status" id="stIzin" value="izin" @checked(old('status')==='izin')>
                                                     <label class="btn btn-outline-warning w-100 py-2" for="stIzin">IZIN</label>
                                                 </div>
                                                 <div class="col-4">
-                                                    <input type="radio" class="btn-check" name="status" id="stSakit" value="sakit">
+                                                    <input type="radio" class="btn-check" name="status" id="stSakit" value="sakit" @checked(old('status')==='sakit')>
                                                     <label class="btn btn-outline-danger w-100 py-2" for="stSakit">SAKIT</label>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div id="absence_reason_field" class="mb-4 d-none">
+                                            <label for="absence_reason" class="form-label fw-bold small">KETERANGAN <span class="text-danger">*</span></label>
+                                            <textarea name="keterangan" id="absence_reason" rows="3" minlength="10" maxlength="500" class="form-control @error('keterangan') is-invalid @enderror" placeholder="Jelaskan alasan izin atau sakit secara lengkap, minimal 10 karakter.">{{ old('keterangan') }}</textarea>
+                                            <div class="form-text">Wajib untuk status Izin atau Sakit. Contoh: Pemeriksaan dokter di rumah sakit.</div>
+                                            @error('keterangan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                         </div>
 
                                         <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">KIRIM SEKARANG</button>
@@ -127,7 +148,10 @@
                                             <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2">
                                                 <div class="d-flex align-items-center">
                                                     <i class="bx bxs-check-circle text-success me-2"></i>
-                                                    <small class="fw-bold text-dark">{{ $a->name }}</small>
+                                                    <div>
+                                                        <small class="fw-bold text-dark d-block">{{ $a->name }}</small>
+                                                        <small class="text-muted">NIP/NIK: {{ $a->nip_nik ?: '-' }}</small>
+                                                    </div>
                                                 </div>
                                                 <span class="badge badge-dot bg-success"></span>
                                             </li>
@@ -138,7 +162,10 @@
                                             <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2 opacity-50">
                                                 <div class="d-flex align-items-center">
                                                     <i class="bx bx-loader-circle text-muted me-2"></i>
-                                                    <small class="text-muted">{{ $n->name }}</small>
+                                                    <div>
+                                                        <small class="text-muted d-block">{{ $n->name }}</small>
+                                                        <small class="text-muted">NIP/NIK: {{ $n->nip_nik ?: '-' }}</small>
+                                                    </div>
                                                 </div>
                                                 <span class="badge badge-dot bg-secondary"></span>
                                             </li>
@@ -186,6 +213,17 @@
 
     setInterval(updateClock, 1000);
     updateClock();
+    const reasonField = document.getElementById('absence_reason_field');
+    const reasonInput = document.getElementById('absence_reason');
+    function toggleReason() {
+        const selected = document.querySelector('input[name="status"]:checked')?.value;
+        const required = selected === 'izin' || selected === 'sakit';
+        reasonField.classList.toggle('d-none', !required);
+        reasonInput.required = required;
+        if (!required) reasonInput.value = '';
+    }
+    document.querySelectorAll('input[name="status"]').forEach(input => input.addEventListener('change', toggleReason));
+    toggleReason();
 </script>
 
 <style>

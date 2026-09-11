@@ -8,6 +8,7 @@ use App\Models\Participant;
 use App\Models\Question;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationFormL1; 
+use App\Models\EvaluationL1TextSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,86 @@ class EvaluationLevel1Controller extends Controller
             ->groupBy('schedule_id')
             ->get();
 
-        return view('evaluasi.l1_index', compact('training', 'forms', 'results'));
+        $organizerTextResponsesCount = EvaluationResultL1::where('training_id', $id)
+            ->whereNull('schedule_id')
+            ->whereNotNull('note')
+            ->where('note', '!=', '')
+            ->whereHas('question', fn ($query) => $query
+                ->where('category', 'l1_penyelenggara')
+                ->where('type', 'text'))
+            ->count();
+
+        return view('evaluasi.l1_index', compact('training', 'forms', 'results', 'organizerTextResponsesCount'));
+    }
+
+    public function organizerTextSummary($id)
+    {
+        $training = Training::withCount('participants')->findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang),
+            403
+        );
+
+        $textQuestions = Question::forTraining($training, 'l1_penyelenggara')
+            ->where('type', 'text')
+            ->orderBy('id')
+            ->get();
+        $responses = EvaluationResultL1::with(['participant', 'question'])
+            ->where('training_id', $training->id)
+            ->whereNull('schedule_id')
+            ->whereIn('question_id', $textQuestions->pluck('id'))
+            ->whereNotNull('note')
+            ->where('note', '!=', '')
+            ->latest()
+            ->get();
+        $responseGroups = $textQuestions->map(function ($question) use ($responses) {
+            return [
+                'question' => $question,
+                'responses' => $responses->where('question_id', $question->id)->values(),
+            ];
+        });
+        $respondentCount = $responses->pluck('participant_id')->unique()->count();
+        $responseRate = $training->participants_count > 0
+            ? round(($respondentCount / $training->participants_count) * 100, 1)
+            : 0;
+        $adminSummary = EvaluationL1TextSummary::with('reviewer')
+            ->where('training_id', $training->id)
+            ->first();
+
+        return view('evaluasi.l1_text_summary', compact(
+            'training', 'textQuestions', 'responses', 'responseGroups', 'respondentCount', 'responseRate', 'adminSummary'
+        ));
+    }
+
+    public function storeOrganizerTextSummary(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang),
+            403
+        );
+        $data = $request->validate([
+            'conclusion' => ['required', 'string', 'max:10000'],
+            'follow_up' => ['required', 'string', 'max:10000'],
+        ], [
+            'conclusion.required' => 'Kesimpulan umum wajib diisi.',
+            'follow_up.required' => 'Rencana tindak lanjut wajib diisi.',
+        ]);
+
+        EvaluationL1TextSummary::updateOrCreate(
+            ['training_id' => $training->id],
+            $data + [
+                'reviewed_by' => $user->id,
+                'reviewed_at' => now(),
+            ]
+        );
+
+        return redirect()->route('evall1.organizer-summary', $training->id)
+            ->with('success', 'Kesimpulan umum dan rencana tindak lanjut berhasil disimpan untuk laporan.');
     }
 
     public function storeForm(Request $request, $id)
@@ -142,6 +222,26 @@ class EvaluationLevel1Controller extends Controller
         // 2. Peserta yang belum mengisi (untuk dropdown)
         $participants = Participant::where('training_id', $id)
                         ->whereNotIn('id', $filledIds)->orderBy('name')->get();
+
+        $selfParticipant = null;
+        $isSelfService = Auth::check() && Auth::user()->role === 'participant';
+        if ($isSelfService) {
+            $user = Auth::user();
+            $selfParticipant = Participant::where('training_id', $id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->first();
+
+            abort_unless($selfParticipant, 403, 'Akun Anda tidak terdaftar sebagai peserta pelatihan ini.');
+            $formParticipants = $participants->where('id', $selfParticipant->id)->values();
+        } else {
+            $formParticipants = $participants;
+        }
         
         // 3. Peserta yang sudah mengisi (untuk list progres di kanan)
         $alreadyFilled = Participant::where('training_id', $id)
@@ -158,7 +258,7 @@ class EvaluationLevel1Controller extends Controller
         }
         abort_if($type === 'narasumber' && !$schedule, 404);
 
-        return view('evaluasi.l1_public_form', compact('training', 'participants', 'alreadyFilled', 'questions', 'type', 'schedule', 'sid'));
+        return view('evaluasi.l1_public_form', compact('training', 'participants', 'formParticipants', 'alreadyFilled', 'questions', 'type', 'schedule', 'sid', 'selfParticipant', 'isSelfService'));
     }
 
     public function publicStore(Request $request, $id)
@@ -171,7 +271,21 @@ class EvaluationLevel1Controller extends Controller
 
         $sid = ($request->schedule_id && $request->schedule_id !== '') ? $request->schedule_id : null;
         $training = Training::findOrFail($id);
-        Participant::where('training_id', $id)->findOrFail($request->participant_id);
+        if (Auth::check() && Auth::user()->role === 'participant') {
+            $user = Auth::user();
+            $participant = Participant::where('training_id', $id)
+                ->where('registration_status', 'approved')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                    if (filled($user->nip_nik)) {
+                        $query->orWhere('nip_nik', $user->nip_nik);
+                    }
+                })
+                ->firstOrFail();
+            abort_unless((int) $participant->id === $request->integer('participant_id'), 403, 'Anda hanya dapat mengisi evaluasi atas nama sendiri.');
+        } else {
+            Participant::where('training_id', $id)->findOrFail($request->participant_id);
+        }
 
         if ($sid) {
             Schedule::where('training_id', $id)->findOrFail($sid);
