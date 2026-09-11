@@ -1,4 +1,3 @@
-@extends('certifications.public_layout')
 @section('title','Akses Evaluasi dan Sertifikat')
 @section('public_subtitle','Evaluasi dan Pengumpulan Sertifikat')
 @section('content')

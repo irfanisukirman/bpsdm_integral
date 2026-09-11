@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dokumen Proses Bisnis - BPSDM Integral</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1a1a1a; max-width: 210mm; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #1a365d; border-bottom: 3px solid #2c5282; padding-bottom: 10px; font-size: 22pt; }
+        h2 { color: #2c5282; border-bottom: 2px solid #bee3f8; padding-bottom: 5px; margin-top: 30px; font-size: 16pt; }
+        h3 { color: #2b6cb0; margin-top: 20px; font-size: 13pt; }
+        h4 { color: #3182ce; margin-top: 15px; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
+        th, td { border: 1px solid #cbd5e0; padding: 6px 10px; text-align: left; }
+        th { background-color: #ebf8ff; color: #2c5282; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f7fafc; }
+        .cover { text-align: center; padding: 80px 20px; page-break-after: always; }
+        .cover h1 { font-size: 28pt; border: none; }
+        .cover .subtitle { font-size: 14pt; color: #4a5568; margin-top: 20px; }
+        .cover .org { font-size: 16pt; color: #2c5282; margin-top: 40px; }
+        .cover .date { font-size: 12pt; color: #718096; margin-top: 20px; }
+        .toc { page-break-after: always; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { padding: 3px 0; }
+        .toc li a { text-decoration: none; color: #2c5282; }
+        .toc li.sub { padding-left: 20px; }
+        .page-break { page-break-before: always; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9pt; font-weight: bold; margin: 1px; }
+        .badge-super { background: #fed7d7; color: #c53030; }
+        .badge-admin { background: #fefcbf; color: #b7791f; }
+        .badge-aset { background: #c6f6d5; color: #276749; }
+        .badge-pengajar { background: #bee3f8; color: #2b6cb0; }
+        .badge-participant { background: #e9d8fd; color: #553c9a; }
+        .badge-mitra { background: #feebc8; color: #c05621; }
+        .note { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 8px 12px; margin: 10px 0; font-size: 10pt; }
+        .workflow { background: #f0fff4; border: 1px solid #c6f6d5; padding: 10px; border-radius: 6px; margin: 10px 0; }
+        .section { margin-bottom: 15px; }
+        code { background: #edf2f7; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+        ul { margin: 5px 0; }
+        .logo { font-size: 12pt; color: #2c5282; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+    <div class="logo">BPSDM INTEGRAL</div>
+    <h1>DOKUMEN PROSES BISNIS</h1>
+    <div class="subtitle">Sistem Informasi Pengelolaan Pelatihan dan Pengembangan<br>Kompetensi Pegawai</div>
+    <div class="org">Badan Pengembangan Sumber Daya Manusia</div>
+    <div class="date">Disusun Berdasarkan Analisis Kode Sistem<br>Tahun 2026</div>
+</div>
+
+<!-- ==================== TOC ==================== -->
+<div class="toc">
+    <h2>Daftar Isi</h2>
+    <ul>
+        <li><strong>1. Gambaran Umum Sistem</strong></li>
+        <li class="sub">1.1 Teknologi & Arsitektur</li>
+        <li class="sub">1.2 Model Pengguna & Otorisasi</li>
+        <li><strong>2. Autentikasi & Manajemen Pengguna</strong></li>
+        <li class="sub">2.1 Login & OAuth Google</li>
+        <li class="sub">2.2 Alur Pendaftaran Role</li>
+        <li class="sub">2.3 Hierarki Role</li>
+        <li><strong>3. Modul-Manajemen Pelatihan</strong></li>
+        <li class="sub">3.1 CRUD Pelatihan</li>
+        <li class="sub">3.2 Pengelolaan Jadwal</li>
+        <li class="sub">3.3 Import/Export Peserta</li>
+        <li><strong>4. Modul Peserta</strong></li>
+        <li class="sub">4.1 Pendaftaran Pelatihan</li>
+        <li class="sub">4.2 Upload Dokumen</li>
+        <li class="sub">4.3 Riwayat Pelatihan</li>
+        <li><strong>5. Modul Kehadiran (Absensi)</strong></li>
+        <li><strong>6. Modul Evaluasi (Kirkpatrick L1-L4)</strong></li>
+        <li class="sub">6.1 Level 1 - Reaksi</li>
+        <li class="sub">6.2 Level 2 - Pembelajaran</li>
+        <li class="sub">6.3 Level 3/4 - Dampak</li>
+        <li><strong>7. Modul Monitoring & Tindak Lanjut</strong></li>
+        <li class="sub">7.1 Monitoring Penyelenggaraan</li>
+        <li class="sub">7.2 Rekomendasi / Tindak Lanjut</li>
+        <li><strong>8. Modul Pengajar (Narasumber)</strong></li>
+        <li class="sub">8.1 Portal Narasumber</li>
+        <li class="sub">8.2 Dokumen Per Sesi</li>
+        <li><strong>9. Modul Bank Instrumen & Soal</strong></li>
+        <li><strong>10. Modul Dokumen & Folder</strong></li>
+        <li><strong>11. Modul Sertifikasi SKPK</strong></li>
+        <li><strong>12. Modul Aset & Peminjaman</strong></li>
+        <li><strong>13. Modul Agenda</strong></li>
+        <li><strong>14. Modul Sertifikat Pelatihan</strong></li>
+        <li><strong>15. Modul Laporan Kegiatan</strong></li>
+        <li><strong>16. Modul Alumni</strong></li>
+        <li><strong>17. Modul Pengajuan Mitra</strong></li>
+        <li><strong>18. Modul Forum Pelatihan</strong></li>
+        <li><strong>19. Modul Asisten AI</strong></li>
+        <li><strong>20. Modul Profil & Notifikasi</strong></li>
+        <li><strong>21. Akses Publik (Tanpa Login)</strong></li>
+        <li><strong>22. Ringkasan Akses Per Role</strong></li>
+        <li><strong>23. Diagram Relasi Database</strong></li>
+    </ul>
+</div>
+
+<!-- ==================== 1. GAMBARAN UMUM ==================== -->
+<h2>1. Gambaran Umum Sistem</h2>
+
+<div class="section">
+    <p><strong>BPSDM Integral</strong> adalah sistem informasi terpadu untuk mengelola seluruh siklus pelatihan dan pengembangan kompetensi pegawai pada Badan Pengembangan Sumber Daya Manusia. Sistem ini mencakup manajemen pelatihan, evaluasi berbasis model Kirkpatrick (Level 1-4), monitoring, sertifikasi, aset, dan pengelolaan narasumber.</p>
+</div>
+
+<h3>1.1 Teknologi & Arsitektur</h3>
+<table>
+    <tr><th>Aspek</th><th>Teknologi</th></tr>
+    <tr><td>Framework</td><td>Laravel 12 (PHP)</td></tr>
+    <tr><td>Database</td><td>MySQL (via XAMPP)</td></tr>
+    <tr><td>Autentikasi</td><td>Session-based + Google OAuth (Socialite)</td></tr>
+    <tr><td>Frontend</td><td>Blade Templates + Vite</td></tr>
+    <tr><td>Export</td><td>PhpWord, DomPDF, Maatwebsite Excel</td></tr>
+    <tr><td>AI Integration</td><td>OpenAI API (analisis evaluasi & draft laporan)</td></tr>
+    <tr><td>Jumlah Tabel DB</td><td>42+ tabel</td></tr>
+    <tr><td>Jumlah Controller</td><td>38 controller</td></tr>
+    <tr><td>Jumlah Model</td><td>44 model</td></tr>
+</table>
+
+<h3>1.2 Model Pengguna & Otorisasi</h3>
+<p>Sistem menggunakan <strong>6 role</strong> yang disimpan langsung pada tabel <code>users</code>:</p>
+
+<table>
+    <tr><th>Role</th><th>user_type</th><th>Keterangan</th><th>Dashboard</th></tr>
+    <tr>
+        <td><span class="badge badge-super">superadmin</span></td>
+        <td>-</td>
+        <td>Akses penuh ke seluruh modul, mengelola user</td>
+        <td>/dashboard (statistik menyeluruh)</td>
+    </tr>
+    <tr>
+        <td><span class="badge badge-admin">admin_bidang</span></td>
+        <td>-</td>
+        <td>Admin per bidang, data di-scope berdasarkan <code>bidang</code></td>
+        <td>/dashboard (statistik per bidang)</td>
+    </tr>
+    <tr>
+        <td><span class="badge badge-aset">admin_aset</span></td>
+        <td>-</td>
+        <td>Pengelola aset/ruangan, selalu bidang = "Pengelola Aset"</td>
+        <td>/assets (dashboard aset)</td>
+    </tr>
+    <tr>
+        <td><span class="badge badge-pengajar">pengajar</span></td>
+        <td>narasumber</td>
+        <td>Narasumber/pengajar pelatihan</td>
+        <td>/pengajar (portal narasumber)</td>
+    </tr>
+    <tr>
+        <td><span class="badge badge-participant">participant</span></td>
+        <td>peserta</td>
+        <td>Peserta pelatihan (akun publik)</td>
+        <td>/participant/dashboard</td>
+    </tr>
+    <tr>
+        <td><span class="badge badge-mitra">mitra</span></td>
+        <td>mitra</td>
+        <td>Institusi mitra (pengajuan pelatihan/kerjasama)</td>
+        <td>/mitra/dashboard</td>
+    </tr>
+</table>
+
+<h4>5 Bidang (Divisi)</h4>
+<ol>
+    <li>Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan</li>
+    <li>Bidang Pengembangan Kompetensi Teknis Inti</li>
+    <li>Bidang Pengembangan Kompetensi Teknis Umum</li>
+    <li>Bidang Pengembangan Kompetensi Manajerial</li>
+    <li>Sekretariat</li>
+</ol>
+
+<div class="note">
+    <strong>Catatan Penting:</strong> admin_bidang hanya bisa melihat/mengelola data yang sesuai dengan bidangnya. Superadmin melihat semua data tanpa batasan bidang.
+</div>
+
+<!-- ==================== 2. AUTENTIKASI ==================== -->
+<h2 class="page-break">2. Autentikasi & Manajemen Pengguna</h2>
+
+<h3>2.1 Login & OAuth Google</h3>
+<div class="workflow">
+    <strong>Alur Login:</strong><br>
+    1. Pengguna mengakses halaman login (<code>/login</code>)<br>
+    2. Input: <strong>username</strong> + password (bukan email)<br>
+    3. Verifikasi credential via session guard<br>
+    4. Redirect berdasarkan role:
+    <ul>
+        <li>superadmin/admin_bidang → <code>/dashboard</code></li>
+        <li>admin_aset → <code>/assets/dashboard</code></li>
+        <li>pengajar → <code>/pengajar</code> (jika profil belum lengkap → <code>/pengajar/setup-profil</code>)</li>
+        <li>participant → <code>/participant/dashboard</code></li>
+        <li>mitra → <code>/mitra/dashboard</code></li>
+    </ul>
+</div>
+
+<div class="workflow">
+    <strong>Alur Google OAuth:</strong><br>
+    1. Pengguna klik "Login dengan Google"<br>
+    2. Redirect ke Google → consent → callback<br>
+    3. Sistem mencari user berdasarkan <code>google_id</code> atau <code>username=email</code><br>
+    4. Jika user baru: dibuat otomatis dengan <code>role=participant</code><br>
+    5. Jika profil belum lengkap (NIP/gender kosong) → redirect ke <code>/complete-profile</code>
+</div>
+
+<h3>2.2 Alur Pendaftaran Role</h3>
+<div class="workflow">
+    <strong>Pengguna baru memilih tipe akun:</strong><br>
+    <code>participant.profile.complete</code> → Pilih salah satu:
+    <ul>
+        <li><strong>Peserta</strong> → role = participant, user_type = peserta, status = approved</li>
+        <li><strong>Narasumber</strong> → role = pengajar, user_type = narasumber, status = approved (langsung aktif)</li>
+        <li><strong>Mitra</strong> → role = participant, user_type = mitra, status = pending (perlu approval superadmin)</li>
+    </ul>
+    <br>
+    <strong>Approval oleh Superadmin:</strong><br>
+    <code>users/{id}/approve-type</code> → pending → approved → role diupdate otomatis
+</div>
+
+<h3>2.3 Hierarki Otorisasi</h3>
+<table>
+    <tr><th>Mekanisme</th><th>Implementasi</th><th>Contoh</th></tr>
+    <tr><td>Route Middleware</td><td><code>can:superadmin-only</code>, <code>can:isParticipant</code></td><td>Users CRUD hanya superadmin</td></tr>
+    <tr><td>Controller Guard</td><td><code>abort_unless(in_array(role, [...]))</code></td><td>AssetController: superadmin + admin_aset</td></tr>
+    <tr><td>Bidang Scoping</td><td><code>where('bidang', user->bidang)</code></td><td>MonitoringController: admin_bidang hanya lihat bidang sendiri</td></tr>
+    <tr><td>Folder Permission</td><td><code>DocumentAccessService</code></td><td>owner/contributor/viewer per folder</td></tr>
+    <tr><td>Global Middleware</td><td><code>CekSetupPengajar</code></td><td>Forces narasumber setup profil</td></tr>
+</table>
+
+<!-- ==================== 3. MODUL PELATIHAN ==================== -->
+<h2 class="page-break">3. Modul Manajemen Pelatihan</h2>
+
+<p>Modul inti sistem yang mengelola siklus hidup pelatihan dari perencanaan hingga pelaporan.</p>
+
+<h3>3.1 CRUD Pelatihan</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Endpoint</th><th>Keterangan</th></tr>
+    <tr><td>Lihat Daftar</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td><code>trainings.index</code></td><td>admin_bidang hanya melihat pelatihan bidang sendiri</td></tr>
+    <tr><td>Buat Pelatihan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td><code>trainings.create</code></td><td>admin_bidang otomatis terkunci ke bidangnya</td></tr>
+    <tr><td>Edit Pelatihan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td><code>trainings.edit</code></td><td>Sama seperti create</td></tr>
+    <tr><td>Hapus Pelatihan</td><td><span class="badge badge-super">superadmin</span></td><td><code>trainings.destroy</code></td><td>Hanya superadmin</td></tr>
+    <tr><td>Manage Pelatihan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td><code>trainings.manage</code></td><td>Detail lengkap + pengaturan sub-modul</td></tr>
+    <tr><td>Export</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td><code>participants.export_data</code></td><td>Export data peserta ke Excel</td></tr>
+</table>
+
+<p><strong>Field Utama Pelatihan:</strong></p>
+<ul>
+    <li>Nama Pelatihan, Bidang (A/B/C/D), Model (Standar/Blended)</li>
+    <li>Metode (Klasikal/Daring/Blended), Lokasi, Angkatan</li>
+    <li>Jumlah Peserta, JP (Jam Pelajaran), Tgl Mulai & Selesai</li>
+    <li>Program Evaluasi (PKTI/PKTU, PKT, CPNS, PKP, PKA, PKN)</li>
+    <li>Invitation Code (auto-generated 6 karakter)</li>
+    <li>Link LMS (opsional)</li>
+</ul>
+
+<h3>3.2 Pengelolaan Jadwal</h3>
+<div class="workflow">
+    <strong>Alur:</strong><br>
+    1. Admin buat jadwal per pelatihan → tanggal, waktu, aktivitas, pengajar, lokasi<br>
+    2. Sistem otomatis cek konflik aset (<code>AssetBooking::hasConflict</code>)<br>
+    3. Buka jendela absensi (<code>attendance_open/close</code>)<br>
+    4. Import massal via template Excel tersedia<br>
+    5. Generate PDF jadwal untuk cetak
+</div>
+
+<p><strong>Fitur Terkait:</strong></p>
+<ul>
+    <li>Import/Export jadwal via Excel</li>
+    <li>Generate PDF jadwal (role pengajar hanya melihat jadwal sendiri)</li>
+    <li>Pengaturan LMS link per pelatihan</li>
+    <li>Pengelolaan tahapan pelatihan (<code>training_stages</code>)</li>
+</ul>
+
+<h3>3.3 Import/Export Peserta</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Import Peserta (Excel)</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Template Excel dengan NIP, nama, instansi, dll</td></tr>
+    <tr><td>Tambah Manual</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Form input satu peserta</td></tr>
+    <tr><td>Approve/Reject</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Persetujuan pendaftaran peserta</td></tr>
+    <tr><td>Approve Bulk</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Persetujuan massal</td></tr>
+    <tr><td>Export Data</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Export data peserta ke Excel</td></tr>
+</table>
+
+<!-- ==================== 4. MODUL PESERTA ==================== -->
+<h2 class="page-break">4. Modul Peserta (Participant Portal)</h2>
+
+<p>Portal khusus peserta (<span class="badge badge-participant">participant</span>) untuk mengelola pendaftaran dan riwayat pelatihan.</p>
+
+<h3>4.1 Pendaftaran Pelatihan</h3>
+<div class="workflow">
+    <strong>Alur Pendaftaran:</strong><br>
+    1. Peserta lihat pelatihan tersedia (<code>/participant/trainings</code>)<br>
+    2. Masukkan kode undangan (<code>invitation_code</code>) untuk join<br>
+    3. Status pendaftaran: <code>pending</code><br>
+    4. Admin approve/reject pendaftaran<br>
+    5. Setelah approve, peserta mengunggah dokumen kelengkapan
+</div>
+
+<p><strong>Dokumen yang Diupload:</strong></p>
+<ul>
+    <li>Biodata (upload file)</li>
+    <li>Surat Tugas</li>
+    <li>Pas Foto</li>
+</ul>
+
+<div class="note">
+    <strong>Batasan:</strong> Peserta harus menyelesaikan pelatihan inti sebelumnya dan mengisi evaluasi dampak (L3/L4) sebelum bisa mendaftar pelatihan baru.
+</div>
+
+<h3>4.2 Dashboard Peserta</h3>
+<ul>
+    <li>Jumlah pelatihan yang diikuti</li>
+    <li>Jam Pelajaran tahun ini</li>
+    <li>Pelatihan yang perlu evaluasi pasca-pelatihan</li>
+    <li>Status pendaftaran & dokumen</li>
+</ul>
+
+<h3>4.3 Riwayat Pelatihan</h3>
+<ul>
+    <li>Daftar seluruh pelatihan yang pernah diikuti</li>
+    <li>Status kelulusan & sertifikat</li>
+    <li>Data alumni (pendidikan, pangkat, jabatan sebelum & sesudah)</li>
+</ul>
+
+<!-- ==================== 5. MODUL KEHADIRAN ==================== -->
+<h2 class="page-break">5. Modul Kehadiran (Absensi)</h2>
+
+<h3>5.1 Absensi Publik (Tanpa Login)</h3>
+<div class="workflow">
+    <strong>Alur Absensi Harian:</strong><br>
+    1. Akses via link publik: <code>/absen/harian/{training_id}/{date}</code><br>
+    2. Cek jendela waktu (<code>attendance_open</code> s/d <code>attendance_close</code>)<br>
+    3. Peserta input NIP → sistem cari di database<br>
+    4. Pilih status: Hadir / Izin / Sakit<br>
+    5. Jika izin/sakit → isi keterangan<br>
+    6. Record absensi tersimpan dengan timestamp
+</div>
+
+<h3>5.2 Monitoring Admin</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Dashboard Kehadiran</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Daftar kehadiran per pelatihan</td></tr>
+    <tr><td>Detail Harian</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Detail kehadiran per tanggal</td></tr>
+    <tr><td>Set Waktu Absensi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Atur jam buka/tutup absensi</td></tr>
+    <tr><td>Download PDF</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Laporan kehadiran PDF</td></tr>
+    <tr><td>Download Excel</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Export data kehadiran CSV</td></tr>
+</table>
+
+<p><strong>Status Kehadiran:</strong> <code>hadir</code>, <code>izin</code>, <code>sakit</code></p>
+<p><strong>Unik:</strong> Setiap peserta hanya bisa 1 record per jadwal (UNIQUE constraint: schedule_id + participant_id)</p>
+
+<!-- ==================== 6. MODUL EVALUASI ==================== -->
+<h2 class="page-break">6. Modul Evaluasi (Model Kirkpatrick)</h2>
+
+<p>Sistem evaluasi mengikuti <strong>Model Kirkpatrick</strong> dengan 4 level pengukuran efektivitas pelatihan:</p>
+
+<h3>6.1 Level 1 - Reaksi (Evaluasi Kepuasan)</h3>
+<p>Mengukur kepuasan peserta terhadap pelatihan.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Isi Formulir (Publik)</td><td>Peserta (tanpa login)</td><td>Link publik: <code>/evaluasi-l1/form/{training_id}</code></td></tr>
+    <tr><td>Dashboard L1</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Progres pengisian per pelatihan</td></tr>
+    <tr><td>Kelola Form</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Buat/hapus formulir evaluasi</td></tr>
+    <tr><td>Rangkuman Teks</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Summary teks + AI generation</td></tr>
+    <tr><td>Export Excel</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Download data evaluasi L1</td></tr>
+</table>
+
+<p><strong>Jenis Evaluasi L1:</strong></p>
+<ul>
+    <li><strong>Penyelenggara</strong> → Evaluasi terhadap institusi penyelenggara</li>
+    <li><strong>Narasumber</strong> → Evaluasi terhadap pengajar/materi (per jadwal)</li>
+</ul>
+
+<p><strong>Tipe Pertanyaan:</strong> Slider (10-100), Teks Bebas, Ya/Tidak, Dropdown</p>
+
+<h3>6.2 Level 2 - Pembelajaran (Pre-test & Post-test)</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Import Skor</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Import pretest/posttest dari Excel</td></tr>
+    <tr><td>Update Skor</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Edit skor per peserta</td></tr>
+    <tr><td>Download Template</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Template Excel untuk import</td></tr>
+    <tr><td>Dashboard L12</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Kombinasi L1+L2, rata-rata pretest/postest, n_gain, rekomendasi AI</td></tr>
+</table>
+
+<p><strong>Perhitungan:</strong> N-Gain = Post-test - Pre-test. Status: <code>increased</code> / <code>same</code> / <code>decreased</code></p>
+
+<h3>6.3 Level 3 & 4 - Dampak (Evaluasi 360°)</h3>
+<div class="workflow">
+    <strong>Alur Evaluasi Dampak:</strong><br>
+    1. Formulir dibagikan via link publik (<code>/evaluasi-dampak/form/{training_id}/{role}</code>)<br>
+    2. Tiga peran pengisi: <strong>Mandiri</strong> (peserta sendiri), <strong>Atasan</strong>, <strong>Rekan Sejawat</strong><br>
+    3. Pengisian: biodata evaluator, penempatan tugas, skor slider, pilihan ganda<br>
+    4. Tanggal distribusi ditentukan otomatis (Manajerial: +1 tahun, lainnya: +4 bulan)
+</div>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Isi Formulir</td><td>Peserta/Atasan/Rekan (publik)</td><td>Link publik per role</td></tr>
+    <tr><td>Dashboard L34</td><td><span class="badge badge-super">superadmin</span></td><td>Coverage by role, analisis AI, rata-rata skor</td></tr>
+    <tr><td>Export Word</td><td><span class="badge badge-super">superadmin</span></td><td>Laporan evaluasi dalam format Word</td></tr>
+    <tr><td>Export Excel</td><td><span class="badge badge-super">superadmin</span></td><td>Download data evaluasi L34</td></tr>
+    <tr><td>Control L34</td><td><span class="badge badge-super">superadmin</span></td><td>Pengaturan kontrol distribusi evaluasi</td></tr>
+</table>
+
+<!-- ==================== 7. MODUL MONITORING ==================== -->
+<h2 class="page-break">7. Modul Monitoring & Tindak Lanjut</h2>
+
+<h3>7.1 Monitoring Penyelenggaraan</h3>
+<p>Evaluasi kualitas penyelenggaraan pelatihan berdasarkan standar yang ditetapkan.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Isi Monitoring</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Formulir ceklis per tahapan</td></tr>
+    <tr><td>Dashboard Monitoring</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Daftar pelatihan yang perlu di-monitor</td></tr>
+    <tr><td>Export Laporan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Export ke Word (PhpWord)</td></tr>
+    <tr><td>Export Rekap Ceklis</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Rekap format Excel</td></tr>
+</table>
+
+<p><strong>Workflow Monitoring:</strong></p>
+<ul>
+    <li>Jawaban: <code>ya</code> / <code>tidak</code></li>
+    <li>Jika <code>tidak</code> → otomatis triggers tindak lanjut</li>
+    <li>Status: <code>pending</code> → <code>in_progress</code> → <code>resolved</code></li>
+</ul>
+
+<h3>7.2 Rekomendasi / Tindak Lanjut</h3>
+<div class="workflow">
+    <strong>Alur Tindak Lanjut:</strong><br>
+    1. Hasil monitoring dengan jawaban "tidak" → muncul di dashboard tindak lanjut<br>
+    2. Admin mulai proses (<code>start</code>) → status: in_progress<br>
+    3. Admin submit penyelesaian (<code>resolve</code>) → upload bukti + catatan (min 5 karakter)<br>
+    4. Superadmin verifikasi → approved/rejected<br>
+    5. Bukti otomatis diarsipkan ke folder "BUKTI TINDAK LANJUT MONITORING"
+</div>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th></tr>
+    <tr><td>Lihat Daftar</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td></tr>
+    <tr><td>Mulai Proses</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td></tr>
+    <tr><td>Selesaikan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td></tr>
+    <tr><td>Verifikasi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td></tr>
+</table>
+
+<!-- ==================== 8. MODUL PENGAJAR ==================== -->
+<h2 class="page-break">8. Modul Pengajar (Narasumber)</h2>
+
+<h3>8.1 Portal Narasumber</h3>
+<div class="workflow">
+    <strong>Alur Setup Pertama Kali:</strong><br>
+    1. User login dengan role pengajar<br>
+    2. Middleware <code>CekSetupPengajar</code> mendeteksi profil belum lengkap<br>
+    3. Redirect ke <code>/pengajar/setup-profil</code><br>
+    4. Isi: pangkat_golongan, instansi, NPWP, rekening bank, upload CV & sertifikat<br>
+    5. Setelah setup → akses portal narasumber
+</div>
+
+<p><strong>Menu Portal Narasumber:</strong></p>
+<ul>
+    <li><strong>Dashboard</strong> → Daftar pelatihan yang diampu</li>
+    <li><strong>Jadwal Mengajar</strong> → Jadwal lengkap per pelatihan</li>
+    <li><strong>Riwayat Mengajar</strong> → Pelatihan yang sudah selesai</li>
+    <li><strong>Manage Pelatihan</strong> → Upload dokumen per sesi</li>
+</ul>
+
+<h3>8.2 Dokumen Per Sesi</h3>
+<table>
+    <tr><th>Dokumen</th><th>Keterangan</th></tr>
+    <tr><td>Bahan Ajar</td><td>Materi presentasi/modul ajar</td></tr>
+    <tr><td>RBPMP/RP</td><td>Rencana Pembelajaran</td></tr>
+    <tr><td>Bukti Mengajar</td><td>Foto/ dokumentasi saat mengajar</td></tr>
+</table>
+
+<p><strong>Fitur Lain:</strong></p>
+<ul>
+    <li>Update profil bank (NPWP, nomor rekening, nama bank, nama rekening)</li>
+    <li>Upload kelengkapan (CV, sertifikat, surat tugas)</li>
+    <li>Akses forum diskusi per pelatihan</li>
+</ul>
+
+<!-- ==================== 9. MODUL BANK INSTRUMEN ==================== -->
+<h2 class="page-break">9. Modul Bank Instrumen & Soal</h2>
+
+<p>Pengelolaan bank soal untuk evaluasi L1, L2, L3/L4, dan monitoring.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Lihat Daftar Soal</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Filter per bidang & program</td></tr>
+    <tr><td>Tambah Soal</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Isi kategori, tipe, teks pertanyaan</td></tr>
+    <tr><td>Import Soal</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Import dari Excel</td></tr>
+    <tr><td>Duplikat Soal</td><td><span class="badge badge-super">superadmin</span></td><td>Duplikat per bundle atau per soal</td></tr>
+    <tr><td>Hapus Soal</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Cek apakah soal sedang digunakan sebelum hapus</td></tr>
+    <tr><td>Download Template</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Template import soal</td></tr>
+</table>
+
+<p><strong>Program Evaluasi:</strong></p>
+<ul>
+    <li>PKTI/PKTU, PKT, CPNS, PKP, PKA, PKN</li>
+</ul>
+
+<p><strong>Kategori Soal:</strong></p>
+<ul>
+    <li><code>l1_penyelenggara</code> → Evaluasi L1 terhadap penyelenggara</li>
+    <li><code>l1_narasumber</code> → Evaluasi L1 terhadap narasumber</li>
+    <li><code>l34_mandiri</code> → Evaluasi Dampak mandiri</li>
+    <li><code>l34_atasan</code> → Evaluasi Dampak atasan</li>
+    <li><code>l34_rekan</code> → Evaluasi Dampak rekan sejawat</li>
+    <li><code>monitoring</code> → Soal monitoring penyelenggaraan</li>
+</ul>
+
+<!-- ==================== 10. MODUL DOKUMEN ==================== -->
+<h2 class="page-break">10. Modul Dokumen & Folder</h2>
+
+<p>Sistem manajemen dokumen terintegrasi dengan struktur folder hierarkis dan kontrol akses per folder.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Lihat Folder</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Browse folder per bidang</td></tr>
+    <tr><td>Buat Folder</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Folder child, publik/privat</td></tr>
+    <tr><td>Upload File</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Berkas ke folder tertentu</td></tr>
+    <tr><td>Versi File</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Otomatis versioning saat upload</td></tr>
+    <tr><td>Share Folder</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Share ke user lain (contributor/viewer)</td></tr>
+    <tr><td>Toggle Privasi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Publik/Private dengan share token</td></tr>
+    <tr><td>Hapus File/Folder</td><td><span class="badge badge-super">superadmin</span></td><td>Hanya superadmin</td></tr>
+</table>
+
+<p><strong>Hak Akses Folder (<code>DocumentAccessService</code>):</strong></p>
+<ul>
+    <li><strong>Owner</strong> → Superadmin atau pembuat folder</li>
+    <li><strong>Contributor</strong> → Admin bidang yang sesuai atau user yang di-share</li>
+    <li><strong>Viewer</strong> → Folder "Semua Bidang" atau user yang diberi akses viewer</li>
+</ul>
+
+<p><strong>Arsip Otomatis:</strong> Beberapa modul otomatis mengarsipkan dokumen:</p>
+<ul>
+    <li>KELENGKAPAN PENYELENGGARA → dari pelatihan</li>
+    <li>BUKTI TINDAK LANJUT MONITORING → dari tindak lanjut</li>
+    <li>Dokumen narasumber → dari portal pengajar</li>
+</ul>
+
+<!-- ==================== 11. MODUL SERTIFIKASI ==================== -->
+<h2 class="page-break">11. Modul Sertifikasi SKPK</h2>
+
+<p>Modul terpisah untuk mengelola sertifikasi kompetensi (bukan sertifikat pelatihan).</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Kelola Jenis Sertifikasi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>*Hanya bidang Sertifikasi Kompetensi</td></tr>
+    <tr><td>Kelola Event Sertifikasi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>Create/update event + folder otomatis</td></tr>
+    <tr><td>Import Peserta</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>Import dari Excel</td></tr>
+    <tr><td>Update Hasil</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>Kompeten / Belum Kompeten</td></tr>
+    <tr><td>Generate Sertifikat</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>PhpWord template batch generate</td></tr>
+    <tr><td>Upload Notulensi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang*</span></td><td>File notulensi rapat</td></tr>
+</table>
+
+<p><strong>Fitur Publik (Tanpa Login, Token-based):</strong></p>
+<ul>
+    <li><strong>Biodata Peserta</strong> → Formulir pengisian data diri peserta sertifikasi</li>
+    <li><strong>Biodata Narasumber</strong> → Formulir data diri + upload tanda tangan (base64 PNG)</li>
+    <li><strong>Upload Sertifikat</strong> → Peserta yang lulus upload sertifikat (PDF max 20MB) + rating + feedback</li>
+</ul>
+
+<p><strong>Jenis Sertifikasi (Seeded):</strong></p>
+<ul>
+    <li>PBJP Level 1, PPK Tipe-B, PPK Tipe-C, Pol PP, P2UPD, Keuangan Daerah</li>
+</ul>
+
+<!-- ==================== 12. MODUL ASET ==================== -->
+<h2 class="page-break">12. Modul Aset & Peminjaman</h2>
+
+<p>Pengelolaan aset (ruangan/peralatan) dan sistem peminjaman dengan deteksi konflik jadwal.</p>
+
+<h3>12.1 Dashboard Aset</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Dashboard</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-aset">admin_aset</span></td><td>Pemetaan penggunaan aset, statistik, forecast 7 hari</td></tr>
+    <tr><td>Kelola Aset</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-aset">admin_aset</span></td><td>CRUD aset + gambar</td></tr>
+    <tr><td>Monitoring Aset</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-aset">admin_aset</span></td><td>Status penggunaan aset</td></tr>
+    <tr><td>Persetujuan Peminjaman</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-aset">admin_aset</span></td><td>Review/approve/reject permohonan</td></tr>
+</table>
+
+<p><strong>Field Aset:</strong> Nama, Tipe (ruangan), Fasilitas, Lokasi, Kapasitas, Status Aktif, Status Publik</p>
+
+<h3>12.2 Sistem Peminjaman</h3>
+<div class="workflow">
+    <strong>Alur Peminjaman Aset:</strong><br>
+    1. Saat membuat jadwal/agenda → sistem cek ketersediaan aset<br>
+    2. Jika perlu peminjaman → buat <code>AssetLoanRequest</code><br>
+    3. Status: <code>pending</code><br>
+    4. Admin aset review → <code>approved</code> / <code>revision</code> / <code>rejected</code><br>
+    5. Sistem cek konflik jadwal (<code>AssetBooking::hasConflict</code>)<br>
+    6. Generate surat peminjaman (dokumen resmi)
+</div>
+
+<!-- ==================== 13. MODUL AGENDA ==================== -->
+<h2 class="page-break">13. Modul Agenda</h2>
+
+<p>Pengelolaan agenda non-pelatihan (rapat, workshop, dll) dengan integrasi booking aset.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Lihat Agenda</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>List agenda per bidang</td></tr>
+    <tr><td>Buat Agenda</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>Jadwalkan agenda + booking aset</td></tr>
+    <tr><td>Edit Agenda</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>Update detail agenda</td></tr>
+    <tr><td>Hapus Agenda</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>Hapus agenda + booking terkait</td></tr>
+    <tr><td>Cek Ketersediaan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>JSON endpoint availabilitas aset</td></tr>
+</table>
+
+<p><strong>Fitur:</strong></p>
+<ul>
+    <li>Integrasi booking aset (otomatis cek konflik)</li>
+    <li>Approval status untuk agenda</li>
+    <li>Pencampuran dengan jadwal pelatihan di tampilan</li>
+    <li>Batasan bidang untuk admin_bidang</li>
+</ul>
+
+<!-- ==================== 14. MODUL SERTIFIKAT ==================== -->
+<h2 class="page-break">14. Modul Sertifikat Pelatihan</h2>
+
+<p>Pengaturan dan generate sertifikat pelatihan secara massal menggunakan template Word.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Pengaturan Sertifikat</td><td><span class="badge badge-super">superadmin</span></td><td>Format nomor, urutan, ukuran foto, template</td></tr>
+    <tr><td>Download Template</td><td><span class="badge badge-super">superadmin</span></td><td>Template Word dengan placeholder</td></tr>
+    <tr><td>Generate Massal</td><td><span class="badge badge-super">superadmin</span></td><td>Batch generate + Zip download</td></tr>
+    <tr><td>Upload Final</td><td><span class="badge badge-super">superadmin</span></td><td>Upload file final yang sudah ditandatangani</td></tr>
+    <tr><td>Download Final</td><td><span class="badge badge-super">superadmin</span></td><td>Download file sertifikat final</td></tr>
+</table>
+
+<p><strong>Flow Generate:</strong></p>
+<ol>
+    <li>Admin atur format nomor surat (regex), urutan awal, ukuran foto</li>
+    <li>Download template sertifikat (Word .docx)</li>
+    <li>Klik "Generate" → sistem buat sertifikat per peserta dengan nomor urut</li>
+    <li>Download hasilnya sebagai ZIP</li>
+    <li>Setelah ditandatangani → upload file final</li>
+</ol>
+
+<!-- ==================== 15. MODUL LAPORAN ==================== -->
+<h2 class="page-break">15. Modul Laporan Kegiatan (Activity Report)</h2>
+
+<p>Pembuatan laporan kegiatan pelatihan dengan dukungan AI dan versioning.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Lihat/Edit Laporan</td><td><span class="badge badge-super">superadmin</span></td><td>9 bagian narasi utama</td></tr>
+    <tr><td>Generate Draft AI</td><td><span class="badge badge-super">superadmin</span></td><td>Otomatis isi draft via AI</td></tr>
+    <tr><td>Upload Template</td><td><span class="badge badge-super">superadmin</span></td><td>Custom template Word</td></tr>
+    <tr><td>Upload Foto</td><td><span class="badge badge-super">superadmin</span></td><td>Dokumentasi kegiatan (multi-foto)</td></tr>
+    <tr><td>Generate Laporan</td><td><span class="badge badge-super">superadmin</span></td><td>Download Word/PDF + auto versioning</td></tr>
+    <tr><td>Download Versi</td><td><span class="badge badge-super">superadmin</span></td><td>Akses versi sebelumnya</td></tr>
+</table>
+
+<p><strong>9 Bagian Narasi Laporan:</strong></p>
+<ol>
+    <li>Latar Belakang</li>
+    <li>Dasar Hukum</li>
+    <li>Tujuan</li>
+    <li>Pelaksanaan</li>
+    <li>Pencapaian</li>
+    <li>Hambatan</li>
+    <li>Tindak Lanjut</li>
+    <li>Kesimpulan</li>
+    <li>Saran</li>
+</ol>
+
+<p><strong>Field Penandatangan:</strong> Nama, NIP, Jabatan, Tanggal Persetujuan</p>
+
+<!-- ==================== 16. MODUL ALUMNI ==================== -->
+<h2 class="page-break">16. Modul Alumni</h2>
+
+<p>Analisis data alumni pasca-pelatihan untuk tracking dampak jangka panjang.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Dashboard Alumni</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Statistik gender, wilayah, pendidikan, pekerjaan</td></tr>
+    <tr><td>Analisis 3T</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Terdepan, Terpencil, Tertinggal</td></tr>
+    <tr><td>Statistik Provinsi</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Breakdown per provinsi</td></tr>
+    <tr><td>Export Excel</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Download data alumni</td></tr>
+</table>
+
+<p><strong>Data Alumni (per peserta):</strong></p>
+<ul>
+    <li>Pendidikan saat pelatihan vs saat ini</li>
+    <li>Pangkat/golongan saat pelatihan vs saat ini</li>
+    <li>Jabatan saat pelatihan vs saat ini</li>
+    <li>Unit kerja saat pelatihan vs saat ini</li>
+</ul>
+
+<!-- ==================== 17. MODUL MITRA ==================== -->
+<h2 class="page-break">17. Modul Pengajuan Mitra</h2>
+
+<p>Portal untuk institusi mitra mengajukan pelatihan atau kerjasama.</p>
+
+<h3>17.1 Portal Mitra</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Dashboard</td><td><span class="badge badge-mitra">mitra</span></td><td>Statistik pengajuan</td></tr>
+    <tr><td>Buat Pengajuan</td><td><span class="badge badge-mitra">mitra</span></td><td>Tipe: pelatihan atau kerjasama</td></tr>
+    <tr><td>Edit/Draft</td><td><span class="badge badge-mitra">mitra</span></td><td>Edit sebelum submit</td></tr>
+    <tr><td>Submit</td><td><span class="badge badge-mitra">mitra</span></td><td>Kirim ke admin</td></tr>
+    <tr><td>Upload Dokumen</td><td><span class="badge badge-mitra">mitra</span></td><td>Lampiran pengajuan</td></tr>
+    <tr><td>Komentar</td><td><span class="badge badge-mitra">mitra</span> <span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Diskusi & feedback</td></tr>
+</table>
+
+<h3>17.2 Review Admin</h3>
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Daftar Pengajuan</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Filter by bidang</td></tr>
+    <tr><td>Finalize</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Set status final</td></tr>
+    <tr><td>Reopen</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span></td><td>Buka kembali pengajuan</td></tr>
+    <tr><td>Hapus</td><td><span class="badge badge-super">superadmin</span></td><td>Hapus pengajuan</td></tr>
+</table>
+
+<p><strong>Workflow Status:</strong></p>
+<div class="workflow">
+    <code>draft</code> → <code>submitted</code> → <code>under_review</code> → <code>revision_requested</code> → <code>revision_submitted</code> → <code>waiting_approval</code> → <code>final</code> / <code>rejected</code>
+</div>
+
+<p><strong>Tipe Pengajuan:</strong></p>
+<ul>
+    <li><strong>Training</strong> → Pengajuan pelatihan: judul, latar belakang, tujuan, kompetensi, jumlah peserta, metode, lokasi</li>
+    <li><strong>Cooperation</strong> → Pengajuan kerjasama: judul, ruang lingkup, PIC, kontak</li>
+</ul>
+
+<!-- ==================== 18. MODUL FORUM ==================== -->
+<h2 class="page-break">18. Modul Forum Pelatihan</h2>
+
+<p>Forum diskusi per pelatihan yang bisa diakses semua pihak terkait.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Lihat Forum</td><td>Semua role terkait</td><td>superadmin, admin_bidang, pengajar, participant</td></tr>
+    <tr><td>Kirim Pesan</td><td>Semua role terkait</td><td>Max 2000 karakter</td></tr>
+    <tr><td>Hapus Pesan</td><td>Owner + Moderator</td><td>Admin bisa hapus semua, user hanya peserta sendiri</td></tr>
+    <tr><td>Read Tracking</td><td>Semua role</td><td>Track pesan terakhir yang dibaca</td></tr>
+</table>
+
+<p><strong>Akses Forum:</strong></p>
+<ul>
+    <li><span class="badge badge-super">superadmin</span> → Akses semua forum</li>
+    <li><span class="badge badge-admin">admin_bidang</span> → Forum pelatihan di bidang sendiri</li>
+    <li><span class="badge badge-pengajar">pengajar</span> → Forum pelatihan yang diampu</li>
+    <li><span class="badge badge-participant">participant</span> → Forum pelatihan yang diikuti (status approved)</li>
+</ul>
+
+<!-- ==================== 19. MODUL AI ==================== -->
+<h2>19. Modul Asisten AI</h2>
+
+<p>Asisten AI internal untuk membantu admin dalam analisis data.</p>
+
+<table>
+    <tr><th>Aksi</th><th>Role</th><th>Keterangan</th></tr>
+    <tr><td>Gunakan Asisten AI</td><td><span class="badge badge-super">superadmin</span> <span class="badge badge-admin">admin_bidang</span> <span class="badge badge-aset">admin_aset</span></td><td>Input max 300 karakter</td></tr>
+</table>
+
+<p><strong>Domain Analisis AI:</strong></p>
+<ul>
+    <li>Aset (penggunaan, ketersediaan)</li>
+    <li>Pengajar (beban mengajar, kinerja)</li>
+    <li>Peserta Berulang (repeat participants)</li>
+    <li>Laporan (draft laporan kegiatan)</li>
+    <li>Evaluasi (analisis L1-L4)</li>
+    <li>Pelatihan (statistik & rekomendasi)</li>
+</ul>
+
+<p><strong>Fitur AI Lainnya:</strong></p>
+<ul>
+    <li>Generate draft rangkuman evaluasi L1</li>
+    <li>Generate analisis dashboard L12</li>
+    <li>Generate analisis dashboard L34</li>
+    <li>Generate draft laporan kegiatan</li>
+</ul>
+
+<!-- ==================== 20. MODUL PROFIL ==================== -->
+<h2>20. Modul Profil & Notifikasi</h2>
+
+<h3>20.1 Profil Pengguna</h3>
+<p>Semua role bisa mengedit profil. Field yang tersedia bervariasi per role:</p>
+
+<table>
+    <tr><th>Field</th><th>Semua</th><th>Pengajar</th></tr>
+    <tr><td>Nama, WhatsApp, Foto Profil</td><td>Y</td><td>Y</td></tr>
+    <tr><td>Gender, NIP/NIK, Jabatan, Instansi</td><td>Y</td><td>Y</td></tr>
+    <tr><td>Provinsi, Kota, Kecamatan, Kelurahan</td><td>Y</td><td>Y</td></tr>
+    <tr><td>Status Kepegawaian</td><td>Y</td><td>Y</td></tr>
+    <tr><td>Latitude, Longitude</td><td>Y</td><td>Y</td></tr>
+    <tr><td>Pangkat Golongan, NPWP</td><td>-</td><td>Y</td></tr>
+    <tr><td>No Rekening, Nama Bank, Nama Rekening</td><td>-</td><td>Y</td></tr>
+    <tr><td>CV, Sertifikat, Surat Tugas (file)</td><td>-</td><td>Y</td></tr>
+</table>
+
+<h3>20.2 Notifikasi</h3>
+<ul>
+    <li>Semua role menerima notifikasi terkait aktivitas sistem</li>
+    <li>Notifikasi peminjaman aset (approved/revision/rejected)</li>
+    <li>Read tracking untuk setiap notifikasi</li>
+</ul>
+
+<!-- ==================== 21. AKSES PUBLIK ==================== -->
+<h2 class="page-break">21. Akses Publik (Tanpa Login)</h2>
+
+<p>Halaman-halaman yang bisa diakses tanpa autentikasi:</p>
+
+<table>
+    <tr><th>Halaman</th><th>URL</th><th>Keterangan</th></tr>
+    <tr><td>Landing Page</td><td><code>/</code></td><td>Informasi umum, statistik, kalender, aset showcase</td></tr>
+    <tr><td>Agenda Harian</td><td><code>/jadwalharian/{token}</code></td><td>Tampilan jadwal harian via token (64-char)</td></tr>
+    <tr><td>Pencarian Global</td><td><code>/search</code></td><td>Pelatihan, peserta, file</td></tr>
+    <tr><td>Absensi Publik</td><td><code>/absen/harian/{id}/{date}</code></td><td>Formulir kehadiran harian</td></tr>
+    <tr><td>Evaluasi L1 Publik</td><td><code>/evaluasi-l1/form/{id}</code></td><td>Formulir evaluasi kepuasan</td></tr>
+    <tr><td>Evaluasi L34 Publik</td><td><code>/evaluasi-dampak/form/{id}/{role}</code></td><td>Formulir evaluasi dampak</td></tr>
+    <tr><td>Share Dokumen</td><td><code>/share/folder/{token}</code></td><td>Folder publik via share token</td></tr>
+    <tr><td>Sertifikasi (Biodata)</td><td><code>/sertifikasi/biodata/{token}</code></td><td>Formulir biodata peserta sertifikasi</td></tr>
+    <tr><td>Sertifikasi (Narasumber)</td><td><code>/sertifikasi/narasumber/{token}</code></td><td>Formulir biodata narasumber sertifikasi</td></tr>
+    <tr><td>Sertifikasi (Sertifikat)</td><td><code>/sertifikasi/sertifikat/{token}</code></td><td>Upload sertifikat peserta lulus</td></tr>
+</table>
+
+<!-- ==================== 22. RINGKASAN AKSES ==================== -->
+<h2 class="page-break">22. Ringkasan Akses Per Role</h2>
+
+<table>
+    <tr>
+        <th>Modul</th>
+        <th style="text-align:center"><span class="badge badge-super">superadmin</span></th>
+        <th style="text-align:center"><span class="badge badge-admin">admin_bidang</span></th>
+        <th style="text-align:center"><span class="badge badge-aset">admin_aset</span></th>
+        <th style="text-align:center"><span class="badge badge-pengajar">pengajar</span></th>
+        <th style="text-align:center"><span class="badge badge-participant">participant</span></th>
+        <th style="text-align:center"><span class="badge badge-mitra">mitra</span></th>
+    </tr>
+    <tr><td>Dashboard</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">Aset</td><td style="text-align:center">Narasumber</td><td style="text-align:center">Peserta</td><td style="text-align:center">Mitra</td></tr>
+    <tr><td>Kelola User</td><td style="text-align:center">CRUD</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Pelatihan</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">Jadwal Saya</td><td style="text-align:center">Daftar + Join</td><td style="text-align:center">-</td></tr>
+    <tr><td>Jadwal</td><td style="text-align:center">CRUD</td><td style="text-align:center">CRUD</td><td style="text-align:center">-</td><td style="text-align:center">Lihat Saja</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Peserta</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">Diri Sendiri</td><td style="text-align:center">-</td></tr>
+    <tr><td>Kehadiran</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">Absen Sendiri</td><td style="text-align:center">-</td></tr>
+    <tr><td>Evaluasi L1</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">Isi Form</td><td style="text-align:center">-</td></tr>
+    <tr><td>Evaluasi L2</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Evaluasi L34</td><td style="text-align:center">Dashboard + Report</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">Isi Form</td><td style="text-align:center">-</td></tr>
+    <tr><td>Monitoring</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Tindak Lanjut</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Bank Soal</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Dokumen</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Sertifikasi SKPK</td><td style="text-align:center">Semua</td><td style="text-align:center">Bidang Sertif*</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Aset</td><td style="text-align:center">Semua</td><td style="text-align:center">-</td><td style="text-align:center">Semua</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Peminjaman Aset</td><td style="text-align:center">Review</td><td style="text-align:center">-</td><td style="text-align:center">Review</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Agenda</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">Semua</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Sertifikat Pelatihan</td><td style="text-align:center">CRUD + Generate</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Laporan Kegiatan</td><td style="text-align:center">CRUD + AI</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Alumni</td><td style="text-align:center">Semua</td><td style="text-align:center">Per Bidang</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Pengajuan Mitra</td><td style="text-align:center">Review + Kelola</td><td style="text-align:center">Review (4 Bidang)</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">Buat + Submit</td></tr>
+    <tr><td>Forum</td><td style="text-align:center">Moderate All</td><td style="text-align:center">Moderate Bidang</td><td style="text-align:center">-</td><td style="text-align:center">Forum Saya</td><td style="text-align:center">Forum Saya</td><td style="text-align:center">-</td></tr>
+    <tr><td>Asisten AI</td><td style="text-align:center">Y</td><td style="text-align:center">Y (scoped)</td><td style="text-align:center">Y (aset)</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-</td></tr>
+    <tr><td>Profil</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y + Bank</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td></tr>
+    <tr><td>Notifikasi</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td><td style="text-align:center">Y</td></tr>
+</table>
+
+<p style="font-size: 9pt; color: #718096;">* admin_bidang hanya bisa mengakses modul Sertifikasi SKPK jika bidangnya = "Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan"</p>
+
+<!-- ==================== 23. RELASI DB ==================== -->
+<h2 class="page-break">23. Diagram Relasi Database</h2>
+
+<p><strong>Entitas Utama (42+ tabel):</strong></p>
+
+<h3>Core Training Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>users</code></td><td>hasMany</td><td><code>trainings</code>, <code>pengajars</code>, <code>participants</code>, <code>activity_logs</code></td></tr>
+    <tr><td><code>trainings</code></td><td>hasMany</td><td><code>schedules</code>, <code>participants</code>, <code>training_stages</code></td></tr>
+    <tr><td><code>trainings</code></td><td>hasOne</td><td><code>training_activity_reports</code>, <code>training_certificate_settings</code></td></tr>
+    <tr><td><code>schedules</code></td><td>hasMany</td><td><code>attendances</code>, <code>pengajar_schedule_documents</code></td></tr>
+    <tr><td><code>participants</code></td><td>hasMany</td><td><code>attendances</code>, <code>evaluation_results_l1/l2/l34</code></td></tr>
+    <tr><td><code>participants</code></td><td>hasOne</td><td><code>participant_certificates</code>, <code>alumni_profiles</code></td></tr>
+</table>
+
+<h3>Evaluation Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>evaluation_forms</code></td><td>belongsTo</td><td><code>trainings</code>, <code>schedules</code></td></tr>
+    <tr><td><code>evaluation_results_l1</code></td><td>belongsTo</td><td><code>participants</code>, <code>evaluation_questions</code>, <code>schedules</code></td></tr>
+    <tr><td><code>evaluation_results_l2</code></td><td>belongsTo</td><td><code>participants</code></td></tr>
+    <tr><td><code>evaluation_results_l34</code></td><td>belongsTo</td><td><code>participants</code>, <code>evaluation_questions</code></td></tr>
+</table>
+
+<h3>Monitoring Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>monitoring_results</code></td><td>belongsTo</td><td><code>trainings</code>, <code>training_stages</code>, <code>evaluation_questions</code></td></tr>
+    <tr><td><code>monitoring_summaries</code></td><td>belongsTo</td><td><code>trainings</code>, <code>training_stages</code></td></tr>
+</table>
+
+<h3>Document Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>folders</code></td><td>hasMany</td><td><code>files</code>, <code>folders</code> (children)</td></tr>
+    <tr><td><code>folders</code></td><td>belongsToMany</td><td><code>users</code> (via <code>folder_user_permissions</code>)</td></tr>
+    <tr><td><code>files</code></td><td>hasMany</td><td><code>file_versions</code></td></tr>
+</table>
+
+<h3>Asset Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>assets</code></td><td>hasMany</td><td><code>asset_images</code>, <code>asset_bookings</code></td></tr>
+    <tr><td><code>asset_bookings</code></td><td>morphTo</td><td><code>schedules</code> or <code>agenda_schedules</code></td></tr>
+    <tr><td><code>asset_loan_requests</code></td><td>morphTo</td><td><code>schedules</code> or <code>agenda_schedules</code></td></tr>
+</table>
+
+<h3>Certification Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>certification_types</code></td><td>hasMany</td><td><code>certification_events</code></td></tr>
+    <tr><td><code>certification_events</code></td><td>hasMany</td><td><code>certification_participants</code></td></tr>
+    <tr><td><code>certification_participants</code></td><td>belongsTo</td><td><code>files</code> (biodata, certificate)</td></tr>
+</table>
+
+<h3>Partner Submission Flow</h3>
+<table>
+    <tr><th>Tabel</th><th>Relasi</th><th>Tabel Terkait</th></tr>
+    <tr><td><code>partner_submissions</code></td><td>hasMany</td><td><code>partner_submission_documents</code>, <code>partner_submission_comments</code></td></tr>
+    <tr><td><code>partner_submissions</code></td><td>belongsTo</td><td><code>users</code>, <code>folders</code></td></tr>
+</table>
+
+<div style="margin-top: 40px; text-align: center; color: #718096; font-size: 10pt;">
+    <hr>
+    <p>Dokumen ini dihasilkan dari analisis kode sumber aplikasi BPSDM Integral.<br>
+    Last updated: September 2026</p>
+</div>
+
+</body>
+</html>
