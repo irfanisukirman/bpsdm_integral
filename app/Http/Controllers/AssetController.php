@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Asset;use App\Models\AssetBooking;use App\Models\Schedule;use App\Models\AgendaSchedule;use Illuminate\Http\Request;use Illuminate\Support\Facades\Auth;use Illuminate\Support\Facades\Storage;
+use App\Models\Asset;use App\Models\AssetBooking;use App\Models\Schedule;use App\Models\AgendaSchedule;use App\Models\NotificationRead;use Illuminate\Http\Request;use Illuminate\Support\Facades\Auth;use Illuminate\Support\Facades\Storage;
 class AssetController extends Controller {
  private function guard():void{abort_unless(in_array(Auth::user()->role,['superadmin','admin_aset']),403);}
  public function dashboard(Request $request)
@@ -65,7 +65,7 @@ class AssetController extends Controller {
   return redirect()->route('assets.index',['page'=>$r->integer('page',1)])->with('success','Aset berhasil diperbarui.');
  }
  public function destroy(Asset $asset){$this->guard();abort_if($asset->bookings()->where('ends_at','>=',now())->exists(),422,'Aset masih memiliki jadwal pemakaian.');foreach($asset->images as $i)Storage::disk('public')->delete($i->path);$asset->delete();return back()->with('success','Aset dihapus.');}
- public function monitoring(Request $r){$this->guard();$date=$r->date('date')?->toDateString()??now()->toDateString();$assets=Asset::with(['bookings'=>fn($q)=>$q->whereDate('starts_at','<=',$date)->whereDate('ends_at','>=',$date)->orderBy('starts_at'),'bookings.bookable'])->orderBy('name')->get();return view('assets.monitoring',compact('assets','date'));}
+ public function monitoring(Request $r){$this->guard();$date=$r->date('date')?->toDateString()??now()->toDateString();NotificationRead::updateOrCreate(['user_id'=>Auth::id(),'notification_key'=>'asset-usage-upcoming-'.Auth::id().'-'.$date],['read_at'=>now()]);$assets=Asset::with(['bookings'=>fn($q)=>$q->whereDate('starts_at','<=',$date)->whereDate('ends_at','>=',$date)->orderBy('starts_at'),'bookings.bookable'])->orderBy('name')->get();return view('assets.monitoring',compact('assets','date'));}
 
  public function dailySchedule(Request $request)
  {

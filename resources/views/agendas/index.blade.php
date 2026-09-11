@@ -9,7 +9,7 @@
         <h4 class="fw-bold mb-1">Agenda Kegiatan</h4>
         <p class="text-muted mb-0">Agenda umum dan jadwal pelatihan dalam satu daftar terintegrasi.</p>
     </div>
-    <a href="{{ route('agendas.create') }}" class="btn btn-primary"><i class="bx bx-plus me-1"></i>Buat Agenda</a>
+    <div class="d-flex flex-wrap gap-2"><button type="button" class="btn btn-outline-primary" onclick="navigator.clipboard.writeText(@js($publicDailyScheduleUrl));this.innerHTML='<i class=&quot;bx bx-check me-1&quot;></i>Tersalin'"><i class="bx bx-copy me-1"></i>Salin Link Jadwal Harian</button><a href="{{$publicDailyScheduleUrl}}" target="_blank" class="btn btn-outline-primary"><i class="bx bx-tv me-1"></i>Buka Jadwal Harian</a><a href="{{ route('agendas.create') }}" class="btn btn-primary"><i class="bx bx-plus me-1"></i>Buat Agenda</a></div>
 </div>
 @if(session('success'))<div class="alert alert-success">{{session('success')}}</div>@endif
 <div class="d-flex flex-wrap gap-2 mb-3">

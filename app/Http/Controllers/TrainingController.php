@@ -424,7 +424,21 @@ class TrainingController extends Controller
             ? Carbon::parse($request->break_end_time)->format('H:i:s')
             : Carbon::parse($request->start_time)->addMinutes(((int) $request->jp) * $minutesPerUnit)->format('H:i:s');
 
-        DB::transaction(function () use ($request, $id, $endTime, $loanData) {
+        $assetIds = array_values(array_unique(array_map('intval', $request->input('asset_ids', []))));
+        $autoApprove = $request->schedule_type === 'learning'
+            && $request->venue_type === 'internal'
+            && $this->assetsPreviouslyApprovedForTraining((int) $id, $assetIds);
+        if ($autoApprove) {
+            $startAt = $request->date.' '.$request->start_time;
+            $endAt = $request->date.' '.$endTime;
+            foreach ($assetIds as $assetId) {
+                if (AssetBooking::hasConflict($assetId, $startAt, $endAt)) {
+                    throw ValidationException::withMessages(['asset_ids' => 'Aset '.Asset::find($assetId)?->name.' sudah digunakan pada waktu tersebut.']);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($request, $id, $endTime, $loanData, $assetIds, $autoApprove) {
             $schedule = Schedule::create([
                 'training_id' => $id,
                 'date' => $request->date,
@@ -442,16 +456,22 @@ class TrainingController extends Controller
             ]);
             if ($schedule->schedule_type === 'learning' && $schedule->venue_type === 'internal') {
                 $schedule->assetLoanRequest()->create([
-                    'asset_ids' => array_values(array_unique($request->input('asset_ids', []))),
+                    'asset_ids' => $assetIds,
                     'letter_path' => $loanData['letter_path'],
                     'purpose' => $loanData['purpose'], 'contact_person' => $loanData['contact_person'],
-                    'attendee_count' => $schedule->training?->participants()->count(), 'status' => 'pending',
-                    'submitted_by' => Auth::id(),
+                    'attendee_count' => $schedule->training?->participants()->count(), 'status' => $autoApprove ? 'approved' : 'pending',
+                    'submitted_by' => Auth::id(), 'reviewed_at' => $autoApprove ? now() : null,
+                    'review_note' => $autoApprove ? 'Disetujui otomatis karena aset yang sama telah disetujui untuk pelatihan ini.' : null,
                 ]);
+                if ($autoApprove) {
+                    foreach ($assetIds as $assetId) {
+                        $schedule->bookings()->create(['asset_id' => $assetId, 'starts_at' => $schedule->date.' '.$schedule->start_time, 'ends_at' => $schedule->date.' '.$schedule->end_time, 'created_by' => Auth::id()]);
+                    }
+                }
             }
         });
 
-        return redirect()->back()->with('success', 'Sesi jadwal berhasil ditambahkan.');
+        return redirect()->back()->with('success', $autoApprove ? 'Sesi jadwal berhasil ditambahkan dan aset otomatis disetujui karena sudah pernah disetujui pada pelatihan ini.' : 'Sesi jadwal berhasil ditambahkan.');
     }
 
     /**
@@ -500,7 +520,20 @@ class TrainingController extends Controller
         if ($request->venue_type === 'internal' && ! $schedule->assetLoanRequest && ! $request->hasFile('loan_letter')) {
             throw ValidationException::withMessages(['loan_letter' => 'Surat peminjaman PDF wajib diunggah.']);
         }
-        DB::transaction(function () use ($request, $schedule, $endTime) {
+        $assetIds = array_values(array_unique(array_map('intval', $request->input('asset_ids', []))));
+        $autoApprove = $request->schedule_type === 'learning'
+            && $request->venue_type === 'internal'
+            && $this->assetsPreviouslyApprovedForTraining((int) $schedule->training_id, $assetIds);
+        if ($autoApprove) {
+            $startAt = $request->date.' '.$request->start_time;
+            $endAt = $request->date.' '.$endTime;
+            foreach ($assetIds as $assetId) {
+                if (AssetBooking::hasConflict($assetId, $startAt, $endAt, Schedule::class, $schedule->id)) {
+                    throw ValidationException::withMessages(['asset_ids' => 'Aset '.Asset::find($assetId)?->name.' sudah digunakan pada waktu tersebut.']);
+                }
+            }
+        }
+        DB::transaction(function () use ($request, $schedule, $endTime, $assetIds, $autoApprove) {
             $schedule->update([
                 'date' => $request->date,
                 'start_time' => $request->start_time,
@@ -526,11 +559,17 @@ class TrainingController extends Controller
                 }
                 $schedule->bookings()->delete();
                 $schedule->assetLoanRequest()->updateOrCreate([], [
-                    'asset_ids' => array_values(array_unique($request->input('asset_ids', []))), 'letter_path' => $path,
+                    'asset_ids' => $assetIds, 'letter_path' => $path,
                     'purpose' => $request->loan_purpose, 'contact_person' => $request->loan_contact ?: $request->pic,
-                    'attendee_count' => $schedule->training?->participants()->count(), 'status' => 'pending',
-                    'review_note' => null, 'submitted_by' => Auth::id(), 'reviewed_by' => null, 'reviewed_at' => null,
+                    'attendee_count' => $schedule->training?->participants()->count(), 'status' => $autoApprove ? 'approved' : 'pending',
+                    'review_note' => $autoApprove ? 'Disetujui otomatis karena aset yang sama telah disetujui untuk pelatihan ini.' : null,
+                    'submitted_by' => Auth::id(), 'reviewed_by' => null, 'reviewed_at' => $autoApprove ? now() : null,
                 ]);
+                if ($autoApprove) {
+                    foreach ($assetIds as $assetId) {
+                        $schedule->bookings()->create(['asset_id' => $assetId, 'starts_at' => $schedule->date.' '.$schedule->start_time, 'ends_at' => $schedule->date.' '.$schedule->end_time, 'created_by' => Auth::id()]);
+                    }
+                }
             } else {
                 if ($schedule->assetLoanRequest?->letter_path) {
                     Storage::disk('local')->delete($schedule->assetLoanRequest->letter_path);
@@ -540,7 +579,7 @@ class TrainingController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Jadwal berhasil diperbarui.');
+        return redirect()->back()->with('success', $autoApprove ? 'Jadwal diperbarui dan penggunaan aset tetap disetujui otomatis.' : 'Jadwal berhasil diperbarui.');
     }
 
     public function destroySchedule($id)
@@ -556,6 +595,19 @@ class TrainingController extends Controller
         return redirect()->back()->with('success', 'Sesi jadwal berhasil dihapus.');
     }
 
+    private function assetsPreviouslyApprovedForTraining(int $trainingId, array $assetIds): bool
+    {
+        if ($assetIds === []) {
+            return false;
+        }
+        $scheduleIds = Schedule::where('training_id', $trainingId)->pluck('id');
+        $approvedAssetIds = AssetLoanRequest::where('requestable_type', Schedule::class)
+            ->whereIn('requestable_id', $scheduleIds)
+            ->where('status', 'approved')
+            ->get()->flatMap(fn ($loan) => array_map('intval', $loan->asset_ids ?? []))->unique();
+
+        return collect($assetIds)->every(fn ($assetId) => $approvedAssetIds->contains((int) $assetId));
+    }
     private function syncScheduleAssets(Schedule $schedule, array $assetIds): void
     {
         $assetIds = $schedule->venue_type === 'internal' ? array_values(array_unique($assetIds)) : [];

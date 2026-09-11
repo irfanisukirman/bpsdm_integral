@@ -8,6 +8,7 @@ use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL34;
 use App\Models\FolderUserPermission;
 use App\Models\MonitoringResult;
+use App\Models\NotificationRead;
 use App\Models\Participant;
 use App\Models\PartnerSubmission;
 use App\Models\Schedule;
@@ -375,9 +376,30 @@ class NotificationCenter
             'url' => $url,
             'action' => $action,
             'due_at' => $dueAt,
+            'menu' => $this->menuFor($id),
         ];
     }
 
+    public function menuCounts(Collection $items): Collection
+    {
+        return $items->pluck('menu')->filter()->countBy();
+    }
+
+    private function menuFor(string $id): ?string
+    {
+        return match (true) {
+            str_starts_with($id, 'asset-loans-pending-') => 'asset_loans',
+            str_starts_with($id, 'asset-usage-upcoming-') => 'asset_monitoring',
+            str_starts_with($id, 'agenda-upcoming-') => 'agendas',
+            str_starts_with($id, 'partner-') => 'partners',
+            str_starts_with($id, 'monitoring-follow-up-') => 'followup',
+            str_starts_with($id, 'shared-folder-') => 'documents',
+            str_starts_with($id, 'pending-participants-'), str_starts_with($id, 'admin-attendance-'), str_starts_with($id, 'forum-') => 'trainings',
+            str_starts_with($id, 'participant-docs-'), str_starts_with($id, 'attendance-'), str_starts_with($id, 'evaluation-'), str_starts_with($id, 'certificate-issued-') => 'participant_trainings',
+            str_starts_with($id, 'teacher-') => 'teacher_portal',
+            default => null,
+        };
+    }
     private function forumItems(User $user): Collection
     {
         $trainings = Training::query()
@@ -426,8 +448,11 @@ class NotificationCenter
                 ->orderBy('starts_at')->get();
             if ($bookings->isNotEmpty()) {
                 $first = $bookings->first();
-                $items->push($this->item(
-                    'asset-usage-upcoming-'.$user->id,
+                $notificationKey = 'asset-usage-upcoming-'.$user->id.'-'.$first->starts_at->toDateString();
+                $alreadyRead = NotificationRead::where('user_id', $user->id)
+                    ->where('notification_key', $notificationKey)->exists();
+                if (! $alreadyRead) $items->push($this->item(
+                    $notificationKey,
                     'Pemakaian aset akan dimulai',
                     $bookings->count().' reservasi dalam 24 jam. Terdekat: '.$first->asset->name.' pukul '.$first->starts_at->format('H:i').'.',
                     'info', 'bx-calendar-check', route('assets.monitoring', ['date' => $first->starts_at->toDateString()]), 'Lihat timeline',
@@ -487,6 +512,7 @@ class NotificationCenter
             AgendaSchedule::class => ['agenda'],
         ]);
 
+        $readKeys = NotificationRead::where('user_id', $user->id)->where('notification_key', 'like', 'asset-loan-%')->pluck('notification_key');
         $decisionItems = $loans->filter(function ($loan) use ($user) {
             $source = $loan->requestable;
             if (!$source) return false;
@@ -496,15 +522,16 @@ class NotificationCenter
                 ? Carbon::parse($source->date.' '.$source->end_time)
                 : $source?->ends_at;
             return $end && $end->isFuture();
-        })->map(function ($loan) use ($user) {
+        })->reject(fn ($loan) => $loan->status !== 'pending' && $readKeys->contains('asset-loan-'.$loan->id.'-'.$loan->status))
+        ->map(function ($loan) use ($user) {
             $source = $loan->requestable;
             $isTraining = $source instanceof Schedule;
             $activity = $isTraining ? ($source?->activity ?: 'Sesi pelatihan') : ($source?->title ?: $source?->agenda?->name ?: 'Agenda');
             $field = $isTraining ? ($source?->training?->bidang ?: '-') : ($source?->agenda?->bidang ?: '-');
             $sourceUrl = $isTraining ? route('trainings.schedules', $source->training_id) : route('agendas.edit', $source->agenda_id);
-            $url = $user->role === 'superadmin'
-                ? route('asset-loans.index', ['status' => $loan->status])
-                : $sourceUrl;
+            $url = $loan->status === 'pending'
+                ? $sourceUrl
+                : route('notifications.asset-loan.open', ['loan' => $loan->id, 'status' => $loan->status]);
             [$title, $message, $level, $action] = match ($loan->status) {
                 'pending' => ['Peminjaman aset sedang diperiksa', $activity.' - pengajuan sudah diterima dan menunggu keputusan pengelola aset.', 'info', 'Lihat pengajuan'],
                 'approved' => ['Peminjaman aset disetujui', $field.' / '.$activity.' - aset telah disetujui dan resmi terjadwal.', 'success', 'Lihat jadwal'],
@@ -513,7 +540,7 @@ class NotificationCenter
                 default => ['Status peminjaman aset diperbarui', $activity, 'info', 'Lihat pengajuan'],
             };
 
-            return $this->item(
+            $item = $this->item(
                 'asset-loan-'.$loan->id.'-'.$loan->status,
                 $title,
                 $message,
@@ -523,6 +550,8 @@ class NotificationCenter
                 $action,
                 $loan->updated_at?->format('Y-m-d H:i:s')
             );
+            $item['menu'] = $user->role === 'superadmin' ? 'asset_loans' : ($isTraining ? 'trainings' : 'agendas');
+            return $item;
         })->values();
 
         return $items->merge($decisionItems);

@@ -5,6 +5,23 @@
 @push('css')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<style>
+    #edit_asset_select_wrap { position: relative; }
+    #edit_asset_select_wrap .select2-container { width: 100% !important; }
+    #edit_asset_select_wrap .select2-dropdown { z-index: 1065; }
+    .schedule-table { width: 100%; table-layout: fixed; }
+    .schedule-table__time { width: 170px; }
+    .schedule-table__actions { width: 82px; }
+    .schedule-table td { white-space: normal; vertical-align: middle; }
+    .schedule-table__content, .schedule-table__content * { overflow-wrap: anywhere; }
+    .schedule-action-buttons { display: flex; justify-content: center; gap: .35rem; }
+    .schedule-action-buttons .btn-icon { flex: 0 0 32px; width: 32px; height: 32px; padding: 0; }
+    @media (max-width: 767.98px) {
+        .schedule-table { min-width: 560px; }
+        .schedule-table__time { width: 145px; }
+        .schedule-table__actions { width: 74px; }
+    }
+</style>
 @endpush
 
 @section('content')
@@ -103,14 +120,16 @@
                                 @endforeach
                             </select>
                             <small class="text-muted">Bisa memilih satu atau beberapa ruangan/aset dalam satu pengajuan.</small>
-                            <div class="alert alert-info py-2 px-3 mt-3 mb-2"><i class="bx bx-copy me-1"></i>Jika surat dan data pemohon sama dengan sesi sebelumnya, pilih pengajuan sebelumnya agar tidak perlu mengunggah dan mengisi ulang.</div>
                             @if($reusableLoanRequests->isNotEmpty())
+                            <div class="alert alert-info py-2 px-3 mt-3 mb-2"><i class="bx bx-copy me-1"></i>Jika surat dan data pemohon sama dengan sesi sebelumnya pada pelatihan ini, pilih pengajuan sebelumnya agar tidak perlu mengunggah dan mengisi ulang.</div>
                             <div class="mt-2"><label class="form-label fw-bold">Data Peminjaman</label><select name="reuse_loan_request_id" id="reuse_loan_request_id" class="form-select"><option value="">Buat pengajuan dengan surat baru</option>
                                 @foreach($reusableLoanRequests as $previousLoan)@php $previousSchedule=$previousLoan->requestable;$previousAssets=collect($previousLoan->asset_ids)->map(fn($assetId)=>$assets->firstWhere('id',$assetId)?->name)->filter()->join(', ');@endphp
                                 <option value="{{$previousLoan->id}}" data-purpose="{{e($previousLoan->purpose)}}" data-contact="{{e($previousLoan->contact_person)}}" @selected(old('reuse_loan_request_id')==$previousLoan->id)>
                                     {{\Carbon\Carbon::parse($previousSchedule?->date)->format('d M Y')}} - {{$previousSchedule?->activity}} ({{$previousAssets}})
                                 </option>@endforeach
                             </select></div>
+                            @else
+                            <div class="alert alert-secondary py-2 px-3 mt-3 mb-2"><i class="bx bx-file me-1"></i><strong>Belum ada data peminjaman sebelumnya pada pelatihan ini.</strong><div class="small mt-1">Unggah surat PDF dan isi data pemohon untuk sesi pertama. Data tersebut dapat digunakan ulang saat membuat sesi berikutnya.</div></div>
                             @endif
                             <div id="new_loan_data">
                                 <div class="mt-3"><label class="form-label fw-bold">Surat Peminjaman <span class="text-danger">*</span></label><input type="file" name="loan_letter" class="form-control" accept="application/pdf,.pdf"><small class="text-muted">PDF maksimal 5 MB. Satu surat berlaku untuk seluruh aset yang dipilih.</small></div>
@@ -145,20 +164,20 @@
     <!-- KOLOM KANAN: TABEL DAFTAR JADWAL -->
     <div class="col-12 col-xl-7">
         <div class="card shadow-sm border-0">
-            <div class="table-responsive text-nowrap">
-                <table class="table table-hover align-middle">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle schedule-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Waktu & Durasi</th>
+                            <th class="schedule-table__time">Waktu & Durasi</th>
                             <th>Materi, Pengajar & Link</th> 
-                            <th width="120" class="text-center">Aksi</th>
+                            <th class="schedule-table__actions text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
                         @forelse($schedules as $s)
                         @php $isBreak=($s->schedule_type??'learning')==='break'; @endphp
                         <tr>
-                            <td>
+                            <td class="schedule-table__time">
                                 <span class="badge bg-label-secondary">
                                     {{ \Carbon\Carbon::parse($s->date)->translatedFormat('d M Y') }}
                                 </span><br>
@@ -169,7 +188,7 @@
                                     <span class="badge bg-label-primary ms-1">{{ $s->duration_label }}</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="schedule-table__content">
                                 <div class="fw-bold text-dark mb-1">{{ $s->activity }}</div>
                                 <div class="d-flex flex-column gap-1">
                                     @if($isBreak)
@@ -210,8 +229,8 @@
                                     </small>@endunless
                                 </div>
                             </td>
-                            <td>
-                                <div class="d-flex justify-content-center gap-2">
+                            <td class="schedule-table__actions">
+                                <div class="schedule-action-buttons">
                                     <!-- TOMBOL EDIT -->
                                     <button class="btn btn-sm btn-icon btn-outline-warning" 
                                         onclick="editSchedule({{ json_encode($s) }})"
@@ -339,11 +358,15 @@
                         <option value="external">Eksternal</option>
                     </select>
                     <div id="edit_internal">
+                        <div id="edit_asset_select_wrap">
+                            <label for="edit_asset_ids" class="form-label small fw-semibold mb-1">Aset/Ruangan Internal</label>
                         <select name="asset_ids[]" id="edit_asset_ids" class="form-select select2-edit-assets" multiple>
                             @foreach($assets as $asset)
                                 <option value="{{ $asset->id }}">{{ $asset->name }} — {{ $asset->location }}</option>
                             @endforeach
                         </select>
+                            <small class="text-muted d-block mt-1">Pilih satu atau beberapa ruangan yang digunakan.</small>
+                        </div>
                         <div class="alert alert-info py-2 px-3 mt-3 mb-2"><i class="bx bx-info-circle me-1"></i>Satu surat, keperluan, dan kontak berlaku untuk seluruh aset yang dipilih.</div>
                         <div class="mt-2"><label class="form-label fw-bold">Ganti Surat Peminjaman (PDF)</label><input type="file" name="loan_letter" class="form-control" accept="application/pdf,.pdf"><small class="text-muted">Kosongkan jika surat lama tetap digunakan. Perubahan akan dikirim ulang untuk persetujuan.</small></div>
                         <div class="mt-3"><label class="form-label fw-bold">Keperluan Peminjaman</label><textarea name="loan_purpose" id="edit_loan_purpose" class="form-control" rows="2"></textarea></div>
@@ -392,7 +415,7 @@
             width: '100%'
         });
         $('.select2-assets').select2({ theme: 'bootstrap-5', placeholder: 'Pilih aset/ruangan', width: '100%' });
-        $('.select2-edit-assets').select2({ theme: 'bootstrap-5', dropdownParent: $('#modalEditSchedule'), placeholder: 'Pilih aset/ruangan', width: '100%' });
+        $('.select2-edit-assets').select2({ theme: 'bootstrap-5', dropdownParent: $('#edit_asset_select_wrap'), placeholder: 'Pilih aset/ruangan', closeOnSelect: false, width: '100%' });
 
         function calculateEndTime(prefix) {
             const start = $('#' + prefix + '_start').val();

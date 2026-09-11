@@ -9,6 +9,8 @@ use App\Models\Question;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationFormL1; 
 use App\Models\EvaluationL1TextSummary;
+use App\Models\AiGeneration;
+use App\Services\OpenAiEvaluationSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -130,6 +132,42 @@ class EvaluationLevel1Controller extends Controller
             ->with('success', 'Kesimpulan umum dan rencana tindak lanjut berhasil disimpan untuk laporan.');
     }
 
+    public function generateOrganizerTextSummary($id, OpenAiEvaluationSummaryService $ai)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+
+        $questions = Question::forTraining($training, 'l1_penyelenggara')->where('type', 'text')->orderBy('id')->get();
+        $responses = EvaluationResultL1::where('training_id', $training->id)->whereNull('schedule_id')
+            ->whereIn('question_id', $questions->pluck('id'))->whereNotNull('note')->where('note', '!=', '')->get();
+        if ($responses->isEmpty()) {
+            return back()->withErrors(['ai' => 'Belum ada saran atau masukan peserta yang dapat dianalisis.']);
+        }
+        $groups = $questions->map(fn ($question) => ['question' => $question, 'responses' => $responses->where('question_id', $question->id)->values()]);
+        $sourceHash = hash('sha256', $groups->map(fn ($group) => [$group['question']->id, $group['responses']->pluck('note')->values()->all()])->toJson());
+        $generation = AiGeneration::create([
+            'training_id' => $training->id, 'user_id' => $user->id, 'feature' => 'evaluation_l1_organizer_summary',
+            'model' => $ai->provider().':'.$ai->model(), 'source_hash' => $sourceHash, 'status' => 'processing',
+            'input_summary' => ['questions' => $questions->count(), 'responses' => $responses->count(),
+                'respondents' => $responses->pluck('participant_id')->unique()->count(), 'identities_sent' => false],
+        ]);
+        try {
+            $draft = $ai->generate($groups);
+            $generation->update(['status' => 'completed', 'generated_content' => $draft, 'generated_at' => now()]);
+            return back()->with('ai_draft', $draft)->with('success', 'Draf AI berhasil dibuat. Periksa dan sunting sebelum menyimpannya ke laporan.');
+        } catch (\Throwable $exception) {
+            report($exception);
+            $generation->update(['status' => 'failed', 'error_message' => mb_substr($exception->getMessage(), 0, 2000)]);
+            $rawMessage = strtolower($exception->getMessage());
+            $message = str_contains($rawMessage, 'no credits remaining')
+                ? 'Saldo/kredit OpenAI API sudah habis. Tambahkan kredit pada menu Billing OpenAI, lalu coba kembali.'
+                : ((str_contains($rawMessage, 'quota') || str_contains($rawMessage, 'resource_exhausted'))
+                    ? 'Kuota Gemini API sedang habis atau batas free tier tercapai. Periksa kuota Google AI Studio lalu coba kembali.'
+                    : 'Draf AI gagal dibuat: '.$exception->getMessage());
+            return back()->with('ai_error', $message)->withErrors(['ai' => $message]);
+        }
+    }
     public function storeForm(Request $request, $id)
     {
         $request->validate([

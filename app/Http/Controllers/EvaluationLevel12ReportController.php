@@ -10,6 +10,8 @@ use App\Models\Question;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
 use App\Models\Training;
+use App\Models\AiGeneration;
+use App\Services\AiEvaluationDashboardService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpWord\TemplateProcessor;
@@ -123,14 +125,55 @@ class EvaluationLevel12ReportController extends Controller
             ? 'Data Level 2 belum tersedia untuk mengukur perubahan hasil belajar.'
             : 'Rerata hasil belajar berubah '.($gainAverage >= 0 ? '+' : '').$gainAverage.' poin, dengan '.$increaseRate.'% peserta mengalami peningkatan.';
 
+        $aiAnalysis = session('l12_ai_analysis') ?: AiGeneration::where('training_id', $training->id)->where('feature', 'evaluation_dashboard_l12')->where('status', 'completed')->latest()->value('generated_content');
+
         return view('evaluasi.l12_dashboard', compact(
             'training', 'participantsTotal', 'l1Respondents', 'l1ResponseRate', 'l1Average',
             'organizerAverage', 'speakerAverage', 'indicatorData', 'lowestIndicator', 'l2Count',
             'preAverage', 'postAverage', 'gainAverage', 'l2Status', 'increaseRate', 'textFeedback',
-            'adminSummary', 'recommendations', 'scoreCategory', 'executiveNarrative'
+            'adminSummary', 'recommendations', 'scoreCategory', 'executiveNarrative', 'aiAnalysis'
         ));
     }
 
+    public function generateAiAnalysis(int $id, AiEvaluationDashboardService $ai)
+    {
+        $training = Training::withCount('participants')->findOrFail($id); $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+        $l1 = EvaluationResultL1::with('question')->where('training_id', $id)->get(); $numeric = $l1->whereNotNull('score');
+        $l2 = EvaluationResultL2::whereHas('participant', fn ($q) => $q->where('training_id', $id))->get();
+        $pre = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->pretest), 1) : null;
+        $post = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->postest), 1) : null;
+        $summary = EvaluationL1TextSummary::where('training_id', $id)->first();
+        $payload = [
+            'pelatihan' => ['nama' => $training->nama_pelatihan, 'angkatan' => $training->angkatan, 'bidang' => $training->bidang],
+            'cakupan' => ['peserta' => $training->participants_count, 'responden_l1' => $l1->pluck('participant_id')->unique()->count(), 'peserta_l2' => $l2->count()],
+            'level_1' => ['rerata' => $numeric->isNotEmpty() ? round($numeric->avg('score'), 1) : null,
+                'penyelenggara' => $numeric->whereNull('schedule_id')->isNotEmpty() ? round($numeric->whereNull('schedule_id')->avg('score'), 1) : null,
+                'narasumber' => $numeric->whereNotNull('schedule_id')->isNotEmpty() ? round($numeric->whereNotNull('schedule_id')->avg('score'), 1) : null,
+                'indikator' => $numeric->filter(fn ($x) => $x->question)->groupBy('question_id')->map(fn ($items) => ['label' => $items->first()->question->question_text, 'rerata' => round($items->avg('score'), 1), 'respons' => $items->count()])->values()->all()],
+            'level_2' => ['rerata_pretest' => $pre, 'rerata_posttest' => $post, 'perubahan' => $pre !== null ? round($post - $pre, 1) : null,
+                'meningkat' => $l2->filter(fn ($x) => (float) $x->postest > (float) $x->pretest)->count(),
+                'tetap' => $l2->filter(fn ($x) => (float) $x->postest === (float) $x->pretest)->count(),
+                'menurun' => $l2->filter(fn ($x) => (float) $x->postest < (float) $x->pretest)->count()],
+            'kesimpulan_masukan_anonim' => $summary?->conclusion,
+        ];
+        return $this->runAiDashboard($training, $user, $ai, $payload, 'evaluation_dashboard_l12', 'Level 1 dan 2', 'l12_ai_analysis');
+    }
+
+    private function runAiDashboard(Training $training, $user, AiEvaluationDashboardService $ai, array $payload, string $feature, string $level, string $sessionKey)
+    {
+        $generation = AiGeneration::create(['training_id' => $training->id, 'user_id' => $user->id, 'feature' => $feature,
+            'model' => $ai->provider().':'.$ai->model(), 'source_hash' => hash('sha256', json_encode($payload)), 'status' => 'processing',
+            'input_summary' => ['aggregate_only' => true, 'participant_identities_sent' => false]]);
+        try {
+            $analysis = $ai->generate($level, $payload);
+            $generation->update(['status' => 'completed', 'generated_content' => $analysis, 'generated_at' => now()]);
+            return back()->with($sessionKey, $analysis)->with('success', 'Analisis eksekutif AI berhasil dibuat.');
+        } catch (\Throwable $exception) {
+            report($exception); $generation->update(['status' => 'failed', 'error_message' => mb_substr($exception->getMessage(), 0, 2000)]);
+            return back()->with($sessionKey.'_error', $exception->getMessage());
+        }
+    }
     public function exportWord(int $id)
     {
         Carbon::setLocale('id');

@@ -37,6 +37,11 @@
         </div>
     </div>
 
+    @include('evaluasi.partials.ai_dashboard_analysis', [
+        'analysis' => $aiAnalysis,
+        'aiError' => session('l34_ai_analysis_error'),
+        'aiRoute' => route('evall34.dashboard.ai', $training->id),
+    ])
     <div class="row g-3 mb-4">
         @foreach([
             ['icon'=>'bx-radar','color'=>$coverageColor,'label'=>'Cakupan Penilaian 360°','value'=>number_format($overallCoverage,1,',','.').' %','detail'=>$fullyAssessed.' dari '.$participantTotal.' alumni lengkap'],

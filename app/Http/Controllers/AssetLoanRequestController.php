@@ -38,7 +38,7 @@ class AssetLoanRequestController extends Controller {
   $end=$source instanceof Schedule?$source->date.' '.$source->end_time:$source->ends_at;
   if($data['decision']==='approved'){
    foreach($loan->asset_ids as $assetId)if(AssetBooking::hasConflict((int)$assetId,$start,$end,get_class($source),$source->id))
-    throw ValidationException::withMessages(['decision'=>'Aset '.Asset::find($assetId)?->name.' sudah digunakan pada waktu tersebut.']);
+    return back()->withErrors(['decision'=>'Tidak dapat disetujui: aset '.Asset::find($assetId)?->name.' sudah digunakan kegiatan lain pada waktu tersebut. Ubah jadwal/aset terlebih dahulu.'])->withInput(['review_loan_id'=>$loan->id,'decision'=>$data['decision'],'review_note'=>$data['review_note']??null]);
   }
   DB::transaction(function()use($loan,$source,$start,$end,$data){
    $source->bookings()->delete();

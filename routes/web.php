@@ -11,6 +11,7 @@ use App\Http\Controllers\EvaluationLevel34Controller;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringIndicatorController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InternalAiAssistantController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\FollowUpController; 
 use App\Http\Controllers\ProfileController;
@@ -32,7 +33,10 @@ use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\TrainingCertificateController;
 use App\Http\Controllers\TrainingActivityReportController;
 use App\Http\Controllers\PublicCertificationBiodataController;
+use App\Http\Controllers\PublicCertificationSpeakerController;
+use App\Http\Controllers\PublicCertificationCertificateController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PublicDailyScheduleController;
 use App\Http\Controllers\PartnerSubmissionController;
 
 /*
@@ -49,6 +53,7 @@ use App\Http\Controllers\PartnerSubmissionController;
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::get('jadwalharian/{token?}', [PublicDailyScheduleController::class, 'index'])->where('token', '[a-f0-9]{64}')->name('public.daily-schedule');
 
 // Search Global (Hanya hasil, aksi di dalam auth)
 Route::get('/search', [SearchController::class, 'index'])->name('global.search');
@@ -89,6 +94,12 @@ Route::get('sertifikasi/biodata/{token}', [PublicCertificationBiodataController:
 Route::post('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'verify'])->name('certifications.public.verify');
 Route::get('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'form'])->name('certifications.public.form');
 Route::post('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'submit'])->name('certifications.public.submit');
+Route::get('sertifikasi/narasumber/{token}', [PublicCertificationSpeakerController::class, 'form'])->middleware('throttle:30,1')->name('certifications.speakers.public');
+Route::post('sertifikasi/narasumber/{token}', [PublicCertificationSpeakerController::class, 'submit'])->middleware('throttle:10,1')->name('certifications.speakers.public.submit');
+Route::get('sertifikasi/sertifikat/{token}', [PublicCertificationCertificateController::class, 'index'])->middleware('throttle:30,1')->name('certifications.certificates.public');
+Route::post('sertifikasi/sertifikat/{token}', [PublicCertificationCertificateController::class, 'verify'])->middleware('throttle:20,1')->name('certifications.certificates.public.verify');
+Route::get('sertifikasi/sertifikat/{token}/{participantToken}', [PublicCertificationCertificateController::class, 'form'])->middleware('throttle:30,1')->name('certifications.certificates.public.form');
+Route::post('sertifikasi/sertifikat/{token}/{participantToken}', [PublicCertificationCertificateController::class, 'submit'])->middleware('throttle:10,1')->name('certifications.certificates.public.submit');
 
 Route::get('/logout', function() {
     Auth::logout();
@@ -132,6 +143,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('agendas/{agenda}', [AgendaController::class, 'update'])->name('agendas.update');
     Route::delete('agendas/{agenda}', [AgendaController::class, 'destroy'])->name('agendas.destroy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/asset-loans/{loan}/{status}', [NotificationController::class, 'openAssetLoan'])->where('status', 'approved|revision|rejected')->name('notifications.asset-loan.open');
     Route::get('/trainings/{training}/forum', [TrainingForumController::class, 'index'])->name('training.forum.index');
     Route::get('/trainings/{training}/forum/messages', [TrainingForumController::class, 'messages'])->name('training.forum.messages');
     Route::post('/trainings/{training}/forum/messages', [TrainingForumController::class, 'store'])->name('training.forum.store');
@@ -154,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('pengajuan-mitra/{submission}/reopen', [PartnerSubmissionController::class, 'reopen'])->name('mitra.admin.reopen');
     Route::delete('pengajuan-mitra/{submission}', [PartnerSubmissionController::class, 'destroy'])->name('mitra.admin.destroy');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/asisten-ai', [InternalAiAssistantController::class, 'index'])->name('ai-assistant.index');
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
@@ -192,6 +205,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{training}/certificates', [TrainingCertificateController::class, 'index'])->name('training-certificates.index');
     Route::get('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'index'])->name('training-activity-report.index');
     Route::put('trainings/{training}/activity-report', [TrainingActivityReportController::class, 'update'])->name('training-activity-report.update');
+    Route::post('trainings/{training}/activity-report/ai-draft', [TrainingActivityReportController::class, 'generateAiDraft'])->name('training-activity-report.ai-draft');
     Route::post('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'uploadTemplate'])->name('training-activity-report.template.upload');
     Route::delete('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'resetTemplate'])->name('training-activity-report.template.reset');
     Route::get('trainings/{training}/activity-report/template', [TrainingActivityReportController::class, 'downloadTemplate'])->name('training-activity-report.template.download');
@@ -245,6 +259,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/export-evaluation', [TrainingController::class, 'exportEvaluation'])->name('trainings.export_evaluation');
     Route::get('trainings/{id}/export-word-l12', [EvaluationLevel12ReportController::class, 'exportWord'])->name('evall12.export_word');
     Route::get('trainings/{id}/evaluasi-l12/dashboard', [EvaluationLevel12ReportController::class, 'dashboard'])->name('evall12.dashboard');
+    Route::post('trainings/{id}/evaluasi-l12/dashboard/ai', [EvaluationLevel12ReportController::class, 'generateAiAnalysis'])->name('evall12.dashboard.ai');
     Route::get('trainings/{id}/participants', [TrainingController::class, 'showParticipants'])->name('trainings.participants');
     Route::get('trainings/{id}/manage', [TrainingController::class, 'manage'])->name('trainings.manage');
     Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
@@ -269,6 +284,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
     Route::get('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'organizerTextSummary'])->name('evall1.organizer-summary');
     Route::put('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'storeOrganizerTextSummary'])->name('evall1.organizer-summary.store');
+    Route::post('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara/ai', [EvaluationLevel1Controller::class, 'generateOrganizerTextSummary'])->name('evall1.organizer-summary.ai');
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
@@ -338,6 +354,7 @@ Route::middleware(['auth'])->group(function () {
     // Level 3 & 4: Impact (360)
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
     Route::get('trainings/{id}/evaluasi-l34/dashboard', [EvaluationLevel34Controller::class, 'dashboard'])->name('evall34.dashboard');
+    Route::post('trainings/{id}/evaluasi-l34/dashboard/ai', [EvaluationLevel34Controller::class, 'generateAiAnalysis'])->name('evall34.dashboard.ai');
     Route::get('trainings/{id}/evaluasi-l34', [EvaluationLevel34Controller::class, 'index'])->name('evall34.index'); // Detail L34
 
     // Kelola Alumni
