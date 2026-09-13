@@ -20,21 +20,14 @@
 
             <div class="mb-4">
                 <label class="form-label fw-bold">Daftar Sebagai <span class="required-star">*</span></label>
-                <div class="row g-3">
-                    @foreach([
-                        'peserta' => ['Peserta', 'bx-user', 'Mengikuti pelatihan dan melengkapi administrasi peserta.'],
-                        'narasumber' => ['Narasumber', 'bx-chalkboard', 'Akses Pengajar langsung aktif dan dilanjutkan dengan pengisian profil narasumber.'],
-                        'mitra' => ['Mitra', 'bx-handshake', 'Kategori mitra; fitur khusus akan tersedia kemudian.'],
-                    ] as $value => [$label, $icon, $description])
-                        <div class="col-md-4">
-                            <label class="border rounded p-3 d-flex gap-2 h-100 cursor-pointer">
-                                <input class="form-check-input mt-1" type="radio" name="user_type" value="{{ $value }}" @checked(old('user_type', $user->user_type ?: 'peserta') === $value) required>
-                                <span><strong class="d-block"><i class="bx {{ $icon }} me-1"></i>{{ $label }}</strong><small class="text-muted">{{ $description }}</small></span>
-                            </label>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="alert alert-info py-2 mt-3 mb-0 small"><i class="bx bx-shield-quarter me-1"></i>Akun admin dan superadmin tidak dapat dibuat melalui registrasi publik.</div>
+                <select name="user_type" id="userTypeSelect" class="form-select form-select-lg border-primary" required>
+                    <option value="">-- Pilih tujuan pendaftaran --</option>
+                    <option value="peserta" @selected(old('user_type', $user->user_type)==='peserta')>Peserta Pelatihan</option>
+                    <option value="narasumber" @selected(old('user_type', $user->user_type)==='narasumber')>Narasumber / Pengajar</option>
+                    <option value="mitra" @selected(old('user_type', $user->user_type)==='mitra')>Mitra Kerja Sama</option>
+                </select>
+                <div id="userTypeExplanation" class="alert alert-danger py-2 mt-3 mb-0 small d-none" role="alert"></div>
+                <div class="form-text mt-2"><i class="bx bx-shield-quarter me-1"></i>Akun admin dan superadmin tidak dapat dibuat melalui registrasi publik.</div>
             </div>
 
             <div class="row">
@@ -83,8 +76,19 @@
                         <option value="">-- Pilih Status --</option>
                         <option value="PNS" {{ old('status_kepegawaian') == 'PNS' ? 'selected' : '' }}>PNS</option>
                         <option value="PPPK" {{ old('status_kepegawaian') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                        <option value="Non-ASN" {{ old('status_kepegawaian') == 'Non-ASN' ? 'selected' : '' }}>Non-ASN</option>
+                        <option value="PPPK-PW" {{ old('status_kepegawaian') == 'PPPK-PW' ? 'selected' : '' }}>PPPK-PW</option>
                     </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tempat Lahir <span class="required-star">*</span></label>
+                    <input type="text" name="birth_place" class="form-control" value="{{old('birth_place',$user->birth_place)}}" placeholder="Contoh: Bandung" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tanggal Lahir <span class="required-star">*</span></label>
+                    <input type="date" name="birth_date" class="form-control" value="{{old('birth_date',$user->birth_date?->format('Y-m-d'))}}" max="{{today()->toDateString()}}" required>
                 </div>
             </div>
 
@@ -100,15 +104,21 @@
                            required>
                 </div>
 
-                <!-- Instansi -->
                 <div class="col-md-6 mb-3">
+                    <label class="form-label">Golongan</label>
+                    @php $selectedGolongan=old('golongan',$user->golongan); @endphp
+                    <select name="golongan" class="form-select">
+                        <option value="">-- Tidak memiliki golongan --</option>
+                        @foreach(['I/a','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV'] as $golongan)
+                            <option value="{{$golongan}}" @selected($selectedGolongan===$golongan)>{{$golongan}}</option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Pilih golongan saat ini sesuai data kepegawaian.</div>
+                </div>
+                <!-- Instansi -->
+                <div class="col-12 mb-3">
                     <label class="form-label">Instansi / Unit Kerja <span class="required-star">*</span></label>
-                    <input type="text" 
-                           name="instansi" 
-                           class="form-control" 
-                           placeholder="Contoh: BPSDM Provinsi Jawa Barat" 
-                           value="{{ old('instansi') }}" 
-                           required>
+                    <input type="text" name="instansi" class="form-control" placeholder="Contoh: BPSDM Provinsi Jawa Barat" value="{{old('instansi',$user->instansi)}}" required>
                 </div>
             </div>
 
@@ -156,6 +166,16 @@
             <div class="form-section-title">
                 <i class="bx bx-map fs-4 me-2"></i> 3. Titik Lokasi Desa/Kelurahan
             </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Alamat Lengkap <span class="required-star">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bx bx-search-alt"></i></span>
+                    <input type="text" name="address" id="addressSearch" class="form-control" value="{{old('address',$user->address)}}" placeholder="Contoh: Jl. Nihmat, Bandung" autocomplete="street-address" required>
+                    <button type="button" id="searchAddressButton" class="btn btn-primary"><i class="bx bx-search me-1"></i>Cari Alamat</button>
+                </div>
+                <div class="form-text">Tekan Cari Alamat, lalu pilih hasil yang sesuai. Peta dan koordinat akan diarahkan otomatis.</div>
+                <div id="addressSearchResults" class="list-group mt-2 shadow-sm d-none" style="max-height:260px;overflow-y:auto"></div>
+            </div>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div>
                     <label class="form-label mb-0">Pilih Titik Lokasi <span class="required-star">*</span></label>
@@ -185,6 +205,21 @@
 
     
 $(document).ready(function() {
+    const userTypeSelect = document.getElementById('userTypeSelect');
+    const userTypeExplanation = document.getElementById('userTypeExplanation');
+    const typeExplanations = {
+        peserta: '<strong>Peserta Pelatihan:</strong> untuk mengikuti pelatihan, mengunggah kelengkapan, mengisi evaluasi, dan mengunduh sertifikat.',
+        narasumber: '<strong>Narasumber / Pengajar:</strong> untuk menerima jadwal mengajar dan melengkapi administrasi narasumber. Akses pengajar langsung aktif.',
+        mitra: '<strong>Mitra Kerja Sama:</strong> untuk mengajukan dan mengelola proses kemitraan. Akun harus menunggu persetujuan superadmin.'
+    };
+    function updateUserTypeExplanation() {
+        const message = typeExplanations[userTypeSelect.value];
+        userTypeExplanation.innerHTML = message || '';
+        userTypeExplanation.classList.toggle('d-none', !message);
+    }
+    userTypeSelect.addEventListener('change', updateUserTypeExplanation);
+    updateUserTypeExplanation();
+
     const $provSelect = $('#provinsi');
     const $kabSelect = $('#kabupaten');
     const $kecSelect = $('#kecamatan');
@@ -277,6 +312,8 @@ $(document).ready(function() {
 
     locationMap.on('click', event => setLocationPoint(event.latlng.lat, event.latlng.lng, false));
     if (hasInitialPoint) setLocationPoint(initialLat, initialLng, false);
+
+@include('profile.partials.address-search-script')
 
     document.getElementById('useCurrentLocation').addEventListener('click', function() {
         if (!navigator.geolocation) return alert('Browser tidak mendukung deteksi lokasi.');

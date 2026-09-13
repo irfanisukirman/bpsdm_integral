@@ -90,7 +90,7 @@
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
     <div class="d-flex align-items-center gap-2">
-        <form id="bulkDeleteQuestionsForm" action="{{ route('questions.destroy-selected') }}" method="POST" onsubmit="return confirmSelectedQuestions()">
+        <form id="bulkDeleteQuestionsForm" action="{{ route('questions.destroy-selected') }}" method="POST">
             @csrf @method('DELETE')
             <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
             @if($selectedProgram)<input type="hidden" name="program" value="{{ $selectedProgram }}">@endif
@@ -650,11 +650,18 @@
         });
     }
 
-    function confirmSelectedQuestions() {
+    document.getElementById('bulkDeleteQuestionsForm')?.addEventListener('submit', async function (event) {
+        if (this.dataset.confirmed === 'true') {
+            delete this.dataset.confirmed;
+            return;
+        }
+        event.preventDefault();
         const total = document.querySelectorAll('.question-select:checked').length;
-        if (total === 0) return false;
-        return confirm(`Hapus ${total} pertanyaan terpilih? Semua jawaban yang terkait juga akan dihapus permanen.`);
-    }
+        if (total > 0 && await window.IntegralConfirm.ask(`Hapus ${total} pertanyaan terpilih? Semua jawaban yang terkait juga akan dihapus permanen.`)) {
+            this.dataset.confirmed = 'true';
+            this.requestSubmit();
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         syncMethodField('create');

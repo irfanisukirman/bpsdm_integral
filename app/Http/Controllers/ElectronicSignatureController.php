@@ -6,6 +6,8 @@ use App\Models\ElectronicSignatureAction;
 use App\Models\ElectronicSignatureAttempt;
 use App\Models\ElectronicSignatureDocument;
 use App\Models\ElectronicSignatureRequest as SignatureRequest;
+use App\Models\File as DocumentFile;
+use App\Models\Folder;
 use App\Models\ParticipantCertificate;
 use App\Models\Training;
 use App\Models\User;
@@ -261,7 +263,7 @@ class ElectronicSignatureController extends Controller
             })
             ->update(['status' => 'pending']);
 
-        $electronicSignature->load(['creator', 'actors.user', 'actors.actions', 'documents.participantCertificate.participant', 'documents.actions.actor.user', 'documents.actions.attempts']);
+        $electronicSignature->load(['creator', 'actors.user', 'actors.actions', 'documents.participantCertificate.participant', 'documents.internshipParticipant', 'documents.actions.actor.user', 'documents.actions.attempts']);
         return view('electronic-signatures.show', ['signatureRequest' => $electronicSignature]);
     }
 
@@ -272,9 +274,21 @@ class ElectronicSignatureController extends Controller
         return view('electronic-signatures.verify', compact('document'));
     }
 
+    public function verifyDownload(string $token)
+    {
+        $document = ElectronicSignatureDocument::where('verification_token', $token)->firstOrFail();
+        abort_unless($document->current_path && Storage::disk('local')->exists($document->current_path), 404, 'File dokumen tidak tersedia.');
+
+        $baseName = pathinfo($document->original_name ?: 'dokumen', PATHINFO_FILENAME);
+        $fileName = Str::slug($baseName, '-').($document->status === 'completed' ? '.signed' : '').'.pdf';
+
+        return Storage::disk('local')->download($document->current_path, $fileName, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
     public function sign(Request $request, ElectronicSignatureAction $action, BsreClient $bsre, JctClient $jct, PdfLegalNoticeService $legalNotice)
     {
-        $action->load(['actor.user', 'document.request', 'document.participantCertificate']);
+        $action->load(['actor.user', 'document.request', 'document.participantCertificate', 'document.internshipParticipant']);
         $this->authorizeAction($action);
         $request->validate(['passphrase' => 'required|string|min:1|max:255']);
         abort_unless(ElectronicSignatureAction::whereKey($action->id)->where('status', 'pending')->update(['status' => 'processing', 'error_message' => null]), 409, 'Dokumen sedang diproses atau giliran sudah berubah.');
@@ -309,9 +323,14 @@ class ElectronicSignatureController extends Controller
                 else {
                     $document->update(['status' => 'completed', 'final_path' => $newPath, 'completed_at' => now()]);
                     if ($document->participantCertificate) $document->participantCertificate->update(['final_file_path' => $newPath, 'uploaded_at' => now(), 'sent_at' => null, 'sent_by' => null, 'downloaded_at' => null, 'uploaded_by' => Auth::id()]);
+                    if ($document->internshipParticipant) $document->internshipParticipant->update(['certificate_file_path' => $newPath, 'certificate_sent_at' => null, 'certificate_sent_by' => null, 'certificate_downloaded_at' => null]);
                 }
                 if (!$document->request->documents()->where('status', '!=', 'completed')->exists()) $document->request->update(['status' => 'completed', 'completed_at' => now()]);
             });
+            if (!$hasNext && $action->document->request->source_type === 'training_certificates') {
+                try { $this->archiveIntegralDocument($action->document->fresh('request'), $newPath); }
+                catch (\Throwable $archiveException) { report($archiveException); }
+            }
             ElectronicSignatureAttempt::create(['electronic_signature_action_id' => $action->id, 'user_id' => Auth::id(), 'successful' => true, 'response_code' => 'PDF', 'message' => 'Tanda tangan berhasil', 'duration_ms' => (int) ((microtime(true)-$start)*1000), 'ip_address' => $request->ip()]);
             $message = 'Dokumen berhasil ditandatangani melalui BSrE.';
             if ($request->expectsJson()) return response()->json(['ok' => true, 'message' => $message, 'document_id' => $action->document->id]);
@@ -340,9 +359,55 @@ class ElectronicSignatureController extends Controller
         return Storage::disk('local')->download($path, $downloadName);
     }
 
+    public function downloadZip(SignatureRequest $electronicSignature)
+    {
+        $this->authorizeView($electronicSignature);
+        $documents = $electronicSignature->documents()->where('status', 'completed')->whereNotNull('final_path')->with('actions')->get()
+            ->filter(fn ($document) => Storage::disk('local')->exists($document->final_path));
+        abort_if($documents->isEmpty(), 422, 'Belum ada dokumen yang selesai ditandatangani untuk diunduh.');
+
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'integral-tte-');
+        $zip = new ZipArchive();
+        abort_unless($temporaryPath && $zip->open($temporaryPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true, 500, 'Bundel ZIP tidak dapat dibuat.');
+        foreach ($documents as $document) {
+            $signatureCount = $document->actions->where('status', 'completed')->count();
+            $name = $this->signedFileName($document, $signatureCount);
+            if ($zip->locateName($name) !== false) $name = $document->id.'-'.$name;
+            $zip->addFile(Storage::disk('local')->path($document->final_path), $name);
+        }
+        $zip->close();
+
+        $safeTitle = trim((string) preg_replace('/[^\pL\pN._-]+/u', '-', $electronicSignature->title), '-');
+        return response()->download($temporaryPath, ($safeTitle ?: 'bundel-tte').'.zip')->deleteFileAfterSend(true);
+    }
+
+    private function archiveIntegralDocument(ElectronicSignatureDocument $document, string $signedPath): void
+    {
+        $request = $document->request;
+        if ($request->source_type !== 'training_certificates' || !$request->training_id || !Storage::disk('local')->exists($signedPath)) return;
+        $training = Training::find($request->training_id);
+        if (!$training) return;
+
+        $root = Folder::firstOrCreate(
+            ['training_id' => $training->id, 'parent_id' => null],
+            ['name' => $training->nama_pelatihan.' - Angkatan '.$training->angkatan, 'bidang' => $training->bidang, 'user_id' => $request->created_by, 'is_public' => false]
+        );
+        $folder = Folder::firstOrCreate(
+            ['training_id' => $training->id, 'parent_id' => $root->id, 'name' => 'TANDA TANGAN ELEKTRONIK'],
+            ['bidang' => $training->bidang, 'user_id' => $request->created_by, 'is_public' => false]
+        );
+        $signatureCount = $document->actions()->where('status', 'completed')->count();
+        $fileName = $this->signedFileName($document, $signatureCount);
+        $publicPath = 'documents/training-'.$training->id.'/electronic-signatures/'.$request->id.'/'.$document->id.'-'.$fileName;
+        Storage::disk('public')->put($publicPath, Storage::disk('local')->get($signedPath));
+        DocumentFile::updateOrCreate(
+            ['folder_id' => $folder->id, 'file_path' => $publicPath],
+            ['display_name' => $fileName, 'file_type' => 'pdf', 'file_size' => Storage::disk('public')->size($publicPath), 'user_id' => $request->created_by]
+        );
+    }
     public function destroyRequest(SignatureRequest $electronicSignature)
     {
-        $electronicSignature->load('documents.participantCertificate');
+        $electronicSignature->load(['documents.participantCertificate','documents.internshipParticipant']);
         $user = Auth::user();
         abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $electronicSignature->bidang), 403);
 
@@ -351,6 +416,9 @@ class ElectronicSignatureController extends Controller
             foreach ($electronicSignature->documents as $document) {
                 if ($document->participantCertificate && $document->participantCertificate->final_file_path === $document->final_path) {
                     $document->participantCertificate->update(['final_file_path' => null, 'uploaded_at' => null, 'downloaded_at' => null, 'uploaded_by' => null]);
+                }
+                if ($document->internshipParticipant && $document->internshipParticipant->certificate_file_path === $document->final_path) {
+                    $document->internshipParticipant->update(['certificate_file_path' => null, 'certificate_sent_at' => null, 'certificate_sent_by' => null, 'certificate_downloaded_at' => null]);
                 }
                 collect([$document->current_path, $document->final_path, $document->original_path])
                     ->filter(fn ($path) => filled($path) && str_starts_with($path, 'electronic-signatures/'))

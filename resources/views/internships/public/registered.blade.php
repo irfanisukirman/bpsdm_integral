@@ -1,0 +1,6 @@
+@extends('layouts.auth')
+@section('title','Pendaftaran Terkirim')
+@section('content')
+<style>body{background:#f3f7fb}.success-wrap{max-width:600px;margin:8vh auto;padding:15px}.success-card{border:0;border-radius:22px;box-shadow:0 12px 40px rgba(34,48,62,.1)}.success-icon{width:85px;height:85px;border-radius:50%;background:#e9f9e2;color:#71dd37;display:flex;align-items:center;justify-content:center;margin:auto;font-size:48px}</style>
+<div class="success-wrap"><div class="card success-card"><div class="card-body p-4 p-md-5 text-center"><div class="success-icon"><i class="bx bx-check"></i></div><h3 class="fw-bold mt-4">Pendaftaran Terkirim</h3><p class="text-muted">Data Anda untuk <strong>{{$program->title}}</strong> sudah diterima.</p><div class="alert alert-warning text-start"><i class="bx bx-time me-1"></i>Akun masih menunggu pemeriksaan pengelola. Username <strong>{{ $studentNumber }}</strong> dan password yang Anda buat dapat digunakan setelah disetujui.</div><p class="small text-muted">Simpan NIS/NIM sebagai username dan password yang telah Anda buat.</p><a href="{{route('login')}}" class="btn btn-primary px-4">Ke Halaman Login</a></div></div></div>
+@endsection

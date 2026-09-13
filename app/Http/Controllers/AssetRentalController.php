@@ -191,6 +191,28 @@ class AssetRentalController extends Controller
         return back()->with('success', 'Status reservasi '.$reservation->booking_code.' berhasil diperbarui.');
     }
 
+    public function destroy(AssetPublicReservation $reservation)
+    {
+        $this->guard();
+        $reservationId = $reservation->id;
+        $bookingCode = $reservation->booking_code;
+        $paymentProofPath = $reservation->payment_proof_path;
+
+        DB::transaction(function () use ($reservationId) {
+            $lockedReservation = AssetPublicReservation::whereKey($reservationId)->lockForUpdate()->firstOrFail();
+            AssetBooking::where('bookable_type', AssetPublicReservation::class)
+                ->where('bookable_id', $lockedReservation->id)
+                ->delete();
+            $lockedReservation->delete();
+        });
+
+        if ($paymentProofPath) {
+            Storage::disk('local')->delete($paymentProofPath);
+        }
+
+        return redirect()->route('asset-rentals.admin.index')
+            ->with('success', 'Reservasi '.$bookingCode.' beserta booking, bukti pembayaran, dan seluruh data terkait berhasil dihapus.');
+    }
     public function paymentProof(AssetPublicReservation $reservation)
     {
         $this->guard();

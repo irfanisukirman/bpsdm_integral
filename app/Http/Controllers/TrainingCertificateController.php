@@ -9,21 +9,17 @@ use App\Models\ElectronicSignatureRequest as SignatureRequest;
 use App\Models\User;
 use App\Models\Training;
 use App\Models\TrainingCertificateSetting;
+use App\Services\TrainingCertificateDocxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use PhpOffice\PhpWord\PhpWord;
-use PhpOffice\PhpWord\TemplateProcessor;
-use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\Settings;
-use ZipArchive;
 
 class TrainingCertificateController extends Controller
 {
-    public function index(Training $training)
+    public function index(Training $training, TrainingCertificateDocxService $docxService)
     {
         $this->authorizeTraining($training);
         $setting = TrainingCertificateSetting::where('training_id',$training->id)->first();
@@ -32,43 +28,39 @@ class TrainingCertificateController extends Controller
         $certificates = ParticipantCertificate::with(['electronicSignatureDocuments.actions'])->where('training_id',$training->id)->get()->keyBy('participant_id');
         $signers = User::where('role','penandatangan')->whereNotNull('nip_nik')->where('nip_nik','!=','')->orderBy('name')->get(['id','name','nip_nik','jabatan','profile_photo','avatar']);
         $preview = $participants->take(5)->values()->map(fn($p,$i)=>$this->formatNumber($setting?->number_format ?: '222.{X}/KPG.03.01.03/BPSDM/{TAHUN}',($setting?->start_sequence ?: 1)+$i,$setting?->issued_at?->year ?: now()->year));
-        return view('trainings.certificates.index',compact('training','setting','participants','certificates','preview','signers'));
+        $libreOfficeAvailable = $docxService->libreOfficeAvailable();
+        return view('trainings.certificates.index',compact('training','setting','participants','certificates','preview','signers','libreOfficeAvailable'));
     }
 
-    public function storeSetting(Request $request, Training $training)
+    public function storeSetting(Request $request, Training $training, TrainingCertificateDocxService $docxService)
     {
         $this->authorizeTraining($training);
         $data=$request->validate([
             'name'=>'required|string|max:255','number_format'=>['required','string','max:255','regex:/\{X(?::[1-9][0-9]?)?\}/'],
-            'start_sequence'=>'required|integer|min:0|max:999999','issued_at'=>'required|date','photo_size'=>'required|in:2x3,3x4','template'=>'nullable|file|mimes:docx|max:10240',
+            'start_sequence'=>'required|integer|min:0|max:999999','issued_at'=>'required|date','photo_size'=>'required|in:2x3,3x4','template'=>'nullable|file|mimes:docx|max:20480',
         ],['number_format.regex'=>'Format nomor wajib memuat {X} atau {X:3}.']);
         $setting=TrainingCertificateSetting::firstOrNew(['training_id'=>$training->id]);
         $setting->fill(collect($data)->except('template')->all()+['created_by'=>Auth::id()]);
         if($request->hasFile('template')){
+            $docxService->validateTemplate($request->file('template')->getRealPath());
             if($setting->template_path)Storage::disk('local')->delete($setting->template_path);
             $setting->template_path=$request->file('template')->store('certificate-templates','local');
         }
         $setting->save();
-        return back()->with('success','Pengaturan dan template sertifikat berhasil disimpan.');
+        return back()->with('success','Pengaturan dan template DOCX A4 Landscape berhasil disimpan.');
     }
 
-    public function downloadTemplate(Training $training)
+    public function preview(Training $training, TrainingCertificateDocxService $docxService)
     {
         $this->authorizeTraining($training);
-        $word=new PhpWord();$section=$word->addSection(['orientation'=>'landscape']);
-        $section->addText('TEMPLATE SERTIFIKAT PELATIHAN',['bold'=>true,'size'=>20],['alignment'=>'center']);
-        $section->addText('Nomor: ${nomor_sertifikat}',['size'=>12],['alignment'=>'center']);
-        $section->addTextBreak();$section->addText('Diberikan kepada',['size'=>12],['alignment'=>'center']);
-        $section->addText('${nama}',['bold'=>true,'size'=>24],['alignment'=>'center']);
-        $section->addText('NIP/NIK: ${nip_nik}',['size'=>12],['alignment'=>'center']);
-        $section->addText('${jabatan} - ${instansi}',['size'=>12],['alignment'=>'center']);
-        $section->addText('Sebagai peserta ${nama_pelatihan} pada ${tanggal_mulai} s.d. ${tanggal_selesai}.',['size'=>12],['alignment'=>'center']);
-        $section->addTextBreak();$section->addText('${foto}',['italic'=>true],['alignment'=>'center']);
-        $section->addPageBreak();$section->addText('PANDUAN KODE TEMPLATE',['bold'=>true,'size'=>16]);
-        $table=$section->addTable(['borderSize'=>6,'cellMargin'=>100]);
-        foreach([['Kode','Data'],['${nama}','Nama lengkap peserta'],['${nip_nik}','NIP/NIK peserta'],['${jabatan}','Jabatan peserta'],['${instansi}','Instansi peserta'],['${foto}','Pas foto peserta'],['${nomor_sertifikat}','Nomor sertifikat permanen'],['${nama_pelatihan}','Nama pelatihan'],['${tanggal_mulai}','Tanggal mulai'],['${tanggal_selesai}','Tanggal selesai'],['${tanggal_sertifikat}','Tanggal penerbitan']] as $row){$table->addRow();$table->addCell(3500)->addText($row[0]);$table->addCell(6500)->addText($row[1]);}
-        $path=tempnam(sys_get_temp_dir(),'cert-template-').'.docx';IOFactory::createWriter($word,'Word2007')->save($path);
-        return response()->download($path,'template_sertifikat_'.$training->id.'.docx')->deleteFileAfterSend(true);
+        $setting = TrainingCertificateSetting::where('training_id', $training->id)->firstOrFail();
+        abort_unless($setting->template_path && Storage::disk('local')->exists($setting->template_path), 422, 'Template DOCX belum diunggah.');
+        $participant = Participant::with(['user','pasFotoFile'])->where('training_id', $training->id)->where('registration_status', 'approved')->orderBy('name')->firstOrFail();
+        $certificate = ParticipantCertificate::where('training_id', $training->id)->where('participant_id', $participant->id)->first();
+        $number = $certificate?->certificate_number ?: $this->formatNumber($setting->number_format, $setting->start_sequence, $setting->issued_at->year);
+        $path = tempnam(sys_get_temp_dir(), 'certificate-preview-').'.pdf';
+        $docxService->render(Storage::disk('local')->path($setting->template_path), $path, $training, $participant, $setting, $number);
+        return response()->file($path, ['Content-Type'=>'application/pdf','Content-Disposition'=>'inline; filename="preview-sertifikat.pdf"'])->deleteFileAfterSend(true);
     }
 
     public function generate(Request $request, Training $training)
@@ -97,8 +89,6 @@ class TrainingCertificateController extends Controller
             ->pluck('participant_id');
         abort_if($activeCertificateIds->isNotEmpty(), 422, 'Sebagian sertifikat masih berada dalam proses TTE. Selesaikan pengajuan sebelumnya sebelum generate ulang.');
 
-        Settings::setPdfRendererName(Settings::PDF_RENDERER_DOMPDF);
-        Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
         $temporaryFiles = [];
 
         try {
@@ -110,47 +100,29 @@ class TrainingCertificateController extends Controller
                     abort_if(blank($participant->nip_nik), 422, 'NIP/NIK peserta '.$participant->name.' belum tersedia.');
                     $certificate = ParticipantCertificate::firstOrNew(['training_id' => $training->id, 'participant_id' => $participant->id]);
                     if (! $certificate->exists) {
+                        do {
+                            $sequence = $next++;
+                            $certificateNumber = $this->formatNumber(
+                                $setting->number_format,
+                                $sequence,
+                                $setting->issued_at->year
+                            );
+                        } while (ParticipantCertificate::where('certificate_number', $certificateNumber)->exists());
+
                         $certificate->fill([
                             'training_certificate_setting_id' => $setting->id,
-                            'sequence_number' => $next,
-                            'certificate_number' => $this->formatNumber($setting->number_format, $next, $setting->issued_at->year),
+                            'sequence_number' => $sequence,
+                            'certificate_number' => $certificateNumber,
                         ]);
-                        $next++;
-                    }
-
-                    $template = new TemplateProcessor(Storage::disk('local')->path($setting->template_path));
-                    $vars = $template->getVariables();
-                    $values = [
-                        'nama' => $participant->name,
-                        'nip_nik' => $participant->nip_nik,
-                        'jabatan' => $participant->jabatan ?: $participant->user?->jabatan ?: '-',
-                        'instansi' => $participant->instansi ?: $participant->user?->instansi ?: '-',
-                        'nomor_sertifikat' => $certificate->certificate_number,
-                        'nama_pelatihan' => $training->nama_pelatihan,
-                        'tanggal_mulai' => $training->tgl_mulai ? \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y') : '-',
-                        'tanggal_selesai' => $training->tgl_selesai ? \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y') : '-',
-                        'tanggal_sertifikat' => $setting->issued_at->translatedFormat('d F Y'),
-                    ];
-                    foreach ($values as $key => $value) if (in_array($key, $vars, true)) $template->setValue($key, htmlspecialchars((string) $value));
-                    if (in_array('foto', $vars, true)) {
-                        if ($participant->pasFotoFile && Storage::disk('public')->exists($participant->pasFotoFile->file_path)) {
-                            $photoSize = $setting->photo_size === '2x3' ? ['width' => 76, 'height' => 113] : ['width' => 113, 'height' => 151];
-                            $template->setImageValue('foto', ['path' => Storage::disk('public')->path($participant->pasFotoFile->file_path), 'width' => $photoSize['width'], 'height' => $photoSize['height'], 'ratio' => false]);
-                        } else $template->setValue('foto', 'Foto belum tersedia');
                     }
 
                     $safeNip = $this->safeNip($participant->nip_nik);
-                    $tmpDocx = tempnam(sys_get_temp_dir(), 'certificate-').'.docx';
                     $tmpPdf = tempnam(sys_get_temp_dir(), 'certificate-').'.pdf';
-                    $temporaryFiles[] = $tmpDocx;
                     $temporaryFiles[] = $tmpPdf;
-                    $template->saveAs($tmpDocx);
-                    try {
-                        $document = IOFactory::load($tmpDocx, 'Word2007');
-                        IOFactory::createWriter($document, 'PDF')->save($tmpPdf);
-                    } catch (\Throwable $exception) {
-                        throw new \RuntimeException('Template gagal dikonversi ke PDF untuk peserta '.$participant->name.'. Sederhanakan elemen Word atau pasang LibreOffice pada server.', 0, $exception);
-                    }
+                    app(TrainingCertificateDocxService::class)->render(
+                        Storage::disk('local')->path($setting->template_path),
+                        $tmpPdf, $training, $participant, $setting, $certificate->certificate_number
+                    );
                     abort_unless(is_file($tmpPdf) && filesize($tmpPdf) > 0, 422, 'PDF gagal dibuat untuk peserta '.$participant->name.'.');
 
                     $stored = 'certificates/generated/'.$training->id.'/'.Str::uuid().'-'.$safeNip.'.pdf';

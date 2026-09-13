@@ -140,5 +140,29 @@ class AssetRentalFlowTest extends TestCase
         $this->assertCount(2, $reservation->rate_breakdown);
         $this->assertEquals(75000, $reservation->rate_breakdown[0]['rate']);
         $this->assertEquals(50000, $reservation->rate_breakdown[1]['rate']);
+    
+    }
+
+    public function test_admin_can_delete_reservation_and_all_related_data(): void
+    {
+        $reservation = $this->submit();
+        $proofPath = $reservation->payment_proof_path;
+        $publicToken = $reservation->public_token;
+        $admin = User::create(['name' => 'Admin Aset', 'role' => 'admin_aset']);
+
+        $this->actingAs($admin)
+            ->put(route('asset-rentals.admin.review', $reservation), ['action' => 'confirm'])
+            ->assertRedirect();
+        $this->assertSame(1, AssetBooking::count());
+        Storage::disk('local')->assertExists($proofPath);
+
+        $this->delete(route('asset-rentals.admin.destroy', $reservation))
+            ->assertRedirect(route('asset-rentals.admin.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('asset_public_reservations', ['id' => $reservation->id]);
+        $this->assertSame(0, AssetBooking::count());
+        Storage::disk('local')->assertMissing($proofPath);
+        $this->get(route('public.asset-rentals.status', $publicToken))->assertNotFound();
     }
 }

@@ -36,16 +36,20 @@ class ProfileController extends Controller
             'whatsapp'           => 'required|numeric',
             'profile_photo'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'gender'             => 'required',
-            'status_kepegawaian' => 'required',
+            'birth_place'        => 'required|string|max:255',
+            'birth_date'         => 'required|date|before_or_equal:today',
+            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
             'nip_nik'            => 'required|string|max:50',
             'jabatan'            => 'required|string|max:255',
+            'golongan'           => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
             'instansi'           => 'required|string|max:255',
             'provinsi'           => 'required|string',
             'kota'               => 'required|string',
             'kecamatan'          => 'required|string',
             'kelurahan'          => 'required|string',
-            'latitude'           => 'nullable|numeric|between:-90,90|required_with:longitude',
-            'longitude'          => 'nullable|numeric|between:-180,180|required_with:latitude',
+            'address'            => 'required|string|max:1000',
+            'latitude'           => 'required|numeric|between:-90,90',
+            'longitude'          => 'required|numeric|between:-180,180',
         ];
 
         // Tambahan validasi khusus jika role adalah Pengajar
@@ -84,7 +88,10 @@ class ProfileController extends Controller
         $user->whatsapp           = $request->whatsapp;
         $user->nip_nik           = $request->nip_nik;
         $user->gender             = $request->gender;
+        $user->birth_place        = $request->birth_place;
+        $user->birth_date         = $request->birth_date;
         $user->jabatan            = $request->jabatan;
+        $user->golongan           = $request->golongan;
         $user->instansi           = $request->instansi;
         $user->status_kepegawaian = $request->status_kepegawaian;
         
@@ -93,6 +100,7 @@ class ProfileController extends Controller
         $user->kota               = $request->kota;
         $user->kecamatan          = $request->kecamatan;
         $user->kelurahan          = $request->kelurahan;
+        $user->address            = $request->address;
         $user->latitude           = $request->latitude;
         $user->longitude          = $request->longitude;
 
@@ -141,6 +149,57 @@ class ProfileController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Profil dan data wilayah berhasil diperbarui.');
+    }
+
+
+    public function searchAddress(Request $request)
+    {
+        $data=$request->validate(['q'=>'required|string|min:3|max:200']);
+        $query=preg_replace('/\s+/u',' ',trim($data['q']));
+        $cacheKey='profile-geocode:'.sha1(mb_strtolower($query));
+
+        try {
+            $results=\Illuminate\Support\Facades\Cache::remember($cacheKey,now()->addDay(),function()use($query){
+                return \Illuminate\Support\Facades\Cache::lock('nominatim-profile-geocode',10)->block(5,function()use($query){
+                    $last=(float)\Illuminate\Support\Facades\Cache::get('nominatim-profile-geocode-last',0);
+                    $wait=1-(microtime(true)-$last);
+                    if($wait>0)usleep((int)ceil($wait*1000000));
+
+                    try {
+                        $response=\Illuminate\Support\Facades\Http::acceptJson()
+                            ->withHeaders([
+                                'User-Agent'=>config('services.nominatim.user_agent'),
+                                'Accept-Language'=>'id',
+                            ])
+                            ->timeout(10)
+                            ->get(rtrim(config('services.nominatim.base_url'),'/').'/search',[
+                                'q'=>$query,
+                                'format'=>'jsonv2',
+                                'limit'=>5,
+                                'countrycodes'=>'id',
+                                'addressdetails'=>1,
+                            ]);
+                    } finally {
+                        \Illuminate\Support\Facades\Cache::put('nominatim-profile-geocode-last',microtime(true),now()->addMinutes(10));
+                    }
+
+                    $response->throw();
+
+                    return collect($response->json())->map(fn($item)=>[
+                        'name'=>(string)($item['name']??str($item['display_name']??'')->before(',')),
+                        'display_name'=>(string)($item['display_name']??''),
+                        'lat'=>(float)($item['lat']??0),
+                        'lon'=>(float)($item['lon']??0),
+                        'type'=>(string)($item['type']??'location'),
+                    ])->filter(fn($item)=>$item['display_name']!==''&&$item['lat']>=-90&&$item['lat']<=90&&$item['lon']>=-180&&$item['lon']<=180)->values()->all();
+                });
+            });
+        } catch (\Throwable $exception) {
+            report($exception);
+            return response()->json(['message'=>'Pencarian alamat sedang tidak tersedia. Silakan tentukan titik secara manual pada peta.'],503);
+        }
+
+        return response()->json(['data'=>$results]);
     }
 
     /**

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 11 Sep 2026 pada 10.29
+-- Waktu pembuatan: 12 Sep 2026 pada 18.58
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -20,6 +20,129 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_pelatihan`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_attendance_answers`
+--
+
+CREATE TABLE `activity_attendance_answers` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `activity_attendance_response_id` bigint(20) UNSIGNED NOT NULL,
+  `activity_attendance_question_id` bigint(20) UNSIGNED NOT NULL,
+  `value_text` longtext DEFAULT NULL,
+  `value_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`value_json`)),
+  `file_path` varchar(255) DEFAULT NULL,
+  `original_name` varchar(255) DEFAULT NULL,
+  `mime_type` varchar(255) DEFAULT NULL,
+  `file_size` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `activity_attendance_answers`
+--
+
+INSERT INTO `activity_attendance_answers` (`id`, `activity_attendance_response_id`, `activity_attendance_question_id`, `value_text`, `value_json`, `file_path`, `original_name`, `mime_type`, `file_size`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 'aku aja ini', NULL, NULL, NULL, NULL, NULL, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
+(2, 1, 2, 'maman karubu', NULL, NULL, NULL, NULL, NULL, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
+(3, 1, 3, NULL, NULL, 'activity-attendance/1/1/signature-3.png', 'tanda-tangan.png', 'image/png', 18866, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
+(4, 2, 1, 'fasfasf', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
+(5, 2, 2, 'maman karubu', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
+(6, 2, 3, NULL, NULL, 'activity-attendance/1/2/signature-3.png', 'tanda-tangan.png', 'image/png', 10474, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
+(7, 2, 8, 'fasfas', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
+(8, 2, 9, 'dsdasdasfasfasfasfaf', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
+(9, 2, 10, NULL, NULL, 'activity-attendance/1/2/a9qQBefAl9ORJ5rzN6UME0QHdzDH23RZHXxrqgFM.pdf', 'rekap-presensi-rapat-persiapan-smmiso-2015 (2).pdf', 'application/pdf', 893358, '2026-09-12 13:03:40', '2026-09-12 13:03:40');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_attendance_forms`
+--
+
+CREATE TABLE `activity_attendance_forms` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `public_token` char(36) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `subtitle` text DEFAULT NULL,
+  `bidang` varchar(255) DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'draft',
+  `opens_at` timestamp NULL DEFAULT NULL,
+  `closes_at` timestamp NULL DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `confirmation_message` text DEFAULT NULL,
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `activity_attendance_forms`
+--
+
+INSERT INTO `activity_attendance_forms` (`id`, `public_token`, `title`, `subtitle`, `bidang`, `status`, `opens_at`, `closes_at`, `location`, `confirmation_message`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, '9650538a-0da7-492b-9bce-1d4c198db37d', 'Rapat Persiapan SMM:ISO 2015', 'Semua akan baik baik saja dalam hal ini', 'bidang', 'open', '2026-09-12 11:43:00', '2026-09-13 11:43:00', 'Gedung Kelas Lantai 3', 'teriamkasih sudah mebgisi presensi ini yah ka :)', 2, '2026-09-12 11:43:48', '2026-09-12 12:58:33');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_attendance_questions`
+--
+
+CREATE TABLE `activity_attendance_questions` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `activity_attendance_form_id` bigint(20) UNSIGNED NOT NULL,
+  `label` text NOT NULL,
+  `help_text` text DEFAULT NULL,
+  `type` varchar(30) NOT NULL,
+  `options` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`options`)),
+  `is_required` tinyint(1) NOT NULL DEFAULT 0,
+  `sort_order` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `max_file_size_kb` int(10) UNSIGNED DEFAULT NULL,
+  `allowed_extensions` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `activity_attendance_questions`
+--
+
+INSERT INTO `activity_attendance_questions` (`id`, `activity_attendance_form_id`, `label`, `help_text`, `type`, `options`, `is_required`, `sort_order`, `max_file_size_kb`, `allowed_extensions`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Nama Kamu siapa', 'sdadas', 'short_text', NULL, 1, 1, 5120, NULL, '2026-09-12 11:44:39', '2026-09-12 11:44:39'),
+(2, 1, 'Mamah siapa', 'sdadas', 'dropdown', '[\"maman karubu\",\"susu budah\",\"asu asu\",\"palanglaraya\"]', 0, 2, 5120, NULL, '2026-09-12 11:45:20', '2026-09-12 11:45:20'),
+(3, 1, 'cob attd', 'kudu bener ngisina', 'signature', NULL, 1, 3, 5120, NULL, '2026-09-12 11:45:38', '2026-09-12 12:55:53'),
+(8, 1, 'ini paragrapft', NULL, 'long_text', NULL, 1, 4, 5120, NULL, '2026-09-12 12:55:46', '2026-09-12 12:56:01'),
+(9, 1, 'ini apa yahdasdas', NULL, 'radio', '[\"maksudnya gimanasdadasd\",\"dsdasdasfasfasfasfaf\",\"fasfasfasf\"]', 0, 5, 5120, NULL, '2026-09-12 12:56:39', '2026-09-12 12:56:39'),
+(10, 1, 'unggah dokumen', NULL, 'file', NULL, 1, 6, 5120, 'pdf', '2026-09-12 12:57:56', '2026-09-12 12:57:56'),
+(11, 1, 'shadgajgdas dasjgd jasdainformasi', NULL, 'info', NULL, 0, 7, 5120, NULL, '2026-09-12 12:58:24', '2026-09-12 12:58:24');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_attendance_responses`
+--
+
+CREATE TABLE `activity_attendance_responses` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `response_token` char(36) NOT NULL,
+  `activity_attendance_form_id` bigint(20) UNSIGNED NOT NULL,
+  `submitted_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `ip_hash` varchar(64) DEFAULT NULL,
+  `user_agent` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `activity_attendance_responses`
+--
+
+INSERT INTO `activity_attendance_responses` (`id`, `response_token`, `activity_attendance_form_id`, `submitted_at`, `ip_hash`, `user_agent`, `created_at`, `updated_at`) VALUES
+(1, 'c775520e-e8a5-40c4-9b5a-da884d3fcc1d', 1, '2026-09-12 11:58:42', '36a74a16a18f16234cadfb61f7b8415680b095271f1f1d054bd144df6c498c2a', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
+(2, '4e9e59b0-6dbf-4a0d-b192-b6ce9d9f6d4a', 1, '2026-09-12 13:03:40', '36a74a16a18f16234cadfb61f7b8415680b095271f1f1d054bd144df6c498c2a', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 13:03:40', '2026-09-12 13:03:40');
 
 -- --------------------------------------------------------
 
@@ -69,7 +192,11 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `activity`, `module`, `ip_address`
 (26, 2, 'Membuat pelatihan & folder dokumen: Pelatihan Contoh Kedalam Inti', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-05 12:13:56', '2026-09-05 12:13:56'),
 (27, 2, 'Menghapus pelatihan Pelatihan Contoh Kedalam Inti beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-05 12:57:16', '2026-09-05 12:57:16'),
 (28, 2, 'Membuat pelatihan & folder dokumen: Pelatihan Contoh Kedalam Umum', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-05 12:57:53', '2026-09-05 12:57:53'),
-(29, 2, 'Membuat pelatihan & folder dokumen: PELATIHAN LATSAR', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-07 04:30:12', '2026-09-07 04:30:12');
+(29, 2, 'Membuat pelatihan & folder dokumen: PELATIHAN LATSAR', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-07 04:30:12', '2026-09-07 04:30:12'),
+(30, 2, 'Menghapus pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 06:10:34', '2026-09-12 06:10:34'),
+(31, 2, 'Menghapus pelatihan Pelatihan Contoh Kedalam Umum beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:06', '2026-09-12 11:05:06'),
+(32, 2, 'Menghapus pelatihan Pealtihan Keuangan Daerah beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:10', '2026-09-12 11:05:10'),
+(33, 2, 'Menghapus pelatihan PELATIHAN LATSAR beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:14', '2026-09-12 11:05:14');
 
 -- --------------------------------------------------------
 
@@ -95,8 +222,7 @@ CREATE TABLE `agendas` (
 --
 
 INSERT INTO `agendas` (`id`, `scope`, `agenda_type`, `name`, `description`, `bidang`, `is_public`, `created_by`, `created_at`, `updated_at`) VALUES
-(12, 'internal', 'bidang', 'Super Administrator', 'vasvasvasv', 'Bidang Pengembangan Kompetensi Teknis Umum', 0, 5, '2026-09-04 06:22:10', '2026-09-04 06:22:10'),
-(13, 'internal', 'bidang', 'dasdsafsafasf', 'gsdgsdgsd', 'Bidang Pengembangan Kompetensi Teknis Umum', 0, 5, '2026-09-05 12:16:59', '2026-09-05 12:16:59');
+(12, 'internal', 'bidang', 'Super Administrator', 'vasvasvasv', 'Bidang Pengembangan Kompetensi Teknis Umum', 0, 5, '2026-09-04 06:22:10', '2026-09-04 06:22:10');
 
 -- --------------------------------------------------------
 
@@ -123,8 +249,7 @@ CREATE TABLE `agenda_schedules` (
 --
 
 INSERT INTO `agenda_schedules` (`id`, `agenda_id`, `title`, `starts_at`, `ends_at`, `external_place`, `zoom_link`, `participants_info`, `notes`, `created_at`, `updated_at`) VALUES
-(11, 12, 'Super Administrator', '2026-09-04 08:00:00', '2026-09-04 09:00:00', NULL, NULL, 'asfasfasfafasfasfasffass fasf as', 'vasvasvasv', '2026-09-04 06:22:10', '2026-09-04 06:22:10'),
-(12, 13, 'dasdsafsafasf', '2026-09-05 19:00:00', '2026-09-05 22:00:00', NULL, NULL, 'gsdgsdgsdgsdg', 'gsdgsdgsd', '2026-09-05 12:16:59', '2026-09-05 12:16:59');
+(11, 12, 'Super Administrator', '2026-09-04 08:00:00', '2026-09-04 09:00:00', NULL, NULL, 'asfasfasfafasfasfasffass fasf as', 'vasvasvasv', '2026-09-04 06:22:10', '2026-09-04 06:22:10');
 
 -- --------------------------------------------------------
 
@@ -147,26 +272,6 @@ CREATE TABLE `ai_generations` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `ai_generations`
---
-
-INSERT INTO `ai_generations` (`id`, `training_id`, `user_id`, `feature`, `model`, `source_hash`, `status`, `input_summary`, `generated_content`, `error_message`, `generated_at`, `created_at`, `updated_at`) VALUES
-(1, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 01:59:52', '2026-09-06 02:00:01'),
-(2, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 02:01:24', '2026-09-06 02:01:27'),
-(3, 9, 2, 'evaluation_l1_organizer_summary', 'gpt-5-mini', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.', NULL, '2026-09-06 02:02:25', '2026-09-06 02:02:30'),
-(4, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-2.5-flash', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'failed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', NULL, 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash for the latest features and improvements. We recommend you to use the Interactions API.', NULL, '2026-09-06 02:20:56', '2026-09-06 02:20:57'),
-(5, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-3.6-flash', '015fab88f7abb8daf0110669f6c01b653fcda0bec42077455cf3ab298059810e', 'completed', '{\"questions\":3,\"responses\":3,\"respondents\":1,\"identities_sent\":false}', '{\"conclusion\":\"Secara keseluruhan, peserta menilai bahwa materi pelatihan dan kinerja penyelenggaraan sudah baik, serta tidak terdapat catatan spesifik terkait materi yang perlu diperbaiki.\",\"follow_up\":\"Mempertahankan kualitas materi dan layanan penyelenggaraan pelatihan yang ada, serta melakukan evaluasi berkala pada pelaksanaan berikutnya guna menjaga mutu secara konsisten.\"}', NULL, '2026-09-06 02:22:18', '2026-09-06 02:22:13', '2026-09-06 02:22:18'),
-(6, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-3.6-flash', 'bf128c83f1200107522c79043c84fb4e71c767243c1ad9765da235cedac7231a', 'completed', '{\"questions\":3,\"responses\":6,\"respondents\":2,\"identities_sent\":false}', '{\"conclusion\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"follow_up\":\"Melakukan koordinasi dengan tim pengajar untuk merevisi dan memperjelas paparan materi pengelolaan keuangan, serta meningkatkan pengawasan dan kebersihan fasilitas pelatihan khususnya area ruang makan secara berkala.\"}', NULL, '2026-09-06 02:25:10', '2026-09-06 02:25:02', '2026-09-06 02:25:10'),
-(7, 9, 2, 'training_activity_report', 'gemini:gemini-3.6-flash', '7f5d780c19f54dd813efc516044f569c3a4732ea4cf0f74e26c44dbe300bbc30', 'completed', '{\"schedules\":1,\"participants_sent\":false,\"participant_identities_sent\":false}', '{\"background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\"}', NULL, '2026-09-06 02:37:21', '2026-09-06 02:37:03', '2026-09-06 02:37:21'),
-(8, 9, 2, 'evaluation_dashboard_l12', 'gemini:gemini-3.6-flash', '16cc30d30d39a82842e07dcff120bf1c63590496a0d684be54340ac4eb1a418d', 'completed', '{\"aggregate_only\":true,\"participant_identities_sent\":false}', '{\"executive_summary\":\"Evaluasi Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I mencatatkan rerata kepuasan Level 1 sebesar 92,9 dan peningkatan rerata Level 2 sebesar 20 poin (dari 80 menjadi 100). Meskipun skor tergolong tinggi, efektivitas dan kepuasan pelatihan ini belum dapat disimpulkan secara mutlak karena jumlah peserta yang sangat terbatas dan ketiadaan data evaluasi narasumber.\",\"key_findings\":\"1. Rerata kepuasan Level 1 penyelenggara mencapai 92,9, dengan indikator tertinggi ketersediaan panitia kompeten (98,0) dan terendah pada kesesuaian soal serta profesionalitas pemanduan pre & post test (88,5). 2. Evaluasi Level 2 menunjukkan peningkatan nilai sebesar 20 poin dari pretest (80) ke posttest (100) pada 1 peserta. 3. Data penilaian evaluasi narasumber bernilai null (tidak tersedia). 4. Masukan anonim mencatat perlunya kejelasan materi pengelolaan keuangan serta peningkatan kebersihan ruang makan.\",\"priority_actions\":\"1. Evaluasi dan perbaiki kualitas soal pre & post test serta profesionalitas panitia dalam memandu ujian. 2. Memperjelas penyampaian substansi materi pengelolaan keuangan dalam kurikulum pelatihan. 3. Meningkatkan standar kebersihan fasilitas penunjang, khususnya area ruang makan. 4. Memastikan mekanisme pengumpulan data evaluasi narasumber dan cakupan peserta berjalan lengkap pada angkatan berikutnya.\",\"data_caution\":\"Tingkat keterwakilan data sangat rendah karena hanya melibatkan 2 responden pada Level 1 dan 1 peserta pada Level 2, serta tidak mencakup data evaluasi narasumber (null). Hasil evaluasi ini tidak dapat digeneralisasi dan hanya berlaku sebagai bahan pertimbangan terbatas.\"}', NULL, '2026-09-06 02:57:38', '2026-09-06 02:57:23', '2026-09-06 02:57:38'),
-(9, 9, 2, 'training_activity_report', 'gemini:gemini-3.6-flash', '7f5d780c19f54dd813efc516044f569c3a4732ea4cf0f74e26c44dbe300bbc30', 'completed', '{\"schedules\":1,\"participants_sent\":false,\"participant_identities_sent\":false}', '{\"background\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I merupakan program jenis PKTI\\/PKTU yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Kegiatan ini dilaksanakan pada periode 30 Agustus 2026 s.d. 01 September 2026 bertempat di Zoom dengan metode klasikal, memuat total durasi 0 JP dan 4 OJ. Pelaksanaan pelatihan ini ditujukan untuk memenuhi kebutuhan pengembangan kompetensi teknis umum para pegawai dari instansi terkait.\",\"legal_basis\":\"Informasi mengenai dasar hukum pelaksanaan kegiatan belum tersedia pada data terstruktur dan perlu dilengkapi oleh admin.\",\"objectives\":\"Pelatihan ini bertujuan untuk memberikan pembekalan dan peningkatan kompetensi peserta terkait pengkajian kebutuhan pascabencana melalui penyampaian materi pelatihan yang mencakup Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"implementation\":\"Pelatihan diselenggarakan secara klasikal melalui Zoom dari tanggal 30 Agustus 2026 sampai dengan 01 September 2026. Sebanyak 2 pendaftar dari 2 instansi telah disetujui sebagai peserta. Kegiatan diampu oleh 1 orang pengajar dengan agenda pembelajaran yang dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS berdurasi 4 OJ.\",\"achievements\":\"Berdasarkan evaluasi agregat, pelatihan ini meraih nilai evaluasi Level 1 sebesar 92,9 dan nilai evaluasi Level 2 sebesar 100,0 (sementara nilai Level 3 dan Level 4 tidak diukur). Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"constraints\":\"Tingkat rata-rata kehadiran peserta berada pada angka 0,0% di mana dari 2 peserta yang disetujui, keduanya tercatat tanpa keterangan (0 hadir, 0 izin, 0 sakit). Selain itu, berdasarkan 6 saran yang masuk, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan. Penjelasan kendala spesifik lainnya perlu dilengkapi oleh admin.\",\"follow_up\":\"Tindak lanjut yang harus dilakukan meliputi penelusuran serta konfirmasi atas ketidakhadiran 2 peserta tanpa keterangan, evaluasi bersama pengajar terkait kejelasan substansi materi pengelolaan keuangan, serta koordinasi dengan pengelola sarana dan prasarana untuk peningkatan kebersihan ruang makan.\",\"conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah selesai dilaksanakan dengan pencapaian evaluasi Level 1 sebesar 92,9 dan Level 2 sebesar 100,0 serta penilaian materi dan penyelenggara yang cukup baik. Namun, pelaksanaan kegiatan menghadapi catatan kritis berupa rekapitulasi kehadiran peserta sebesar 0,0% (2 peserta tanpa keterangan) serta adanya beberapa catatan perbaikan dari peserta.\",\"recommendations\":\"Direkomendasikan untuk meninjau ulang dan memperjelas penyampaian substansi materi pengelolaan keuangan, meningkatkan pemeliharaan kebersihan sarana dan prasarana khususnya area ruang makan, serta memperketat mekanisme konfirmasi kehadiran peserta sebelum dan selama pelatihan berlangsung.\"}', NULL, '2026-09-07 04:15:14', '2026-09-07 04:14:55', '2026-09-07 04:15:14'),
-(10, 9, 2, 'evaluation_l1_organizer_summary', 'gemini:gemini-3.6-flash', 'bf128c83f1200107522c79043c84fb4e71c767243c1ad9765da235cedac7231a', 'completed', '{\"questions\":3,\"responses\":6,\"respondents\":2,\"identities_sent\":false}', '{\"conclusion\":\"Secara umum, materi dan pelaksanaan pelatihan dinilai cukup baik oleh sebagian peserta. Meski demikian, terdapat temuan evaluasi yang menunjukkan ketidakjelasan pada materi pengelolaan keuangan, perlunya penyelarasan isi paparan dengan ekspektasi peserta, serta catatan terkait kebersihan sarana dan prasarana khususnya area ruang makan.\",\"follow_up\":\"1. Melakukan reviu dan penyempurnaan substansi paparan materi pengelolaan keuangan bersama narasumber terkait sebelum sesi berikutnya. 2. Meningkatkan pengawasan dan koordinasi dengan unit pengelola fasilitas untuk memastikan kebersihan serta kelayakan sarana prasarana, terutama ruang makan.\"}', NULL, '2026-09-07 04:16:55', '2026-09-07 04:16:49', '2026-09-07 04:16:55'),
-(11, 8, 2, 'training_activity_report', 'gemini:gemini-3.6-flash', '94c964b3d4cec8afd255ef2ddc661688e6fa114a5e57aa77d154645dd4415d90', 'completed', '{\"schedules\":1,\"participants_sent\":false,\"participant_identities_sent\":false}', '{\"background\":\"Laporan ini disusun sebagai bentuk pertanggungjawaban atas penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 yang dilaksanakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan jenis PKTI\\/PKTU ini diselenggarakan pada periode 27 Agustus 2026 s.d. 28 Agustus 2026 berlokasi di Gedung kelas lantai 2 dengan metode klasikal, mengalokasikan total 2 JP dan 0 OJ.\",\"legal_basis\":\"Informasi mengenai dasar hukum dan peraturan perundang-undangan penyelenggaraan pelatihan belum tersedia dalam data dasar, sehingga bagian ini memohon bantuan administrator untuk dapat dilengkapi.\",\"objectives\":\"Tujuan dari penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 ini adalah untuk memfasilitasi kegiatan pembelajaran teknis umum sesuai bidang tugas melalui metode klasikal sebanyak 2 JP bagi para pemangku kepentingan terkait.\",\"implementation\":\"Kegiatan dilaksanakan secara klasikal di Gedung kelas lantai 2 pada tanggal 27 Agustus 2026 s.d. 28 Agustus 2026. Pembelajaran didukung oleh 1 orang pengajar. Agenda yang terdaftar memuat materi Materi Kebangsaan pada 01 Sep 2026 pukul 08:00\\u201309:30 berdurasi 2 JP. Berdasarkan data statistik agregat, tercatat 0 pendaftar, 0 peserta disetujui, dan 0 instansi. Catatan kehadiran mencakup 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan dengan rata-rata kehadiran sebesar 0,0%. Pada aspek evaluasi agregat, level 1 hingga level 4 serta kesimpulan admin anonim belum mencatatkan data kuantitatif atau kualitatif (-), dengan jumlah saran sebanyak 0.\",\"achievements\":\"Capaian kegiatan ini ditunjukkan dengan tersediayanya sarana lokasi di Gedung kelas lantai 2, keterlibatan 1 orang pengajar, serta terlaksananya alokasi pembelajaran Materi Kebangsaan durasi 2 JP.\",\"constraints\":\"Rincian kendala yang dihadapi selama masa persiapan maupun pelaksanaan pelatihan belum tersedia pada data acuan, sehingga bagian ini memerlukan verifikasi dan penyempurnaan lebih lanjut oleh administrator.\",\"follow_up\":\"Tindak lanjut konkret yang perlu dilakukan adalah melakukan konfirmasi status terhadap 1 data catatan tanpa keterangan serta melengkapi pengisian data evaluasi level 1 sampai dengan level 4.\",\"conclusion\":\"Penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 Bidang Pengembangan Kompetensi Teknis Umum telah memfasilitasi materi pembelajaran 2 JP bersama 1 pengajar. Namun, pencatatan statistik menunjukkan rata-rata kehadiran 0,0% dengan 1 status tanpa keterangan serta data evaluasi agregat yang belum terisi.\",\"recommendations\":\"Direkomendasikan bagi administrator untuk melengkapi penulisan dasar hukum kegiatan, melakukan penelusuran kearsipan terhadap status kehadiran tanpa keterangan, serta menginput hasil evaluasi peserta level 1 hingga level 4 agar laporan pelatihan menjadi utuh.\"}', NULL, '2026-09-07 08:15:10', '2026-09-07 08:14:25', '2026-09-07 08:15:10'),
-(12, 12, 2, 'training_activity_report', 'gemini:gemini-3.6-flash', 'f41de2336b8a2be83bbbc46e511b1a42bdaf8f9e65b0fd3e44852b4714da556a', 'completed', '{\"schedules\":0,\"participants_sent\":false,\"participant_identities_sent\":false}', '{\"background\":\"Laporan ini disusun berdasarkan penyelenggaraan Pelatihan Latsar Angkatan I bagi CPNS di lingkungan Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan. Pelatihan ini dijadwalkan berlangsung pada periode 06 Juni 2025 sampai dengan 10 Juni 2025 dengan metode klasikal melalui media Zoom, dengan total beban jam pelajaran (JP) sebanyak 0 dan On the Job Training (OJ) sebanyak 0.\",\"legal_basis\":\"Data mengenai dasar hukum, peraturan pemerintah, maupun surat keputusan penyelenggaraan pelatihan belum tersedia pada data laporan ini. Mohon kesediaan administrator untuk melengkapi bagian dasar hukum sesuai dengan ketentuan yang berlaku.\",\"objectives\":\"Pelaksanaan kegiatan ini bertujuan untuk menyelenggarakan Pelatihan Latsar Angkatan I bagi CPNS pada Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan melalui platform Zoom secara klasikal dari tanggal 06 Juni 2025 hingga 10 Juni 2025.\",\"implementation\":\"Pelatihan dilaksanakan secara klasikal melalui Zoom pada tanggal 06 Juni 2025 s.d. 10 Juni 2025. Jumlah pendaftar tercatat sebanyak 1 orang dan 1 peserta disetujui dari 1 instansi. Kegiatan ini tercatat memiliki total 0 JP dan 0 OJ, serta ditangani oleh 0 orang pengajar.\",\"achievements\":\"Pencapaian pelaksanaan ditunjukkan melalui data statistik dengan tingkat rata-rata kehadiran sebesar 0,0%, di mana dari 1 peserta terdaftar, tercatat 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan. Evaluasi agregat level 1 hingga level 4 belum menghasilkan nilai, serta ringkasan evaluasi dampak dan perubahan sikap perilaku belum memiliki jawaban.\",\"constraints\":\"Data kendala pelaksanaan pelatihan belum tercatat dalam sistem. Mohon kesediaan administrator untuk melengkapi informasi kendala operasional maupun teknis yang dihadapi selama kegiatan berlangsung.\",\"follow_up\":\"Tindak lanjut konkret yang perlu dilakukan adalah mengklarifikasi status ketidakhadiran 1 orang peserta tanpa keterangan kepada instansi asal, serta mengoordinasikan pengisian evaluasi pascapelatihan bersama pihak terkait.\",\"conclusion\":\"Pelatihan Latsar Angkatan I bagi CPNS Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan periode 06 Juni 2025 s.d. 10 Juni 2025 via Zoom telah mencatatkan 1 peserta disetujui, namun tingkat kehadiran mencapai 0,0% dengan 1 peserta tanpa keterangan, serta belum ada data evaluasi level 1 sampai 4 yang terisi.\",\"recommendations\":\"Disarankan agar penyelenggara melengkapi dokumen dasar hukum dan kendala melalui administrator, melakukan pembenahan prosedur pemanggilan peserta untuk memastikan kehadiran, serta memantau pengisian instrumen evaluasi pelatihan.\"}', NULL, '2026-09-09 03:38:31', '2026-09-09 03:38:13', '2026-09-09 03:38:31'),
-(13, 9, 2, 'evaluation_dashboard_l12', 'gemini:gemini-3.6-flash', '1ea036f0cf61a6e2f012b13d6d06735f5bce5cf83ed7b2d7bb3b64547dedc748', 'completed', '{\"aggregate_only\":true,\"participant_identities_sent\":false}', '{\"executive_summary\":\"Evaluasi Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I mencatatkan rerata Level 1 sebesar 92,9 dan peningkatan skor Level 2 sebesar 20 poin (dari 80 menjadi 100). Namun, interpretasi data sangat terbatas karena cakupan peserta hanya 2 orang (responden L1 = 2, L2 = 1) dan evaluasi narasumber bernilai null.\",\"key_findings\":\"1. Rerata evaluasi penyelenggaraan Level 1 sebesar 92,9 dengan nilai tertinggi pada ketersediaan panitia yang kompeten (98) dan nilai terendah pada kesesuaian soal serta profesionalitas memandu pre\\/post test (88,5). 2. Hasil Level 2 menunjukkan kenaikan rerata nilai dari pretest 80 ke posttest 100 pada 1 peserta. 3. Evaluasi terhadap narasumber tidak tersedia (null). 4. Masukan anonim menyoroti ketidakjelasan materi pengelolaan keuangan, kebutuhan penyelarasan materi dengan ekspektasi peserta, serta isu kebersihan ruang makan.\",\"priority_actions\":\"1. Evaluasi dan tingkatkan kualitas penyusunan soal serta profesionalitas pelaksanaan pre\\/post test. 2. Tinjau ulang dan perjelas materi pembelajaran pengelolaan keuangan agar sesuai dengan harapan peserta. 3. Tingkatkan kebersihan sarana prasarana, terutama area ruang makan. 4. Pastikan ketersediaan data evaluasi narasumber dan perluas cakupan responden pada pelaksanaan berikutnya.\",\"data_caution\":\"Tingkat keterwakilan data sangat terbatas karena hanya melibatkan 2 peserta pada Level 1 dan 1 peserta pada Level 2, serta tidak adanya data evaluasi narasumber. Angka dan temuan tidak dapat digeneralisasi untuk populasi yang lebih luas.\"}', NULL, '2026-09-09 03:43:51', '2026-09-09 03:43:17', '2026-09-09 03:43:51'),
-(14, 11, 2, 'evaluation_dashboard_l12', 'gemini:gemini-3.6-flash', 'eaf351e64de73e30a15f0088d9206d97863dd65b3dffba07b3b051dc0d3cf9fe', 'failed', '{\"aggregate_only\":true,\"participant_identities_sent\":false}', NULL, 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', NULL, '2026-09-09 03:44:24', '2026-09-09 03:44:30');
 
 -- --------------------------------------------------------
 
@@ -258,7 +363,7 @@ INSERT INTO `assets` (`id`, `name`, `type`, `facilities`, `location`, `capacity`
 (42, 'RUANG KELAS 2-I', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi', 'Gedung Kelas Lantai 2', 30, NULL, 1, 1, 0, NULL, NULL, NULL, 1, 8, 9, '2026-08-30 08:06:42', '2026-08-30 08:06:42'),
 (43, 'AULA KUJANG', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi', 'Twin Tower Lantai 3', 500, NULL, 1, 1, 0, NULL, NULL, NULL, 1, 8, 9, '2026-08-30 08:07:25', '2026-08-30 08:07:25'),
 (44, 'AULA UTAMA', 'ruangan', 'AC, Soundsystem, Infocus, Meja, Kursi, Sofa', 'Gedung Aula Bawah Lantai 2', 500, NULL, 1, 1, 0, NULL, NULL, NULL, 1, 8, 9, '2026-08-30 08:08:13', '2026-08-30 08:08:13'),
-(45, 'LAPANGAN TENIS', 'lainnya', 'Lapangan, Net, Tribun', 'Sport Center Bpsdm Jabar', 8, NULL, 1, 1, 1, 200000.00, '06:00:00', '16:00:00', 1, 8, 9, '2026-09-08 13:24:38', '2026-09-08 13:24:38');
+(45, 'LAPANGAN TENIS', 'lainnya', 'Lapangan, Net, Tribun', 'Sport Center Bpsdm Jabar', 8, NULL, 1, 1, 1, 50000.00, '06:00:00', '18:00:00', 1, 12, 9, '2026-09-08 13:24:38', '2026-09-11 16:01:41');
 
 -- --------------------------------------------------------
 
@@ -277,19 +382,6 @@ CREATE TABLE `asset_bookings` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `asset_bookings`
---
-
-INSERT INTO `asset_bookings` (`id`, `asset_id`, `bookable_type`, `bookable_id`, `starts_at`, `ends_at`, `created_by`, `created_at`, `updated_at`) VALUES
-(25, 28, 'App\\Models\\AgendaSchedule', 11, '2026-09-04 08:00:00', '2026-09-04 09:00:00', 5, '2026-09-04 06:22:59', '2026-09-04 06:22:59'),
-(27, 28, 'App\\Models\\Schedule', 20, '2026-09-03 18:00:00', '2026-09-03 22:00:00', 5, '2026-09-05 12:15:02', '2026-09-05 12:15:02'),
-(28, 28, 'App\\Models\\AgendaSchedule', 12, '2026-09-05 19:00:00', '2026-09-05 22:00:00', 5, '2026-09-05 12:17:29', '2026-09-05 12:17:29'),
-(30, 28, 'App\\Models\\Schedule', 25, '2026-09-05 23:03:00', '2026-09-05 23:48:00', 5, '2026-09-05 13:21:27', '2026-09-05 13:21:27'),
-(31, 28, 'App\\Models\\Schedule', 26, '2026-09-06 08:00:00', '2026-09-06 08:45:00', 5, '2026-09-05 13:22:19', '2026-09-05 13:22:19'),
-(32, 45, 'App\\Models\\AssetPublicReservation', 1, '2026-09-11 08:00:00', '2026-09-11 11:00:00', 9, '2026-09-09 03:21:32', '2026-09-09 03:21:32'),
-(33, 45, 'App\\Models\\AssetPublicReservation', 3, '2026-09-12 08:00:00', '2026-09-12 10:00:00', 2, '2026-09-11 08:18:51', '2026-09-11 08:18:51');
 
 -- --------------------------------------------------------
 
@@ -311,75 +403,75 @@ CREATE TABLE `asset_images` (
 --
 
 INSERT INTO `asset_images` (`id`, `asset_id`, `path`, `sort_order`, `created_at`, `updated_at`) VALUES
-(8, 11, 'assets/Lr1TC2LIdkQBGojz5u8boxxRk87Kj1sDqphJMxOV.jpg', 0, '2026-08-30 07:45:50', '2026-08-30 07:45:50'),
-(9, 11, 'assets/0qNVk9bNLBwYcnZTvLvTUT2FZdWHiyLa9NiNKyr4.jpg', 1, '2026-08-30 07:45:50', '2026-08-30 07:45:50'),
-(10, 11, 'assets/FSa7L6UVrMrNd1Q0YILW8c3oyEpKHmwvrvdKJUs2.jpg', 2, '2026-08-30 07:45:50', '2026-08-30 07:45:50'),
-(11, 12, 'assets/pvdrS1iTgIyTAYad384csV08WcJMuVWQbQgcwfk2.jpg', 0, '2026-08-30 07:46:52', '2026-08-30 07:46:52'),
-(12, 12, 'assets/N6nLz73mNBIuMf1Inr74DSbdsNXgbBXZ2Pj84Ybn.jpg', 1, '2026-08-30 07:46:52', '2026-08-30 07:46:52'),
-(13, 13, 'assets/ABYzGLyA70ltyHsBgc51wurler7DOVRybDV2FIkM.jpg', 0, '2026-08-30 07:47:41', '2026-08-30 07:47:41'),
-(14, 14, 'assets/nHV7JXMwJdpmjsFX3z3P9pbbz3kmJe9HZ3j9ruZe.jpg', 0, '2026-08-30 07:48:54', '2026-08-30 07:48:54'),
-(15, 14, 'assets/GHgiL7QysVEEi1DiFvjmQk2QzJ2bOnwRQVxsiZKD.jpg', 1, '2026-08-30 07:48:54', '2026-08-30 07:48:54'),
-(16, 15, 'assets/MplV1dslLZLLHoOspkkHCdFkDaW7thoYY3lRnU9U.jpg', 0, '2026-08-30 07:49:38', '2026-08-30 07:49:38'),
-(17, 16, 'assets/glrQOtwBbxYiXINj0YdQBgwPTea6IIKXrVuueSGL.jpg', 0, '2026-08-30 07:50:36', '2026-08-30 07:50:36'),
-(18, 16, 'assets/gdnYnuPLDWedFBdJw0GFSRb9KDliqw3RT1w08oid.jpg', 1, '2026-08-30 07:50:36', '2026-08-30 07:50:36'),
-(19, 16, 'assets/GW85n7uS37hJOw7qJnRc0YGjEJRAOnKn1PQ2oh6U.jpg', 2, '2026-08-30 07:50:36', '2026-08-30 07:50:36'),
-(20, 16, 'assets/F4MOdqdOUOTu1FnCh8oAcjfwezVWmXakAiVxSWpc.jpg', 3, '2026-08-30 07:50:36', '2026-08-30 07:50:36'),
-(21, 17, 'assets/RYmw5oyaK9gB9rP6KrgIaTKFYYRORF459AMrgsJ0.jpg', 0, '2026-08-30 07:51:20', '2026-08-30 07:51:20'),
-(22, 17, 'assets/fpE2YZ1EAYG8S7495QpkGwz5kPG1P3wWn9iAAq7T.jpg', 1, '2026-08-30 07:51:20', '2026-08-30 07:51:20'),
-(23, 17, 'assets/qaxxWx9jCHWH2QXdwgyxtdZwwSDx0UpI8dLojuo5.jpg', 2, '2026-08-30 07:51:20', '2026-08-30 07:51:20'),
-(24, 17, 'assets/4np95DEFkMWet2hFdGhyxVLHeToinXiiZGaoHTKp.jpg', 3, '2026-08-30 07:51:20', '2026-08-30 07:51:20'),
-(25, 18, 'assets/61wIkOh7DsTXmpw6Ny74X9lrbalPZzABj0rej5HF.jpg', 0, '2026-08-30 07:51:58', '2026-08-30 07:51:58'),
-(26, 18, 'assets/Q6FrgsDWmdbirVSiBRZWjIDNeYsg5n3txQP1s1jc.jpg', 1, '2026-08-30 07:51:58', '2026-08-30 07:51:58'),
-(27, 18, 'assets/ZtQ4RPlc7CjY654Lxd2DTjiW5IWDkmoMy0tFEWVY.jpg', 2, '2026-08-30 07:51:58', '2026-08-30 07:51:58'),
-(28, 18, 'assets/OdgNB4VkJIJ0oHNlyWfhUkv7yw4hGqDSneQtMAdj.jpg', 3, '2026-08-30 07:51:58', '2026-08-30 07:51:58'),
-(29, 19, 'assets/hnheFLdfYTWW7c9WJ0ifkKA28eCUdtqzU3Ds2RoN.jpg', 0, '2026-08-30 07:52:27', '2026-08-30 07:52:27'),
-(30, 19, 'assets/wOKAiM0u6XsndEOSLyG6uTDvLnHkmHjLBiGVPlAP.jpg', 1, '2026-08-30 07:52:27', '2026-08-30 07:52:27'),
-(31, 19, 'assets/JWHpqlybGrN2BuFkl5mmNoyecwu25Mh4M4knr12J.jpg', 2, '2026-08-30 07:52:27', '2026-08-30 07:52:27'),
-(32, 19, 'assets/eixKPMPnq9X2NRHjHR2pGoTH16ZWZAbjFhvfRPsi.jpg', 3, '2026-08-30 07:52:27', '2026-08-30 07:52:27'),
-(33, 20, 'assets/2ek9XUoOfR0WBJRAaBTTn7tn1t4JcmzWpyoKXwoi.jpg', 0, '2026-08-30 07:53:04', '2026-08-30 07:53:04'),
-(34, 20, 'assets/N9qkYT3Ifi22B8U9ldXhFRK8gl3x67AqZfMu0W9z.jpg', 1, '2026-08-30 07:53:04', '2026-08-30 07:53:04'),
-(35, 20, 'assets/YjoSommN1AmGPBmiJV6LuXq7bp1MPi17MIebMKVN.jpg', 2, '2026-08-30 07:53:04', '2026-08-30 07:53:04'),
-(36, 20, 'assets/1RGyqmCxkZNywrwsgOMMbrInYq1mi5ipU0XVYZgp.jpg', 3, '2026-08-30 07:53:04', '2026-08-30 07:53:04'),
-(37, 21, 'assets/RRyBwnTQW8VcIp1uJ1sERVvBtwzQHHaJzjkVbRM8.jpg', 0, '2026-08-30 07:53:35', '2026-08-30 07:53:35'),
-(38, 21, 'assets/vb6ZSwOv4ZvhTSxQgqECUOktGahMeyFDRC1rTMxA.jpg', 1, '2026-08-30 07:53:35', '2026-08-30 07:53:35'),
-(39, 21, 'assets/CP1R7FUxxzKySNmdCcTqUfyTXREwWKdNIxH3ZdWg.jpg', 2, '2026-08-30 07:53:35', '2026-08-30 07:53:35'),
-(40, 21, 'assets/dwhY55shH5FwN5gvo5JjaLUXQ11HiGUN2kIAb4g1.jpg', 3, '2026-08-30 07:53:35', '2026-08-30 07:53:35'),
-(41, 22, 'assets/1QiYEAF7GY06Xte0EHGi7isQiwe5CwEMDfCoYhXq.jpg', 0, '2026-08-30 07:54:06', '2026-08-30 07:54:06'),
-(42, 22, 'assets/viDsxLYBJFtKfXhyrIXy5rimQKfdV31SUNOfNvDX.jpg', 1, '2026-08-30 07:54:06', '2026-08-30 07:54:06'),
-(43, 22, 'assets/vxVlr5IYmGoPqIhiHKsd0mLLfvJga4KkH45Etiwd.jpg', 2, '2026-08-30 07:54:06', '2026-08-30 07:54:06'),
-(44, 22, 'assets/XFxEBlLr7atALbcJ6QkzFOsO0LRlNDq0jKCwMKBa.jpg', 3, '2026-08-30 07:54:07', '2026-08-30 07:54:07'),
-(45, 23, 'assets/ZsEBfUB3k31zc4gEquIEMyYELKhqt6f46gLa8Aml.jpg', 0, '2026-08-30 07:54:39', '2026-08-30 07:54:39'),
-(46, 23, 'assets/R00FIRr0YewFdAeNZDpA2EnauHsLn1CFWltN3G1A.jpg', 1, '2026-08-30 07:54:39', '2026-08-30 07:54:39'),
-(47, 23, 'assets/tYKCrjFOp0EzOf8odYVIECzWpi2y1GnMKC1y0p0J.jpg', 2, '2026-08-30 07:54:39', '2026-08-30 07:54:39'),
-(48, 23, 'assets/rboPqxM3sGsOrb22H5lZXNis6fOrwul6Raw4FxkF.jpg', 3, '2026-08-30 07:54:39', '2026-08-30 07:54:39'),
-(49, 24, 'assets/8C8R4ZunGZbgFDpawvKw8AUy2hklK5ZHatKiMbyt.jpg', 0, '2026-08-30 07:55:03', '2026-08-30 07:55:03'),
-(50, 24, 'assets/LcxbLyiCxrZgiXcKkp6iBG6Kl1mD4eNp6Tw1TrR0.jpg', 1, '2026-08-30 07:55:03', '2026-08-30 07:55:03'),
-(51, 24, 'assets/CO6wnkfzelSMrtpkdvAGP8B0GESFpxDTRnL3b0Rc.jpg', 2, '2026-08-30 07:55:03', '2026-08-30 07:55:03'),
-(52, 24, 'assets/UMs2htdiY2VBFWbVp63PQPk9FX0IKJwRRBCbzZDO.jpg', 3, '2026-08-30 07:55:03', '2026-08-30 07:55:03'),
-(53, 25, 'assets/G5xN4HCywUiH6UakFFO7mXSQzL6y3CvhVuJIMXHX.jpg', 0, '2026-08-30 07:55:29', '2026-08-30 07:55:29'),
-(54, 25, 'assets/SDDfD8AQZQyrsoGa6OvF61SL0eDdFor3PsEJa3qq.jpg', 1, '2026-08-30 07:55:29', '2026-08-30 07:55:29'),
-(55, 25, 'assets/12VGTEsycAD1U8mSAiX6W74Wa5EjYDj4ZpfEU8Kh.jpg', 2, '2026-08-30 07:55:29', '2026-08-30 07:55:29'),
-(56, 25, 'assets/Q22UvAeMrakhGt8ULLRLNFm3JfNyJQLf0eJnBVFi.jpg', 3, '2026-08-30 07:55:29', '2026-08-30 07:55:29'),
-(57, 26, 'assets/QMylcBa3LrSlz4AeTg3ZWaFsqDveQT34GyJTEqSv.jpg', 0, '2026-08-30 07:56:33', '2026-08-30 07:56:33'),
-(58, 27, 'assets/kTgFY3oYu9DAU6JHMo4yadsr4Gl68JjhhJo0EV6c.jpg', 0, '2026-08-30 07:57:15', '2026-08-30 07:57:15'),
-(59, 28, 'assets/pU0duvgm5yfp1t4GLvUzrIGTsLAT9emzSUalbAQG.jpg', 0, '2026-08-30 07:57:47', '2026-08-30 07:57:47'),
-(60, 29, 'assets/4WPAsprl2wMVSJbgZmmGszKB1BgLlPBDAcykp4Eu.jpg', 0, '2026-08-30 07:58:39', '2026-08-30 07:58:39'),
-(61, 30, 'assets/Pu7HhplVBWwKOOsE4gXPtuRl28VwWa2uNVz5LSVY.jpg', 0, '2026-08-30 07:59:19', '2026-08-30 07:59:19'),
-(62, 31, 'assets/mchBieoUp8pPWO6zh2jg4RIrXgEg21kq4KYTr1dt.jpg', 0, '2026-08-30 08:00:08', '2026-08-30 08:00:08'),
-(63, 32, 'assets/z3UV0YANjnFd1q5RXjXO2Ft5X60bxg34oUNpoWpc.jpg', 0, '2026-08-30 08:01:15', '2026-08-30 08:01:15'),
-(64, 33, 'assets/vTX1tF1Um7NHqX0uJeOrkHylURURBK0WkTrHfiAF.jpg', 0, '2026-08-30 08:01:56', '2026-08-30 08:01:56'),
-(65, 34, 'assets/oGgGk65uDo2U5SJt74KkG6c51LBsnHbGtxhZjhNS.jpg', 0, '2026-08-30 08:02:37', '2026-08-30 08:02:37'),
-(66, 35, 'assets/Zz911DRfrC2LOEHK59I8oEeNomAbiXcZq8nyuF9g.jpg', 0, '2026-08-30 08:03:19', '2026-08-30 08:03:19'),
-(67, 36, 'assets/tlSbSeNvGK4Jxk06zles7hQnXMPh49FQU8jB38AV.jpg', 0, '2026-08-30 08:03:57', '2026-08-30 08:03:57'),
-(68, 37, 'assets/UDg07otPa6ynavjz1f6ZJwRSGDTAiQiChmIsWY3X.jpg', 0, '2026-08-30 08:04:25', '2026-08-30 08:04:25'),
-(69, 38, 'assets/h7ZOk3DhIIwOBO4Wyf4t0mVoRmO2uQGQZcGpfecT.jpg', 0, '2026-08-30 08:04:50', '2026-08-30 08:04:50'),
-(70, 39, 'assets/Nl2U8YY3otSYTf0n9ncqaZ74VVOiwu1PNMfHA1rk.jpg', 0, '2026-08-30 08:05:14', '2026-08-30 08:05:14'),
-(71, 40, 'assets/xGL8Yok0QA5VbIJbgwbmsydKh6E8CwVFcc8MIICZ.jpg', 0, '2026-08-30 08:05:51', '2026-08-30 08:05:51'),
-(72, 41, 'assets/sug57E5LI4RxG6AhLGrgLkEmC7xxKJf8SPtPsLo0.jpg', 0, '2026-08-30 08:06:12', '2026-08-30 08:06:12'),
-(73, 42, 'assets/DZz9bWDtPzWbrwzYzzngRllXLGTfQidEjk0mdivn.jpg', 0, '2026-08-30 08:06:42', '2026-08-30 08:06:42'),
-(74, 43, 'assets/EkMnJCyqqvpIXmRRfM7dgp02xRvyXoT5gsUZz4LR.jpg', 0, '2026-08-30 08:07:25', '2026-08-30 08:07:25'),
-(75, 44, 'assets/JMlKGgA8uB17qpudO1LlncFLFkeYJJ3MM3tMi4uy.png', 0, '2026-08-30 08:08:13', '2026-08-30 08:08:13'),
-(76, 45, 'assets/Y8bEFyuvK5CakT1RV3PbgBq7Zqh3sYak0oEuotDf.jpg', 0, '2026-09-08 13:24:40', '2026-09-08 13:24:40');
+(77, 11, 'assets/0qNVk9bNLBwYcnZTvLvTUT2FZdWHiyLa9NiNKyr4.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(78, 25, 'assets/12VGTEsycAD1U8mSAiX6W74Wa5EjYDj4ZpfEU8Kh.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(79, 22, 'assets/1QiYEAF7GY06Xte0EHGi7isQiwe5CwEMDfCoYhXq.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(80, 20, 'assets/1RGyqmCxkZNywrwsgOMMbrInYq1mi5ipU0XVYZgp.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(81, 20, 'assets/2ek9XUoOfR0WBJRAaBTTn7tn1t4JcmzWpyoKXwoi.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(82, 29, 'assets/4WPAsprl2wMVSJbgZmmGszKB1BgLlPBDAcykp4Eu.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(83, 17, 'assets/4np95DEFkMWet2hFdGhyxVLHeToinXiiZGaoHTKp.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(84, 18, 'assets/61wIkOh7DsTXmpw6Ny74X9lrbalPZzABj0rej5HF.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(85, 24, 'assets/8C8R4ZunGZbgFDpawvKw8AUy2hklK5ZHatKiMbyt.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(86, 13, 'assets/ABYzGLyA70ltyHsBgc51wurler7DOVRybDV2FIkM.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(87, 24, 'assets/CO6wnkfzelSMrtpkdvAGP8B0GESFpxDTRnL3b0Rc.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(88, 21, 'assets/CP1R7FUxxzKySNmdCcTqUfyTXREwWKdNIxH3ZdWg.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(89, 42, 'assets/DZz9bWDtPzWbrwzYzzngRllXLGTfQidEjk0mdivn.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(90, 43, 'assets/EkMnJCyqqvpIXmRRfM7dgp02xRvyXoT5gsUZz4LR.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(91, 16, 'assets/F4MOdqdOUOTu1FnCh8oAcjfwezVWmXakAiVxSWpc.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(92, 11, 'assets/FSa7L6UVrMrNd1Q0YILW8c3oyEpKHmwvrvdKJUs2.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(93, 25, 'assets/G5xN4HCywUiH6UakFFO7mXSQzL6y3CvhVuJIMXHX.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(94, 14, 'assets/GHgiL7QysVEEi1DiFvjmQk2QzJ2bOnwRQVxsiZKD.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(95, 16, 'assets/GW85n7uS37hJOw7qJnRc0YGjEJRAOnKn1PQ2oh6U.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(96, 44, 'assets/JMlKGgA8uB17qpudO1LlncFLFkeYJJ3MM3tMi4uy.png', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(97, 19, 'assets/JWHpqlybGrN2BuFkl5mmNoyecwu25Mh4M4knr12J.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(98, 24, 'assets/LcxbLyiCxrZgiXcKkp6iBG6Kl1mD4eNp6Tw1TrR0.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(99, 11, 'assets/Lr1TC2LIdkQBGojz5u8boxxRk87Kj1sDqphJMxOV.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(100, 15, 'assets/MplV1dslLZLLHoOspkkHCdFkDaW7thoYY3lRnU9U.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(101, 12, 'assets/N6nLz73mNBIuMf1Inr74DSbdsNXgbBXZ2Pj84Ybn.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(102, 20, 'assets/N9qkYT3Ifi22B8U9ldXhFRK8gl3x67AqZfMu0W9z.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(103, 39, 'assets/Nl2U8YY3otSYTf0n9ncqaZ74VVOiwu1PNMfHA1rk.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(104, 18, 'assets/OdgNB4VkJIJ0oHNlyWfhUkv7yw4hGqDSneQtMAdj.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(105, 30, 'assets/Pu7HhplVBWwKOOsE4gXPtuRl28VwWa2uNVz5LSVY.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(106, 25, 'assets/Q22UvAeMrakhGt8ULLRLNFm3JfNyJQLf0eJnBVFi.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(107, 18, 'assets/Q6FrgsDWmdbirVSiBRZWjIDNeYsg5n3txQP1s1jc.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(108, 26, 'assets/QMylcBa3LrSlz4AeTg3ZWaFsqDveQT34GyJTEqSv.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(109, 23, 'assets/R00FIRr0YewFdAeNZDpA2EnauHsLn1CFWltN3G1A.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(110, 21, 'assets/RRyBwnTQW8VcIp1uJ1sERVvBtwzQHHaJzjkVbRM8.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(111, 17, 'assets/RYmw5oyaK9gB9rP6KrgIaTKFYYRORF459AMrgsJ0.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(112, 25, 'assets/SDDfD8AQZQyrsoGa6OvF61SL0eDdFor3PsEJa3qq.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(113, 37, 'assets/UDg07otPa6ynavjz1f6ZJwRSGDTAiQiChmIsWY3X.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(114, 24, 'assets/UMs2htdiY2VBFWbVp63PQPk9FX0IKJwRRBCbzZDO.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(115, 22, 'assets/XFxEBlLr7atALbcJ6QkzFOsO0LRlNDq0jKCwMKBa.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(116, 45, 'assets/Y8bEFyuvK5CakT1RV3PbgBq7Zqh3sYak0oEuotDf.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(117, 20, 'assets/YjoSommN1AmGPBmiJV6LuXq7bp1MPi17MIebMKVN.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(118, 23, 'assets/ZsEBfUB3k31zc4gEquIEMyYELKhqt6f46gLa8Aml.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(119, 18, 'assets/ZtQ4RPlc7CjY654Lxd2DTjiW5IWDkmoMy0tFEWVY.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(120, 35, 'assets/Zz911DRfrC2LOEHK59I8oEeNomAbiXcZq8nyuF9g.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(121, 21, 'assets/dwhY55shH5FwN5gvo5JjaLUXQ11HiGUN2kIAb4g1.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(122, 19, 'assets/eixKPMPnq9X2NRHjHR2pGoTH16ZWZAbjFhvfRPsi.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(123, 17, 'assets/fpE2YZ1EAYG8S7495QpkGwz5kPG1P3wWn9iAAq7T.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(124, 16, 'assets/gdnYnuPLDWedFBdJw0GFSRb9KDliqw3RT1w08oid.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(125, 16, 'assets/glrQOtwBbxYiXINj0YdQBgwPTea6IIKXrVuueSGL.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(126, 38, 'assets/h7ZOk3DhIIwOBO4Wyf4t0mVoRmO2uQGQZcGpfecT.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(127, 19, 'assets/hnheFLdfYTWW7c9WJ0ifkKA28eCUdtqzU3Ds2RoN.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(128, 27, 'assets/kTgFY3oYu9DAU6JHMo4yadsr4Gl68JjhhJo0EV6c.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(129, 31, 'assets/mchBieoUp8pPWO6zh2jg4RIrXgEg21kq4KYTr1dt.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(130, 14, 'assets/nHV7JXMwJdpmjsFX3z3P9pbbz3kmJe9HZ3j9ruZe.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(131, 34, 'assets/oGgGk65uDo2U5SJt74KkG6c51LBsnHbGtxhZjhNS.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(132, 28, 'assets/pU0duvgm5yfp1t4GLvUzrIGTsLAT9emzSUalbAQG.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(133, 12, 'assets/pvdrS1iTgIyTAYad384csV08WcJMuVWQbQgcwfk2.jpg', 1, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(134, 17, 'assets/qaxxWx9jCHWH2QXdwgyxtdZwwSDx0UpI8dLojuo5.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(135, 23, 'assets/rboPqxM3sGsOrb22H5lZXNis6fOrwul6Raw4FxkF.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(136, 41, 'assets/sug57E5LI4RxG6AhLGrgLkEmC7xxKJf8SPtPsLo0.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(137, 23, 'assets/tYKCrjFOp0EzOf8odYVIECzWpi2y1GnMKC1y0p0J.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(138, 36, 'assets/tlSbSeNvGK4Jxk06zles7hQnXMPh49FQU8jB38AV.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(139, 33, 'assets/vTX1tF1Um7NHqX0uJeOrkHylURURBK0WkTrHfiAF.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(140, 21, 'assets/vb6ZSwOv4ZvhTSxQgqECUOktGahMeyFDRC1rTMxA.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(141, 22, 'assets/viDsxLYBJFtKfXhyrIXy5rimQKfdV31SUNOfNvDX.jpg', 2, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(142, 22, 'assets/vxVlr5IYmGoPqIhiHKsd0mLLfvJga4KkH45Etiwd.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(143, 19, 'assets/wOKAiM0u6XsndEOSLyG6uTDvLnHkmHjLBiGVPlAP.jpg', 3, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(144, 40, 'assets/xGL8Yok0QA5VbIJbgwbmsydKh6E8CwVFcc8MIICZ.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03'),
+(145, 32, 'assets/z3UV0YANjnFd1q5RXjXO2Ft5X60bxg34oUNpoWpc.jpg', 0, '2026-09-12 05:58:03', '2026-09-12 05:58:03');
 
 -- --------------------------------------------------------
 
@@ -405,19 +497,6 @@ CREATE TABLE `asset_loan_requests` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `asset_loan_requests`
---
-
-INSERT INTO `asset_loan_requests` (`id`, `requestable_type`, `requestable_id`, `asset_ids`, `letter_path`, `purpose`, `contact_person`, `attendee_count`, `status`, `review_note`, `submitted_by`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(7, 'App\\Models\\Schedule', 20, '[\"28\"]', 'asset-loan-letters/EtkWcO59yM5BK5Ds9Rt49VRqubfcDOts8c0bLwDs.pdf', 'dasdasdasd', '03408293482394723', 2, 'approved', NULL, 5, 2, '2026-09-05 12:15:02', '2026-09-03 12:59:25', '2026-09-05 12:15:02'),
-(8, 'App\\Models\\AgendaSchedule', 11, '[28]', 'asset-loan-letters/zmRiJH0QE2EYb3ds2htdqYy6nfrUOCoXvG1E44XD.pdf', 'dvzxvxzzxzvzxvzxv', '575685685886', 23, 'approved', NULL, 5, 9, '2026-09-04 06:22:59', '2026-09-04 06:22:11', '2026-09-04 06:22:59'),
-(9, 'App\\Models\\Schedule', 21, '[\"27\"]', 'asset-loan-letters/QGAx1GacGT7OOiGeMsDCjwuwGyRynIf4xpbrubm5.pdf', 'e12e12e21e21', 'e12e12e12e', 0, 'approved', NULL, 2, 2, '2026-09-05 12:14:56', '2026-09-05 12:14:42', '2026-09-05 12:14:56'),
-(10, 'App\\Models\\AgendaSchedule', 12, '[28]', 'asset-loan-letters/qDRi8qhH755MrJjaLHpxW0cpb6U5Nldff7eNlUCT.pdf', 'sdfsfsgsdg', '03408293482394723', 23, 'approved', NULL, 5, 2, '2026-09-05 12:17:29', '2026-09-05 12:16:59', '2026-09-05 12:17:29'),
-(12, 'App\\Models\\Schedule', 23, '[27]', 'asset-loan-letters/b43562f8-a268-4b1f-a3d8-fa099a66a8b0.pdf', 'e12e12e21e21', 'e12e12e12e', 0, 'approved', 'Disetujui otomatis karena aset yang sama telah disetujui untuk pelatihan ini.', 2, NULL, '2026-09-05 12:53:55', '2026-09-05 12:53:55', '2026-09-05 12:53:55'),
-(14, 'App\\Models\\Schedule', 25, '[28]', 'asset-loan-letters/2L7xZoCkzTZvr4gPZejLIaVazlzk5Xwc86tysY8J.pdf', 'hjvjhvhj', '03408293482394723', 0, 'approved', NULL, 5, 9, '2026-09-05 13:21:27', '2026-09-05 13:21:08', '2026-09-05 13:21:27'),
-(15, 'App\\Models\\Schedule', 26, '[28]', 'asset-loan-letters/775f360d-d0bb-4b1e-aec7-76e2c8304ad9.pdf', 'hjvjhvhj', '03408293482394723', 0, 'approved', 'Disetujui otomatis karena aset yang sama telah disetujui untuk pelatihan ini.', 5, NULL, '2026-09-05 13:22:19', '2026-09-05 13:22:19', '2026-09-05 13:22:19');
-
 -- --------------------------------------------------------
 
 --
@@ -442,6 +521,7 @@ CREATE TABLE `asset_public_reservations` (
   `additional_note` text DEFAULT NULL,
   `hourly_rate` decimal(12,2) NOT NULL,
   `total_amount` decimal(14,2) NOT NULL,
+  `rate_breakdown` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`rate_breakdown`)),
   `status` varchar(40) NOT NULL DEFAULT 'pending_review',
   `rules_accepted_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `payment_due_at` timestamp NULL DEFAULT NULL,
@@ -455,14 +535,31 @@ CREATE TABLE `asset_public_reservations` (
   `tracking_events` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tracking_events`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data untuk tabel `asset_public_reservations`
+-- Struktur dari tabel `asset_rental_rates`
 --
 
-INSERT INTO `asset_public_reservations` (`id`, `asset_id`, `public_token`, `booking_code`, `full_name`, `whatsapp`, `email`, `organization`, `rental_date`, `start_time`, `end_time`, `duration_hours`, `usage_type`, `usage_other`, `additional_note`, `hourly_rate`, `total_amount`, `status`, `rules_accepted_at`, `payment_due_at`, `payment_proof_path`, `payment_uploaded_at`, `admin_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`, `tracking_events`) VALUES
-(1, 45, '7f02a2e3-12a1-4c2e-9a93-10fed8bac011', 'RFP-202609-0001', 'Sem Syamsidin', '08123456789', 'semsyamsidin.sem@gmail.com', 'Gober', '2026-09-11', '08:00:00', '11:00:00', 3, 'Bermain Bersama', NULL, 'shdadjga jsdgasjfg asfjasf', 200000.00, 600000.00, 'confirmed', '2026-09-09 03:21:32', '2026-09-09 13:31:13', 'asset-rental-payments/4FQhHaOAg48Lt9hNyhVG5Zseuj3cA4jNonlddWR0.pdf', '2026-09-08 14:46:45', 'anda bisa datang ke sini', 9, '2026-09-09 03:21:32', '2026-09-08 13:27:02', '2026-09-09 03:21:32', NULL),
-(2, 45, '720ac23f-960d-4c6d-ac16-048957daba66', 'RFP-202609-0002', 'Simpan Aku', '082352058235', 'simpanakuaja@gmail.com', 'HURAAA', '2026-09-10', '08:00:00', '10:00:00', 2, 'Latihan', NULL, 'nsmdbasdjbajsdbjasd asnmdbas kd', 200000.00, 400000.00, 'awaiting_payment', '2026-09-09 03:29:12', '2026-09-10 03:29:12', NULL, NULL, 'silahakn untuk bayar', 9, '2026-09-09 03:29:12', '2026-09-09 03:28:35', '2026-09-09 03:29:12', NULL),
-(3, 45, '2f3fc3ab-132a-4b31-ba0a-badfc5e0ea39', 'RFP-202609-0003', 'Sem Syamsidin', '08123456789', 'semsyamsidin.sem@gmail.com', 'Goberd', '2026-09-12', '08:00:00', '10:00:00', 2, 'Latihan', NULL, 'adadada', 200000.00, 400000.00, 'confirmed', '2026-09-11 08:18:51', NULL, 'asset-rental-payments/Kzf2I3viub69hTyYjPg05vTczpqGUI2qTWTJbHL6.png', '2026-09-11 08:17:50', NULL, 2, '2026-09-11 08:18:51', '2026-09-11 08:17:50', '2026-09-11 08:18:51', '[{\"status\":\"payment_uploaded\",\"label\":\"Menunggu Verifikasi Pembayaran\",\"at\":\"2026-09-11T15:17:50+07:00\",\"note\":null},{\"status\":\"confirmed\",\"label\":\"Dikonfirmasi\",\"at\":\"2026-09-11T15:18:51+07:00\",\"note\":null}]');
+CREATE TABLE `asset_rental_rates` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `asset_id` bigint(20) UNSIGNED NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `hourly_rate` decimal(12,2) NOT NULL,
+  `sort_order` smallint(5) UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `asset_rental_rates`
+--
+
+INSERT INTO `asset_rental_rates` (`id`, `asset_id`, `start_time`, `end_time`, `hourly_rate`, `sort_order`, `created_at`, `updated_at`) VALUES
+(3, 45, '06:00:00', '10:00:00', 75000.00, 0, '2026-09-11 15:29:50', '2026-09-11 15:29:50'),
+(4, 45, '10:00:00', '16:00:00', 50000.00, 1, '2026-09-11 15:29:50', '2026-09-11 15:29:50'),
+(5, 45, '16:00:00', '18:00:00', 75000.00, 2, '2026-09-11 15:29:50', '2026-09-11 15:29:50');
 
 -- --------------------------------------------------------
 
@@ -524,10 +621,16 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('integral-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:1;', 1789114729),
-('integral-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1789114729;', 1789114729),
-('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940', 'i:1;', 1789113981),
-('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940:timer', 'i:1789113981;', 1789113981);
+('integral-cache-12345|127.0.0.1', 'i:1;', 1789226777),
+('integral-cache-12345|127.0.0.1:timer', 'i:1789226777;', 1789226777),
+('integral-cache-3201125305870003|127.0.0.1', 'i:2;', 1789218763),
+('integral-cache-3201125305870003|127.0.0.1:timer', 'i:1789218763;', 1789218763),
+('integral-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:2;', 1789210419),
+('integral-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1789210419;', 1789210419),
+('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940', 'i:1;', 1789210684),
+('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940:timer', 'i:1789210684;', 1789210684),
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0', 'i:1;', 1789226562),
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0:timer', 'i:1789226562;', 1789226562);
 
 -- --------------------------------------------------------
 
@@ -565,14 +668,6 @@ CREATE TABLE `certification_events` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `certification_events`
---
-
-INSERT INTO `certification_events` (`id`, `certification_type_id`, `title`, `start_date`, `end_date`, `location`, `supervisor_name`, `supervisor_phone`, `supervisor_institution`, `participant_quota`, `public_token`, `folder_id`, `minutes_file_id`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Sertifikasi PBPJ Level 1 Kabupaten Bandung', '2026-08-27', '2026-08-27', 'Bpsdm Provinsi Jawa Barat', 'Velicia', '08080453685345', 'LKPP', 40, 'iciQIYpZW0hMi9ppPgdqJFjoE4JsA64gB3lLGjlyFBakdr2F', 55, 132, 12, '2026-08-30 10:02:29', '2026-08-31 08:54:29'),
-(5, 1, 'SERTIFIKASI PBJ LEBEL 1 SUBANG', '2026-08-31', '2026-09-02', 'Bpsdm Provinsi Jawa Barat', 'Velicia', '08080453685345', 'LKPP', 30, 'jglW7R95dG4pXhBPymeKBEfXbXPN14Xg6xJgyEUZaYu1pTpI', 75, NULL, 12, '2026-08-31 08:56:30', '2026-08-31 08:56:30');
 
 -- --------------------------------------------------------
 
@@ -612,14 +707,6 @@ CREATE TABLE `certification_participants` (
   `certification_feedback` text DEFAULT NULL,
   `certificate_submitted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `certification_participants`
---
-
-INSERT INTO `certification_participants` (`id`, `certification_event_id`, `nip_nik`, `name`, `position`, `institution`, `province`, `city`, `phone`, `email`, `result`, `biodata_token`, `notes`, `created_at`, `updated_at`, `birth_place_date`, `rank_grade`, `religion`, `gender`, `education`, `office_address`, `trainings`, `signature_path`, `biodata_file_id`, `biodata_submitted_at`, `certificate_number`, `certificate_file_id`, `certification_rating`, `certification_feedback`, `certificate_submitted_at`) VALUES
-(6, 1, '328943856235236', 'RIZKY', 'Analis', 'Pemerintah Kabupaten/Kota', 'Jawa Barat', 'Kota Bandung', '081234567890', 'peserta@example.go.id', 'tidak_lulus', 'MpIBjvGfuncgpJoJcLIgBZB01LsutoRFt3IZtrwpCNRgIv3W', NULL, '2026-08-31 08:54:20', '2026-08-31 08:59:10', 'Bandung, 03 Maret 1995', 'IV/a', 'Konghucu', 'Laki-laki', 'S1', 'dfsaafasfasf', '-', 'certifications/signatures/6-4Z1byiOC.png', 134, '2026-08-31 08:59:10', NULL, NULL, NULL, NULL, NULL),
-(7, 5, '328943856235236', 'RIZKY', 'Analis', 'Pemerintah Kabupaten/Kota', 'Jawa Barat', 'Kota Bandung', '081234567890', 'peserta@example.go.id', 'lulus', '1Ei8bbuXje8xr2DfHMy7f6O8bxsotaNVZWlzyNx6Wami3ChX', NULL, '2026-08-31 08:56:57', '2026-09-07 08:30:14', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -663,17 +750,6 @@ CREATE TABLE `electronic_signature_actions` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `electronic_signature_actions`
---
-
-INSERT INTO `electronic_signature_actions` (`id`, `electronic_signature_document_id`, `electronic_signature_actor_id`, `status`, `signed_at`, `error_message`, `created_at`, `updated_at`) VALUES
-(2, 2, 2, 'completed', '2026-09-11 06:07:29', NULL, '2026-09-11 05:36:54', '2026-09-11 06:07:29'),
-(3, 3, 2, 'completed', '2026-09-11 06:07:31', NULL, '2026-09-11 05:36:54', '2026-09-11 06:07:31'),
-(14, 14, 13, 'completed', '2026-09-11 08:02:43', NULL, '2026-09-11 08:02:17', '2026-09-11 08:02:43'),
-(15, 15, 13, 'completed', '2026-09-11 08:02:46', NULL, '2026-09-11 08:02:17', '2026-09-11 08:02:46'),
-(16, 16, 14, 'completed', '2026-09-11 08:04:21', NULL, '2026-09-11 08:03:56', '2026-09-11 08:04:21');
-
 -- --------------------------------------------------------
 
 --
@@ -689,15 +765,6 @@ CREATE TABLE `electronic_signature_actors` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `electronic_signature_actors`
---
-
-INSERT INTO `electronic_signature_actors` (`id`, `electronic_signature_request_id`, `user_id`, `role`, `sequence`, `created_at`, `updated_at`) VALUES
-(2, 2, 18, 'signer', 1, '2026-09-11 05:36:54', '2026-09-11 05:36:54'),
-(13, 13, 18, 'signer', 1, '2026-09-11 08:02:17', '2026-09-11 08:02:17'),
-(14, 14, 18, 'signer', 1, '2026-09-11 08:03:56', '2026-09-11 08:03:56');
 
 -- --------------------------------------------------------
 
@@ -717,17 +784,6 @@ CREATE TABLE `electronic_signature_attempts` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `electronic_signature_attempts`
---
-
-INSERT INTO `electronic_signature_attempts` (`id`, `electronic_signature_action_id`, `user_id`, `successful`, `response_code`, `message`, `duration_ms`, `ip_address`, `created_at`, `updated_at`) VALUES
-(2, 2, 18, 1, 'PDF', 'Tanda tangan berhasil', 1512, '127.0.0.1', '2026-09-11 06:07:29', '2026-09-11 06:07:29'),
-(3, 3, 18, 1, 'PDF', 'Tanda tangan berhasil', 1818, '127.0.0.1', '2026-09-11 06:07:31', '2026-09-11 06:07:31'),
-(16, 14, 18, 1, 'PDF', 'Tanda tangan berhasil', 1753, '127.0.0.1', '2026-09-11 08:02:43', '2026-09-11 08:02:43'),
-(17, 15, 18, 1, 'PDF', 'Tanda tangan berhasil', 2368, '127.0.0.1', '2026-09-11 08:02:46', '2026-09-11 08:02:46'),
-(18, 16, 18, 1, 'PDF', 'Tanda tangan berhasil', 1418, '127.0.0.1', '2026-09-11 08:04:21', '2026-09-11 08:04:21');
 
 -- --------------------------------------------------------
 
@@ -752,17 +808,6 @@ CREATE TABLE `electronic_signature_documents` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `electronic_signature_documents`
---
-
-INSERT INTO `electronic_signature_documents` (`id`, `electronic_signature_request_id`, `participant_certificate_id`, `external_user_id`, `verification_token`, `original_name`, `original_path`, `current_path`, `final_path`, `file_size`, `status`, `completed_at`, `created_at`, `updated_at`) VALUES
-(2, 2, 2, NULL, '75efb226-982c-43b3-b32f-26d812d4748c', '12387126387126438.pdf', 'certificates/generated/9/12387126387126438.pdf', 'electronic-signatures/2/signed/8515e154-3b20-4fb9-9681-08d72bb98305.pdf', 'electronic-signatures/2/signed/8515e154-3b20-4fb9-9681-08d72bb98305.pdf', 32083, 'completed', '2026-09-11 06:07:29', '2026-09-11 05:36:54', '2026-09-11 06:07:29'),
-(3, 2, 1, NULL, 'd063dc51-2c1c-4db1-96d0-180d5c14db5a', '34554834689342342.pdf', 'certificates/generated/9/34554834689342342.pdf', 'electronic-signatures/2/signed/01b610ea-e608-4d0e-b5f5-33afcccd51f7.pdf', 'electronic-signatures/2/signed/01b610ea-e608-4d0e-b5f5-33afcccd51f7.pdf', 1855, 'completed', '2026-09-11 06:07:31', '2026-09-11 05:36:54', '2026-09-11 06:07:31'),
-(14, 13, NULL, NULL, '8894ea4a-3537-42bb-afaa-677b46b9431d', 'dsdasd.pdf', 'electronic-signatures/13/original/2e1bf202-6053-4cf1-8aa0-11f0350a5ebd.pdf', 'electronic-signatures/13/signed/d5223905-201f-49e6-b639-2d31111ecae5.pdf', 'electronic-signatures/13/signed/d5223905-201f-49e6-b639-2d31111ecae5.pdf', 218363, 'completed', '2026-09-11 08:02:43', '2026-09-11 08:02:17', '2026-09-11 08:02:43'),
-(15, 13, NULL, NULL, '015fcb5a-09bb-419b-9e82-8e425db10210', 'Sertifikat Sertifikat Webinar.pdf', 'electronic-signatures/13/original/8615244b-47c0-4f4d-8eca-7356e1a20ead.pdf', 'electronic-signatures/13/signed/d3b05ffe-e547-4ed6-9b34-96e8e5c995b6.pdf', 'electronic-signatures/13/signed/d3b05ffe-e547-4ed6-9b34-96e8e5c995b6.pdf', 565757, 'completed', '2026-09-11 08:02:46', '2026-09-11 08:02:17', '2026-09-11 08:02:46'),
-(16, 14, NULL, NULL, '21a1eeda-ba22-4d5b-aaec-bb329595ee93', 'SKPK_Balasan Yura-kick off-ISO.pdf', 'electronic-signatures/14/original/fc7f2d28-5b85-42bc-91d3-81f74b7cee2f.pdf', 'electronic-signatures/14/signed/55663458-a4f9-4dd1-8aab-924bbaab0c26.pdf', 'electronic-signatures/14/signed/55663458-a4f9-4dd1-8aab-924bbaab0c26.pdf', 91811, 'completed', '2026-09-11 08:04:21', '2026-09-11 08:03:56', '2026-09-11 08:04:21');
-
 -- --------------------------------------------------------
 
 --
@@ -786,15 +831,6 @@ CREATE TABLE `electronic_signature_requests` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `electronic_signature_requests`
---
-
-INSERT INTO `electronic_signature_requests` (`id`, `uuid`, `title`, `description`, `bidang`, `source_type`, `page_format`, `training_id`, `external_reference`, `status`, `created_by`, `completed_at`, `created_at`, `updated_at`) VALUES
-(2, 'afe29b92-e4e8-484c-98f2-f120ef2c6747', 'Sertifikat - Pelatihan Pengkajian Kebutuhan Pascabencana', 'czxczxczxc', 'Bidang Pengembangan Kompetensi Teknis Umum', 'training_certificates', 'f4_portrait', 9, NULL, 'completed', 2, '2026-09-11 06:07:31', '2026-09-11 05:36:53', '2026-09-11 06:07:31'),
-(13, '49e48b81-3791-4271-958e-8a20042fd5a5', 'shdasgdasjd', NULL, NULL, 'other_documents', 'f4_portrait', NULL, NULL, 'completed', 2, '2026-09-11 08:02:46', '2026-09-11 08:02:17', '2026-09-11 08:02:46'),
-(14, 'bf8f4ff0-e2bf-4924-96f8-509a36e976da', 'SPK', NULL, NULL, 'other_documents', 'f4_portrait', NULL, NULL, 'completed', 2, '2026-09-11 08:04:21', '2026-09-11 08:03:56', '2026-09-11 08:04:21');
-
 -- --------------------------------------------------------
 
 --
@@ -813,15 +849,6 @@ CREATE TABLE `evaluation_forms` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `evaluation_forms`
---
-
-INSERT INTO `evaluation_forms` (`id`, `training_id`, `type`, `name`, `schedule_id`, `target_name`, `materi`, `created_at`, `updated_at`) VALUES
-(7, 8, 'penyelenggara', 'Evaluasi Penyelenggara', NULL, 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, '2026-09-02 02:20:53', '2026-09-02 02:20:53'),
-(8, 9, 'penyelenggara', 'Evaluasi Penyelenggara', NULL, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, '2026-09-02 03:09:11', '2026-09-02 03:09:11'),
-(9, 9, 'narasumber', 'narusmber', NULL, 'simpan aja aku 6', 'Materi Building Learning Caracter Peserta Latsar CPNS', '2026-09-02 04:14:25', '2026-09-02 04:14:25');
-
 -- --------------------------------------------------------
 
 --
@@ -838,13 +865,6 @@ CREATE TABLE `evaluation_l1_text_summaries` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `evaluation_l1_text_summaries`
---
-
-INSERT INTO `evaluation_l1_text_summaries` (`id`, `training_id`, `conclusion`, `follow_up`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(1, 9, 'Secara umum, materi dan pelaksanaan pelatihan dinilai cukup baik oleh sebagian peserta. Meski demikian, terdapat temuan evaluasi yang menunjukkan ketidakjelasan pada materi pengelolaan keuangan, perlunya penyelarasan isi paparan dengan ekspektasi peserta, serta catatan terkait kebersihan sarana dan prasarana khususnya area ruang makan.', '1. Melakukan reviu dan penyempurnaan substansi paparan materi pengelolaan keuangan bersama narasumber terkait sebelum sesi berikutnya. 2. Meningkatkan pengawasan dan koordinasi dengan unit pengelola fasilitas untuk memastikan kebersihan serta kelayakan sarana prasarana, terutama ruang makan.', 2, '2026-09-07 04:17:08', '2026-09-02 07:57:21', '2026-09-07 04:17:08');
 
 -- --------------------------------------------------------
 
@@ -1738,48 +1758,6 @@ CREATE TABLE `evaluation_results_l1` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `evaluation_results_l1`
---
-
-INSERT INTO `evaluation_results_l1` (`id`, `training_id`, `participant_id`, `schedule_id`, `question_id`, `score`, `note`, `created_at`, `updated_at`) VALUES
-(69, 9, 25, NULL, 1, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(70, 9, 25, NULL, 2, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(71, 9, 25, NULL, 3, 94, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(72, 9, 25, NULL, 4, 94, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(73, 9, 25, NULL, 5, 93, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(74, 9, 25, NULL, 6, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(75, 9, 25, NULL, 7, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(76, 9, 25, NULL, 8, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(77, 9, 25, NULL, 9, 96, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(78, 9, 25, NULL, 10, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(79, 9, 25, NULL, 11, 95, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(80, 9, 25, NULL, 12, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(81, 9, 25, NULL, 13, 96, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(82, 9, 25, NULL, 14, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(83, 9, 25, NULL, 15, 80, NULL, '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(84, 9, 25, NULL, 16, NULL, 'semuanya sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(85, 9, 25, NULL, 17, NULL, 'cukuo baik kata akumah yah', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(86, 9, 25, NULL, 18, NULL, 'sudah cukup baik', '2026-09-02 07:29:34', '2026-09-02 07:29:34'),
-(87, 9, 26, NULL, 1, 94, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(88, 9, 26, NULL, 2, 95, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(89, 9, 26, NULL, 3, 96, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(90, 9, 26, NULL, 4, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(91, 9, 26, NULL, 5, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(92, 9, 26, NULL, 6, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(93, 9, 26, NULL, 7, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(94, 9, 26, NULL, 8, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(95, 9, 26, NULL, 9, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(96, 9, 26, NULL, 10, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(97, 9, 26, NULL, 11, 100, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(98, 9, 26, NULL, 12, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(99, 9, 26, NULL, 13, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(100, 9, 26, NULL, 14, 98, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(101, 9, 26, NULL, 15, 97, NULL, '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(102, 9, 26, NULL, 16, NULL, 'belum tolong untuk diperbaiki paparannya agar sesuai dengan yang saya harapkan', '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(103, 9, 26, NULL, 17, NULL, 'dibagian pengelolaan keuangan tidak jelas', '2026-09-06 02:24:50', '2026-09-06 02:24:50'),
-(104, 9, 26, NULL, 18, NULL, 'tolong sarana prasarana dan ruang makannya di bersihkan', '2026-09-06 02:24:50', '2026-09-06 02:24:50');
-
 -- --------------------------------------------------------
 
 --
@@ -1795,13 +1773,6 @@ CREATE TABLE `evaluation_results_l2` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `evaluation_results_l2`
---
-
-INSERT INTO `evaluation_results_l2` (`id`, `participant_id`, `pretest`, `postest`, `created_at`, `updated_at`) VALUES
-(3, 25, 80.00, 100.00, '2026-09-02 08:31:05', '2026-09-02 08:31:05');
 
 -- --------------------------------------------------------
 
@@ -1856,69 +1827,6 @@ CREATE TABLE `files` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `files`
---
-
-INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`, `file_size`, `user_id`, `created_at`, `updated_at`) VALUES
-(112, 57, 'template_peserta_sertifikasi.xlsx', 'documents/kpemOGZ2WxrWFfoOtBCMj5xrMNYkR49LKmQgjhlI.xlsx', 'xlsx', 9401, 12, '2026-08-30 10:04:01', '2026-08-30 10:04:01'),
-(122, 57, 'template_peserta_sertifikasi (2).xlsx', 'documents/HaInOTsSUpQreyjjTUvuuQ9iRu4fFaAD163ecujz.xlsx', 'xlsx', 9401, 2, '2026-08-30 11:10:49', '2026-08-30 11:10:49'),
-(126, 56, 'Biodata - Contoh Peserta - 19950332026211005 (2).pdf', 'documents/xAlZn0XdLCU2oHcFcCJfBJn8TTwUlCkofBhjzmlH.pdf', 'pdf', 888150, 1, '2026-08-30 13:29:39', '2026-08-30 13:29:39'),
-(127, 70, 'CV PENGAJAR.pdf', 'pengajar/kelengkapan/XqeG8xWazeXKytqpmmwnP1eCnk1sy9dHMWnHS0wZ.pdf', 'pdf', 1852608, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
-(128, 70, 'SERTIFIKAT TOT PENGAJAR.pdf', 'pengajar/kelengkapan/3c8crnwPcBn4FVNOaU8Rpcj8Jxyag0awXohD8TEz.pdf', 'pdf', 402773, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
-(129, 70, 'SURAT TUGAS PENGAJAR.pdf', 'pengajar/kelengkapan/QbE8qeCFh0B4k54CVSE3091ewZtxhGRK1UTnkxKK.pdf', 'pdf', 236531, 1, '2026-08-31 03:06:44', '2026-08-31 03:06:44'),
-(131, 57, 'template_peserta_sertifikasi (3).xlsx', 'documents/22wLbi9u8lXMH4bC9ifTbgsNS44o3OjS2oyFUdJ4.xlsx', 'xlsx', 8815, 12, '2026-08-31 08:54:20', '2026-08-31 08:54:20'),
-(132, 56, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/QRlqBpe2AqpYrLDWXYJMIAylDdBsCVOUBo3ZTy15.pdf', 'pdf', 888150, 12, '2026-08-31 08:54:29', '2026-08-31 08:54:29'),
-(133, 77, 'template_peserta_sertifikasi (3).xlsx', 'documents/2oSaGs1855TwcqHx8jgYEP9QhTWHxlnov6TMstzG.xlsx', 'xlsx', 8815, 12, '2026-08-31 08:56:57', '2026-08-31 08:56:57'),
-(134, 66, 'Biodata - RIZKY - 328943856235236.pdf', 'documents/certification-biodata/d5490f13-0a54-4645-946e-c53846e3b922.pdf', 'pdf', 938504, 12, '2026-08-31 08:59:09', '2026-08-31 08:59:09'),
-(135, 78, 'LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 14680, 5, '2026-08-31 13:33:30', '2026-08-31 13:33:30'),
-(136, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 12306, 5, '2026-08-31 13:33:57', '2026-08-31 13:33:57'),
-(137, 80, 'LAPORAN_EVALUASI_LV1_LV2_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pealtihan_Keuangan_Daerah.docx', 'docx', 11494, 5, '2026-08-31 13:34:11', '2026-08-31 13:34:11'),
-(138, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 12306, 5, '2026-08-31 13:35:03', '2026-08-31 13:35:03'),
-(139, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 440229, 5, '2026-08-31 14:13:07', '2026-08-31 14:13:07'),
-(140, 78, 'LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 39249, 5, '2026-08-31 14:59:22', '2026-08-31 14:59:22'),
-(141, 79, 'LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_Pealtihan_Keuangan_Daerah.docx', 'docx', 412473, 5, '2026-08-31 15:00:13', '2026-08-31 15:00:13'),
-(142, 81, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9350, 2, '2026-09-02 00:13:40', '2026-09-02 00:13:40'),
-(143, 81, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9323, 2, '2026-09-02 00:30:43', '2026-09-02 00:30:43'),
-(144, 82, 'REKAP_KEHADIRAN_TOTAL_Pealtihan_Keuangan_Daerah.xlsx', 'documents/REKAP_KEHADIRAN_TOTAL_Pealtihan_Keuangan_Daerah.xlsx', 'xlsx', 6897, 2, '2026-09-02 02:15:46', '2026-09-02 02:15:46'),
-(145, 83, 'DATA_PESERTA_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/DATA_PESERTA_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6620, 2, '2026-09-02 02:18:43', '2026-09-02 02:18:43'),
-(146, 84, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6777, 2, '2026-09-02 02:21:28', '2026-09-02 02:21:28'),
-(147, 84, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6777, 2, '2026-09-02 02:23:52', '2026-09-02 02:23:52'),
-(148, 85, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11582, 2, '2026-09-02 02:24:57', '2026-09-02 02:24:57'),
-(149, 86, 'MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'documents/MONITORING_PENGAJAR_pelatihan_pengkajian_kebutuhan_pascabencana_2026_09.xlsx', 'xlsx', 9200, 2, '2026-09-02 04:02:14', '2026-09-02 04:02:14'),
-(150, 87, 'HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/HASIL_EVALUASI_L1_L2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 6876, 2, '2026-09-02 04:17:22', '2026-09-02 04:17:22'),
-(151, 88, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11961, 2, '2026-09-02 04:18:03', '2026-09-02 04:18:03'),
-(152, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13928, 2, '2026-09-02 04:24:13', '2026-09-02 04:24:13'),
-(153, 91, 'Rapat Koordinasi Penataan Aplikasi Integral Penunjang Kegiatan Diklat 2026-09-02 09_27(GMT+7_00).pdf', 'documents/BIODATA_simpan_aku_aja_22_c0646111-f0ad-4629-9a5a-2955ceccc4bd.pdf', 'pdf', 95150, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
-(154, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_b5c64b67-32a2-43d0-b847-8c49a53880c3.pdf', 'pdf', 888150, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
-(155, 91, 'CN6WOJEPrbhvpJscS6qkqdUHvJhg6m5gVjcAH7Qn.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_ed490fd2-ccdd-494f-a1cb-08b6baf0b933.jpg', 'jpg', 626870, 1, '2026-09-02 06:04:52', '2026-09-02 06:04:52'),
-(156, 92, 'SEesrersreser.pdf', 'documents/PENYELENGGARA_c625af12-f41c-4e66-a6de-b87dc48e5335.pdf', 'pdf', 95150, 2, '2026-09-02 06:48:43', '2026-09-02 06:48:43'),
-(157, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 11722, 2, '2026-09-02 07:27:49', '2026-09-02 07:27:49'),
-(158, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13214, 2, '2026-09-02 07:30:24', '2026-09-02 07:30:24'),
-(159, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13183, 2, '2026-09-02 07:33:05', '2026-09-02 07:33:05'),
-(160, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13267, 2, '2026-09-02 07:57:24', '2026-09-02 07:57:24'),
-(161, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13226, 2, '2026-09-02 08:02:01', '2026-09-02 08:02:01'),
-(162, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 13238, 2, '2026-09-02 08:03:54', '2026-09-02 08:03:54'),
-(163, 89, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14261, 2, '2026-09-02 08:07:39', '2026-09-02 08:07:39'),
-(164, 91, 'Rapat Koordinasi Penataan Aplikasi Integral Penunjang Kegiatan Diklat 2026-09-02 09_27(GMT+7_00).pdf', 'documents/BIODATA_simpan_aku_aja_22_87f742dd-e3a4-412a-820e-9cbcba1aea90.pdf', 'pdf', 95150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
-(165, 91, 'Biodata - Contoh Peserta - 19950332026211005 (2) (1).pdf', 'documents/SURAT_TUGAS_simpan_aku_aja_22_a0ea01a8-5e5a-49e0-b085-060f2398901b.pdf', 'pdf', 888150, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
-(166, 91, 'EXWdBJTB8ZnnGX8Im7Bqcqqot80FoS9GaFIQycLq.jpg', 'documents/PAS_FOTO_simpan_aku_aja_22_8f9c01ea-ab65-4382-8115-8b7b54067bf8.jpg', 'jpg', 30134, 1, '2026-09-03 13:39:09', '2026-09-03 13:39:09'),
-(167, 93, 'JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'documents/JADWAL_PELATIHAN_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.pdf', 'pdf', 3231, 2, '2026-09-04 01:48:47', '2026-09-04 01:48:47'),
-(168, 94, 'Biodata Narasumber - samsidin - 199503032025211003.docx', 'documents/certification-speakers/52246378-ce8f-47c0-9ca9-b89971fb002d.docx', 'docx', 2660590, 12, '2026-09-05 10:46:05', '2026-09-05 10:46:05'),
-(169, 97, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14752, 2, '2026-09-06 02:25:43', '2026-09-06 02:25:43'),
-(170, 98, 'Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', 'documents/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', 'pdf', 5178, 2, '2026-09-06 02:38:22', '2026-09-06 02:38:22'),
-(171, 98, 'Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', 'documents/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', 'docx', 9629, 2, '2026-09-06 02:38:57', '2026-09-06 02:38:57'),
-(172, 97, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.docx', 'docx', 14938, 2, '2026-09-07 04:17:12', '2026-09-07 04:17:12'),
-(173, 100, 'Laporan_Kegiatan_pealtihan_keuangan_daerah_v1.pdf', 'documents/Laporan_Kegiatan_pealtihan_keuangan_daerah_v1.pdf', 'pdf', 4893, 2, '2026-09-07 08:15:35', '2026-09-07 08:15:35'),
-(174, 101, 'SURAT_UNDANGAN_EVALUASI_L34_PELATIHAN_LATSAR.docx', 'documents/SURAT_UNDANGAN_EVALUASI_L34_PELATIHAN_LATSAR.docx', 'docx', 88801, 2, '2026-09-07 08:19:58', '2026-09-07 08:19:58'),
-(175, 102, 'LAPORAN_DAMPAK_L3_L4_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_Pelatihan_Pengkajian_Kebutuhan_Pascabencana.xlsx', 'xlsx', 60815, 2, '2026-09-07 12:06:09', '2026-09-07 12:06:09'),
-(176, 103, 'LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'docx', 412218, 2, '2026-09-07 12:06:46', '2026-09-07 12:06:46'),
-(177, 103, 'LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'docx', 404758, 2, '2026-09-07 12:21:30', '2026-09-07 12:21:30'),
-(178, 103, 'LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'docx', 404758, 2, '2026-09-07 12:21:40', '2026-09-07 12:21:40'),
-(179, 103, 'LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'documents/LAPORAN_AKHIR_DAMPAK_L34_PELATIHAN_LATSAR.docx', 'docx', 404757, 2, '2026-09-07 12:45:47', '2026-09-07 12:45:47'),
-(180, 104, 'LAPORAN_DAMPAK_L3_L4_PELATIHAN_LATSAR.xlsx', 'documents/LAPORAN_DAMPAK_L3_L4_PELATIHAN_LATSAR.xlsx', 'xlsx', 104924, 2, '2026-09-07 12:46:47', '2026-09-07 12:46:47'),
-(181, 105, 'Laporan_Kegiatan_pelatihan_latsar_v1.pdf', 'documents/Laporan_Kegiatan_pelatihan_latsar_v1.pdf', 'pdf', 4931, 2, '2026-09-09 03:39:39', '2026-09-09 03:39:39');
-
 -- --------------------------------------------------------
 
 --
@@ -1966,48 +1874,10 @@ CREATE TABLE `folders` (
 --
 
 INSERT INTO `folders` (`id`, `training_id`, `document_year`, `is_archived`, `archived_at`, `archived_by`, `name`, `bidang`, `parent_id`, `user_id`, `is_public`, `share_token`, `created_at`, `updated_at`) VALUES
-(52, 8, 2026, 0, NULL, NULL, 'Pealtihan Keuangan Daerah - Angkatan 1', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 2, 0, NULL, '2026-08-30 09:11:51', '2026-08-30 09:32:04'),
 (54, NULL, 2026, 0, NULL, NULL, 'Sertifikasi', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 10:02:29', '2026-09-05 10:49:14'),
-(55, NULL, NULL, 0, NULL, NULL, 'Sertifikasi PBPJ Level 1 Kabupaten Bandung', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 54, 12, 0, NULL, '2026-08-30 10:02:29', '2026-09-05 10:49:14'),
-(56, NULL, NULL, 0, NULL, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-09-05 10:49:14'),
-(57, NULL, NULL, 0, NULL, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 10:02:29', '2026-09-05 10:49:14'),
-(66, NULL, NULL, 0, NULL, NULL, 'Biodata Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 55, 12, 0, NULL, '2026-08-30 11:08:51', '2026-09-05 10:49:14'),
-(68, 9, 2026, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 13:43:37', '2026-09-05 12:13:30'),
-(69, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-05 12:13:30'),
-(70, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 69, 1, 0, NULL, '2026-08-31 03:06:44', '2026-09-05 12:13:30'),
 (71, NULL, 2026, 0, NULL, NULL, 'Pengajuan Mitra', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
 (72, NULL, NULL, 0, NULL, NULL, 'Kabupaten', 'Bidang Pengembangan Kompetensi Teknis Umum', 71, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
-(73, NULL, NULL, 0, NULL, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
-(75, NULL, NULL, 0, NULL, NULL, 'SERTIFIKASI PBJ LEBEL 1 SUBANG', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 54, 12, 0, NULL, '2026-08-31 08:56:30', '2026-09-05 10:49:14'),
-(76, NULL, NULL, 0, NULL, NULL, 'Berita Acara', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-09-05 10:49:14'),
-(77, NULL, NULL, 0, NULL, NULL, 'Data Peserta', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-08-31 08:56:30', '2026-09-05 10:49:14'),
-(78, 8, NULL, 0, NULL, NULL, 'HASIL EVALUASI DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:29', '2026-09-02 06:35:53'),
-(79, 8, NULL, 0, NULL, NULL, 'LAPORAN AKHIR DAMPAK', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:33:57', '2026-08-31 13:33:57'),
-(80, 8, NULL, 0, NULL, NULL, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 5, 0, NULL, '2026-08-31 13:34:11', '2026-08-31 13:34:11'),
-(81, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 00:13:40', '2026-09-05 12:13:30'),
-(82, 8, NULL, 0, NULL, NULL, 'REKAP KEHADIRAN EXCEL', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 2, 0, NULL, '2026-09-02 02:15:46', '2026-09-02 02:15:46'),
-(83, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:18:43', '2026-09-05 12:13:30'),
-(84, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:21:28', '2026-09-05 12:13:30'),
-(85, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 02:24:57', '2026-09-05 12:13:30'),
-(86, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:02:14', '2026-09-05 12:13:30'),
-(87, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:17:22', '2026-09-05 12:13:30'),
-(88, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:18:02', '2026-09-05 12:13:30'),
-(89, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-02 04:24:13', '2026-09-05 12:13:30'),
-(90, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-05 12:13:30'),
-(91, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Pengembangan Kompetensi Teknis Umum', 90, 1, 0, NULL, '2026-09-02 06:04:50', '2026-09-05 12:13:30'),
-(92, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Pengembangan Kompetensi Teknis Umum', 68, 2, 0, NULL, '2026-09-02 06:48:42', '2026-09-05 12:13:30'),
-(93, 9, NULL, 0, NULL, NULL, 'Pelatihan Pengkajian Kebutuhan Pascabencana - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-04 01:48:47', '2026-09-05 12:13:30'),
-(94, NULL, NULL, 0, NULL, NULL, 'Biodata Narasumber', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 75, 12, 0, NULL, '2026-09-05 10:46:05', '2026-09-05 10:49:14'),
-(96, 11, 2026, 0, NULL, NULL, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 2, 0, NULL, '2026-09-05 12:57:53', '2026-09-05 13:19:59'),
-(97, 9, NULL, 0, NULL, NULL, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-06 02:25:42', '2026-09-06 02:25:42'),
-(98, 9, NULL, 0, NULL, NULL, 'LAPORAN PENYELENGGARAAN PELATIHAN', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-06 02:38:22', '2026-09-06 02:38:22'),
-(99, 12, 2025, 0, NULL, NULL, 'PELATIHAN LATSAR - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 2, 0, NULL, '2026-09-07 04:30:11', '2026-09-07 10:00:35'),
-(100, 8, NULL, 0, NULL, NULL, 'LAPORAN PENYELENGGARAAN PELATIHAN', 'Bidang Pengembangan Kompetensi Teknis Umum', 52, 2, 0, NULL, '2026-09-07 08:15:35', '2026-09-07 08:15:35'),
-(101, 12, NULL, 0, NULL, NULL, 'PELATIHAN LATSAR - Angkatan I', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 99, 2, 0, NULL, '2026-09-07 08:19:58', '2026-09-07 10:00:35'),
-(102, 9, NULL, 0, NULL, NULL, 'HASIL EVALUASI DAMPAK', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 68, 2, 0, NULL, '2026-09-07 12:06:09', '2026-09-07 12:06:09'),
-(103, 12, NULL, 0, NULL, NULL, 'LAPORAN AKHIR DAMPAK', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 99, 2, 0, NULL, '2026-09-07 12:06:46', '2026-09-07 12:06:46'),
-(104, 12, NULL, 0, NULL, NULL, 'HASIL EVALUASI DAMPAK', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 99, 2, 0, NULL, '2026-09-07 12:46:47', '2026-09-07 12:46:47'),
-(105, 12, NULL, 0, NULL, NULL, 'LAPORAN PENYELENGGARAAN PELATIHAN', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 99, 2, 0, NULL, '2026-09-09 03:39:39', '2026-09-09 03:39:39');
+(73, NULL, NULL, 0, NULL, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00');
 
 -- --------------------------------------------------------
 
@@ -2032,6 +1902,105 @@ CREATE TABLE `folder_user_permissions` (
 
 INSERT INTO `folder_user_permissions` (`id`, `folder_id`, `user_id`, `permission`, `shared_by`, `seen_at`, `created_at`, `updated_at`) VALUES
 (2, 54, 1, 'contributor', 12, '2026-08-30 13:28:16', '2026-08-30 13:27:35', '2026-08-30 13:28:16');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `internship_attendances`
+--
+
+CREATE TABLE `internship_attendances` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `internship_participant_id` bigint(20) UNSIGNED NOT NULL,
+  `attendance_date` date NOT NULL,
+  `status` enum('present','permission','sick','absent') NOT NULL,
+  `check_in_at` timestamp NULL DEFAULT NULL,
+  `check_out_at` timestamp NULL DEFAULT NULL,
+  `late_minutes` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `check_in_photo_path` varchar(255) DEFAULT NULL,
+  `check_out_photo_path` varchar(255) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `evidence_path` varchar(255) DEFAULT NULL,
+  `review_status` enum('not_required','pending','approved','rejected') NOT NULL DEFAULT 'not_required',
+  `review_note` text DEFAULT NULL,
+  `reviewed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `internship_participants`
+--
+
+CREATE TABLE `internship_participants` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `internship_program_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `student_number` varchar(100) NOT NULL,
+  `major` varchar(255) NOT NULL,
+  `institution` varchar(255) NOT NULL,
+  `placement_unit` varchar(255) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `status` enum('pending','approved','rejected','completed') NOT NULL DEFAULT 'pending',
+  `recommended_grade` enum('Sangat Baik','Baik','Cukup','Kurang') DEFAULT NULL,
+  `final_grade` enum('Sangat Baik','Baik','Cukup','Kurang') DEFAULT NULL,
+  `certificate_number` varchar(255) DEFAULT NULL,
+  `certificate_file_path` varchar(255) DEFAULT NULL,
+  `certificate_generated_at` timestamp NULL DEFAULT NULL,
+  `certificate_downloaded_at` timestamp NULL DEFAULT NULL,
+  `review_note` text DEFAULT NULL,
+  `reviewed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `internship_participants`
+--
+
+INSERT INTO `internship_participants` (`id`, `internship_program_id`, `user_id`, `name`, `student_number`, `major`, `institution`, `placement_unit`, `start_date`, `end_date`, `email`, `status`, `recommended_grade`, `final_grade`, `certificate_number`, `certificate_file_path`, `certificate_generated_at`, `certificate_downloaded_at`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 19, 'SAMSIDIN', '123456', 'Informatika', 'Institut Teknology Bandung', 'Bidang SKPK', '2026-09-06', '2026-09-11', 'sem@gmail.com', 'approved', 'Kurang', 'Sangat Baik', '002.1/Bspdm.04.1/GHD', 'internships/certificates/1/1.pdf', '2026-09-12 16:17:23', '2026-09-12 16:17:37', 'tolong dijaga kehadirannya yah', 2, '2026-09-12 15:25:10', '2026-09-12 15:21:42', '2026-09-12 16:17:37');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `internship_programs`
+--
+
+CREATE TABLE `internship_programs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `public_token` char(36) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `bidang` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `registration_opens_at` date DEFAULT NULL,
+  `registration_closes_at` date DEFAULT NULL,
+  `check_in_opens_at` time NOT NULL DEFAULT '06:00:00',
+  `late_after` time NOT NULL DEFAULT '07:30:00',
+  `check_out_opens_at` time NOT NULL DEFAULT '16:00:00',
+  `status` enum('draft','open','closed','archived') NOT NULL DEFAULT 'draft',
+  `certificate_template_path` varchar(255) DEFAULT NULL,
+  `certificate_number_format` varchar(255) DEFAULT NULL,
+  `certificate_start_sequence` int(10) UNSIGNED NOT NULL DEFAULT 1,
+  `certificate_issued_at` date DEFAULT NULL,
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `internship_programs`
+--
+
+INSERT INTO `internship_programs` (`id`, `public_token`, `title`, `bidang`, `description`, `registration_opens_at`, `registration_closes_at`, `check_in_opens_at`, `late_after`, `check_out_opens_at`, `status`, `certificate_template_path`, `certificate_number_format`, `certificate_start_sequence`, `certificate_issued_at`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, '6e729d43-0e4d-46d2-9f75-9afc72ec6c7f', 'MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Sekretariat', 'Magang ini ditujukan untuk daskdakjdhakd akdhaskdhaskd ashd kas', '2026-01-01', '2026-12-31', '06:00:00', '07:30:00', '16:00:00', 'open', 'internships/certificate-templates/xvtCfy6rLOxbUWXveTqoIfA5tdd5XtHLZyCfksfD.docx', '002.{X}/Bspdm.04.1/GHD', 1, '2026-09-12', 2, '2026-09-12 15:02:24', '2026-09-12 16:16:30');
 
 -- --------------------------------------------------------
 
@@ -2067,6 +2036,30 @@ CREATE TABLE `job_batches` (
   `created_at` int(11) NOT NULL,
   `finished_at` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `login_help_settings`
+--
+
+CREATE TABLE `login_help_settings` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL DEFAULT 'Hubungi Admin via WhatsApp',
+  `description` text DEFAULT NULL,
+  `contacts` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`contacts`)),
+  `message_template` text DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `login_help_settings`
+--
+
+INSERT INTO `login_help_settings` (`id`, `title`, `description`, `contacts`, `message_template`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Hubungi Admin via WhatsApp', 'Pilih admin untuk meminta bantuan reset password.', '[{\"name\":\"Sembiru\",\"phone\":\"6281382830814\"},{\"name\":\"Alam\",\"phone\":\"6281809597757\"},{\"name\":\"Rizky\",\"phone\":\"6281295317499\"}]', 'Halo Admin {ADMIN}, saya ingin meminta bantuan reset password akun INTEGRAL.\n\nNama Lengkap:\nNIP/NIK:\nEmail Terdaftar:\n\nMohon bantuannya. Terima kasih.', 1, '2026-09-12 13:21:06', '2026-09-12 13:21:06');
 
 -- --------------------------------------------------------
 
@@ -2189,7 +2182,14 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (102, '2026_09_10_000003_add_source_metadata_to_electronic_signatures', 38),
 (103, '2026_09_10_000004_add_verification_token_to_electronic_signature_documents', 39),
 (104, '2026_09_11_000001_add_tracking_events_to_asset_public_reservations', 40),
-(105, '2026_09_11_000001_add_page_format_to_electronic_signature_requests', 41);
+(105, '2026_09_11_000001_add_page_format_to_electronic_signature_requests', 41),
+(106, '2026_09_11_000005_add_delivery_to_participant_certificates', 42),
+(107, '2026_09_11_000006_create_asset_rental_rates_table', 43),
+(109, '2026_09_12_000002_create_activity_attendance_forms', 44),
+(110, '2026_09_12_000003_create_login_help_settings_table', 45),
+(111, '2026_09_12_000004_create_internship_module_tables', 46),
+(112, '2026_09_12_000005_create_internship_attendances_table', 47),
+(113, '2026_09_12_000006_add_certificates_to_internship_module', 48);
 
 -- --------------------------------------------------------
 
@@ -2279,7 +2279,11 @@ INSERT INTO `notification_reads` (`id`, `user_id`, `notification_key`, `read_at`
 (20, 2, 'asset-usage-upcoming-2-2026-09-10', '2026-09-10 13:04:57', '2026-09-10 13:04:57', '2026-09-10 13:04:57'),
 (21, 2, 'asset-usage-upcoming-2-2026-09-11', '2026-09-11 08:19:21', '2026-09-10 13:05:00', '2026-09-11 08:19:21'),
 (22, 2, 'asset-rentals-payment-20260911151750', '2026-09-11 08:18:41', '2026-09-11 08:18:35', '2026-09-11 08:18:41'),
-(23, 2, 'asset-usage-upcoming-2-2026-09-12', '2026-09-11 08:19:25', '2026-09-11 08:19:25', '2026-09-11 08:19:25');
+(23, 2, 'asset-usage-upcoming-2-2026-09-12', '2026-09-11 08:19:25', '2026-09-11 08:19:25', '2026-09-11 08:19:25'),
+(24, 9, 'asset-usage-upcoming-9-2026-09-11', '2026-09-11 14:14:42', '2026-09-11 14:14:22', '2026-09-11 14:14:42'),
+(25, 9, 'asset-usage-upcoming-9-2026-09-12', '2026-09-12 06:30:12', '2026-09-11 14:14:27', '2026-09-12 06:30:12'),
+(26, 9, 'asset-rentals-payment-20260911225516', '2026-09-11 15:56:09', '2026-09-11 15:56:07', '2026-09-11 15:56:09'),
+(27, 9, 'asset-rentals-payment-20260911230256', '2026-09-11 16:03:02', '2026-09-11 16:03:02', '2026-09-11 16:03:02');
 
 -- --------------------------------------------------------
 
@@ -2310,15 +2314,6 @@ CREATE TABLE `participants` (
   `pas_foto_file_id` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `participants`
---
-
-INSERT INTO `participants` (`id`, `training_id`, `user_id`, `nip_nik`, `phone`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `status_kepegawaian`, `registration_status`, `created_at`, `updated_at`, `biodata_file_id`, `surat_tugas_file_id`, `pas_foto_file_id`) VALUES
-(25, 9, 1, '12387126387126438', NULL, 'Simpan Aku aja 22', 'Laki-Laki', 'Pengelola Layanan', 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'PNS', 'approved', '2026-09-02 06:04:50', '2026-09-03 13:39:50', 164, 165, 166),
-(26, 9, 11, '34554834689342342', '0988653845345', 'Simpan Aku', 'Perempuan', 'GURU AHLI PERTAMA', 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', 'PPPK', 'approved', '2026-09-03 13:40:33', '2026-09-03 13:40:33', NULL, NULL, NULL),
-(27, 12, 11, '34554834689342342', '0988653845345', 'Simpan Aku', 'Perempuan', 'GURU AHLI PERTAMA', 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', 'PPPK', 'approved', '2026-09-07 04:40:05', '2026-09-07 04:40:05', NULL, NULL, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -2336,20 +2331,13 @@ CREATE TABLE `participant_certificates` (
   `final_file_path` varchar(255) DEFAULT NULL,
   `generated_at` timestamp NULL DEFAULT NULL,
   `uploaded_at` timestamp NULL DEFAULT NULL,
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `sent_by` bigint(20) UNSIGNED DEFAULT NULL,
   `downloaded_at` timestamp NULL DEFAULT NULL,
   `uploaded_by` bigint(20) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `participant_certificates`
---
-
-INSERT INTO `participant_certificates` (`id`, `training_certificate_setting_id`, `training_id`, `participant_id`, `sequence_number`, `certificate_number`, `generated_file_path`, `final_file_path`, `generated_at`, `uploaded_at`, `downloaded_at`, `uploaded_by`, `created_at`, `updated_at`) VALUES
-(1, 1, 9, 26, 1, '32.1/KPG.03.01.03/BPSDM/2026', 'certificates/generated/9/34554834689342342.pdf', 'electronic-signatures/2/signed/01b610ea-e608-4d0e-b5f5-33afcccd51f7.pdf', '2026-09-03 21:53:35', '2026-09-11 06:07:31', NULL, 18, '2026-09-03 21:42:58', '2026-09-11 06:07:31'),
-(2, 1, 9, 25, 2, '32.2/KPG.03.01.03/BPSDM/2026', 'certificates/generated/9/12387126387126438.pdf', 'electronic-signatures/2/signed/8515e154-3b20-4fb9-9681-08d72bb98305.pdf', '2026-09-03 21:53:35', '2026-09-11 06:07:29', NULL, 18, '2026-09-03 21:42:58', '2026-09-11 06:07:29'),
-(3, 3, 12, 27, 1, '222.1/KPG.03.01.03/BPSDM/2026', 'certificates/generated/12/34554834689342342.pdf', NULL, '2026-09-09 03:41:37', NULL, NULL, NULL, '2026-09-09 03:41:37', '2026-09-09 03:41:37');
 
 -- --------------------------------------------------------
 
@@ -2536,16 +2524,6 @@ CREATE TABLE `schedules` (
   `external_place` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `schedules`
---
-
-INSERT INTO `schedules` (`id`, `training_id`, `date`, `start_time`, `end_time`, `activity`, `schedule_type`, `jp`, `duration_unit`, `link_zoom`, `pic`, `pengajar_id`, `created_at`, `updated_at`, `attendance_open`, `attendance_close`, `venue_type`, `external_place`) VALUES
-(12, 8, '2026-09-01', '08:00:00', '09:30:00', 'Materi Kebangsaan', 'learning', 2, 'JP', 'https://bit.ly/ApelBPSDMJabar', 'Super Administrator', 4, '2026-09-01 15:49:58', '2026-09-02 02:15:14', '07:30:00', '10:00:00', 'external', 'melalu Zoom Meeting'),
-(20, 9, '2026-09-03', '18:00:00', '22:00:00', 'Materi Building Learning Caracter Peserta Latsar CPNS', 'learning', 4, 'OJ', NULL, 'Super Administrator', 17, '2026-09-03 12:59:25', '2026-09-05 12:12:17', '07:30:00', '22:00:00', 'internal', NULL),
-(25, 11, '2026-09-05', '23:03:00', '23:48:00', 'Materi Kebangsaan', 'learning', 1, 'JP', NULL, 'Ali Ridwan', 17, '2026-09-05 13:21:08', '2026-09-05 13:21:08', NULL, NULL, 'internal', NULL),
-(26, 11, '2026-09-06', '08:00:00', '08:45:00', 'Materi Building Learning Caracter Peserta Latsar CPNS', 'learning', 1, 'JP', NULL, 'Ali Ridwan', 4, '2026-09-05 13:22:19', '2026-09-05 13:22:19', NULL, NULL, 'internal', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -2575,16 +2553,6 @@ CREATE TABLE `trainings` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `trainings`
---
-
-INSERT INTO `trainings` (`id`, `created_by`, `bidang`, `program_evaluasi`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
-(8, 2, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pealtihan Keuangan Daerah', 'MQFO9Q', NULL, 'standar', 'klasikal', 'Gedung kelas lantai 2', NULL, NULL, '1', 1, 24, '2026-08-27', '2026-08-28', NULL, NULL, '2026-08-30 09:11:51', '2026-08-30 09:32:04'),
-(9, 12, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pelatihan Pengkajian Kebutuhan Pascabencana', '20U5QG', 'https://jabarcorputalent.jabarprov.go.id/pelatihan/jitupasna-angk1/preview', 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 30, 29, '2026-08-30', '2026-09-01', NULL, NULL, '2026-08-30 13:43:37', '2026-09-05 12:13:30'),
-(11, 2, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pelatihan Contoh Kedalam Umum', 'PPSYQV', NULL, 'standar', 'klasikal', 'Zoom', NULL, NULL, '3', 12, 40, '2026-09-03', '2026-09-06', NULL, NULL, '2026-09-05 12:57:53', '2026-09-05 13:19:59'),
-(12, 2, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 'CPNS', 'PELATIHAN LATSAR', '6UWZQE', NULL, 'standar', 'klasikal', 'Zoom', NULL, NULL, 'I', 23, 56, '2025-06-06', '2025-06-10', NULL, NULL, '2026-09-07 04:30:11', '2026-09-07 10:00:35');
 
 -- --------------------------------------------------------
 
@@ -2638,16 +2606,6 @@ CREATE TABLE `training_activity_reports` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `training_activity_reports`
---
-
-INSERT INTO `training_activity_reports` (`id`, `training_id`, `report_number`, `background`, `legal_basis`, `objectives`, `implementation`, `achievements`, `constraints`, `follow_up`, `conclusion`, `recommendations`, `signatory_name`, `signatory_nip`, `signatory_position`, `approval_date`, `template_path`, `status`, `updated_by`, `created_at`, `updated_at`) VALUES
-(2, 9, '8000/BPSDM/2026', 'Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I merupakan program jenis PKTI/PKTU yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Kegiatan ini dilaksanakan pada periode 30 Agustus 2026 s.d. 01 September 2026 bertempat di Zoom dengan metode klasikal, memuat total durasi 0 JP dan 4 OJ. Pelaksanaan pelatihan ini ditujukan untuk memenuhi kebutuhan pengembangan kompetensi teknis umum para pegawai dari instansi terkait.', 'Informasi mengenai dasar hukum pelaksanaan kegiatan belum tersedia pada data terstruktur dan perlu dilengkapi oleh admin.', 'Pelatihan ini bertujuan untuk memberikan pembekalan dan peningkatan kompetensi peserta terkait pengkajian kebutuhan pascabencana melalui penyampaian materi pelatihan yang mencakup Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.', 'Pelatihan diselenggarakan secara klasikal melalui Zoom dari tanggal 30 Agustus 2026 sampai dengan 01 September 2026. Sebanyak 2 pendaftar dari 2 instansi telah disetujui sebagai peserta. Kegiatan diampu oleh 1 orang pengajar dengan agenda pembelajaran yang dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00–22:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS berdurasi 4 OJ.', 'Berdasarkan evaluasi agregat, pelatihan ini meraih nilai evaluasi Level 1 sebesar 92,9 dan nilai evaluasi Level 2 sebesar 100,0 (sementara nilai Level 3 dan Level 4 tidak diukur). Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.', 'Tingkat rata-rata kehadiran peserta berada pada angka 0,0% di mana dari 2 peserta yang disetujui, keduanya tercatat tanpa keterangan (0 hadir, 0 izin, 0 sakit). Selain itu, berdasarkan 6 saran yang masuk, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan. Penjelasan kendala spesifik lainnya perlu dilengkapi oleh admin.', 'Tindak lanjut yang harus dilakukan meliputi penelusuran serta konfirmasi atas ketidakhadiran 2 peserta tanpa keterangan, evaluasi bersama pengajar terkait kejelasan substansi materi pengelolaan keuangan, serta koordinasi dengan pengelola sarana dan prasarana untuk peningkatan kebersihan ruang makan.', 'Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah selesai dilaksanakan dengan pencapaian evaluasi Level 1 sebesar 92,9 dan Level 2 sebesar 100,0 serta penilaian materi dan penyelenggara yang cukup baik. Namun, pelaksanaan kegiatan menghadapi catatan kritis berupa rekapitulasi kehadiran peserta sebesar 0,0% (2 peserta tanpa keterangan) serta adanya beberapa catatan perbaikan dari peserta.', 'Direkomendasikan untuk meninjau ulang dan memperjelas penyampaian substansi materi pengelolaan keuangan, meningkatkan pemeliharaan kebersihan sarana dan prasarana khususnya area ruang makan, serta memperketat mekanisme konfirmasi kehadiran peserta sebelum dan selama pelatihan berlangsung.', 'IKA MARDIAH', '1998523759235235', 'Kepala Bpsdm Jabar', '2026-09-06', NULL, 'draft', 2, '2026-09-03 22:55:52', '2026-09-07 04:15:24'),
-(4, 8, NULL, 'Laporan ini disusun sebagai bentuk pertanggungjawaban atas penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 yang dilaksanakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan jenis PKTI/PKTU ini diselenggarakan pada periode 27 Agustus 2026 s.d. 28 Agustus 2026 berlokasi di Gedung kelas lantai 2 dengan metode klasikal, mengalokasikan total 2 JP dan 0 OJ.', 'Informasi mengenai dasar hukum dan peraturan perundang-undangan penyelenggaraan pelatihan belum tersedia dalam data dasar, sehingga bagian ini memohon bantuan administrator untuk dapat dilengkapi.', 'Tujuan dari penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 ini adalah untuk memfasilitasi kegiatan pembelajaran teknis umum sesuai bidang tugas melalui metode klasikal sebanyak 2 JP bagi para pemangku kepentingan terkait.', 'Kegiatan dilaksanakan secara klasikal di Gedung kelas lantai 2 pada tanggal 27 Agustus 2026 s.d. 28 Agustus 2026. Pembelajaran didukung oleh 1 orang pengajar. Agenda yang terdaftar memuat materi Materi Kebangsaan pada 01 Sep 2026 pukul 08:00–09:30 berdurasi 2 JP. Berdasarkan data statistik agregat, tercatat 0 pendaftar, 0 peserta disetujui, dan 0 instansi. Catatan kehadiran mencakup 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan dengan rata-rata kehadiran sebesar 0,0%. Pada aspek evaluasi agregat, level 1 hingga level 4 serta kesimpulan admin anonim belum mencatatkan data kuantitatif atau kualitatif (-), dengan jumlah saran sebanyak 0.', 'Capaian kegiatan ini ditunjukkan dengan tersediayanya sarana lokasi di Gedung kelas lantai 2, keterlibatan 1 orang pengajar, serta terlaksananya alokasi pembelajaran Materi Kebangsaan durasi 2 JP.', 'Rincian kendala yang dihadapi selama masa persiapan maupun pelaksanaan pelatihan belum tersedia pada data acuan, sehingga bagian ini memerlukan verifikasi dan penyempurnaan lebih lanjut oleh administrator.', 'Tindak lanjut konkret yang perlu dilakukan adalah melakukan konfirmasi status terhadap 1 data catatan tanpa keterangan serta melengkapi pengisian data evaluasi level 1 sampai dengan level 4.', 'Penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 Bidang Pengembangan Kompetensi Teknis Umum telah memfasilitasi materi pembelajaran 2 JP bersama 1 pengajar. Namun, pencatatan statistik menunjukkan rata-rata kehadiran 0,0% dengan 1 status tanpa keterangan serta data evaluasi agregat yang belum terisi.', 'Direkomendasikan bagi administrator untuk melengkapi penulisan dasar hukum kegiatan, melakukan penelusuran kearsipan terhadap status kehadiran tanpa keterangan, serta menginput hasil evaluasi peserta level 1 hingga level 4 agar laporan pelatihan menjadi utuh.', NULL, NULL, NULL, NULL, NULL, 'draft', 2, '2026-09-07 07:25:20', '2026-09-07 08:15:21'),
-(5, 11, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'draft', NULL, '2026-09-07 08:25:29', '2026-09-07 08:25:29'),
-(6, 12, '8000/BPSDM/2026', 'Laporan ini disusun berdasarkan penyelenggaraan Pelatihan Latsar Angkatan I bagi CPNS di lingkungan Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan. Pelatihan ini dijadwalkan berlangsung pada periode 06 Juni 2025 sampai dengan 10 Juni 2025 dengan metode klasikal melalui media Zoom, dengan total beban jam pelajaran (JP) sebanyak 0 dan On the Job Training (OJ) sebanyak 0.', 'Data mengenai dasar hukum, peraturan pemerintah, maupun surat keputusan penyelenggaraan pelatihan belum tersedia pada data laporan ini. Mohon kesediaan administrator untuk melengkapi bagian dasar hukum sesuai dengan ketentuan yang berlaku.', 'Pelaksanaan kegiatan ini bertujuan untuk menyelenggarakan Pelatihan Latsar Angkatan I bagi CPNS pada Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan melalui platform Zoom secara klasikal dari tanggal 06 Juni 2025 hingga 10 Juni 2025.', 'Pelatihan dilaksanakan secara klasikal melalui Zoom pada tanggal 06 Juni 2025 s.d. 10 Juni 2025. Jumlah pendaftar tercatat sebanyak 1 orang dan 1 peserta disetujui dari 1 instansi. Kegiatan ini tercatat memiliki total 0 JP dan 0 OJ, serta ditangani oleh 0 orang pengajar.', 'Pencapaian pelaksanaan ditunjukkan melalui data statistik dengan tingkat rata-rata kehadiran sebesar 0,0%, di mana dari 1 peserta terdaftar, tercatat 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan. Evaluasi agregat level 1 hingga level 4 belum menghasilkan nilai, serta ringkasan evaluasi dampak dan perubahan sikap perilaku belum memiliki jawaban.', 'Data kendala pelaksanaan pelatihan belum tercatat dalam sistem. Mohon kesediaan administrator untuk melengkapi informasi kendala operasional maupun teknis yang dihadapi selama kegiatan berlangsung.', 'Tindak lanjut konkret yang perlu dilakukan adalah mengklarifikasi status ketidakhadiran 1 orang peserta tanpa keterangan kepada instansi asal, serta mengoordinasikan pengisian evaluasi pascapelatihan bersama pihak terkait.', 'Pelatihan Latsar Angkatan I bagi CPNS Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan periode 06 Juni 2025 s.d. 10 Juni 2025 via Zoom telah mencatatkan 1 peserta disetujui, namun tingkat kehadiran mencapai 0,0% dengan 1 peserta tanpa keterangan, serta belum ada data evaluasi level 1 sampai 4 yang terisi.', 'Disarankan agar penyelenggara melengkapi dokumen dasar hukum dan kendala melalui administrator, melakukan pembenahan prosedur pemanggilan peserta untuk memastikan kehadiran, serta memantau pengisian instrumen evaluasi pelatihan.', 'IKA MARDIAH', '1998523759235235', 'Kepala Bpsdm Jabar', '2026-09-09', NULL, 'draft', 2, '2026-09-07 13:32:57', '2026-09-09 03:39:13');
-
 -- --------------------------------------------------------
 
 --
@@ -2665,16 +2623,6 @@ CREATE TABLE `training_activity_report_versions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `training_activity_report_versions`
---
-
-INSERT INTO `training_activity_report_versions` (`id`, `training_activity_report_id`, `version`, `docx_path`, `pdf_path`, `snapshot`, `generated_by`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.docx', 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v1.pdf', '{\"nama_pelatihan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana\",\"angkatan\":\"I\",\"jenis_pelatihan\":\"PKTI\\/PKTU\",\"bidang_penyelenggara\":\"Bidang Pengembangan Kompetensi Teknis Umum\",\"tahun_pelatihan\":2026,\"nomor_laporan\":\"8000\\/BPSDM\\/2026\",\"tanggal_mulai\":\"30 Agustus 2026\",\"tanggal_selesai\":\"01 September 2026\",\"periode_pelatihan\":\"30 Agustus 2026 s.d. 01 September 2026\",\"lokasi_pelatihan\":\"Zoom\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":0,\"total_oj\":4,\"jumlah_pendaftar\":2,\"jumlah_peserta\":2,\"jumlah_instansi\":2,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":2,\"jumlah_pengajar\":1,\"nilai_evaluasi_l1\":\"92,9\",\"nilai_evaluasi_l2\":\"100,0\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"kesimpulan_evaluasi\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"jumlah_saran\":6,\"nama_penandatangan\":\"IKA MARDIAH\",\"nip_penandatangan\":\"1998523759235235\",\"jabatan_penandatangan\":\"Kepala Bpsdm Jabar\",\"tanggal_pengesahan\":\"06 September 2026\",\"tanggal_generate\":\"06 September 2026 09:38\",\"narasi_background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"narasi_tindak_lanjut\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_latar_belakang\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_dasar_hukum\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_tujuan\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_pelaksanaan\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_capaian\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_kendala\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_kesimpulan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_rekomendasi\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"versi_laporan\":1}', 2, '2026-09-06 02:38:22', '2026-09-06 02:38:22'),
-(2, 2, 2, 'activity-reports/9/Laporan_Kegiatan_pelatihan_pengkajian_kebutuhan_pascabencana_v2.docx', NULL, '{\"nama_pelatihan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana\",\"angkatan\":\"I\",\"jenis_pelatihan\":\"PKTI\\/PKTU\",\"bidang_penyelenggara\":\"Bidang Pengembangan Kompetensi Teknis Umum\",\"tahun_pelatihan\":2026,\"nomor_laporan\":\"8000\\/BPSDM\\/2026\",\"tanggal_mulai\":\"30 Agustus 2026\",\"tanggal_selesai\":\"01 September 2026\",\"periode_pelatihan\":\"30 Agustus 2026 s.d. 01 September 2026\",\"lokasi_pelatihan\":\"Zoom\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":0,\"total_oj\":4,\"jumlah_pendaftar\":2,\"jumlah_peserta\":2,\"jumlah_instansi\":2,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":2,\"jumlah_pengajar\":1,\"nilai_evaluasi_l1\":\"92,9\",\"nilai_evaluasi_l2\":\"100,0\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"kesimpulan_evaluasi\":\"Secara umum materi pelatihan dan kinerja penyelenggara dinilai cukup baik. Namun, terdapat catatan perbaikan pada kejelasan substansi materi pengelolaan keuangan serta kebersihan sarana dan prasarana, khususnya ruang makan.\",\"jumlah_saran\":6,\"nama_penandatangan\":\"IKA MARDIAH\",\"nip_penandatangan\":\"1998523759235235\",\"jabatan_penandatangan\":\"Kepala Bpsdm Jabar\",\"tanggal_pengesahan\":\"06 September 2026\",\"tanggal_generate\":\"06 September 2026 09:38\",\"narasi_background\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_legal_basis\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_objectives\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_implementation\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_achievements\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_constraints\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_follow_up\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_conclusion\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_recommendations\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"narasi_tindak_lanjut\":\"Tindak lanjut yang konkret mencakup koordinasi dengan pengajar untuk memperjelas substansi materi pengelolaan keuangan, melakukan konfirmasi serta evaluasi atas ketidakhadiran 2 peserta tanpa keterangan, dan meningkatkan pengawasan kebersihan fasilitas sarana dan prasarana penunjang.\",\"narasi_latar_belakang\":\"Laporan ini menyusun gambaran pelaksanaan Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I yang diselenggarakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan ini merupakan jenis pelatihan PKTI\\/PKTU yang dirancang untuk mendukung peningkatan kapasitas dan kompetensi teknis pegawai.\",\"narasi_dasar_hukum\":\"Dasar hukum pelaksanaan kegiatan belum tersedia dalam data ini dan dapat dilengkapi oleh administrator yang berwenang.\",\"narasi_tujuan\":\"Pelatihan ini bertujuan untuk memfasilitasi pembelajaran pengkajian kebutuhan pascabencana yang diselenggarakan dengan metode klasikal melalui Zoom, mencakup beban alokasi 0 JP dan total durasi 4 OJ.\",\"narasi_pelaksanaan\":\"Pelatihan dilaksanakan pada rentang periode 30 Agustus 2026 s.d. 01 September 2026 berlokasi di Zoom secara klasikal dengan ditunjang oleh 1 orang pengajar. Sebanyak 2 pendaftar dari 2 instansi telah terdaftar dan seluruhnya disetujui sebagai peserta (2 orang). Berdasarkan data statistik kehadiran, tercatat rata-rata kehadiran sebesar 0,0% dengan rincian 0 hadir, 0 izin, 0 sakit, dan 2 orang tanpa keterangan. Agenda kegiatan yang terdata dilaksanakan pada tanggal 03 Sep 2026 pukul 18:00\\u201322:00 memuat Materi Building Learning Caracter Peserta Latsar CPNS dengan durasi 4 OJ.\",\"narasi_capaian\":\"Pencapaian pelaksanaan kegiatan diukur melalui evaluasi agregat dengan hasil level 1 sebesar 92,9 dan level 2 sebesar 100,0, sedangkan level 3 dan level 4 tidak dinilai (-). Kegiatan ini menghimpun sebanyak 6 saran. Secara umum, materi pelatihan dan kinerja penyelenggara dinilai cukup baik oleh peserta.\",\"narasi_kendala\":\"Rincian kendala secara spesifik belum tersedia dalam data dan dapat dilengkapi oleh administrator. Namun, terdapat catatan perbaikan terkait kejelasan substansi materi pengelolaan keuangan serta kondisi kebersihan sarana dan prasarana, khususnya pada area ruang makan.\",\"narasi_kesimpulan\":\"Pelatihan Pengkajian Kebutuhan Pascabencana Angkatan I telah diselenggarakan dengan tingkat evaluasi level 1 sebesar 92,9 dan level 2 sebesar 100,0 serta kinerja penyelenggara yang dinilai cukup baik. Meski demikian, pelaksanaan mencatatkan angka kehadiran 0,0% akibat 2 peserta tanpa keterangan serta adanya catatan perbaikan pada kejelasan materi dan kebersihan fasilitas.\",\"narasi_rekomendasi\":\"Direkomendasikan kepada pengelola pelatihan untuk melakukan penyempurnaan kejelasan materi pengelolaan keuangan, memperketat mekanisme pemantauan kehadiran peserta, serta meningkatkan kebersihan sarana dan prasarana khususnya di ruang makan untuk penyelenggaraan kegiatan mendatang.\",\"versi_laporan\":2}', 2, '2026-09-06 02:38:57', '2026-09-06 02:38:57'),
-(3, 4, 1, 'activity-reports/8/Laporan_Kegiatan_pealtihan_keuangan_daerah_v1.docx', 'activity-reports/8/Laporan_Kegiatan_pealtihan_keuangan_daerah_v1.pdf', '{\"nama_pelatihan\":\"Pealtihan Keuangan Daerah\",\"angkatan\":\"1\",\"jenis_pelatihan\":\"PKTI\\/PKTU\",\"bidang_penyelenggara\":\"Bidang Pengembangan Kompetensi Teknis Umum\",\"tahun_pelatihan\":2026,\"nomor_laporan\":\"-\",\"tanggal_mulai\":\"27 Agustus 2026\",\"tanggal_selesai\":\"28 Agustus 2026\",\"periode_pelatihan\":\"27 Agustus 2026 s.d. 28 Agustus 2026\",\"lokasi_pelatihan\":\"Gedung kelas lantai 2\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":2,\"total_oj\":0,\"jumlah_pendaftar\":0,\"jumlah_peserta\":0,\"jumlah_instansi\":0,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":1,\"jumlah_pengajar\":1,\"nilai_evaluasi_l1\":\"-\",\"nilai_evaluasi_l2\":\"-\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"kesimpulan_evaluasi\":\"-\",\"jumlah_saran\":0,\"nama_penandatangan\":\"-\",\"nip_penandatangan\":\"-\",\"jabatan_penandatangan\":\"-\",\"tanggal_pengesahan\":\"-\",\"tanggal_generate\":\"07 September 2026 15:15\",\"narasi_background\":\"Laporan ini disusun sebagai bentuk pertanggungjawaban atas penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 yang dilaksanakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan jenis PKTI\\/PKTU ini diselenggarakan pada periode 27 Agustus 2026 s.d. 28 Agustus 2026 berlokasi di Gedung kelas lantai 2 dengan metode klasikal, mengalokasikan total 2 JP dan 0 OJ.\",\"narasi_legal_basis\":\"Informasi mengenai dasar hukum dan peraturan perundang-undangan penyelenggaraan pelatihan belum tersedia dalam data dasar, sehingga bagian ini memohon bantuan administrator untuk dapat dilengkapi.\",\"narasi_objectives\":\"Tujuan dari penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 ini adalah untuk memfasilitasi kegiatan pembelajaran teknis umum sesuai bidang tugas melalui metode klasikal sebanyak 2 JP bagi para pemangku kepentingan terkait.\",\"narasi_implementation\":\"Kegiatan dilaksanakan secara klasikal di Gedung kelas lantai 2 pada tanggal 27 Agustus 2026 s.d. 28 Agustus 2026. Pembelajaran didukung oleh 1 orang pengajar. Agenda yang terdaftar memuat materi Materi Kebangsaan pada 01 Sep 2026 pukul 08:00\\u201309:30 berdurasi 2 JP. Berdasarkan data statistik agregat, tercatat 0 pendaftar, 0 peserta disetujui, dan 0 instansi. Catatan kehadiran mencakup 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan dengan rata-rata kehadiran sebesar 0,0%. Pada aspek evaluasi agregat, level 1 hingga level 4 serta kesimpulan admin anonim belum mencatatkan data kuantitatif atau kualitatif (-), dengan jumlah saran sebanyak 0.\",\"narasi_achievements\":\"Capaian kegiatan ini ditunjukkan dengan tersediayanya sarana lokasi di Gedung kelas lantai 2, keterlibatan 1 orang pengajar, serta terlaksananya alokasi pembelajaran Materi Kebangsaan durasi 2 JP.\",\"narasi_constraints\":\"Rincian kendala yang dihadapi selama masa persiapan maupun pelaksanaan pelatihan belum tersedia pada data acuan, sehingga bagian ini memerlukan verifikasi dan penyempurnaan lebih lanjut oleh administrator.\",\"narasi_follow_up\":\"Tindak lanjut konkret yang perlu dilakukan adalah melakukan konfirmasi status terhadap 1 data catatan tanpa keterangan serta melengkapi pengisian data evaluasi level 1 sampai dengan level 4.\",\"narasi_conclusion\":\"Penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 Bidang Pengembangan Kompetensi Teknis Umum telah memfasilitasi materi pembelajaran 2 JP bersama 1 pengajar. Namun, pencatatan statistik menunjukkan rata-rata kehadiran 0,0% dengan 1 status tanpa keterangan serta data evaluasi agregat yang belum terisi.\",\"narasi_recommendations\":\"Direkomendasikan bagi administrator untuk melengkapi penulisan dasar hukum kegiatan, melakukan penelusuran kearsipan terhadap status kehadiran tanpa keterangan, serta menginput hasil evaluasi peserta level 1 hingga level 4 agar laporan pelatihan menjadi utuh.\",\"narasi_tindak_lanjut\":\"Tindak lanjut konkret yang perlu dilakukan adalah melakukan konfirmasi status terhadap 1 data catatan tanpa keterangan serta melengkapi pengisian data evaluasi level 1 sampai dengan level 4.\",\"narasi_latar_belakang\":\"Laporan ini disusun sebagai bentuk pertanggungjawaban atas penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 yang dilaksanakan oleh Bidang Pengembangan Kompetensi Teknis Umum. Pelatihan jenis PKTI\\/PKTU ini diselenggarakan pada periode 27 Agustus 2026 s.d. 28 Agustus 2026 berlokasi di Gedung kelas lantai 2 dengan metode klasikal, mengalokasikan total 2 JP dan 0 OJ.\",\"narasi_dasar_hukum\":\"Informasi mengenai dasar hukum dan peraturan perundang-undangan penyelenggaraan pelatihan belum tersedia dalam data dasar, sehingga bagian ini memohon bantuan administrator untuk dapat dilengkapi.\",\"narasi_tujuan\":\"Tujuan dari penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 ini adalah untuk memfasilitasi kegiatan pembelajaran teknis umum sesuai bidang tugas melalui metode klasikal sebanyak 2 JP bagi para pemangku kepentingan terkait.\",\"narasi_pelaksanaan\":\"Kegiatan dilaksanakan secara klasikal di Gedung kelas lantai 2 pada tanggal 27 Agustus 2026 s.d. 28 Agustus 2026. Pembelajaran didukung oleh 1 orang pengajar. Agenda yang terdaftar memuat materi Materi Kebangsaan pada 01 Sep 2026 pukul 08:00\\u201309:30 berdurasi 2 JP. Berdasarkan data statistik agregat, tercatat 0 pendaftar, 0 peserta disetujui, dan 0 instansi. Catatan kehadiran mencakup 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan dengan rata-rata kehadiran sebesar 0,0%. Pada aspek evaluasi agregat, level 1 hingga level 4 serta kesimpulan admin anonim belum mencatatkan data kuantitatif atau kualitatif (-), dengan jumlah saran sebanyak 0.\",\"narasi_capaian\":\"Capaian kegiatan ini ditunjukkan dengan tersediayanya sarana lokasi di Gedung kelas lantai 2, keterlibatan 1 orang pengajar, serta terlaksananya alokasi pembelajaran Materi Kebangsaan durasi 2 JP.\",\"narasi_kendala\":\"Rincian kendala yang dihadapi selama masa persiapan maupun pelaksanaan pelatihan belum tersedia pada data acuan, sehingga bagian ini memerlukan verifikasi dan penyempurnaan lebih lanjut oleh administrator.\",\"narasi_kesimpulan\":\"Penyelenggaraan Pealtihan Keuangan Daerah Angkatan 1 Bidang Pengembangan Kompetensi Teknis Umum telah memfasilitasi materi pembelajaran 2 JP bersama 1 pengajar. Namun, pencatatan statistik menunjukkan rata-rata kehadiran 0,0% dengan 1 status tanpa keterangan serta data evaluasi agregat yang belum terisi.\",\"narasi_rekomendasi\":\"Direkomendasikan bagi administrator untuk melengkapi penulisan dasar hukum kegiatan, melakukan penelusuran kearsipan terhadap status kehadiran tanpa keterangan, serta menginput hasil evaluasi peserta level 1 hingga level 4 agar laporan pelatihan menjadi utuh.\",\"versi_laporan\":1}', 2, '2026-09-07 08:15:35', '2026-09-07 08:15:35'),
-(4, 6, 1, 'activity-reports/12/Laporan_Kegiatan_pelatihan_latsar_v1.docx', 'activity-reports/12/Laporan_Kegiatan_pelatihan_latsar_v1.pdf', '{\"nama_pelatihan\":\"PELATIHAN LATSAR\",\"angkatan\":\"I\",\"jenis_pelatihan\":\"CPNS\",\"bidang_penyelenggara\":\"Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan\",\"tahun_pelatihan\":2025,\"nomor_laporan\":\"8000\\/BPSDM\\/2026\",\"tanggal_mulai\":\"06 Juni 2025\",\"tanggal_selesai\":\"10 Juni 2025\",\"periode_pelatihan\":\"06 Juni 2025 s.d. 10 Juni 2025\",\"lokasi_pelatihan\":\"Zoom\",\"metode_pelatihan\":\"klasikal\",\"total_jp\":0,\"total_oj\":0,\"jumlah_pendaftar\":1,\"jumlah_peserta\":1,\"jumlah_instansi\":1,\"rata_rata_kehadiran\":\"0,0%\",\"jumlah_hadir\":0,\"jumlah_izin\":0,\"jumlah_sakit\":0,\"jumlah_tanpa_keterangan\":1,\"jumlah_pengajar\":0,\"nilai_evaluasi_l1\":\"-\",\"nilai_evaluasi_l2\":\"-\",\"nilai_evaluasi_l3\":\"-\",\"nilai_evaluasi_l4\":\"-\",\"bagian_evaluasi_l3\":\"Perubahan Sikap Perilaku\",\"bagian_evaluasi_l4\":\"Dampak Pelatihan\",\"ringkasan_evaluasi_l34\":\"Perubahan Sikap Perilaku: belum ada jawaban; Dampak Pelatihan: belum ada jawaban; Faktor Pendukung Aktualisasi: belum ada jawaban; Faktor Penghambat Aktualisasi: belum ada jawaban\",\"kesimpulan_evaluasi\":\"-\",\"jumlah_saran\":0,\"nama_penandatangan\":\"IKA MARDIAH\",\"nip_penandatangan\":\"1998523759235235\",\"jabatan_penandatangan\":\"Kepala Bpsdm Jabar\",\"tanggal_pengesahan\":\"09 September 2026\",\"tanggal_generate\":\"09 September 2026 10:39\",\"nilai_l34_perubahan_sikap_perilaku\":\"-\",\"respons_l34_perubahan_sikap_perilaku\":0,\"nilai_l34_dampak_pelatihan\":\"-\",\"respons_l34_dampak_pelatihan\":0,\"nilai_l34_faktor_pendukung_aktualisasi\":\"-\",\"respons_l34_faktor_pendukung_aktualisasi\":0,\"nilai_l34_faktor_penghambat_aktualisasi\":\"-\",\"respons_l34_faktor_penghambat_aktualisasi\":0,\"narasi_background\":\"Laporan ini disusun berdasarkan penyelenggaraan Pelatihan Latsar Angkatan I bagi CPNS di lingkungan Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan. Pelatihan ini dijadwalkan berlangsung pada periode 06 Juni 2025 sampai dengan 10 Juni 2025 dengan metode klasikal melalui media Zoom, dengan total beban jam pelajaran (JP) sebanyak 0 dan On the Job Training (OJ) sebanyak 0.\",\"narasi_legal_basis\":\"Data mengenai dasar hukum, peraturan pemerintah, maupun surat keputusan penyelenggaraan pelatihan belum tersedia pada data laporan ini. Mohon kesediaan administrator untuk melengkapi bagian dasar hukum sesuai dengan ketentuan yang berlaku.\",\"narasi_objectives\":\"Pelaksanaan kegiatan ini bertujuan untuk menyelenggarakan Pelatihan Latsar Angkatan I bagi CPNS pada Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan melalui platform Zoom secara klasikal dari tanggal 06 Juni 2025 hingga 10 Juni 2025.\",\"narasi_implementation\":\"Pelatihan dilaksanakan secara klasikal melalui Zoom pada tanggal 06 Juni 2025 s.d. 10 Juni 2025. Jumlah pendaftar tercatat sebanyak 1 orang dan 1 peserta disetujui dari 1 instansi. Kegiatan ini tercatat memiliki total 0 JP dan 0 OJ, serta ditangani oleh 0 orang pengajar.\",\"narasi_achievements\":\"Pencapaian pelaksanaan ditunjukkan melalui data statistik dengan tingkat rata-rata kehadiran sebesar 0,0%, di mana dari 1 peserta terdaftar, tercatat 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan. Evaluasi agregat level 1 hingga level 4 belum menghasilkan nilai, serta ringkasan evaluasi dampak dan perubahan sikap perilaku belum memiliki jawaban.\",\"narasi_constraints\":\"Data kendala pelaksanaan pelatihan belum tercatat dalam sistem. Mohon kesediaan administrator untuk melengkapi informasi kendala operasional maupun teknis yang dihadapi selama kegiatan berlangsung.\",\"narasi_follow_up\":\"Tindak lanjut konkret yang perlu dilakukan adalah mengklarifikasi status ketidakhadiran 1 orang peserta tanpa keterangan kepada instansi asal, serta mengoordinasikan pengisian evaluasi pascapelatihan bersama pihak terkait.\",\"narasi_conclusion\":\"Pelatihan Latsar Angkatan I bagi CPNS Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan periode 06 Juni 2025 s.d. 10 Juni 2025 via Zoom telah mencatatkan 1 peserta disetujui, namun tingkat kehadiran mencapai 0,0% dengan 1 peserta tanpa keterangan, serta belum ada data evaluasi level 1 sampai 4 yang terisi.\",\"narasi_recommendations\":\"Disarankan agar penyelenggara melengkapi dokumen dasar hukum dan kendala melalui administrator, melakukan pembenahan prosedur pemanggilan peserta untuk memastikan kehadiran, serta memantau pengisian instrumen evaluasi pelatihan.\",\"narasi_tindak_lanjut\":\"Tindak lanjut konkret yang perlu dilakukan adalah mengklarifikasi status ketidakhadiran 1 orang peserta tanpa keterangan kepada instansi asal, serta mengoordinasikan pengisian evaluasi pascapelatihan bersama pihak terkait.\",\"narasi_latar_belakang\":\"Laporan ini disusun berdasarkan penyelenggaraan Pelatihan Latsar Angkatan I bagi CPNS di lingkungan Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan. Pelatihan ini dijadwalkan berlangsung pada periode 06 Juni 2025 sampai dengan 10 Juni 2025 dengan metode klasikal melalui media Zoom, dengan total beban jam pelajaran (JP) sebanyak 0 dan On the Job Training (OJ) sebanyak 0.\",\"narasi_dasar_hukum\":\"Data mengenai dasar hukum, peraturan pemerintah, maupun surat keputusan penyelenggaraan pelatihan belum tersedia pada data laporan ini. Mohon kesediaan administrator untuk melengkapi bagian dasar hukum sesuai dengan ketentuan yang berlaku.\",\"narasi_tujuan\":\"Pelaksanaan kegiatan ini bertujuan untuk menyelenggarakan Pelatihan Latsar Angkatan I bagi CPNS pada Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan melalui platform Zoom secara klasikal dari tanggal 06 Juni 2025 hingga 10 Juni 2025.\",\"narasi_pelaksanaan\":\"Pelatihan dilaksanakan secara klasikal melalui Zoom pada tanggal 06 Juni 2025 s.d. 10 Juni 2025. Jumlah pendaftar tercatat sebanyak 1 orang dan 1 peserta disetujui dari 1 instansi. Kegiatan ini tercatat memiliki total 0 JP dan 0 OJ, serta ditangani oleh 0 orang pengajar.\",\"narasi_capaian\":\"Pencapaian pelaksanaan ditunjukkan melalui data statistik dengan tingkat rata-rata kehadiran sebesar 0,0%, di mana dari 1 peserta terdaftar, tercatat 0 hadir, 0 izin, 0 sakit, dan 1 tanpa keterangan. Evaluasi agregat level 1 hingga level 4 belum menghasilkan nilai, serta ringkasan evaluasi dampak dan perubahan sikap perilaku belum memiliki jawaban.\",\"narasi_kendala\":\"Data kendala pelaksanaan pelatihan belum tercatat dalam sistem. Mohon kesediaan administrator untuk melengkapi informasi kendala operasional maupun teknis yang dihadapi selama kegiatan berlangsung.\",\"narasi_kesimpulan\":\"Pelatihan Latsar Angkatan I bagi CPNS Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan periode 06 Juni 2025 s.d. 10 Juni 2025 via Zoom telah mencatatkan 1 peserta disetujui, namun tingkat kehadiran mencapai 0,0% dengan 1 peserta tanpa keterangan, serta belum ada data evaluasi level 1 sampai 4 yang terisi.\",\"narasi_rekomendasi\":\"Disarankan agar penyelenggara melengkapi dokumen dasar hukum dan kendala melalui administrator, melakukan pembenahan prosedur pemanggilan peserta untuk memastikan kehadiran, serta memantau pengisian instrumen evaluasi pelatihan.\",\"versi_laporan\":1}', 2, '2026-09-09 03:39:39', '2026-09-09 03:39:39');
 
 -- --------------------------------------------------------
 
@@ -2696,15 +2644,6 @@ CREATE TABLE `training_certificate_settings` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `training_certificate_settings`
---
-
-INSERT INTO `training_certificate_settings` (`id`, `training_id`, `name`, `template_path`, `number_format`, `start_sequence`, `issued_at`, `photo_size`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 9, 'Sertifikat Pelatihan', 'certificate-templates/NE7pEumviJWe2P38ZpC07xiKkhOOWPqD5jtrMjk2.docx', '434.{X}/KPG.03.01.03/BPSDM/{TAHUN}', 1, '2026-09-04', '2x3', 2, '2026-09-03 21:42:53', '2026-09-03 21:53:31'),
-(2, 11, 'Sertifikat Pelatihan', 'certificate-templates/FcNJEx051T4yoVeRtLQn3TTJhibI7qflfLTTkHzO.docx', '222.{X}/KPG.03.01.03/BPSDM/{TAHUN}', 1, '2026-09-09', '3x4', 2, '2026-09-09 03:40:47', '2026-09-09 03:41:03'),
-(3, 12, 'Sertifikat Pelatihan', 'certificate-templates/YZ4Yufaw5TumPgsTGhXkIL96bag1qK75Wwet1ARH.docx', '222.{X}/KPG.03.01.03/BPSDM/{TAHUN}', 1, '2026-09-09', '3x4', 2, '2026-09-09 03:41:33', '2026-09-09 03:41:33');
-
 -- --------------------------------------------------------
 
 --
@@ -2721,13 +2660,6 @@ CREATE TABLE `training_execution_notes` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `training_execution_notes`
---
-
-INSERT INTO `training_execution_notes` (`id`, `training_id`, `created_by`, `title`, `note`, `created_at`, `updated_at`) VALUES
-(2, 11, 2, 'Senin 32 maret 2025', 'jsadhjdg jash djasdgasjfasjfhjsfhasf\r\nasfkasjfbas fjas faksjf kajsfasf', '2026-09-07 13:04:25', '2026-09-07 13:04:25');
-
 -- --------------------------------------------------------
 
 --
@@ -2743,19 +2675,6 @@ CREATE TABLE `training_forum_reads` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `training_forum_reads`
---
-
-INSERT INTO `training_forum_reads` (`id`, `training_id`, `user_id`, `last_read_message_id`, `created_at`, `updated_at`) VALUES
-(6, 9, 1, 12, '2026-08-31 02:55:41', '2026-09-03 13:40:53'),
-(7, 9, 2, 12, '2026-08-31 03:03:28', '2026-09-03 12:46:14'),
-(8, 9, 4, 11, '2026-09-01 15:44:18', '2026-09-01 15:44:31'),
-(9, 8, 2, NULL, '2026-09-02 02:18:19', '2026-09-02 02:18:19'),
-(10, 9, 5, 12, '2026-09-03 12:43:40', '2026-09-03 12:46:05'),
-(11, 9, 17, 12, '2026-09-03 14:16:36', '2026-09-03 14:16:36'),
-(12, 11, 2, NULL, '2026-09-07 08:25:06', '2026-09-07 08:25:06');
-
 -- --------------------------------------------------------
 
 --
@@ -2770,16 +2689,6 @@ CREATE TABLE `training_messages` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `training_messages`
---
-
-INSERT INTO `training_messages` (`id`, `training_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
-(9, 9, 2, 'apadkakad', '2026-08-31 03:03:32', '2026-08-31 03:03:32'),
-(10, 9, 1, 'sapasdasjdasd', '2026-08-31 03:03:56', '2026-08-31 03:03:56'),
-(11, 9, 4, 'oke', '2026-09-01 15:44:31', '2026-09-01 15:44:31'),
-(12, 9, 5, 'dasdakjsfasf', '2026-09-03 12:46:05', '2026-09-03 12:46:05');
 
 -- --------------------------------------------------------
 
@@ -2813,7 +2722,7 @@ CREATE TABLE `users` (
   `nip_nik` varchar(255) DEFAULT NULL,
   `whatsapp` varchar(255) DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
-  `role` varchar(255) NOT NULL,
+  `role` enum('superadmin','admin_bidang','participant','pengajar','admin_aset','mitra','penandatangan','intern') NOT NULL,
   `user_type` varchar(30) DEFAULT NULL,
   `user_type_status` varchar(20) NOT NULL DEFAULT 'approved',
   `bidang` varchar(255) DEFAULT NULL,
@@ -2848,13 +2757,47 @@ INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`,
 (12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$BettiHso5U47sRpz.I3q6uWJaSMVtr5//zu06HuBlHrIjlo.9Rj3C', NULL, '2026-08-31 07:09:45', '2026-08-31 07:09:45', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$qDWvuQDVTrjE7IM9ei0LYupJi5.tCiP9INKYaeq1clTkGd.OLfJyK', NULL, '2026-08-31 07:09:45', '2026-09-12 13:11:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', 'fsdfsdfsdfsdf', 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', -3.3569196, 122.8328450, 'PPPK'),
-(18, NULL, NULL, 'Samsidin Alafghani, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', NULL, '2026-09-10 13:22:21', '2026-09-11 06:26:34', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, 'PNS');
+(18, NULL, NULL, 'Samsidin, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', NULL, '2026-09-10 13:22:21', '2026-09-12 06:42:24', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, 'PNS'),
+(19, NULL, NULL, 'SAMSIDIN', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$a6MzTi6cw54DV4KnfWboH.OlS4IOrfP6BKMW5oPyblI0O4rn6ttK.', NULL, '2026-09-12 15:21:42', '2026-09-12 15:25:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indeks untuk tabel `activity_attendance_answers`
+--
+ALTER TABLE `activity_attendance_answers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `activity_answers_response_question_unique` (`activity_attendance_response_id`,`activity_attendance_question_id`),
+  ADD KEY `aa_answers_question_fk` (`activity_attendance_question_id`);
+
+--
+-- Indeks untuk tabel `activity_attendance_forms`
+--
+ALTER TABLE `activity_attendance_forms`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `activity_attendance_forms_public_token_unique` (`public_token`),
+  ADD KEY `activity_attendance_forms_created_by_foreign` (`created_by`),
+  ADD KEY `activity_attendance_forms_bidang_index` (`bidang`),
+  ADD KEY `activity_attendance_forms_status_index` (`status`);
+
+--
+-- Indeks untuk tabel `activity_attendance_questions`
+--
+ALTER TABLE `activity_attendance_questions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `activity_questions_form_sort_idx` (`activity_attendance_form_id`,`sort_order`);
+
+--
+-- Indeks untuk tabel `activity_attendance_responses`
+--
+ALTER TABLE `activity_attendance_responses`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `activity_attendance_responses_response_token_unique` (`response_token`),
+  ADD KEY `activity_responses_form_date_idx` (`activity_attendance_form_id`,`submitted_at`);
 
 --
 -- Indeks untuk tabel `activity_logs`
@@ -2937,6 +2880,13 @@ ALTER TABLE `asset_public_reservations`
   ADD KEY `asset_public_reservations_reviewed_by_foreign` (`reviewed_by`),
   ADD KEY `apr_asset_schedule_idx` (`asset_id`,`rental_date`,`start_time`,`end_time`),
   ADD KEY `apr_status_created_idx` (`status`,`created_at`);
+
+--
+-- Indeks untuk tabel `asset_rental_rates`
+--
+ALTER TABLE `asset_rental_rates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `asset_rates_time_idx` (`asset_id`,`start_time`,`end_time`);
 
 --
 -- Indeks untuk tabel `asset_rental_settings`
@@ -3135,6 +3085,31 @@ ALTER TABLE `folder_user_permissions`
   ADD KEY `folder_user_permissions_user_id_permission_index` (`user_id`,`permission`);
 
 --
+-- Indeks untuk tabel `internship_attendances`
+--
+ALTER TABLE `internship_attendances`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `intern_attendance_day_unique` (`internship_participant_id`,`attendance_date`),
+  ADD KEY `internship_attendances_reviewed_by_foreign` (`reviewed_by`);
+
+--
+-- Indeks untuk tabel `internship_participants`
+--
+ALTER TABLE `internship_participants`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `intern_program_student_unique` (`internship_program_id`,`student_number`),
+  ADD KEY `internship_participants_user_id_foreign` (`user_id`),
+  ADD KEY `internship_participants_reviewed_by_foreign` (`reviewed_by`);
+
+--
+-- Indeks untuk tabel `internship_programs`
+--
+ALTER TABLE `internship_programs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `internship_programs_public_token_unique` (`public_token`),
+  ADD KEY `internship_programs_created_by_foreign` (`created_by`);
+
+--
 -- Indeks untuk tabel `jobs`
 --
 ALTER TABLE `jobs`
@@ -3145,6 +3120,12 @@ ALTER TABLE `jobs`
 -- Indeks untuk tabel `job_batches`
 --
 ALTER TABLE `job_batches`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `login_help_settings`
+--
+ALTER TABLE `login_help_settings`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -3199,7 +3180,9 @@ ALTER TABLE `participant_certificates`
   ADD UNIQUE KEY `participant_certificates_certificate_number_unique` (`certificate_number`),
   ADD KEY `participant_certificates_training_certificate_setting_id_foreign` (`training_certificate_setting_id`),
   ADD KEY `participant_certificates_participant_id_foreign` (`participant_id`),
-  ADD KEY `participant_certificates_uploaded_by_foreign` (`uploaded_by`);
+  ADD KEY `participant_certificates_uploaded_by_foreign` (`uploaded_by`),
+  ADD KEY `participant_certificates_sent_by_foreign` (`sent_by`),
+  ADD KEY `participant_certificates_training_sent_idx` (`training_id`,`sent_at`);
 
 --
 -- Indeks untuk tabel `partner_submissions`
@@ -3348,10 +3331,34 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT untuk tabel `activity_attendance_answers`
+--
+ALTER TABLE `activity_attendance_answers`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT untuk tabel `activity_attendance_forms`
+--
+ALTER TABLE `activity_attendance_forms`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `activity_attendance_questions`
+--
+ALTER TABLE `activity_attendance_questions`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT untuk tabel `activity_attendance_responses`
+--
+ALTER TABLE `activity_attendance_responses`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT untuk tabel `agendas`
@@ -3375,7 +3382,7 @@ ALTER TABLE `ai_generations`
 -- AUTO_INCREMENT untuk tabel `alumni_profiles`
 --
 ALTER TABLE `alumni_profiles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `assets`
@@ -3387,13 +3394,13 @@ ALTER TABLE `assets`
 -- AUTO_INCREMENT untuk tabel `asset_bookings`
 --
 ALTER TABLE `asset_bookings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT untuk tabel `asset_images`
 --
 ALTER TABLE `asset_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=146;
 
 --
 -- AUTO_INCREMENT untuk tabel `asset_loan_requests`
@@ -3405,7 +3412,13 @@ ALTER TABLE `asset_loan_requests`
 -- AUTO_INCREMENT untuk tabel `asset_public_reservations`
 --
 ALTER TABLE `asset_public_reservations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT untuk tabel `asset_rental_rates`
+--
+ALTER TABLE `asset_rental_rates`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `asset_rental_settings`
@@ -3441,31 +3454,31 @@ ALTER TABLE `certification_types`
 -- AUTO_INCREMENT untuk tabel `electronic_signature_actions`
 --
 ALTER TABLE `electronic_signature_actions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_actors`
 --
 ALTER TABLE `electronic_signature_actors`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_attempts`
 --
 ALTER TABLE `electronic_signature_attempts`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_documents`
 --
 ALTER TABLE `electronic_signature_documents`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_requests`
 --
 ALTER TABLE `electronic_signature_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_forms`
@@ -3501,7 +3514,7 @@ ALTER TABLE `evaluation_results_l2`
 -- AUTO_INCREMENT untuk tabel `evaluation_results_l34`
 --
 ALTER TABLE `evaluation_results_l34`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
 
 --
 -- AUTO_INCREMENT untuk tabel `failed_jobs`
@@ -3513,7 +3526,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -3525,7 +3538,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -3534,16 +3547,40 @@ ALTER TABLE `folder_user_permissions`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT untuk tabel `internship_attendances`
+--
+ALTER TABLE `internship_attendances`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `internship_participants`
+--
+ALTER TABLE `internship_participants`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `internship_programs`
+--
+ALTER TABLE `internship_programs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT untuk tabel `jobs`
 --
 ALTER TABLE `jobs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `login_help_settings`
+--
+ALTER TABLE `login_help_settings`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -3561,19 +3598,19 @@ ALTER TABLE `monitoring_summaries`
 -- AUTO_INCREMENT untuk tabel `notification_reads`
 --
 ALTER TABLE `notification_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT untuk tabel `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT untuk tabel `participant_certificates`
 --
 ALTER TABLE `participant_certificates`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `partner_submissions`
@@ -3651,7 +3688,7 @@ ALTER TABLE `training_activity_report_versions`
 -- AUTO_INCREMENT untuk tabel `training_certificate_settings`
 --
 ALTER TABLE `training_certificate_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_execution_notes`
@@ -3663,13 +3700,13 @@ ALTER TABLE `training_execution_notes`
 -- AUTO_INCREMENT untuk tabel `training_forum_reads`
 --
 ALTER TABLE `training_forum_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_messages`
 --
 ALTER TABLE `training_messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_stages`
@@ -3681,11 +3718,36 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
+
+--
+-- Ketidakleluasaan untuk tabel `activity_attendance_answers`
+--
+ALTER TABLE `activity_attendance_answers`
+  ADD CONSTRAINT `aa_answers_question_fk` FOREIGN KEY (`activity_attendance_question_id`) REFERENCES `activity_attendance_questions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `aa_answers_response_fk` FOREIGN KEY (`activity_attendance_response_id`) REFERENCES `activity_attendance_responses` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `activity_attendance_forms`
+--
+ALTER TABLE `activity_attendance_forms`
+  ADD CONSTRAINT `activity_attendance_forms_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `activity_attendance_questions`
+--
+ALTER TABLE `activity_attendance_questions`
+  ADD CONSTRAINT `aa_questions_form_fk` FOREIGN KEY (`activity_attendance_form_id`) REFERENCES `activity_attendance_forms` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `activity_attendance_responses`
+--
+ALTER TABLE `activity_attendance_responses`
+  ADD CONSTRAINT `aa_responses_form_fk` FOREIGN KEY (`activity_attendance_form_id`) REFERENCES `activity_attendance_forms` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `activity_logs`
@@ -3751,6 +3813,12 @@ ALTER TABLE `asset_loan_requests`
 ALTER TABLE `asset_public_reservations`
   ADD CONSTRAINT `asset_public_reservations_asset_id_foreign` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `asset_public_reservations_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `asset_rental_rates`
+--
+ALTER TABLE `asset_rental_rates`
+  ADD CONSTRAINT `asset_rental_rates_asset_id_foreign` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `attendances`
@@ -3886,6 +3954,27 @@ ALTER TABLE `folder_user_permissions`
   ADD CONSTRAINT `folder_user_permissions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `internship_attendances`
+--
+ALTER TABLE `internship_attendances`
+  ADD CONSTRAINT `internship_attendances_internship_participant_id_foreign` FOREIGN KEY (`internship_participant_id`) REFERENCES `internship_participants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `internship_attendances_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `internship_participants`
+--
+ALTER TABLE `internship_participants`
+  ADD CONSTRAINT `internship_participants_internship_program_id_foreign` FOREIGN KEY (`internship_program_id`) REFERENCES `internship_programs` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `internship_participants_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `internship_participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `internship_programs`
+--
+ALTER TABLE `internship_programs`
+  ADD CONSTRAINT `internship_programs_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
 -- Ketidakleluasaan untuk tabel `monitoring_results`
 --
 ALTER TABLE `monitoring_results`
@@ -3923,6 +4012,7 @@ ALTER TABLE `participants`
 --
 ALTER TABLE `participant_certificates`
   ADD CONSTRAINT `participant_certificates_participant_id_foreign` FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `participant_certificates_sent_by_foreign` FOREIGN KEY (`sent_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `participant_certificates_training_certificate_setting_id_foreign` FOREIGN KEY (`training_certificate_setting_id`) REFERENCES `training_certificate_settings` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `participant_certificates_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `participant_certificates_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;

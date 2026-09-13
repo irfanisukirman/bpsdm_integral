@@ -46,6 +46,15 @@ return [
         'verify_ssl' => filter_var(env('BSRE_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
     ],
 
+    'libreoffice' => [
+        'binary' => env('LIBREOFFICE_BINARY'),
+    ],
+
+    'nominatim' => [
+        'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'INTEGRAL-BPSDM/1.0'),
+    ],
+
     'jct' => [
         'url' => env('JCT_API_URL'),
         'username' => env('JCT_API_USERNAME'),

@@ -243,7 +243,7 @@ class TrainingController extends Controller
             'kota' => 'required', // Disesuaikan
             'kecamatan' => 'required', // Ditambahkan
             'kelurahan' => 'required', // Ditambahkan
-            'status_kepegawaian' => 'required',
+            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
         ]);
 
         $participant->update([

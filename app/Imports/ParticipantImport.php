@@ -37,6 +37,11 @@ class ParticipantImport implements ToModel, WithHeadingRow
         // Auto-sync User ID jika NIP sudah ada di tabel users
         $user = User::where('nip_nik', $nip)->first();
 
+        $employmentStatus = trim((string) ($row['status'] ?? ''));
+        if (in_array(strtoupper(str_replace(' ', '-', $employmentStatus)), ['NON-ASN', 'NONASN'], true)) {
+            $employmentStatus = 'PPPK-PW';
+        }
+
         return new Participant([
             'training_id' => $this->training_id,
             'user_id' => $user ? $user->id : null,
@@ -50,7 +55,7 @@ class ParticipantImport implements ToModel, WithHeadingRow
             'kota' => $row['kota'] ?? ($row['kabupaten_kota'] ?? null),
             'kecamatan' => $row['kecamatan'] ?? null,
             'kelurahan' => $row['kelurahan'] ?? null,
-            'status_kepegawaian' => $row['status'] ?? null,
+            'status_kepegawaian' => $employmentStatus ?: null,
         ]);
     }
 }

@@ -6,7 +6,7 @@
     <title>Integral | Technology</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -262,7 +262,7 @@
     <nav class="navbar navbar-expand-lg navbar-custom" id="mainNavbar">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#top">
-                <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" alt="Logo" width="38" class="me-2">
+                <img src="{{ asset('assets/img/favicon/inte.png') }}" alt="Logo" width="38" class="me-2">
                 <span class="fw-bold text-dark h4 mb-0" style="letter-spacing: 1px;">INTEGRAL</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -533,7 +533,7 @@
             <div class="row mb-5 align-items-center">
                 <div class="col-md-6 text-center text-md-start mb-4 mb-md-0">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-3">
-                        <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" width="50" style="filter: brightness(0) invert(1);">
+                        <img src="{{ asset('assets/img/favicon/inte.png') }}" width="50" style="filter: brightness(0) invert(1);">
                         <h3 class="text-white mb-0 ms-3 fw-bold">INTEGRAL</h3>
                     </div>
                     <p class="opacity-75">Badan Pengembangan Sumber Daya Manusia (BPSDM)<br>Pemerintah Provinsi Jawa Barat</p>

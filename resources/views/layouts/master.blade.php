@@ -39,6 +39,7 @@
             padding-top: 10px;
             color: #a1acb8 !important;
         }
+        .integral-confirm-modal .modal-content{border:0;border-radius:1.25rem;box-shadow:0 1.25rem 4rem rgba(34,48,62,.22)}.integral-confirm-modal .modal-body{padding:2rem}.integral-confirm-icon{width:4.5rem;height:4.5rem;margin:0 auto 1.15rem;border-radius:50%;display:grid;place-items:center;font-size:2.1rem;background:rgba(105,108,255,.12);color:#696cff}.integral-confirm-modal.is-danger .integral-confirm-icon{background:rgba(255,62,29,.12);color:#ff3e1d}.integral-confirm-message{color:#697a8d;white-space:pre-line;line-height:1.65}
     </style>
 
     @stack('css')
@@ -95,6 +96,8 @@
     </div>
     <!-- / Layout wrapper -->
 
+    <div class="modal fade integral-confirm-modal" id="integralConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-body text-center"><div class="integral-confirm-icon"><i class="bx bx-help-circle"></i></div><h5 class="mb-2" id="integralConfirmTitle">Konfirmasi Tindakan</h5><p class="integral-confirm-message mb-4" id="integralConfirmMessage"></p><div class="d-flex gap-2 justify-content-center"><button type="button" class="btn btn-label-secondary flex-fill" data-bs-dismiss="modal">Batal</button><button type="button" class="btn btn-primary flex-fill" id="integralConfirmAction">Ya, Lanjutkan</button></div></div></div></div></div>
+
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
@@ -112,6 +115,9 @@
 
     
     <script>
+
+        window.IntegralConfirm=(()=>{let modal,resolver;function ask(message,options={}){const text=String(message||'Apakah Anda yakin ingin melanjutkan?'),danger=options.danger??/hapus|tolak|batalkan|cabut|permanen/i.test(text),el=document.getElementById('integralConfirmModal');modal=modal||bootstrap.Modal.getOrCreateInstance(el);el.classList.toggle('is-danger',danger);el.querySelector('.integral-confirm-icon i').className=danger?'bx bx-trash':'bx bx-help-circle';document.getElementById('integralConfirmTitle').textContent=options.title||'Konfirmasi Tindakan';document.getElementById('integralConfirmMessage').textContent=text;const action=document.getElementById('integralConfirmAction');action.textContent=options.confirmText||'Ya, Lanjutkan';action.className='btn flex-fill '+(danger?'btn-danger':'btn-primary');return new Promise(resolve=>{if(resolver)resolver(false);resolver=resolve;modal.show()})}document.getElementById('integralConfirmAction').addEventListener('click',()=>{const done=resolver;resolver=null;modal.hide();if(done)done(true)});document.getElementById('integralConfirmModal').addEventListener('hidden.bs.modal',()=>{const done=resolver;resolver=null;if(done)done(false)});return{ask}})();
+        (()=>{const bypass=new WeakSet();function message(code){if(!code||!code.includes('confirm('))return null;const match=code.match(/confirm\(\s*(['"`])([\s\S]*?)\1\s*\)/);return match?match[2].replace(/\\n/g,'\n'):null}document.addEventListener('click',async event=>{const el=event.target.closest('[onclick*="confirm("]');if(!el||bypass.has(el)){if(el)bypass.delete(el);return}const text=message(el.getAttribute('onclick'));if(!text)return;event.preventDefault();event.stopImmediatePropagation();if(await IntegralConfirm.ask(text)){const handler=el.getAttribute('onclick');el.removeAttribute('onclick');el.click();setTimeout(()=>el.setAttribute('onclick',handler),0)}},true);document.addEventListener('submit',async event=>{const form=event.target;if(bypass.has(form)){bypass.delete(form);return}const text=message(form.getAttribute('onsubmit'));if(!text)return;event.preventDefault();event.stopImmediatePropagation();if(await IntegralConfirm.ask(text)){const handler=form.getAttribute('onsubmit');form.removeAttribute('onsubmit');form.requestSubmit?form.requestSubmit(event.submitter||undefined):form.submit();setTimeout(()=>form.setAttribute('onsubmit',handler),0)}},true)})();
 
         function copyText(id) {
             var copyText = document.getElementById(id);

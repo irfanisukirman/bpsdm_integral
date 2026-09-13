@@ -55,7 +55,7 @@ class ParticipantExport implements FromArray, WithHeadings, ShouldAutoSize, With
                     strtoupper($p->name),
                     $p->phone ?: ($p->user_whatsapp ?: '-'),
                     $p->gender ?? '-',
-                    strtoupper($p->status_kepegawaian ?? 'NON-ASN'),
+                    strtoupper($p->status_kepegawaian ?? 'BELUM DIISI'),
                     $p->jabatan ?? '-',
                     $p->instansi ?? '-',
                     $p->provinsi ?? '-',

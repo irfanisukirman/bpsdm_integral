@@ -5,6 +5,7 @@
     $generatedCount = $certificates->filter(fn($certificate) => filled($certificate->generated_file_path))->count();
     $readyCount = $certificates->filter(fn($certificate) => filled($certificate->final_file_path) && blank($certificate->sent_at))->count();
     $sentCount = $certificates->filter(fn($certificate) => filled($certificate->sent_at))->count();
+    $templateAvailable = filled($setting?->template_path) && \Illuminate\Support\Str::endsWith(strtolower($setting->template_path), '.docx') && \Illuminate\Support\Facades\Storage::disk('local')->exists($setting->template_path);
 @endphp
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
@@ -15,7 +16,6 @@
         </div>
         <div class="d-flex flex-wrap gap-2 align-self-lg-center">
             <a href="{{route('electronic-signatures.integral')}}" class="btn btn-outline-primary"><i class="bx bx-pen me-1"></i>Buka TTE Integral</a>
-            <a href="{{route('training-certificates.template',$training)}}" class="btn btn-outline-secondary"><i class="bx bx-download me-1"></i>Template + Kode</a>
         </div>
     </div>
 
@@ -38,20 +38,27 @@
 
     <div class="row g-4 mb-4">
         <div class="col-xl-7"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="mb-1 fw-bold">1. Pengaturan Sertifikat</h5><small class="text-muted">Nomor yang sudah diberikan tidak berubah ketika generate ulang.</small></div>
-            <div class="card-body"><form method="POST" enctype="multipart/form-data" action="{{route('training-certificates.setting',$training)}}" class="row g-3">@csrf
-                <div class="col-md-6"><label class="form-label">Nama Sertifikat</label><input name="name" class="form-control" required value="{{old('name',$setting?->name?:'Sertifikat Pelatihan')}}"></div>
-                <div class="col-md-4"><label class="form-label">Tanggal Penerbitan</label><input type="date" name="issued_at" class="form-control" required value="{{old('issued_at',$setting?->issued_at?->format('Y-m-d')?:now()->format('Y-m-d'))}}"></div>
-                <div class="col-md-2"><label class="form-label">Foto</label><select name="photo_size" class="form-select" required><option value="3x4" @selected(old('photo_size',$setting?->photo_size?:'3x4')==='3x4')>3×4</option><option value="2x3" @selected(old('photo_size',$setting?->photo_size)==='2x3')>2×3</option></select></div>
-                <div class="col-md-9"><label class="form-label">Format Nomor</label><input name="number_format" class="form-control font-monospace" required value="{{old('number_format',$setting?->number_format?:'222.{X}/KPG.03.01.03/BPSDM/{TAHUN}')}}"><div class="form-text">Wajib memuat <code>{X}</code>; gunakan <code>{X:3}</code> untuk 001, 002, 003.</div></div>
-                <div class="col-md-3"><label class="form-label">Urutan Mulai</label><input type="number" min="0" name="start_sequence" class="form-control" required value="{{old('start_sequence',$setting?->start_sequence?:1)}}"></div>
-                <div class="col-12"><label class="form-label">Template Word (.docx)</label><input type="file" name="template" accept=".docx" class="form-control" {{$setting?->template_path?'':'required'}}><div class="form-text">{{$setting?->template_path?'Template tersedia; unggah hanya jika ingin mengganti.':'Template wajib diunggah sebelum generate.'}}</div></div>
-                <div class="col-12"><button class="btn btn-primary"><i class="bx bx-save me-1"></i>Simpan Pengaturan</button></div>
-            </form></div>
+            <div class="card-header border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2"><div><h5 class="mb-1 fw-bold">1. Pengaturan Sertifikat</h5><small class="text-muted">Unggah template Word A4 Landscape yang sudah memuat kode data.</small></div>@if($templateAvailable)<span class="badge bg-label-success px-3 py-2"><i class="bx bx-check-circle me-1"></i>Template DOCX tersedia</span>@else<span class="badge bg-label-warning px-3 py-2"><i class="bx bx-error-circle me-1"></i>Template belum diunggah</span>@endif</div>
+            <div class="card-body">
+                @unless($libreOfficeAvailable)<div class="alert alert-danger d-flex gap-2"><i class="bx bx-error-circle fs-4"></i><div><strong>LibreOffice belum tersedia di server</strong><div class="small mt-1">Template dapat disiapkan, tetapi pratinjau dan generate PDF baru aktif setelah LibreOffice dipasang atau <code>LIBREOFFICE_BINARY</code> dikonfigurasi.</div></div></div>@endunless
+                <form method="POST" enctype="multipart/form-data" action="{{route('training-certificates.setting',$training)}}" class="row g-3">@csrf
+                    <div class="col-md-6"><label class="form-label">Nama Sertifikat</label><input name="name" class="form-control" required value="{{old('name',$setting?->name?:'Sertifikat Pelatihan')}}"></div>
+                    <div class="col-md-4"><label class="form-label">Tanggal Penerbitan</label><input type="date" name="issued_at" class="form-control" required value="{{old('issued_at',$setting?->issued_at?->format('Y-m-d')?:now()->format('Y-m-d'))}}"></div>
+                    <div class="col-md-2"><label class="form-label">Foto</label><select name="photo_size" class="form-select" required><option value="3x4" @selected(old('photo_size',$setting?->photo_size?:'3x4')==='3x4')>3&times;4</option><option value="2x3" @selected(old('photo_size',$setting?->photo_size)==='2x3')>2&times;3</option></select></div>
+                    <div class="col-md-9"><label class="form-label">Format Nomor</label><input name="number_format" class="form-control font-monospace" required value="{{old('number_format',$setting?->number_format?:'222.{X}/KPG.03.01.03/BPSDM/{TAHUN}')}}"><div class="form-text">Gunakan <code>{X}</code> atau <code>{X:3}</code>.</div></div>
+                    <div class="col-md-3"><label class="form-label">Urutan Mulai</label><input type="number" min="0" name="start_sequence" class="form-control" required value="{{old('start_sequence',$setting?->start_sequence?:1)}}"></div>
+                    <div class="col-12">@if($templateAvailable)<div class="alert alert-success py-2"><i class="bx bx-check-circle me-1"></i>Template DOCX A4 Landscape sudah tersedia.</div>@endif<label class="form-label">{{ $templateAvailable ? 'Ganti Template Word' : 'Unggah Template Word' }} <span class="text-danger">*</span></label><input type="file" name="template" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="form-control" {{ $templateAvailable ? '' : 'required' }}><div class="form-text">Wajib DOCX, A4 Landscape, maksimal 20 MB. Posisi hasil mengikuti letak kode di Word.</div></div>
+                    <div class="col-12 d-flex flex-wrap gap-2"><button class="btn btn-primary"><i class="bx bx-save me-1"></i>Simpan & Periksa Template</button>@if($templateAvailable && $participants->isNotEmpty() && $libreOfficeAvailable)<a href="{{route('training-certificates.preview',$training)}}" target="_blank" class="btn btn-outline-primary"><i class="bx bx-show me-1"></i>Pratinjau 1 Peserta</a>@endif</div>
+                </form>
+            </div>
         </div></div>
         <div class="col-xl-5"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Kode Template</h5><small class="text-muted">Tempel kode pada dokumen Word.</small></div>
-            <div class="card-body"><div class="d-flex flex-wrap gap-2 mb-3">@foreach(['${nama}','${nip_nik}','${jabatan}','${instansi}','${foto}','${nomor_sertifikat}','${nama_pelatihan}','${tanggal_mulai}','${tanggal_selesai}','${tanggal_sertifikat}'] as $code)<code class="border rounded px-2 py-1 bg-light">{{$code}}</code>@endforeach</div><div class="alert alert-warning py-2 small"><i class="bx bx-image me-1"></i>Foto mengikuti ukuran 3×4 atau 2×3 yang dipilih.</div><h6 class="fw-bold">Pratinjau nomor</h6><ol class="mb-0 ps-3">@foreach($preview as $number)<li class="font-monospace mb-1">{{$number}}</li>@endforeach</ol></div>
+            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Kode Template</h5><small class="text-muted">Letakkan kode pada posisi yang diinginkan di Word.</small></div>
+            <div class="card-body"><div class="d-flex flex-wrap gap-2 mb-3">@foreach(['${nama}','${nip_nik}','${jabatan}','${instansi}','${foto}','${nomor_sertifikat}','${nama_pelatihan}','${tanggal_mulai}','${tanggal_selesai}','${tanggal_sertifikat}'] as $code)<code class="border rounded px-2 py-1 bg-light">{{$code}}</code>@endforeach</div>
+                <div class="alert alert-info small"><code>${nama}</code> dan <code>${nomor_sertifikat}</code> wajib ada. Kode lainnya opsional.</div>
+                <ul class="small text-muted ps-3 mb-3"><li>Atur <strong>Layout &rarr; Size A4 &rarr; Landscape</strong>.</li><li>Gunakan tabel tanpa border agar posisi stabil.</li><li>Jangan memformat sebagian karakter kode.</li><li>Pastikan font tersedia pada server.</li></ul>
+                <div class="alert alert-warning py-2 small mb-0">Tempatkan <code>${foto}</code> pada sel khusus sesuai posisi foto.</div>
+            </div>
         </div></div>
     </div>
 
@@ -59,7 +66,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header border-bottom d-flex flex-column flex-xl-row justify-content-between gap-3">
             <div><h5 class="fw-bold mb-1">2. Generate & Ajukan TTE</h5><small class="text-muted">Pilih peserta dan penandatangan. PDF langsung menjadi satu bundel di TTE Integral.</small></div>
-            @if($setting?->template_path && $signers->isNotEmpty())<button form="generateForm" class="btn btn-primary align-self-xl-center" onclick="return confirm('Generate sertifikat dan langsung kirim ke antrean TTE Integral?')"><i class="bx bx-cog me-1"></i>Generate & Ajukan TTE</button>@endif
+            @if($templateAvailable && $libreOfficeAvailable && $signers->isNotEmpty())<button form="generateForm" class="btn btn-primary align-self-xl-center" onclick="return confirm('Generate sertifikat dan langsung kirim ke antrean TTE Integral?')"><i class="bx bx-cog me-1"></i>Generate & Ajukan TTE</button>@endif
         </div>
         <div class="card-body border-bottom bg-light">
             @if($signers->isEmpty())

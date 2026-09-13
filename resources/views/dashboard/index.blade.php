@@ -142,7 +142,7 @@
                                 $statusClass = $status === 'Berlangsung' ? 'success' : ($status === 'Akan datang' ? 'warning' : 'secondary');
                             @endphp
                             <tr>
-                                <td class="training-name"><strong>{{ $training->nama_pelatihan }}</strong><br><small class="text-muted">{{ $training->bidang }} Â· Angkatan {{ $training->angkatan }}</small></td>
+                                <td class="training-name"><strong>{{ $training->nama_pelatihan }}</strong><br><small class="text-muted">{{ $training->bidang }} &middot; Angkatan {{ $training->angkatan }}</small></td>
                                 <td><small>{{ $start->translatedFormat('d M Y') }}<br>{{ $end->translatedFormat('d M Y') }}</small></td>
                                 <td><span class="badge bg-label-primary">{{ $training->participants_count }} peserta</span><br><small class="text-muted">{{ $training->schedules_count }} sesi</small></td>
                                 <td><span class="badge bg-label-{{ $statusClass }}">{{ $status }}</span></td>
