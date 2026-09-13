@@ -21,7 +21,13 @@
 
     <ul class="menu-inner py-3">
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
-        @if(Auth::user()->role === 'penandatangan')
+        @if(Auth::user()->role === 'resepsionis')
+            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>
+        @endif        @if(Auth::user()->role === 'pengelola_magang')
+            <li class="menu-item {{ request()->routeIs('internships.*') ? 'active' : '' }}">
+                <a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Presensi Magang/PKL</div></a>
+            </li>
+        @endif        @if(Auth::user()->role === 'penandatangan')
             <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
                 <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
             </li>
@@ -35,6 +41,10 @@
             <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
         @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+        @elseif(Auth::user()->role === 'resepsionis')
+            {{-- Menu Buku Tamu sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'pengelola_magang')
+            {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
             <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')
@@ -104,7 +114,9 @@
             @if(Auth::user()->role === 'superadmin')
             <li class="menu-item {{ request()->routeIs('internships.*') ? 'active' : '' }}"><a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div>Presensi Magang/PKL</div></a></li>
             @endif
-            <li class="menu-item {{ request()->routeIs('activity-attendance.*') ? 'active' : '' }}">
+            @if(Auth::user()->role === 'superadmin')
+            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div>Buku Tamu</div></a></li>
+            @endif            <li class="menu-item {{ request()->routeIs('activity-attendance.*') ? 'active' : '' }}">
                 <a href="{{ route('activity-attendance.index') }}" class="menu-link">
                     <i class="menu-icon bx bx-clipboard"></i>
                     <div>Presensi Kegiatan</div>

@@ -39,6 +39,13 @@ class DashboardController extends Controller
         if ($user->role === 'intern') {
             return redirect()->route('internships.dashboard');
         }
+        if ($user->role === 'resepsionis') {
+            return redirect()->route('guest-book.index');
+        }
+
+        if ($user->role === 'pengelola_magang') {
+            return redirect()->route('internships.index');
+        }
 
         if ($user->role === 'penandatangan') {
             return redirect()->route('electronic-signatures.index');

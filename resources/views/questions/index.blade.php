@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 py-3 mb-4"><h4 class="fw-bold mb-0"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4><a href="{{ route('questions.export') }}" class="btn btn-success"><i class="bx bx-spreadsheet me-1"></i>Export Semua Pertanyaan</a></div>
 
 @if($isSuperadmin && blank($selectedBidang))
 <div class="card border-0 shadow-sm mb-4">

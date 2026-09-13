@@ -46,6 +46,8 @@ use App\Http\Controllers\PublicDailyScheduleController;
 use App\Http\Controllers\PartnerSubmissionController;
 use App\Http\Controllers\ActivityAttendanceController;
 use App\Http\Controllers\PublicActivityAttendanceController;
+use App\Http\Controllers\GuestBookController;
+use App\Http\Controllers\PublicGuestBookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +72,9 @@ Route::get('reservasi/status/{token}/kwitansi', [AssetRentalController::class, '
 Route::get('reservasi/status/{token}', [AssetRentalController::class, 'status'])->name('public.asset-rentals.status');
 Route::post('reservasi/status/{token}/pembayaran', [AssetRentalController::class, 'uploadPayment'])->middleware('throttle:5,1')->name('public.asset-rentals.payment');
 
+Route::get('buku-tamu/publik/{token}', [PublicGuestBookController::class, 'show'])->name('guest-book.public.show');
+Route::post('buku-tamu/publik/{token}', [PublicGuestBookController::class, 'store'])->middleware('throttle:10,1')->name('guest-book.public.store');
+Route::get('buku-tamu/publik/{token}/selesai/{code}', [PublicGuestBookController::class, 'success'])->name('guest-book.public.success');
 Route::get('presensi-kegiatan/publik/{token}', [PublicActivityAttendanceController::class, 'show'])->middleware('throttle:60,1')->name('activity-attendance.public.show');
 Route::post('presensi-kegiatan/publik/{token}', [PublicActivityAttendanceController::class, 'store'])->middleware('throttle:10,1')->name('activity-attendance.public.store');
 Route::get('presensi-kegiatan/publik/{token}/selesai/{responseToken}', [PublicActivityAttendanceController::class, 'success'])->middleware('throttle:30,1')->name('activity-attendance.public.success');
@@ -187,7 +192,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('assets/kelola', [AssetController::class, 'store'])->name('assets.store');
     Route::put('assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
     Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
-    Route::get('presensi-kegiatan', [ActivityAttendanceController::class, 'index'])->name('activity-attendance.index');
+    Route::get('buku-tamu', [GuestBookController::class, 'index'])->name('guest-book.index');
+    Route::post('buku-tamu/lokasi', [GuestBookController::class, 'storeLocation'])->name('guest-book.locations.store');
+    Route::put('buku-tamu/lokasi/{location}/status', [GuestBookController::class, 'toggleLocation'])->name('guest-book.locations.toggle');
+    Route::get('buku-tamu/lokasi/{location}/qr', [GuestBookController::class, 'qr'])->name('guest-book.qr');
+    Route::put('buku-tamu/kunjungan/{visit}/bidang', [GuestBookController::class, 'updateTargetBidang'])->name('guest-book.target-bidang');
+    Route::put('buku-tamu/kunjungan/{visit}/keluar', [GuestBookController::class, 'checkout'])->name('guest-book.checkout');
+    Route::get('buku-tamu/export/excel', [GuestBookController::class, 'exportExcel'])->name('guest-book.export.excel');
+    Route::get('buku-tamu/export/pdf', [GuestBookController::class, 'exportPdf'])->name('guest-book.export.pdf');
+    Route::get('buku-tamu/pengaturan/akun', [GuestBookController::class, 'accounts'])->name('guest-book.accounts');
+    Route::post('buku-tamu/pengaturan/akun', [GuestBookController::class, 'storeAccount'])->name('guest-book.accounts.store');
+    Route::put('buku-tamu/pengaturan/akun/{user}/password', [GuestBookController::class, 'resetAccount'])->name('guest-book.accounts.reset');    Route::get('presensi-kegiatan', [ActivityAttendanceController::class, 'index'])->name('activity-attendance.index');
     Route::get('presensi-kegiatan/create', [ActivityAttendanceController::class, 'create'])->name('activity-attendance.create');
     Route::post('presensi-kegiatan', [ActivityAttendanceController::class, 'store'])->name('activity-attendance.store');
     Route::post('presensi-kegiatan/{activityAttendance}/duplicate', [ActivityAttendanceController::class, 'duplicate'])->name('activity-attendance.duplicate');
@@ -242,6 +257,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('magang/presensi/ketidakhadiran', [InternshipDashboardController::class, 'absence'])->name('internships.attendance.absence');
     Route::get('magang/sertifikat', [InternshipDashboardController::class, 'downloadCertificate'])->name('internships.certificate.download');
     Route::get('presensi-magang', [InternshipController::class, 'index'])->name('internships.index');
+    Route::get('presensi-magang/pengelola/akun', [InternshipController::class, 'managerAccounts'])->name('internships.managers.index');
+    Route::post('presensi-magang/pengelola/akun', [InternshipController::class, 'storeManagerAccount'])->name('internships.managers.store');
+    Route::put('presensi-magang/pengelola/akun/{user}/password', [InternshipController::class, 'resetManagerPassword'])->name('internships.managers.password');
+    Route::delete('presensi-magang/pengelola/akun/{user}', [InternshipController::class, 'destroyManagerAccount'])->name('internships.managers.destroy');
     Route::post('presensi-magang', [InternshipController::class, 'store'])->name('internships.store');
     Route::get('presensi-magang/{program}', [InternshipController::class, 'show'])->name('internships.show');
     Route::get('presensi-magang/{program}/rekap/export', [InternshipController::class, 'exportProgramRecap'])->name('internships.recap.export');
@@ -339,6 +358,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('documents/folder/{id}', [DocumentController::class, 'destroyFolder'])->name('documents.folder.destroy');
 
     // Kelola Pertanyaan
+    Route::get('questions/export', [QuestionController::class, 'exportAll'])->name('questions.export');
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
     Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
     Route::delete('questions/delete-bundle', [QuestionController::class, 'destroyBundle'])->name('questions.destroy-bundle');
@@ -407,6 +427,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('attendance/set-time/{schedule_id}', [AttendanceController::class, 'setTime'])->name('attendance.set-time');
     Route::put('attendance/set-time-date/{training_id}', [AttendanceController::class, 'setTimeByDate'])->name('attendance.set-time-date');
     Route::get('monitoring-indicators', [MonitoringIndicatorController::class, 'index'])->name('indicators.index');
+    Route::get('monitoring-indicators/export', [MonitoringIndicatorController::class, 'export'])->name('indicators.export');
     Route::post('monitoring-indicators', [MonitoringIndicatorController::class, 'store'])->name('indicators.store');
     Route::put('monitoring-indicators/{id}', [MonitoringIndicatorController::class, 'update'])->name('indicators.update');
     Route::delete('monitoring-indicators/{id}', [MonitoringIndicatorController::class, 'destroy'])->name('indicators.destroy');

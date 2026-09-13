@@ -47,6 +47,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Participant::class, 'nip_nik', 'username');
     }
+    public function managedInternshipPrograms()
+    {
+        return $this->hasMany(InternshipProgram::class, 'manager_id');
+    }
+
     public function internshipParticipant()
     {
         return $this->hasOne(InternshipParticipant::class);

@@ -148,4 +148,21 @@ class InternshipFlowTest extends TestCase {
    @unlink($path);
   }
  }
-}
+ public function test_superadmin_can_create_scoped_internship_manager_account():void {
+  $super=User::factory()->create(['role'=>'superadmin']);
+  $this->actingAs($super)->post(route('internships.managers.store'),[
+   'name'=>'Pengelola PKL','username'=>'pengelola.pkl','whatsapp'=>'628123456789','password'=>'password123','password_confirmation'=>'password123',
+  ])->assertRedirect()->assertSessionHas('success');
+  $manager=User::where('username','pengelola.pkl')->firstOrFail();
+  $this->assertSame('pengelola_magang',$manager->role);
+
+  $assigned=InternshipProgram::create(['public_token'=>(string)Str::uuid(),'title'=>'Program Ditugaskan','status'=>'draft','check_in_opens_at'=>'06:00','late_after'=>'07:30','check_out_opens_at'=>'16:00','created_by'=>$super->id,'manager_id'=>$manager->id]);
+  $other=InternshipProgram::create(['public_token'=>(string)Str::uuid(),'title'=>'Program Bukan Tugas','status'=>'draft','check_in_opens_at'=>'06:00','late_after'=>'07:30','check_out_opens_at'=>'16:00','created_by'=>$super->id]);
+
+  $this->actingAs($manager)->get(route('dashboard'))->assertRedirect(route('internships.index'));
+  $this->get(route('internships.index'))->assertOk()->assertSee('Program Ditugaskan')->assertDontSee('Program Bukan Tugas')->assertSee('Presensi Magang/PKL')->assertDontSee('Daftar Pelatihan');
+  $this->get(route('internships.show',$assigned))->assertOk();
+  $this->get(route('internships.show',$other))->assertForbidden();
+  $this->get(route('internships.managers.index'))->assertForbidden();
+  $this->actingAs($super)->get(route('internships.managers.index'))->assertOk()->assertSee('Pengelola PKL');
+ }}

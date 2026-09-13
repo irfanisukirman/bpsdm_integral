@@ -311,6 +311,60 @@ class QuestionController extends Controller
             ->with('success', 'Bank soal berhasil diimpor ke '.$defaultBidang.'.');
     }
 
+    public function exportAll()
+    {
+        $user = Auth::user();
+        $query = $this->evaluationQuestions()
+            ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                abort_if(blank($user->bidang), 422, 'Bidang akun Admin belum ditentukan.');
+                $query->where('bidang', $user->bidang);
+            })
+            ->orderBy('bidang')
+            ->orderBy('program_evaluasi')
+            ->orderBy('category')
+            ->orderBy('sub_category')
+            ->orderBy('id');
+
+        $rows = [[
+            'No.', 'Bidang', 'Program Evaluasi', 'Level / Peran', 'Bagian Evaluasi L3/L4',
+            'Metode', 'Tipe Jawaban', 'Pertanyaan', 'Pilihan Jawaban', 'Dibuat', 'Diperbarui'
+        ]];
+
+        $query->each(function (Question $question, int $index) use (&$rows) {
+            $rows[] = [
+                $index + 1,
+                $question->bidang ?: $question->training_type,
+                $question->program_evaluasi ?: 'PKTI/PKTU',
+                match ($question->category) {
+                    'l1_penyelenggara' => 'L1 Penyelenggara',
+                    'l1_narasumber' => 'L1 Narasumber',
+                    'l34_mandiri' => 'L3/L4 Mandiri (Alumni)',
+                    'l34_atasan' => 'L3/L4 Atasan',
+                    'l34_rekan' => 'L3/L4 Rekan Kerja',
+                    default => $question->category,
+                },
+                $question->sub_category ?: '-',
+                ucfirst((string) ($question->metode ?: 'semua')),
+                ucfirst($question->type),
+                $question->question_text,
+                collect($question->options ?? [])->join(' | ') ?: '-',
+                optional($question->created_at)->format('d-m-Y H:i'),
+                optional($question->updated_at)->format('d-m-Y H:i'),
+            ];
+        });
+
+        return Excel::download(new class($rows) implements FromArray, \Maatwebsite\Excel\Concerns\ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithStyles {
+            public function __construct(private array $rows) {}
+            public function array(): array { return $this->rows; }
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
+            {
+                $sheet->freezePane('A2');
+                $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+                $sheet->getStyle('H')->getAlignment()->setWrapText(true);
+                return [1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5065D5']]]];
+            }
+        }, 'seluruh-pertanyaan-evaluasi-'.now()->format('Ymd-His').'.xlsx');
+    }
     public function downloadTemplate(Request $request)
     {
         $bidang = Auth::user()->role === 'superadmin' ? $request->query('bidang') : Auth::user()->bidang;

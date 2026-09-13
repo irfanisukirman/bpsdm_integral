@@ -68,6 +68,39 @@ class MonitoringIndicatorController extends Controller
         return redirect()->back()->with('success', 'Indikator monitoring berhasil diimport.');
     }
 
+    public function export()
+    {
+        $rows = [[
+            'No.', 'Kategori Monitoring', 'Metode Pelatihan', 'Tipe Jawaban', 'Indikator / Pertanyaan', 'Dibuat', 'Diperbarui'
+        ]];
+
+        Question::where('category', 'LIKE', 'Monitoring%')
+            ->orderBy('category')
+            ->orderBy('metode')
+            ->orderBy('id')
+            ->each(function (Question $indicator, int $index) use (&$rows) {
+                $rows[] = [
+                    $index + 1,
+                    $indicator->category,
+                    ucfirst((string) ($indicator->metode ?: 'semua')),
+                    $indicator->type,
+                    $indicator->question_text,
+                    optional($indicator->created_at)->format('d-m-Y H:i'),
+                    optional($indicator->updated_at)->format('d-m-Y H:i'),
+                ];
+            });
+
+        return Excel::download(new class($rows) implements FromArray, \Maatwebsite\Excel\Concerns\ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithStyles {
+            public function __construct(private array $rows) {}
+            public function array(): array { return $this->rows; }
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
+            {
+                $sheet->freezePane('A2');
+                $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+                return [1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5065D5']]]];
+            }
+        }, 'seluruh-indikator-monitoring-'.now()->format('Ymd-His').'.xlsx');
+    }
     public function downloadTemplate()
     {
         $data = [

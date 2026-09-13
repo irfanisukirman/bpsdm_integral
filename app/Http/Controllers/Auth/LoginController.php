@@ -68,6 +68,8 @@ class LoginController extends Controller implements HasMiddleware
             return redirect()->route('login')->with('error', $message);
         }
         if ($user->role === 'intern') return redirect()->route('internships.dashboard');
+        if ($user->role === 'resepsionis') return redirect()->route('guest-book.index');
+        if ($user->role === 'pengelola_magang') return redirect()->route('internships.index');
     }
 
     /**
