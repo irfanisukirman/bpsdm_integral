@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dokumen Teknis Alur Aplikasi - BPSDM Integral</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #1a1a1a; max-width: 210mm; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #1a365d; border-bottom: 3px solid #2c5282; padding-bottom: 10px; font-size: 21pt; }
+        h2 { color: #2c5282; border-bottom: 2px solid #bee3f8; padding-bottom: 5px; margin-top: 30px; font-size: 15pt; }
+        h3 { color: #2b6cb0; margin-top: 20px; font-size: 12.5pt; }
+        h4 { color: #2d3748; background: #ebf8ff; border-left: 4px solid #3182ce; padding: 4px 8px; margin-top: 16px; font-size: 10.5pt; font-family: Consolas, 'Courier New', monospace; }
+        table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+        th, td { border: 1px solid #cbd5e0; padding: 5px 8px; text-align: left; vertical-align: top; }
+        th { background-color: #ebf8ff; color: #2c5282; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f7fafc; }
+        .cover { text-align: center; padding: 80px 20px; page-break-after: always; }
+        .cover h1 { font-size: 27pt; border: none; }
+        .cover .subtitle { font-size: 13pt; color: #4a5568; margin-top: 20px; }
+        .cover .org { font-size: 15pt; color: #2c5282; margin-top: 40px; }
+        .cover .date { font-size: 11pt; color: #718096; margin-top: 20px; }
+        .toc { page-break-after: always; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { padding: 3px 0; }
+        .toc li a { text-decoration: none; color: #2c5282; }
+        .toc li.sub { padding-left: 20px; }
+        .page-break { page-break-before: always; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 8.5pt; font-weight: bold; margin: 1px; }
+        .badge-super { background: #fed7d7; color: #c53030; }
+        .badge-admin { background: #fefcbf; color: #b7791f; }
+        .badge-aset { background: #c6f6d5; color: #276749; }
+        .badge-pengajar { background: #bee3f8; color: #2b6cb0; }
+        .badge-participant { background: #e9d8fd; color: #553c9a; }
+        .badge-mitra { background: #feebc8; color: #c05621; }
+        .badge-magang { background: #b2f5ea; color: #234e52; }
+        .badge-resepsionis { background: #fbb6ce; color: #97266d; }
+        .badge-intern { background: #c4f1f9; color: #086f83; }
+        .badge-ttd { background: #c3dafe; color: #3730a3; }
+        .note { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 8px 12px; margin: 10px 0; font-size: 9.5pt; }
+        .workflow { background: #f0fff4; border: 1px solid #c6f6d5; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 9.5pt; }
+        code { background: #edf2f7; padding: 1px 4px; border-radius: 3px; font-size: 8.5pt; font-family: Consolas, 'Courier New', monospace; }
+        pre { background: #2d3748; color: #e2e8f0; padding: 10px; border-radius: 6px; font-size: 8.5pt; overflow-x: auto; }
+        .ep { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #38a169; border-radius: 4px; padding: 8px 12px; margin: 8px 0; font-size: 9.5pt; }
+        .ep p { margin: 3px 0; }
+        ul { margin: 4px 0; }
+        ol { margin: 4px 0; }
+        .logo { font-size: 12pt; color: #2c5282; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+    <div class="logo">BPSDM INTEGRAL</div>
+    <h1>DOKUMEN TEKNIS ALUR APLIKASI</h1>
+    <div class="subtitle">Alur Sistem per Endpoint — Request, Otorisasi, Logika Controller, Data, dan Response</div>
+    <div class="org">Badan Pengembangan Sumber Daya Manusia</div>
+    <div class="date">Disusun Berdasarkan Analisis Kode Sumber / Tahun 2026</div>
+</div>
+
+<!-- ==================== DAFTAR ISI ==================== -->
+<div class="toc">
+    <h1>Daftar Isi</h1>
+    <ul>
+        <li><strong>1. Konvensi Umum &amp; Arsitektur</strong></li>
+        <li class="sub"><a href="#c1">1.1 Struktur Rute &amp; Middleware</a></li>
+        <li class="sub"><a href="#c1">1.2 Daftar Role &amp; Dashboard</a></li>
+        <li class="sub"><a href="#c1">1.3 Pola Otorisasi &amp; Scope Bidang</a></li>
+        <li class="sub"><a href="#c1">1.4 Katalog Status</a></li>
+        <li class="sub"><a href="#c1">1.5 Lokasi Penyimpanan Berkas</a></li>
+        <li class="sub"><a href="#c1">1.6 Peta Rute Terverifikasi</a></li>
+        <li class="sub"><a href="#c1">1.7 Format Blok Alur Endpoint</a></li>
+        <li><strong>2. Modul Pelatihan, Peserta &amp; Kehadiran</strong></li>
+        <li><strong>3. Modul Evaluasi (Kirkpatrick L1–L4 &amp; Post-Evaluasi)</strong></li>
+        <li><strong>4. Modul Monitoring &amp; Tindak Lanjut (termasuk Indikator)</strong></li>
+        <li><strong>5. Modul Dokumen &amp; Folder</strong></li>
+        <li><strong>6. Modul Pengajar (Narasumber) &amp; Setup</strong></li>
+        <li><strong>7. Forum, Asisten AI, Pencarian &amp; Notifikasi</strong></li>
+        <li><strong>8. Modul Aset, Peminjaman &amp; Rental Publik</strong></li>
+        <li><strong>9. Modul Agenda</strong></li>
+        <li><strong>10. Modul Sertifikasi SKPK &amp; Verifikasi Publik</strong></li>
+        <li><strong>11. Modul Sertifikat Pelatihan &amp; Tanda Tangan Elektronik (TTE)</strong></li>
+        <li><strong>12. Autentikasi, Pengguna &amp; Dashboard</strong></li>
+        <li><strong>13. Modul Magang (Internship)</strong></li>
+        <li><strong>14. Modul Buku Tamu</strong></li>
+        <li><strong>15. Modul Presensi Kegiatan</strong></li>
+        <li><strong>16. Modul Laporan Kegiatan, Pengajuan Mitra &amp; Bantuan Login</strong></li>
+        <li><strong>17. Lampiran — Katalog Token &amp; Aturan Konflik Aset</strong></li>
+    </ul>
+</div>
+
+<!-- ==================== 1. KONVENSI UMUM ==================== -->
+<h2 class="page-break" id="c1">1. Konvensi Umum &amp; Arsitektur</h2>
+<p>Dokumen ini memetakan <strong>alur aplikasi per endpoint</strong> sistem BPSDM Integral (Laravel 12). Setiap endpoint disajikan dalam blok 6-bagian standar (lihat 1.7). Seluruh referensi merujuk kode sumber aktual: controller, model, service, <code>routes/web.php</code>, dan view Blade.</p>
+
+<h3>1.1 Struktur Rute &amp; Middleware</h3>
+<ul>
+    <li><strong>Grup <code>auth</code></strong> (<code>routes/web.php</code> ±baris 142) membungkus hampir seluruh rute admin/support: pelatihan, peserta, kehadiran, evaluasi, monitoring, dokumen, pengajar, forum, AI, aset, agenda, sertifikasi, TTE, magang, buku tamu, presensi kegiatan, profil, notifikasi.</li>
+    <li><strong>Rute publik</strong> (di luar grup auth, blok "PUBLIC ROUTES"): landing page; <code>global.search</code> (±baris 82, controller memakai scope bila user login); <code>documents.file.view</code> &amp; <code>documents.file.download</code> (±baris 93–94, otorisasi sepenuhnya di controller via <code>authorizeFileAccess()</code> — folder publik boleh tanpa login, privat wajib login+<code>canView</code>); <code>documents.public</code> (<code>/share/folder/{token}</code>), <code>documents.public.file</code>, <code>documents.public.excel</code>; verifikasi sertifikat/TTE; form publik buku tamu, presensi kegiatan, pendaftaran magang &amp; rental; bantuan login.</li>
+    <li><strong>Middleware global</strong> <code>CekSetupPengajar</code> (append grup <code>web</code>): narasumber yang belum memiliki record <code>Pengajar</code> selalu diarahkan ke <code>pengajar.setup</code> (kecuali halaman setup/logout).</li>
+    <li><strong>Gate kustom</strong> (didefinisikan <code>AppServiceProvider::boot()</code>): <code>superadmin-only</code> (role === 'superadmin') dan <code>isParticipant</code> (role === 'participant').</li>
+    <li><strong>Rate limit</strong> pada beberapa rute publik (<code>throttle:...</code>) untuk mencegah penyalahgunaan form publik.</li>
+</ul>
+
+<h3>1.2 Daftar Role &amp; Dashboard</h3>
+<table>
+    <tr><th>Role</th><th>user_type</th><th>Gate/Akses utama</th><th>Redirect pasca-login</th></tr>
+    <tr><td><span class="badge badge-super">superadmin</span></td><td>-</td><td>Semua modul, kelola user &amp; akun khusus</td><td><code>/dashboard</code> (<code>dashboard.index</code>)</td></tr>
+    <tr><td><span class="badge badge-admin">admin_bidang</span></td><td>-</td><td>Scope <code>users.bidang</code> di seluruh data</td><td><code>/dashboard</code></td></tr>
+    <tr><td><span class="badge badge-aset">admin_aset</span></td><td>-</td><td>Aset/ruangan; bidang tetap "Pengelola Aset"</td><td><code>/assets</code> (<code>assets.dashboard</code>)</td></tr>
+    <tr><td><span class="badge badge-pengajar">pengajar</span></td><td>narasumber</td><td><code>canAccessNarasumberPortal()</code> (approved)</td><td><code>/pengajar</code> (pertama kali <code>/pengajar/setup-profil</code>)</td></tr>
+    <tr><td><span class="badge badge-participant">participant</span></td><td>peserta</td><td>Gate <code>isParticipant</code>; data diri sendiri</td><td><code>/participant/dashboard</code></td></tr>
+    <tr><td><span class="badge badge-mitra">mitra</span></td><td>mitra</td><td>Pengajuan sendiri</td><td><code>/mitra/dashboard</code></td></tr>
+    <tr><td><span class="badge badge-magang">pengelola_magang</span></td><td>-</td><td>Program dengan <code>manager_id</code> = dirinya</td><td><code>/internships</code> (<code>internships.index</code>)</td></tr>
+    <tr><td><span class="badge badge-resepsionis">resepsionis</span></td><td>-</td><td>Buku tamu (dengan superadmin)</td><td><code>/guest-book</code> (<code>guest-book.index</code>)</td></tr>
+    <tr><td><span class="badge badge-intern">intern</span></td><td>magang</td><td>Harus status <code>approved</code> untuk login</td><td><code>/internships/dashboard</code></td></tr>
+    <tr><td><span class="badge badge-ttd">penandatangan</span></td><td>-</td><td>Aksi TTE pada posisinya (wajib NIP/NIK)</td><td><code>/electronic-signatures</code></td></tr>
+</table>
+<div class="note">Kebijakan khusus autentikasi: akun <code>participant</code> dengan <code>user_type=narasumber</code> berstatus <code>pending</code> otomatis dikonversi menjadi <code>pengajar</code> + <code>approved</code> saat login (diselaraskan pada <code>DashboardController::index</code>). Akun <code>intern</code> yang belum <code>approved</code> ditolak masuk oleh <code>LoginController</code>.</div>
+
+<h3>1.3 Pola Otorisasi &amp; Scope Bidang</h3>
+<ul>
+    <li>Sebagian besar endpoint memakai <code>abort_unless(...)</code> di dalam controller (tidak hanya middleware).</li>
+    <li>Pola umum cek pelatihan: <code>authorizeTraining($training)</code> = superadmin ATAU admin_bidang dengan <code>bidang === training->bidang</code>, selain itu 403.</li>
+    <li>Scope data admin_bidang: query selalu menambah <code>where('bidang', Auth::user()->bidang)</code>; pengecualian hanya untuk superadmin (memilih <code>bidang</code> dari query string).</li>
+    <li>Segregasi tugas: verifikasi tindak lanjut monitoring tidak boleh dilakukan bidang tujuan temuan (anti konflik kepentingan).</li>
+    <li>Role lain (pengajar/participant/intern/mitra/penandatangan) diverifikasi per-aksi (mis. keanggotaan peserta, penugasan schedule, kepemilikan program).</li>
+</ul>
+
+<h3>1.4 Katalog Status</h3>
+<table>
+    <tr><th>Entitas</th><th>Status / Transisi</th></tr>
+    <tr><td><code>monitoring_results.workflow_status</code></td><td><code>open</code> → <code>in_progress</code> → <code>submitted</code> → <code>verified</code>; <code>submitted</code> → <code>rejected</code> → kembali <code>in_progress</code>; jawaban "ya" → <code>not_required</code>. <code>is_resolved=true</code> hanya saat <code>verified</code>. Prioritas <code>rendah/sedang/tinggi/kritis</code> (default <code>sedang</code>); <code>overdue</code> = bukan verified &amp; <code>due_date</code> lampau.</td></tr>
+    <tr><td>Signature request (bundel TTE)</td><td><code>pending</code> ↔ <code>processing</code> → <code>completed</code> / <code>failed</code>. Aksi yang macet &gt;5 menit atau ber-<code>error_message</code> dikembalikan ke <code>pending</code>.</td></tr>
+    <tr><td>Evaluasi — skor</td><td><code>ya/sangat baik</code>=100, <code>baik</code>=80, <code>cukup</code>=60, <code>kurang</code>=40, <code>tidak/sangat kurang</code>=20 (skala), predikat: &gt;90 Sangat Baik, &gt;80 Baik, &gt;70 Cukup, &gt;60 Kurang, ≤60 Sangat Kurang. L2 menerapkan N-gain; <code>tgl_sebar_l34</code> = Manajerial +1 tahun, selain itu +4 bulan.</td></tr>
+    <tr><td><code>ai_generations.status</code></td><td><code>processing</code> → <code>completed</code> / <code>failed</code>; dedup lewat <code>source_hash</code> (sha256 payload).</td></tr>
+    <tr><td><code>asset_loan_requests.status</code></td><td><code>pending</code> → <code>approved</code> / <code>rejected</code> / <code>revision</code>; deteksi bentrok <code>AssetBooking::hasConflict</code>.</td></tr>
+    <tr><td><code>internship_programs.status</code></td><td><code>draft</code> / <code>open</code> / <code>closed</code> / <code>archived</code>. Peserta: <code>pending</code>/<code>approved</code>/<code>rejected</code>/<code>completed</code>. Presensi: <code>present</code>/<code>permission</code>/<code>sick</code>/<code>absent</code> (+ <code>late_minutes</code>).</td></tr>
+    <tr><td><code>activity_attendance_forms.status</code></td><td>Status publikasi form presiding kegiatan (filter status pada <code>index</code>).</td></tr>
+    <tr><td>Pelatihan / registrasi peserta</td><td>Pelatihan <code>draft</code> → terbit → selesai; pendaftaran peserta <code>pending</code> → <code>approved</code>/ditolak.</td></tr>
+</table>
+
+<h3>1.5 Lokasi Penyimpanan Berkas</h3>
+<table>
+    <tr><th>Lokasi / Disk</th><th>Isi</th></tr>
+    <tr><td><code>storage/app/public/documents/</code> (disk public)</td><td>Seluruh dokumen folder + hasil <code>archiveInternal()</code> (laporan monitoring/evaluasi/kehadiran/jadwal, bukti tindak lanjut, dll.)</td></tr>
+    <tr><td><code>storage/app/public/evidence_monitoring/</code></td><td>PDF bukti tindak lanjut monitoring</td></tr>
+    <tr><td><code>storage/app/public/pengajar/kelengkapan/</code> &amp; <code>pengajar/sesi/</code></td><td>Dokumen kelengkapan &amp; administrasi sesi pengajar</td></tr>
+    <tr><td><code>storage/app/private (disk local) internships/certificates/…</code></td><td>Sertifikat magang (template + PDF hasil render per peserta)</td></tr>
+    <tr><td><code>public/templates/*.docx</code></td><td>Template laporan monitoring, tindak lanjut, laporan kegiatan</td></tr>
+    <tr><td>Storage jawaban berkas</td><td>Berkas jawaban form presensi kegiatan (disimpan per respons, dihapus saat form dihapus)</td></tr>
+</table>
+
+<h3>1.6 Peta Rute Terverifikasi</h3>
+<p>Rute-rute berikut telah diverifikasi keberadaannya dan dipetakan pada <code>routes/web.php</code> (grup <code>auth</code> kecuali disebut publik):</p>
+<table>
+    <tr><th>Modul</th><th>Route name</th></tr>
+    <tr><td>Monitoring</td><td><code>monitoring.index/fill/store/store_final</code>, <code>monitoring.export.laporan/tindaklanjut/rekap</code></td></tr>
+    <tr><td>Tindak Lanjut</td><td><code>followup.index/start/resolve/verify</code></td></tr>
+    <tr><td>Dokumen</td><td><code>documents.index/folder.create/folder.upload(≈upload)/folder.privacy/archives/folder.archive/folder.restore/share-users.search/folder.sharing.store/folder.sharing.destroy/file.versions/file-versions.download/file-versions.restore/file.destroy/folder.destroy</code></td></tr>
+    <tr><td>Dokumen publik</td><td><code>documents.public</code> (<code>/share/folder/{token}</code>), <code>documents.public.file</code>, <code>documents.public.excel</code>, <code>documents.file.view</code> &amp; <code>documents.file.download</code> (rute publik)</td></tr>
+    <tr><td>Pengajar</td><td><code>pengajar.setup/setup.store</code>, <code>pengajar.index/manage/profile.update/requirements.upload/session.upload</code>, <code>pengajar.schedule</code>, <code>pengajar.history</code></td></tr>
+    <tr><td>AI / Forum / Search</td><td><code>ai-assistant.index</code>, <code>training.forum.index/messages/store/destroy</code> (±232–235), <code>global.search</code> (publik, ±82)</td></tr>
+    <tr><td>Referensi baris penting</td><td>auth group ±142; <code>Route::resource('trainings')</code> ±317; monitoring ±436–446; followup ±448–451; dokumen ±343–358; pengajar setup ±301–302, schedule ±309, history ±458</td></tr>
+</table>
+
+<h3>1.7 Format Blok Alur Endpoint</h3>
+<div class="ep">
+    <strong>Setiap endpoint disajikan sebagai blok 6-bagian:</strong><br>
+    1. <strong>URL/Route</strong> — metode + lintasan + nama route<br>
+    2. <strong>Role/Auth</strong> — role, middleware, gate, pengecekan controller<br>
+    3. <strong>Request fields</strong> — field validasi (required/type/limit)<br>
+    4. <strong>Alur/Controller</strong> — logika controller &amp; service step-by-step (transaksi DB, status, arsip)<br>
+    5. <strong>Data</strong> — data yang disimpan/diambil (model &amp; kolom)<br>
+    6. <strong>Response</strong> — view / redirect / json / file download
+</div>
+
+<!-- ==================== 2. MODUL PELATIHAN, PESERTA & KEHADIRAN ==================== -->
+<h2 class="page-break" id="mod-train">2. Modul Pelatihan, Peserta &amp; Kehadiran</h2>
+
+<h3>TECHNICAL ALUR — Referensi Endpoint</h3>
+<p>Pelatihan, Kehadiran, dan Peserta<br>
+Aplikasi: <code>bpsdm_integral</code> (Laravel 12)</p>
+<p>Semua nama kode (route, method, kolom, relasi) dibiarkan dalam bahasa Inggris; penjelasan dalam bahasa Indonesia.</p>
+<p>Konvensi role di aplikasi: <code>superadmin</code>, <code>admin_bidang</code>, <code>pengajar</code>, <code>participant</code>. Middleware otorisasi yang terdaftar (AppServiceProvider:39-45): <code>can:superadmin-only</code> (role <code>superadmin</code>), <code>can:isParticipant</code> (role <code>participant</code>). Banyak aksi memakai pengecekan role <em>di dalam controller</em> (<code>abort_unless</code>) dan scoping <code>bidang</code>.</p>
+<p>Time zone sistem: <code>Asia/Jakarta</code> (digunakan <code>now('Asia/Jakarta')</code>).</p>
+
+<h3>A. TRAINING CONTROLLER (<code>TrainingController.php</code>)</h3>
+<p>Semua route berada dalam grup <code>auth</code> (routes/web.php:142, dan <code>Route::resource('trainings', ...)</code> di :317), kecuali dinyatakan lain.</p>
+
+<h3>A.1 <code>index</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings</code> — route name <code>trainings.index</code></p>
+    <p><strong>2. Role/Auth:</strong> Middleware <code>auth</code>. Scoping otomatis:<br>
+    - Jika <code>role</code> != <code>superadmin</code> → query dibatasi <code>where('bidang', Auth::user()->bidang)</code> (line 43-45). Artinya admin bidang/bukan superadmin hanya melihat pelatihan bidangnya.</p>
+    <p><strong>3. Request:</strong> Query params opsional: <code>search</code>, <code>status</code> (<code>ongoing|upcoming|completed</code>), <code>year</code>, <code>model</code>, <code>sort</code> (<code>newest|oldest|name|start_soon</code>).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Hitung <code>$today = now('Asia/Jakarta')->toDateString()</code>.<br>
+    - Susun <code>$dashboardStats</code>: <code>total</code>, <code>ongoing</code> (tgl_mulai &lt;= today &amp; tgl_selesai &gt;= today), <code>upcoming</code> (tgl_mulai &gt; today), <code>completed</code> (tgl_selesai &lt; today), <code>participants</code> (sum dari <code>withCount</code> peserta ber-status <code>approved</code>).<br>
+    - <code>$years</code> = distinct <code>YEAR(tgl_mulai)</code> desc.<br>
+    - Query utama eager load <code>schedules</code> (urut <code>date</code>, <code>start_time</code>) + <code>withCount</code>:<br>
+    - <code>participants</code><br>
+    - <code>approved_participants_count</code> (registration_status = <code>approved</code>)<br>
+    - <code>pending_participants_count</code> (registration_status = <code>pending</code>)<br>
+    - <code>learning_schedules_count</code> (schedule_type null ATAU != <code>break</code>).<br>
+    - Filter <code>when(...)</code>:<br>
+    - <code>search</code> → <code>nama_pelatihan</code>/<code>lokasi</code>/<code>bidang</code>/<code>angkatan</code> LIKE <code>%...%</code>.<br>
+    - <code>status</code> → match: <code>ongoing</code>, <code>upcoming</code>, <code>completed</code> (lihat definisi tanggal di atas).<br>
+    - <code>year</code> → <code>whereYear('tgl_mulai', $year)</code>.<br>
+    - <code>model</code> → <code>where('model', $request->model)</code>.<br>
+    - Sort (<code>match</code>): default <code>newest</code> → <code>orderByDesc('tgl_mulai')->orderByDesc('id')</code>; <code>oldest</code>; <code>name</code>; <code>start_soon</code> → <code>orderByRaw CASE WHEN tgl_selesai &gt;= today THEN 0 ELSE 1 END</code>, lalu <code>tgl_mulai</code>.<br>
+    - <code>paginate(12)->withQueryString()</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> + relasi <code>schedules</code>; <code>withCount</code> peserta approved/pending &amp; jadwal learning; statistik dashboard; daftar tahun.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.index</code> dengan <code>compact('trainings','dashboardStats','years')</code>.</p>
+</div>
+
+<h3>A.2 <code>create</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/create</code> — <code>trainings.create</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> query <code>model</code> opsional (default <code>'standar'</code>, nilai lain <code>'blended'</code>).</p>
+    <p><strong>4. Controller flow:</strong> Hanya meneruskan query param <code>model</code> ke view.</p>
+    <p><strong>5. Data fetched:</strong> tidak ada query.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.create</code> dengan <code>compact('model')</code>.</p>
+</div>
+
+<h3>A.3 <code>store</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings</code> — <code>trainings.store</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>. Jika <code>admin_bidang</code>, bidang dipaksa mengikuti akun.</p>
+    <p><strong>3. Request / body:</strong><br>
+    - <code>nama_pelatihan</code> (required), <code>bidang</code> (required), <code>program_evaluasi</code> (required|in:<code>CPNS,PKP,PKA,PKN,PKTI/PKTU</code>), <code>model</code> (required), <code>lokasi</code> (required), <code>angkatan</code> (required), <code>jumlah_peserta</code> (required|numeric), <code>jp</code> (required|numeric), <code>tgl_mulai</code> (required|date), <code>tgl_selesai</code> (required|date).<br>
+    - Tambahan: <code>metode</code> (required) HANYA jika <code>model === 'standar'</code>.<br>
+    - Jika blended: <code>stages[]</code> array dengan <code>nama</code>, <code>metode</code>, <code>mulai</code>, <code>selesai</code> per tahap.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi sesuai aturan di atas.<br>
+    - Jika <code>admin_bidang</code>: <code>abort_if(blank(bidang), 422, 'Bidang akun Admin belum ditentukan.')</code> lalu paksa <code>data['bidang'] = bidang akun</code>.<br>
+    - Jika <code>model === 'blended'</code>: set <code>data['metode'] = 'blended'</code>.<br>
+    - <code>data['created_by'] = Auth::id()</code>; <code>Training::create($data)</code>.<br>
+    - Otomatis buat folder dokumen: <code>Folder::create</code> dengan <code>name = "{nama_pelatihan} - Angkatan {angkatan}"</code>, <code>bidang</code>, <code>user_id</code>, <code>parent_id=null</code>, <code>is_public=false</code>.<br>
+    - Jika blended &amp; <code>stages</code> ada: loop membuat <code>training->stages()->create</code> (TrainingStage) dengan <code>nama_tahapan</code>, <code>metode</code>, <code>tgl_mulai</code>, <code>tgl_selesai</code>.<br>
+    - <code>LogHelper::record('Pelatihan', ...)</code>.</p>
+    <p><strong>5. Data fetched:</strong> tidak ada pembacaan; hanya insert.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->route('trainings.index')</code> flash <code>success</code> = "Pelatihan dan Folder Dokumen berhasil dibuat."<br>
+    - Catatan: <code>invitation_code</code> di-generate otomatis oleh model boot (<code>Str::random(6)</code> uppercase, Training.php:115-117).</p>
+</div>
+
+<h3>A.4 <code>storeParticipant</code> (tambah peserta manual oleh admin)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/participants/manual</code> — <code>participants.store</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code> (tanpa role check eksplisit).</p>
+    <p><strong>3. Request/body:</strong> <code>user_id</code> (required|exists:users,id).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Cari user role <code>participant</code> via <code>User::where('role','participant')->findOrFail</code>.<br>
+    - Cegah duplikasi: <code>Participant</code> dengan <code>training_id</code> = id DAN (<code>user_id</code> = user.id ATAU <code>nip_nik</code> = user.nip_nik). Jika sudah ada → <code>back()->with('error','User tersebut sudah terdaftar pada pelatihan ini.')</code>.<br>
+    - <code>Participant::create</code> menyalin data dari User (<code>name</code>, <code>gender</code>, <code>phone</code>=whatsapp, <code>jabatan</code>, <code>instansi</code>, <code>provinsi</code>, <code>kota</code>, <code>kecamatan</code>, <code>kelurahan</code>, <code>status_kepegawaian</code>) + <code>registration_status => 'approved'</code>.</p>
+    <p><strong>5. Data fetched:</strong> User (participant), cek eksistensi Participant.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Peserta berhasil ditambahkan."</p>
+</div>
+
+<h3>A.5 <code>showParticipants</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/participants</code> — <code>trainings.participants</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code> (tanpa role check eksplisit).</p>
+    <p><strong>3. Request:</strong> query <code>search</code> opsional; param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail($id)</code>.<br>
+    - <code>$participants</code> = <code>Participant::with(['user','biodataFile','suratTugasFile','pasFotoFile'])->where('training_id',$id)</code> + filter search (LIKE <code>%</code> pada <code>name</code>/<code>nip_nik</code>/<code>instansi</code>) → <code>latest()->paginate(10)</code>.<br>
+    - <code>$registeredUserIds</code> = list <code>user_id</code> (not null) pada training; <code>$registeredNips</code> = list <code>nip_nik</code> (not null).<br>
+    - <code>$availableUsers</code> = User role <code>participant</code>, <code>nip_nik</code> tidak null &amp; tidak kosong, <code>id</code> &amp; <code>nip_nik</code> tidak termasuk yang sudah terdaftar, <code>orderBy('name')</code>, select <code>['id','name','nip_nik','instansi']</code>.<br>
+    - <code>$pendingParticipantsCount</code> = jumlah peserta <code>registration_status = 'pending'</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant + <code>user</code>, <code>biodataFile</code>, <code>suratTugasFile</code>, <code>pasFotoFile</code>; daftar user tersedia; hitung pending.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.participants</code> dengan <code>compact('training','participants','search','availableUsers','pendingParticipantsCount')</code>.</p>
+</div>
+
+<h3>A.6 <code>updateParticipant</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /participants/{id}</code> — <code>participants.update</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>nip_nik</code> (required|string|`unique:participants,nip_nik,{id},id,training_id,{participant.training_id}` — unik per training), <code>name</code> (required|string|max:255), <code>gender</code> (required), <code>phone</code> (required|string|max:20), <code>jabatan</code> (required), <code>instansi</code> (required), <code>provinsi</code> (required), <code>kota</code> (required), <code>kecamatan</code> (required), <code>kelurahan</code> (required), <code>status_kepegawaian</code> (required|in:<code>PNS,PPPK,PPPK-PW</code>).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>findOrFail</code>; validated; <code>update(...)</code>; <code>nip_nik</code> dibersihkan dengan <code>ltrim($request->nip_nik, "'")</code> (menghapus kutip depan).</p>
+    <p><strong>5. Data fetched:</strong> <code>Participant</code>.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Data peserta berhasil diperbarui."</p>
+</div>
+
+<h3>A.7 <code>destroyParticipant</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>DELETE /participants/{id}</code> — <code>participants.destroy</code></p>
+    <p><strong>2. Role/Auth:</strong> Role check eksplisit (line 270-274): <code>abort_unless</code> <code>superadmin</code> ATAU (<code>admin_bidang</code> &amp; bidang training pesertanya == bidang akun), 403.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Participant::with('training')->findOrFail($id)</code>.<br>
+    - Kumpulkan file id: <code>biodata_file_id</code>, <code>surat_tugas_file_id</code>, <code>pas_foto_file_id</code> (filter, unique).<br>
+    - Ambil File terkait + nama peserta &amp; nama pelatihan (untuk log).<br>
+    - <code>DB::transaction</code>:<br>
+    - Hapus di <code>alumni_profiles</code>, <code>attendances</code>, <code>evaluation_results_l1</code>, <code>evaluation_results_l2</code>, <code>evaluation_results_l34</code> (by participant_id).<br>
+    - <code>$participant->delete()</code>.<br>
+    - Untuk tiap file id: jika tidak lagi direferensikan oleh Participant manapun (biodata/surat_tugas/pas_foto) → <code>File::whereKey($fileId)->delete()</code>.<br>
+    - Di luar transaksi: untuk file yang sudah terhapus recordnya, hapus fisik <code>Storage::disk('public')</code> bila <code>file_path</code> masih ada.<br>
+    - <code>LogHelper::record('Peserta', ...)</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant + training; File terkait.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Peserta dan seluruh data terkait pada pelatihan ini berhasil dihapus."</p>
+</div>
+
+<h3>A.8 <code>showSchedules</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/schedules</code> — <code>trainings.schedules</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail($id)</code>.<br>
+    - <code>$schedules</code> = <code>Schedule::with(['pengajar','bookings.asset','assetLoanRequest'])</code> filter <code>training_id</code>, sort <code>date</code> asc lalu <code>start_time</code> asc.<br>
+    - <code>$pengajars</code> = <code>User</code> role <code>pengajar</code>, <code>user_type = 'narasumber'</code>, <code>user_type_status = 'approved'</code>, <code>orderBy('name')</code>.<br>
+    - <code>$assets</code> = Asset <code>is_active=true</code>, <code>orderBy('name')</code>.<br>
+    - <code>$reusableLoanRequests</code> = kumpulan <code>assetLoanRequest</code> dari schedules (filter non-null) sort <code>created_at</code> desc.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + pengajar + bookings.asset + assetLoanRequest; daftar narasumber approved; aset aktif; peminjaman reusable.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.schedules</code> dengan <code>compact('training','schedules','pengajars','assets','reusableLoanRequests')</code>.</p>
+</div>
+<h3>A.9 <code>importParticipants</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/participants/import</code> — <code>participants.import</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>file</code> (required|`mimes:xlsx,xls`).</p>
+    <p><strong>4. Controller flow:</strong> jalankan <code>Excel::import(new ParticipantImport($id), $file)</code>.</p>
+    <p><strong>5. Data fetched:</strong> proses import via <code>App\Imports\ParticipantImport($id)</code>.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Data peserta berhasil diimport."</p>
+</div>
+
+<h3>A.10 <code>downloadTemplate</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /participants/download-template</code> — <code>participants.template</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong> <code>Excel::download(new ParticipantTemplateExport, 'template_peserta_integral.xlsx')</code>.</p>
+    <p><strong>5. Data fetched:</strong> n/a (export class).</p>
+    <p><strong>6. Response:</strong> Unduhan file Excel <code>template_peserta_integral.xlsx</code>.</p>
+</div>
+
+<h3>A.11 <code>storeSchedule</code> (tambah sesi jadwal)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/schedules</code> — <code>schedules.store</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> Validasi lengkap (line 368-393):<br>
+    - <code>date</code> required|date; <code>start_time</code> required; <code>activity</code> required|string|max:255; <code>schedule_type</code> required|in:<code>learning,break</code>.<br>
+    - <code>jp</code> nullable|`required_if:schedule_type,learning`|integer|min:1|max:24.<br>
+    - <code>duration_unit</code> nullable|required_if learning|in:<code>JP,OJ</code>.<br>
+    - <code>break_end_time</code> nullable|required_if break|`date_format:H:i`|`after:start_time`.<br>
+    - <code>link_zoom</code> nullable|`url:http,https`|max:500.<br>
+    - <code>pic</code> nullable|required_if learning|string|max:255.<br>
+    - <code>pengajar_id</code> nullable + <code>Rule::exists('users','id')->where(role='pengajar', user_type='narasumber', user_type_status='approved')</code>.<br>
+    - <code>venue_type</code> nullable|required_if learning|in:<code>internal,external</code>.<br>
+    - <code>external_place</code> nullable|string|max:255.<br>
+    - <code>asset_ids</code> nullable|required_if venue_type internal|array|min:1; <code>asset_ids.*</code> integer|exists assets,id.<br>
+    - <code>loan_letter</code> nullable|file|`mimes:pdf`|max:5120.<br>
+    - <code>reuse_loan_request_id</code> nullable|integer|exists asset_loan_requests,id.<br>
+    - <code>loan_purpose</code> nullable|string|max:2000; <code>loan_contact</code> nullable|string|max:255.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi; lalu aturan khusus:<br>
+    - Learning + external tanpa <code>external_place</code> DAN tanpa <code>link_zoom</code> → <code>ValidationException</code> "Isi tempat eksternal atau tautan Zoom/virtual meeting."<br>
+    - <code>reuse_loan_request_id</code> (untuk venue internal): <code>AssetLoanRequest::with('requestable')</code>; <code>abort_unless</code> requestable adalah Schedule DAN training_id-nya == id (403).<br>
+    - Venue internal tanpa file <code>loan_letter</code> dan tanpa reuse → <code>ValidationException</code> "Unggah surat PDF atau pilih data peminjaman sebelumnya."<br>
+    - Siapkan <code>$loanData</code>: jika reuse → salin <code>letter_path</code> (<code>Storage::disk('local')->copy</code>) ke <code>asset-loan-letters/{uuid}.pdf</code>; jika tidak → <code>store('asset-loan-letters')</code> + <code>purpose</code> + <code>contact_person = loan_contact ?: pic</code>.<br>
+    - Hitung <code>end_time</code>: <code>duration_unit === 'OJ'</code> → 60 menit/unit, selainnya 45. Break → pakai <code>break_end_time</code>. Learning → <code>start_time + jp×menit</code>.<br>
+    - <code>$assetIds</code> = array_unique dari <code>asset_ids</code> (int).<br>
+    - <code>$autoApprove</code> = learning + internal + <code>assetsPreviouslyApprovedForTraining($id, $assetIds)</code> (cek: ada AssetLoanRequest ber-status <code>approved</code> milik Schedule di training tsb yang berisi seluruh asset id). Jika autoApprove → cek konflik <code>AssetBooking::hasConflict(assetId, startAt, endAt)</code> untuk tiap aset (gagal → ValidationException "Aset {nama} sudah digunakan pada waktu tersebut.").<br>
+    - <code>DB::transaction</code>:<br>
+    - <code>Schedule::create</code> dengan nilai; <code>jp</code>/<code>duration_unit</code>/<code>pic</code>/<code>pengajar_id</code>/<code>venue_type</code> hanya diisi jika learning; <code>pic</code> = <code>'Istirahat'</code> untuk break; <code>venue_type</code> break dipaksa <code>'external'</code>; <code>link_zoom</code>/<code>external_place</code> hanya jika venue external.<br>
+    - Jika learning + internal: buat <code>assetLoanRequest()</code> (morph) dengan <code>asset_ids</code>, <code>letter_path</code>, <code>purpose</code>, <code>contact_person</code>, <code>attendee_count</code> = jumlah peserta training, <code>status</code> = <code>approved</code> (jika autoApprove) / <code>pending</code>, <code>submitted_by</code>=Auth::id(), <code>reviewed_at</code>=now (bila autoApprove), <code>review_note</code> = "Disetujui otomatis karena aset yang sama telah disetujui untuk pelatihan ini."<br>
+    - Jika autoApprove: buat <code>bookings()</code> per aset (<code>starts_at</code> = date+start_time, <code>ends_at</code> = date+end_time, <code>created_by</code>).</p>
+    <p><strong>5. Data fetched:</strong> AssetLoanRequest (reuse), Asset (cek konflik), Schedule training (pengecekan autoApprove).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> (autoApprove → "Sesi jadwal berhasil ditambahkan dan aset otomatis disetujui..."; biasa → "Sesi jadwal berhasil ditambahkan.").</p>
+</div>
+
+<h3>A.12 <code>updateSchedule</code> (update sesi jadwal)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /schedules/{id}</code> — <code>schedules.update</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> Identik dengan <code>storeSchedule</code> kecuali TIDAK ada <code>reuse_loan_request_id</code> (line 480-504).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Schedule::findOrFail($id)</code>; validasi.<br>
+    - Sama: aturan learning+external (harus isi <code>external_place</code> atau <code>link_zoom</code>); hitung <code>end_time</code> (basis unit OJ=60, JP=45).<br>
+    - Jika venue internal &amp; belum punya <code>assetLoanRequest</code> &amp; tidak ada file baru: <code>ValidationException</code> "Surat peminjaman PDF wajib diunggah."<br>
+    - <code>$autoApprove</code> = learning + internal + <code>assetsPreviouslyApprovedForTraining($schedule->training_id, $assetIds)</code>; jika ya → cek konflik dengan pengecualian schedule ini (<code>Schedule::class, $schedule->id</code>).<br>
+    - <code>DB::transaction</code>:<br>
+    - <code>$schedule->update(...)</code> (aturan field sama seperti store).<br>
+    - Jika venue internal: hapus letter lama jika ada file baru (<code>Storage::disk('local')->delete</code> lalu store baru); <code>bookings()->delete()</code>; <code>assetLoanRequest()->updateOrCreate</code> (status approved/pending + <code>reviewed_by</code> null, <code>reviewed_at</code> now bila autoApprove); jika autoApprove → buat bookings baru.<br>
+    - Jika bukan internal: hapus <code>letter_path</code> fisik, hapus assetLoanRequest &amp; bookings.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + assetLoanRequest + training (participant count), Asset.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> (autoApprove → "Jadwal diperbarui dan penggunaan aset tetap disetujui otomatis."; biasa → "Jadwal berhasil diperbarui.").</p>
+</div>
+
+<h3>A.13 <code>destroySchedule</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>DELETE /schedules/{id}</code> — <code>schedules.destroy</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>findOrFail</code>; hapus <code>bookings()</code>; hapus fisik <code>letter_path</code> (disk local) bila ada; hapus <code>assetLoanRequest()</code>; <code>$schedule->delete()</code>.</p>
+    <p><strong>5. Data fetched:</strong> Schedule (+ relasi assetLoanRequest).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Sesi jadwal berhasil dihapus."</p>
+</div>
+
+<h3>A.14 <code>downloadSchedulePdf</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/schedules/pdf</code> — <code>schedules.pdf</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>. Perilaku beda berdasar role:<br>
+    - Role <code>pengajar</code> → hanya jadwal sesi milik dirinya (<code>where('pengajar_id', $user->id)</code>), judul "JADWAL MENGAJAR TENAGA PENGAJAR / FASILITATOR", nama file <code>JADWAL_MENGAJAR_{NAMA_UPERCASE}_{nama_pelatihan}.pdf</code>.<br>
+    - Selain itu (admin/peserta) → seluruh sesi, judul "JADWAL KEGIATAN PELATIHAN", file <code>JADWAL_PELATIHAN_{nama_pelatihan}.pdf</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> query schedules + <code>pengajar</code>, sort date/start_time; generate via DomPDF (<code>Pdf::loadView('trainings.pdf_schedule', ...)</code>), kertas <code>a4</code> landscape; jika bukan pengajar → <code>DocumentController::archiveInternal($training->id, 'JADWAL PELATIHAN', $fileName, $fileContent, 'pdf')</code> (dokumen master); lalu <code>response()->streamDownload</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training, Schedule + pengajar.</p>
+    <p><strong>6. Response:</strong> Stream download PDF.</p>
+</div>
+
+<h3>A.15 <code>edit</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{training}/edit</code> — <code>trainings.edit</code> (resource)</p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>training</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Training::with('stages')->findOrFail($id)</code>; <code>$model = $training->model</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training + <code>stages</code>.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.edit</code> dengan <code>compact('training','model')</code>.</p>
+</div>
+
+<h3>A.16 <code>update</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT/PATCH /trainings/{training}</code> — <code>trainings.update</code> (resource)</p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>; admin_bidang memaksa bidang akun.</p>
+    <p><strong>3. Request/body:</strong> Sama seperti store (tanpa <code>model</code> wajib — <code>model</code> tidak divalidasi):<br>
+    - <code>nama_pelatihan</code>, <code>bidang</code>, <code>program_evaluasi</code> (in:CPNS,PKP,PKA,PKN,PKTI/PKTU), <code>lokasi</code>, <code>angkatan</code>, <code>jumlah_peserta</code> (numeric), <code>jp</code> (numeric), <code>tgl_mulai</code> (date), <code>tgl_selesai</code> (date) — semua required; <code>metode</code> required jika training <code>model = 'standar'</code>; opsional <code>stages[]</code> bila blended.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi; admin_bidang → force <code>bidang</code>.<br>
+    - <code>$training->update($data)</code>.<br>
+    - Rename semua folder pelatihan: <code>Folder::where('training_id',...)->update(['name' => "{nama} - Angkatan {angkatan}"])</code>.<br>
+    - Jika blended &amp; ada <code>stages</code>: <code>stages()->delete()</code> lalu buat ulang dari array <code>stages</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training (+ stages untuk delete/create).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->route('trainings.index')</code> flash <code>success</code> "Data pelatihan berhasil diperbarui."</p>
+</div>
+
+<h3>A.17 <code>destroy</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>DELETE /trainings/{training}</code> — <code>trainings.destroy</code> (resource)</p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless</code> <code>superadmin</code> ATAU (<code>admin_bidang</code> &amp; <code>training->bidang == bidang akun</code>), 403.</p>
+    <p><strong>3. Request:</strong> param route <code>training</code>.</p>
+    <p><strong>4. Controller flow (cascade delete menyeluruh):</strong><br>
+    - Ambil <code>participantIds</code>, <code>scheduleIds</code>.<br>
+    - Telusuri <strong>seluruh pohon folder</strong> (termasuk subfolder lama yang <code>training_id</code> kosong) lewat loop <code>parent_id</code>.<br>
+    - Kumpulkan daftar path fisik yang harus dicek: <code>folderFiles.file_path</code>, dokumen pengajar (<code>bahan_ajar_path</code>, <code>rbpmp_rp_path</code>, <code>bukti_mengajar_path</code> dari <code>pengajar_schedule_documents</code>), <code>evidence_file</code> dari <code>monitoring_results</code>.<br>
+    - <code>DB::transaction</code> hapus bertahap:<br>
+    - <code>asset_bookings</code> (morph Schedule), <code>pengajar_schedule_documents</code>, <code>attendances</code>.<br>
+    - <code>evaluation_results_l1/l2/l34</code>, <code>alumni_profiles</code> (by training_id / participant_id).<br>
+    - <code>monitoring_results</code>, <code>monitoring_summaries</code>, <code>evaluation_forms</code>, <code>training_forum_reads</code>, <code>training_messages</code>, <code>training_stages</code>.<br>
+    - <code>File</code> by folder; folder dihapus dari anak paling dalam (fungsi <code>$depth</code>).<br>
+    - <code>Participant</code> &amp; <code>Schedule</code> by id.<br>
+    - <code>evaluation_questions</code> + related results (l1, l34, monitoring) by question_id.<br>
+    - <code>$training->delete()</code>.<br>
+    - Di luar transaksi: hapus fisik tiap path jika tidak lagi direferensikan (<code>File</code>, <code>pengajars</code>, <code>pengajar_schedule_documents</code>, <code>monitoring_results</code>) dan ada di disk <code>public</code>.<br>
+    - <code>LogHelper::record('Pelatihan', ...)</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant, Schedule, Folder tree, File, dokumen pengajar, monitoring.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->route('trainings.index')</code> flash <code>success</code> "Pelatihan dan seluruh data terkait berhasil dihapus dari sistem."</p>
+</div>
+
+<h3>A.18 <code>exportEvaluation</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/export-evaluation</code> — <code>trainings.export_evaluation</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Training::findOrFail</code>; <code>new TrainingEvaluationExport($training)</code>; <code>Excel::raw(..., XLSX)</code>; <code>DocumentController::archiveInternal($id, 'HASIL EVALUASI L1 L2', $fileName, $fileContent, 'xlsx')</code>; <code>streamDownload</code>.<br>
+    - Nama file: <code>HASIL_EVALUASI_L1_L2_{nama_pelatihan}.xlsx</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training; Export: <code>TrainingEvaluationExport</code>.</p>
+    <p><strong>6. Response:</strong> Stream download .xlsx + auto-archive ke folder dokumen.</p>
+</div>
+<h3>A.19 <code>generateNewCode</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/new-code</code> — <code>trainings.new_code</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>$training->update(['invitation_code' => strtoupper(Str::random(6))])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Kode Undangan diperbarui: {kode}".</p>
+</div>
+
+<h3>A.20 <code>setLmsLink</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /trainings/{id}/set-lms</code> — <code>trainings.set_lms</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>link_lms</code> (required|url), custom message "Format link tidak valid (gunakan http:// atau https://)".</p>
+    <p><strong>4. Controller flow:</strong> <code>update(['link_lms' => $request->link_lms])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Link LMS berhasil diperbarui."</p>
+</div>
+
+<h3>A.21 <code>manage</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/manage</code> — <code>trainings.manage</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless</code> <code>superadmin</code> ATAU (<code>admin_bidang</code> &amp; bidang akun == bidang training), 403.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::withCount(['participants','executionNotes'])->with(['schedules'])->findOrFail($id)</code>.<br>
+    - <code>$formsL1</code> = <code>EvaluationFormL1::where('training_id',$id)->get()</code>.<br>
+    - <code>$monitoringFindings</code> = <code>MonitoringResult</code> training tsb dengan <code>answer = 'tidak'</code>.<br>
+    - <code>$monitoringStats</code>: total; <code>open</code> (workflow_status in <code>open</code>,<code>in_progress</code>,<code>rejected</code>); <code>submitted</code>; <code>verified</code>; <code>overdue</code> (status != <code>verified</code> dan due_date sudah lewat).<br>
+    - <code>$organizerFolder</code> = Folder <code>name = 'KELENGKAPAN PENYELENGGARA'</code> + <code>parent_id</code> not null pada training; <code>$organizerDocuments</code> = file dalam folder tsb (<code>with('user')</code>, latest) + hitung jumlah.</p>
+    <p><strong>5. Data fetched:</strong> Training + counts peserta/executionNotes + schedules; EvaluationFormL1; MonitoringResult ('tidak'); Folder + File.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.manage</code> dengan <code>compact('training','formsL1','monitoringStats','organizerFolder','organizerDocuments','organizerDocumentsCount')</code>.</p>
+</div>
+
+<h3>A.22 <code>executionNotes</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/execution-notes</code> — <code>trainings.execution-notes.index</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless</code> superadmin ATAU admin_bidang bidang sama, 403.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>$notes = $training->executionNotes()->with('author')->latest()->paginate(10)</code>.</p>
+    <p><strong>5. Data fetched:</strong> TrainingExecutionNote + author.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.execution-notes.index</code> dengan <code>compact('training','notes')</code>.</p>
+</div>
+
+<h3>A.23 <code>storeExecutionNote</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/execution-notes</code> — <code>trainings.execution-notes.store</code></p>
+    <p><strong>2. Role/Auth:</strong> superadmin / admin_bidang bidang sama (403).</p>
+    <p><strong>3. Request/body:</strong> <code>note_title</code> (required|string|max:200, msg "Judul catatan wajib diisi."), <code>note_content</code> (required|string|max:10000, msg "Isi catatan pelaksanaan wajib diisi.").</p>
+    <p><strong>4. Controller flow:</strong> buat <code>executionNotes()->create(['title'=>..., 'note'=>..., 'created_by'=>Auth::id()])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training (untuk relasi).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->route('trainings.execution-notes.index', $training)</code> flash <code>success</code> "Catatan pelaksanaan berhasil disimpan."</p>
+</div>
+
+<h3>A.24 <code>uploadOrganizerDocument</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/organizer-documents</code> — <code>trainings.organizer-documents.store</code></p>
+    <p><strong>2. Role/Auth:</strong> superadmin / admin_bidang bidang sama (403).</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>document_name</code> (required|string|max:200, "Nama dokumen wajib diisi.").<br>
+    - <code>document_file</code> (required|file|`mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png`|max:20480 → "Format file harus PDF, Word, Excel, JPG, atau PNG." / "Ukuran file maksimal 20 MB.").</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>$displayName</code> = nama dokumen; lakukan <code>Str::endsWith(..., '.'.$extension)</code> → tambah ekstensi bila belum.<br>
+    - <code>DB::transaction</code>:<br>
+    - <code>parentFolder = Folder::firstOrCreate</code> root pelatihan (<code>name = "{nama} - Angkatan {angkatan}"</code>, <code>parent_id=null</code>).<br>
+    - <code>organizerFolder = Folder::firstOrCreate({training_id, parent_id, name='KELENGKAPAN PENYELENGGARA'})</code>.<br>
+    - <code>storeAs('documents', 'PENYELENGGARA_'.Str::uuid().'.'.$extension, 'public')</code>.<br>
+    - <code>File::create</code> (<code>display_name</code>, <code>file_path</code>, <code>file_type</code>, <code>file_size</code>, <code>user_id</code>).<br>
+    - Catch: hapus <code>$storedPath</code> bila sudah tersimpan, <code>report()</code>, <code>back()->withInput(...)->with('error','Dokumen gagal diunggah. Silakan coba kembali.')</code>.<br>
+    - <code>LogHelper::record('Dokumen', ...)</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training, Folder (firstOrCreate), File.</p>
+    <p><strong>6. Response:</strong> <code>back()</code> flash <code>success</code> "Dokumen {nama} berhasil diunggah ke Kelengkapan Penyelenggara."</p>
+</div>
+
+<h3>A.25 <code>teacherMonitoring</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /monitoring-pengajar</code> — <code>teacher-monitoring.index</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless(in_array(role, ['superadmin','admin_bidang'], true), 403)</code>.</p>
+    <p><strong>3. Request:</strong> query opsional <code>year</code>, <code>month</code> (dibatasi: year 2000..tahun skg+1, month 1..12; default bulan berjalan <code>Asia/Jakarta</code>).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>$scopeSchedules</code> = Schedule <code>whereNotNull('pengajar_id')</code>; jika admin_bidang → <code>whereHas('training', bidang = user.bidang)</code>.<br>
+    - <code>$teacherIds</code> distinct; <code>$teachers</code> = User + relasi <code>pengajar</code>, in ids, sort name.<br>
+    - <code>$yearSchedules</code> = schedules tahun terpilih (with training &amp; pengajar).<br>
+    - <code>$lifetimeStats</code> = GROUP BY <code>pengajar_id</code> dengan SUM <code>jp</code> (JP), SUM <code>jp</code> (OJ), <code>COUNT(*)</code>, <code>COUNT(DISTINCT training_id)</code>.<br>
+    - Map per guru: hitung statistik bulan/tahun (JP/OJ/units/sesi/training), <code>training_breakdown</code> per training di tahun tsb (sessions, jp, oj, month_jp/oj, units, month_units, first_date, last_date, details), plus lifetime.<br>
+    - <code>$availableYears</code> distinct <code>YEAR(date)</code>.<br>
+    - <code>$summary</code>: jumlah guru, <code>month_jp</code>, <code>year_jp</code>, <code>lifetime_jp</code>, <code>month_oj</code>, <code>year_oj</code>, <code>month_units</code>, <code>year_units</code>, <code>lifetime_units</code>, <code>reached_32</code> (guru dengan <code>year_units &gt;= 32</code>).<br>
+    - <code>$scopeLabel</code> = nama bidang admin / "Seluruh Bidang".</p>
+    <p><strong>5. Data fetched:</strong> Schedule (+ training/pengajar), User + pengajar, aggregate lifetime.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.teacher_monitoring</code> dengan <code>compact('teacherMonitoring','summary','year','month','availableYears','scopeLabel')</code>.</p>
+</div>
+
+<h3>A.26 <code>exportTeacherMonitoring</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /monitoring-pengajar/export</code> — <code>teacher-monitoring.export</code></p>
+    <p><strong>2. Role/Auth:</strong> superadmin / admin_bidang (403).</p>
+    <p><strong>3. Request:</strong> query <code>year</code>, <code>month</code>.</p>
+    <p><strong>4. Controller flow:</strong> re-run <code>$this->teacherMonitoring($request)->getData()</code>; <code>new TeacherMonitoringExport(teacherMonitoring, summary, year, month, scopeLabel)</code>; nama file <code>MONITORING_PENGAJAR_{year}_{month(2 digit)}.xlsx</code>.</p>
+    <p><strong>5. Data fetched:</strong> reuse <code>teacherMonitoring</code>.</p>
+    <p><strong>6. Response:</strong> <code>Excel::download</code>.</p>
+</div>
+
+<h3>A.27 <code>teacherSchedulesGlobal</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /jadwal-pengajar</code> — <code>teacher-schedules.index</code></p>
+    <p><strong>2. Role/Auth:</strong> superadmin / admin_bidang (403).</p>
+    <p><strong>3. Request:</strong> query <code>date_from</code>, <code>date_to</code>, <code>search</code>, <code>teacher_id</code>, <code>bidang</code> (via <code>buildTeacherScheduleData</code>).</p>
+    <p><strong>4. Controller flow:</strong> lihat <code>buildTeacherScheduleData</code> (A.29).</p>
+    <p><strong>5. Data fetched:</strong> lihat A.29.</p>
+    <p><strong>6. Response:</strong> View <code>trainings.teacher_schedules_global</code> dengan seluruh data dari <code>buildTeacherScheduleData</code>.</p>
+</div>
+
+<h3>A.28 <code>exportTeacherSchedulesGlobal</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /jadwal-pengajar/export</code> — <code>teacher-schedules.export</code></p>
+    <p><strong>2. Role/Auth:</strong> superadmin / admin_bidang (403).</p>
+    <p><strong>3. Request:</strong> query filter sama dengan A.27.</p>
+    <p><strong>4. Controller flow:</strong> <code>buildTeacherScheduleData</code> → <code>new TeacherScheduleExport($data['schedules'])</code>; nama file <code>JADWAL_PENGAJAR_{dateFrom(Ymd)}_SD_{dateTo(Ymd)}.xlsx</code>.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + <code>pengajar.pengajar</code> + training.</p>
+    <p><strong>6. Response:</strong> <code>Excel::download</code>.</p>
+</div>
+
+<h3>A.29 <code>buildTeacherScheduleData</code> (private, helper)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> — (dipanggil A.27/A.28)</p>
+    <p><strong>2. Role/Auth:</strong> n/a (controller-level).</p>
+    <p><strong>3. Request:</strong> <code>date_from</code>, <code>date_to</code> (default awal &amp; akhir bulan berjalan Asia/Jakarta; bila <code>dateFrom &gt; dateTo</code> ditukar), <code>search</code>, <code>teacher_id</code>, <code>bidang</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Query: Schedule <code>whereNotNull('pengajar_id')</code>, <code>whereBetween('date', [dateFrom,dateTo])</code>; <code>when(teacher_id)</code> → <code>where('pengajar_id')</code>; <code>when(bidang)</code> → whereHas training bidang; <code>when(search)</code> → LIKE pada <code>activity</code>, nama/nip_nik <code>pengajar</code>, <code>nama_pelatihan</code>; sort <code>date</code>, <code>start_time</code>. Eager: <code>pengajar.pengajar</code>, <code>training</code>.<br>
+    - Per schedule: deteksi konflik (<code>has_conflict</code>) dengan jadwal lain pengajar sama/tanggal sama yang overlap (<code>start &lt; otherEnd &amp;&amp; end &gt; otherStart</code>); <code>monitoring_status</code> = <code>upcoming</code> (sekarang &lt; start), <code>finished</code> (sekarang &gt; end), <code>ongoing</code>.<br>
+    - <code>$summary</code>: <code>today</code>, <code>week</code> (minggu berjalan), <code>teachers</code> (unik), <code>conflicts</code>.<br>
+    - <code>$teachers</code> = User in semua <code>pengajar_id</code> dari Schedule; <code>$fields</code> = distinct <code>bidang</code> Training; <code>$groupedSchedules</code> = group per tanggal.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + pengajar + training; User; Training (bidang).</p>
+    <p><strong>6. Response:</strong> array <code>compact('schedules','groupedSchedules','summary','teachers','fields','dateFrom','dateTo','search','teacherId','bidang')</code>.</p>
+</div>
+
+<h3>A.30 <code>exportParticipants</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/export-participants-data</code> — <code>participants.export_data</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>new ParticipantExport($id)</code>; <code>Excel::raw(XLSX)</code>; <code>DocumentController::archiveInternal($id, 'DATA PESERTA PELATIHAN', $fileName, $fileContent, 'xlsx')</code>; <code>streamDownload</code>. Nama file <code>DATA_PESERTA_{nama_pelatihan}.xlsx</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training; Export <code>ParticipantExport</code>.</p>
+    <p><strong>6. Response:</strong> Stream download .xlsx + auto-archive.</p>
+</div>
+
+<h3>A.31 <code>pengajarSchedules</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /pengajar/jadwal-mengajar</code> — <code>pengajar.schedule</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless($user?->canAccessNarasumberPortal(), 403, 'Anda belum memiliki akses sebagai pengajar.')</code> (role <code>pengajar</code> + <code>user_type = 'narasumber'</code> + <code>user_type_status = 'approved'</code>, User.php:80-84).</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong> <code>$myTrainings</code> = Training <code>whereHas('schedules', pengajar_id = user)</code>; eager <code>schedules</code> (filter <code>pengajar_id = user</code>, with <code>bookings.asset</code> &amp; <code>pengajarDocuments</code>, sort date/start_time); <code>orderByDesc('tgl_mulai')</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training + schedules + bookings.asset + pengajarDocuments.</p>
+    <p><strong>6. Response:</strong> View <code>pengajar.schedule</code> dengan <code>compact('myTrainings','user')</code>.</p>
+</div>
+
+<h3>A.32 <code>downloadScheduleTemplate</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /schedules/download-template</code> — <code>schedules.template</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong> <code>Excel::download(new ScheduleTemplateExport, 'template_jadwal_pelatihan.xlsx')</code>.</p>
+    <p><strong>5. Data fetched:</strong> n/a.</p>
+    <p><strong>6. Response:</strong> Unduhan Excel template jadwal.</p>
+</div>
+
+<h3>A.33 <code>importSchedules</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /trainings/{id}/schedules/import</code> — <code>schedules.import</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>file</code> (required|`mimes:xlsx,xls`|max:5120; pesan kustom format/ukuran).</p>
+    <p><strong>4. Controller flow:</strong> <code>Excel::import(new ScheduleImport($id), $file)</code>.</p>
+    <p><strong>5. Data fetched:</strong> via <code>App\Imports\ScheduleImport($id)</code>.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Jadwal pelatihan berhasil diimport."</p>
+</div>
+
+<h3>A.34 <code>pengajarHistory</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /pengajar/riwayat-pelatihan</code> — <code>pengajar.history</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>canAccessNarasumberPortal()</code> (403, "Anda belum memiliki akses sebagai pengajar.").</p>
+    <p><strong>3. Request:</strong> query <code>search</code> opsional.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>$historySchedules</code> = Schedule <code>pengajar_id = user</code> + <code>whereHas('training', tgl_selesai &lt; now)</code>. Hitung <code>totalJpRiwayat</code> (sum jp), <code>totalSesiRiwayat</code> (count), <code>totalPelatihanRiwayat</code> (distinct training_id).<br>
+    - <code>$trainings</code> = Training <code>whereHas</code> jadwal pengajar, <code>tgl_selesai &lt; hari ini</code>; <code>when(search)</code> → LIKE pada <code>nama_pelatihan</code>/<code>bidang</code>/<code>lokasi</code>/<code>activity</code> jadwal miliknya; eager <code>schedules</code> (pengajar_id user, with <code>bookings.asset</code>/<code>pengajarDocuments</code>); <code>latest('tgl_selesai')->paginate(10)->withQueryString()</code>.</p>
+    <p><strong>5. Data fetched:</strong> Schedule agregat; Training + schedules.</p>
+    <p><strong>6. Response:</strong> View <code>pengajar.history</code> dengan <code>compact('trainings','user','search','totalJpRiwayat','totalSesiRiwayat','totalPelatihanRiwayat')</code>.</p>
+</div>
+
+<h3>A.35 <code>approveParticipant</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /participants/{id}/approve</code> — <code>participants.approve</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code> (tanpa role check eksplisit di controller).</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Participant::findOrFail($id)</code>.<br>
+    - <code>if (! $participant->has_completed_documents)</code> → <code>back()</code> flash <code>error</code> "Peserta belum dapat disetujui karena dokumen kelengkapannya belum lengkap." (<code>has_completed_documents</code> = biodata_file_id &amp;&amp; surat_tugas_file_id &amp;&amp; pas_foto_file_id, Participant.php:198).<br>
+    - <code>$participant->update(['registration_status' => 'approved'])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Pendaftaran {name} telah disetujui."</p>
+</div>
+
+<h3>A.36 <code>approveParticipantsBulk</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /trainings/{id}/participants/approve-bulk</code> — <code>participants.approve-bulk</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>mode</code> (required|in:<code>selected,all</code>), <code>participant_ids</code> (nullable|array), <code>participant_ids.*</code> (integer).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail($id)</code>.<br>
+    - Query mass-approve: Participant <code>training_id = id</code>, <code>registration_status = 'pending'</code>, <code>biodata_file_id</code>/<code>surat_tugas_file_id</code>/<code>pas_foto_file_id</code> not null.<br>
+    - Jika <code>mode = 'selected'</code>: pilih <code>participant_ids</code> (filter+unique); bila kosong → <code>back()->with('error','Pilih minimal satu peserta yang akan disetujui.')</code>; lalu <code>whereIn('id', $ids)</code>.<br>
+    - <code>$approvedCount = $query->update(['registration_status' => 'approved'])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training; mass update Participant.</p>
+    <p><strong>6. Response:</strong> <code>back()</code> — <code>success</code> "{n} peserta berhasil disetujui." bila &gt;0, selainnya <code>error</code> "Tidak ada peserta pending yang dapat disetujui."</p>
+</div>
+
+<h3>A.37 <code>rejectParticipant</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /participants/{id}/reject</code> — <code>participants.reject</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>findOrFail</code>; <code>update(['registration_status' => 'rejected'])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Pendaftaran {name} telah ditolak."</p>
+</div>
+
+<h3>A.38 Catatan Resource <code>trainings</code></h3>
+<div class="note">
+    <p>Resource memetakan <code>GET /trainings/{training}</code> → method <code>show</code> dengan route name <code>trainings.show</code>, TAPI <strong>method <code>show</code> tidak diimplementasikan</strong> di <code>TrainingController</code> — akses ke URL tersebut akan menghasilkan error.</p>
+</div>
+<h3>B. ATTENDANCE CONTROLLER (<code>AttendanceController.php</code>)</h3>
+<p>Route publik (tanpa login): <code>absen/{schedule_id}</code>, <code>absen/harian/...</code>. Route lainnya dalam grup <code>auth</code>. Tidak ada role check eksplisit pada route admin attendance (semua user login dapat mengakses).</p>
+
+<h3>B.1 <code>index</code> (indeks kehadiran per pelatihan)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/attendance</code> — <code>attendance.index</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>training_id</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail($training_id)</code>.<br>
+    - <code>$dates</code> = <code>Schedule::where('training_id')->select('date','attendance_open','attendance_close')->groupBy('date','attendance_open','attendance_close')->orderBy('date','asc')->get()</code> (daftar tanggal unik + jam buka/tutup).<br>
+    - <code>$totalParticipants</code> = jumlah <code>Participant</code> training.</p>
+    <p><strong>5. Data fetched:</strong> Training; Schedule (date/open/close); Participant (count).</p>
+    <p><strong>6. Response:</strong> View <code>attendance.index</code> dengan <code>compact('training','dates','totalParticipants')</code>.</p>
+</div>
+
+<h3>B.2 <code>setTimeByDate</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /attendance/set-time-date/{training_id}</code> — <code>attendance.set-time-date</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>date</code> (required|date), <code>attendance_open</code> (required), <code>attendance_close</code> (required).</p>
+    <p><strong>4. Controller flow:</strong> <code>Schedule::where('training_id')->where('date', $request->date)->update(['attendance_open', 'attendance_close'])</code> (berlaku untuk SEMUA sesi di tanggal tsb).</p>
+    <p><strong>5. Data fetched:</strong> n/a (mass update).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Waktu absensi harian berhasil diperbarui."</p>
+</div>
+
+<h3>B.3 <code>showDetailDaily</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/detail/{id}/{date}</code> — <code>attendance.detail.daily</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code> (training), <code>date</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Training::findOrFail($id)</code>; <code>$participants</code> = semua peserta training order name; <code>$scheduleIds</code> = id sesi pada tanggal tsb.</p>
+    <p><strong>5. Data fetched:</strong> Training, Participant, Schedule (id).</p>
+    <p><strong>6. Response:</strong> View <code>attendance.show_daily</code> dengan <code>compact('training','participants','date','scheduleIds')</code>.</p>
+</div>
+
+<h3>B.4 <code>publicShowDaily</code> (publik)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /absen/harian/{training_id}/{date}</code> — <code>public.attendance.daily</code> (TANPA middleware, publik)</p>
+    <p><strong>2. Role/Auth:</strong> Tanpa autentikasi; jika login role <code>participant</code> → mode layanan mandiri (self-service).</p>
+    <p><strong>3. Request:</strong> param route <code>training_id</code>, <code>date</code>; query <code>participant_id</code> (untuk mode non-self-service).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail</code>; <code>$setup</code> = pertama dari <code>Schedule</code> tanggal tsb.<br>
+    - <strong>Status <code>not_set</code></strong>: jika <code>!$setup || !$setup->attendance_open</code> → view status <code>not_set</code> (form tak aktif).<br>
+    - <strong>Status <code>closed</code></strong>: <code>$currentTime = now('Asia/Jakarta')->format('H:i:s')</code>; jika <code>currentTime &lt; attendance_open</code> ATAU <code>&gt; attendance_close</code> → view status <code>closed</code> + <code>open</code>, <code>close</code>.<br>
+    - <strong>Status <code>open</code></strong>:<br>
+    - <code>$scheduleIds</code> = id sesi tanggal tsb; <code>$attendedIds</code> = participant_id dari <code>Attendance</code> dalam sesi tsb.<br>
+    - <code>$notAttended</code> = Participant training, <code>whereNotIn('id', $attendedIds)</code>, urut name (untuk dropdown).<br>
+    - Jika <code>Auth::check() &amp;&amp; role === 'participant'</code>: cari <code>$selfParticipant</code> (registration_status <code>approved</code>, user_id ATAU nip_nik cocok); <code>abort_unless($selfParticipant, 403, 'Akun Anda tidak terdaftar sebagai peserta pelatihan ini.')</code>; dropdown difilter hanya dirinya sendiri (<code>$formParticipants</code>), <code>selectedParticipantId</code> = id diri.<br>
+    - Selain (petugas/admin): <code>$formParticipants = $notAttended</code>; <code>selectedParticipantId = $request->integer('participant_id')</code> (di-null-kan bila tidak ada di notAttended).<br>
+    - <code>$attended</code> = Participant yang SUDAH absen (in attendedIds), urut name — daftar progres.</p>
+    <p><strong>5. Data fetched:</strong> Training, Schedule (setup + ids), Attendance (pluck), Participant (belum/sudah absen), Participant (self).</p>
+    <p><strong>6. Response:</strong> View <code>attendance.public_form_daily</code> — untuk <code>open</code>: <code>compact('training','date','notAttended','attended','status','setup','selectedParticipantId','formParticipants','selfParticipant','isSelfService')</code>; untuk <code>not_set</code>/<code>closed</code>: variabel sesuai status.</p>
+</div>
+
+<h3>B.5 <code>publicStoreDaily</code> (publik)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /absen/harian/{training_id}/{date}</code> — <code>public.attendance.store_daily</code> (publik)</p>
+    <p><strong>2. Role/Auth:</strong> Tanpa autentikasi; jika role participant → self-service dengan guard 403.</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>participant_id</code> (required|integer)<br>
+    - <code>status</code> (required|in:<code>hadir,izin,sakit</code>)<br>
+    - <code>keterangan</code> (nullable|`required_if:status,izin,sakit`|string|min:10|max:500)<br>
+    - <code>local_checkin_time</code> (required|`date_format:Y-m-d H:i:s` — waktu perangkat peserta)<br>
+    - <code>timezone_label</code> (required|string|max:20 — WIB/WITA/WIT)</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi.<br>
+    - Jika login participant: cari self participant (approved + user_id/nip_nik) <code>firstOrFail</code>; <code>abort_unless((int)$participant->id === int(participant_id), 403, 'Anda hanya dapat mengisi presensi atas nama sendiri.')</code>. Non-login: <code>findOrFail(participant_id)</code>.<br>
+    - <code>$firstSchedule = Schedule::where('training_id')->where('date')->firstOrFail()</code> — <strong>absen harian dicatat ke SESI PERTAMA</strong> di tanggal tsb (sesuai probis).<br>
+    - <code>Attendance::updateOrCreate(['schedule_id' =&gt; firstSchedule.id, 'participant_id' =&gt; participant.id], ['status', 'keterangan' (hanya untuk izin/sakit, ditrim), 'check_in_at' =&gt; $request->local_checkin_time, 'timezone_label'])</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant (self / find), Schedule (first sesi), Attendance (upsert).</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Presensi berhasil dicatat pada pukul {H:i} {timezone_label}".</p>
+</div>
+
+<h3>B.6 <code>publicShow</code> (publik, per sesi)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /absen/{schedule_id}</code> — <code>public.attendance.show</code> (publik)</p>
+    <p><strong>2. Role/Auth:</strong> Tanpa autentikasi.</p>
+    <p><strong>3. Request:</strong> param route <code>schedule_id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Schedule::with('training.participants')->findOrFail</code>; <code>$already_attended</code> = participant_id pada Attendance sesi ini; <code>$participants</code> = peserta training yang belum absen, urut name.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + training + participants; Attendance (pluck).</p>
+    <p><strong>6. Response:</strong> View <code>attendance.public_form</code> dengan <code>compact('schedule','participants')</code>.</p>
+</div>
+
+<h3>B.7 <code>showDetail</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/detail/{schedule_id}</code> — <code>attendance.detail</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>schedule_id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Schedule::with('attendances')->findOrFail</code>; <code>$participants</code> = semua peserta training urut name.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + attendances; Participant.</p>
+    <p><strong>6. Response:</strong> View <code>attendance.show</code> dengan <code>compact('schedule','participants')</code>.</p>
+</div>
+
+<h3>B.8 <code>publicStore</code> — TIDAK TER-ROUTE</h3>
+<div class="note">
+    <p>Method <code>publicStore</code> ada di controller (line 210-226) tapi <strong>tidak dipetakan ke route mana pun</strong> di <code>routes/web.php</code> (hanya <code>GET absen/{schedule_id}</code> yang terdaftar). Isi:</p>
+</div>
+<div class="ep">
+    <p><strong>1. Request:</strong> <code>participant_id</code> (required), <code>status</code> (required); <code>keterangan</code> opsional.</p>
+    <p><strong>2. Flow:</strong> <code>Attendance::create</code> dengan <code>schedule_id</code>, status, <code>check_in_at =&gt; now()</code>, keterangan.</p>
+    <p><strong>3. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Absensi berhasil dikirim!".</p>
+</div>
+
+<h3>B.9 <code>downloadPdf</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/pdf/{schedule_id}</code> — <code>attendance.pdf</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>schedule_id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Schedule::with(['attendances.participant','training'])->findOrFail</code>; data <code>schedule</code> + <code>attendances</code>; <code>Pdf::loadView('attendance.pdf_template', $data)->download('Daftar-Hadir-{date}.pdf')</code>.</p>
+    <p><strong>5. Data fetched:</strong> Schedule + attendances + participant + training.</p>
+    <p><strong>6. Response:</strong> Unduhan PDF.</p>
+</div>
+
+<h3>B.10 <code>indexAll</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance</code> — <code>attendance.all</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>; scoping bidang: jika role != superadmin → <code>where('bidang', Auth::user()->bidang)</code>.</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong> <code>$trainings = $query->latest()->get()</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training (semua / sesuai bidang).</p>
+    <p><strong>6. Response:</strong> View <code>attendance.all</code> dengan <code>compact('trainings')</code>.</p>
+</div>
+
+<h3>B.11 <code>setTime</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT /attendance/set-time/{schedule_id}</code> — <code>attendance.set-time</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request/body:</strong> <code>attendance_open</code> (required), <code>attendance_close</code> (required).</p>
+    <p><strong>4. Controller flow:</strong> <code>Schedule::findOrFail</code>; update kedua kolom pada 1 sesi.</p>
+    <p><strong>5. Data fetched:</strong> Schedule.</p>
+    <p><strong>6. Response:</strong> <code>redirect()->back()</code> flash <code>success</code> "Waktu absensi untuk sesi {activity} berhasil diperbarui."</p>
+</div>
+
+<h3>B.12 <code>downloadPdfDaily</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/pdf-harian/{id}/{date}</code> — <code>attendance.pdf.daily</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code> (training), <code>date</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>$participants</code> semua; <code>$scheduleIds</code> sesi tanggal; <code>$attendances = Attendance::whereIn('schedule_id', $scheduleIds)->get()</code>; <code>Pdf::loadView('attendance.pdf_daily', $data)</code>; kertas A4 portrait; download <code>Presensi-{training_id}-{date}.pdf</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training, Participant, Schedule (id), Attendance.</p>
+    <p><strong>6. Response:</strong> Unduhan PDF.</p>
+</div>
+
+<h3>B.13 <code>downloadPdfAll</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/pdf-all/{id}</code> — <code>attendance.pdf.all</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Training::with(['participants','schedules.attendances'])->findOrFail</code>; <code>$dates</code> = tanggal unik terurut dari schedules; <code>$participants</code> urut name; <code>Pdf::loadView('attendance.pdf_all_days', $data)</code>; orientasi <strong>landscape jika jumlah tanggal &gt; 5</strong>, selainnya portrait; download <code>Rekap-Kehadiran-Total-{id}.pdf</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training + participants + schedules + attendances.</p>
+    <p><strong>6. Response:</strong> Unduhan PDF.</p>
+</div>
+
+<h3>B.14 <code>downloadExcelAll</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /attendance/excel-all/{id}</code> — <code>attendance.excel.all</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>.</p>
+    <p><strong>4. Controller flow:</strong> <code>Training::with(['participants','schedules.attendances'])->findOrFail</code>; dates unik; participants urut name; <code>new \App\Exports\AttendanceTotalExport($training, $dates, $participants)</code>; <code>Excel::raw(XLSX)</code>; <strong>auto-archive</strong> <code>DocumentController::archiveInternal($id, 'REKAP KEHADIRAN EXCEL', $fileName, $fileContent, 'xlsx')</code>; <code>streamDownload</code>. Nama file <code>REKAP_KEHADIRAN_TOTAL_{nama_pelatihan}.xlsx</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training + participants + schedules + attendances.</p>
+    <p><strong>6. Response:</strong> Stream download .xlsx + auto-archive ke folder dokumen.</p>
+</div>
+<h3>C. PARTICIPANT CONTROLLER (<code>ParticipantController.php</code>)</h3>
+<p><code>completeProfile</code>/<code>storeProfile</code> hanya middleware <code>auth</code> (dengan abort_unless role participant). Route <code>participant/*</code> berada dalam grup <code>can:isParticipant</code> (routes/web.php:487-499) → hanya role <code>participant</code>.</p>
+
+<h3>C.1 <code>index</code> (dashboard peserta)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /participant/dashboard</code> — <code>participant.dashboard</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code> (role participant). Jika bukan participant → <code>redirect()->route('dashboard')</code> (line 25-27).</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>$totalFollowed</code> = jumlah <code>Participant::where('nip_nik', user-&gt;nip_nik)->count()</code> (seluruh waktu).<br>
+    - <code>$myJpThisYear</code> = sum <code>training-&gt;jp</code> dari participant yang <code>whereHas('training', whereYear('tgl_mulai', tahun berjalan))</code>.<br>
+    - <code>$postEvaluationTrainings</code> = Participant (<code>user_id = user</code>, <code>registration_status = 'approved'</code>) difilter: <code>is_core_training_complete &amp;&amp; is_post_evaluation_due &amp;&amp; !hasFilledL34Mandiri()</code>, diurut <code>training-&gt;tgl_sebar_l34</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant + training; agregat JP.</p>
+    <p><strong>6. Response:</strong> View <code>participant.dashboard</code> dengan <code>compact('user','totalFollowed','myJpThisYear','postEvaluationTrainings')</code>.</p>
+</div>
+
+<h3>C.2 <code>availableTrainings</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /participant/trainings</code> — <code>participant.trainings</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code>.</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>$enrollments</code> = Participant user + relasi training.<br>
+    - <code>$canJoinNewTraining = canJoinNewTraining($enrollments)</code> — true jika tidak ada enrollment ATAU semua enrollment <code>registration_status = 'rejected'</code> ATAU <code>is_core_training_complete</code>.<br>
+    - <code>$myTrainings</code> = Training (dengan <code>participants</code>, <code>stages</code>, <code>schedules</code> + <code>pengajar</code> + <code>bookings.asset</code>, urut date) whereHas peserta user; filter: hanya yang <code>belum selesai</code> (<code>!is_core_training_complete</code>) ATAU <code>needsPostEvaluation</code> (<code>is_post_evaluation_due &amp;&amp; !hasFilledL34Mandiri()</code>).</p>
+    <p><strong>5. Data fetched:</strong> Participant + training; Training + participants/stages/schedules/pengajar/bookings.</p>
+    <p><strong>6. Response:</strong> View <code>participant.available_trainings</code> dengan <code>compact('myTrainings','canJoinNewTraining')</code>.</p>
+</div>
+
+<h3>C.3 <code>enrollByCode</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /participant/join-training</code> — <code>participant.training.join_by_code</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code>.</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>invitation_code</code> (required|string)<br>
+    - <code>biodata</code> (required|file|`mimes:pdf`|max:5120) — msg "Dokumen biodata wajib diunggah."<br>
+    - <code>surat_tugas</code> (required|file|`mimes:pdf`|max:5120) — "Surat tugas wajib diunggah."<br>
+    - <code>pas_foto</code> (required|file|`mimes:jpeg,jpg,png`|max:5120) — "Pas foto wajib diunggah."</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi; cek <code>canJoinNewTraining</code> (gagal → flash error "Selesaikan pelatihan yang sedang diikuti, lengkapi tiga berkas, dan isi seluruh Evaluasi Level 1 sebelum mengikuti pelatihan baru.").<br>
+    - Cari <code>Training::where('invitation_code', strtoupper(input))-&gt;first()</code>; jika tidak ada → flash error "Kode Undangan tidak valid atau pelatihan tidak ditemukan."<br>
+    - Panggil <code>$this->enroll($request, $training-&gt;id)</code>.</p>
+    <p><strong>5. Data fetched:</strong> Participant enrollments; Training (cari kode).</p>
+    <p><strong>6. Response:</strong> Delegasi ke <code>enroll</code>.</p>
+</div>
+
+<h3>C.4 <code>enroll</code> (internal, helper dari enrollByCode)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> — (dipanggil internal)</p>
+    <p><strong>2. Role/Auth:</strong> n/a.</p>
+    <p><strong>3. Request:</strong> <code>invitation_code</code>, 3 file wajib.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::findOrFail($id)</code>; jika <code>strtoupper(invitation_code) !== strtoupper(training-&gt;invitation_code)</code> → flash error "Kode Undangan Salah!".<br>
+    - <code>DB::transaction</code>:<br>
+    - <code>Participant::updateOrCreate(['training_id' =&gt; $id, 'nip_nik' =&gt; $user-&gt;nip_nik], [user_id, registration_status =&gt; 'pending', name, gender, jabatan, instansi, provinsi, kota, kecamatan, kelurahan, status_kepegawaian])</code>.<br>
+    - Loop <code>['biodata','surat_tugas','pas_foto']</code> → <code>storeRequirementFile($file, $type, $training, $participant, $user)</code>.<br>
+    - Catch (Throwable): hapus <code>Storage::disk('public')-&gt;delete()</code> semua path tersimpan; <code>back()-&gt;withInput(only invitation_code)</code> flash error "Pendaftaran gagal disimpan. Silakan coba unggah kembali dokumen Anda."</p>
+    <p><strong>5. Data fetched:</strong> Training; Participant (upsert); Folder/File (lihat helper).</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;route('participant.trainings')</code> flash <code>success</code> "Pendaftaran dan dokumen kelengkapan berhasil dikirim. Silakan menunggu pemeriksaan admin."</p>
+</div>
+
+<h3>C. <code>storeRequirementFile</code> (private helper)</h3>
+<ul>
+    <li>Buat pohon folder: root <code>"{nama} - Angkatan {angkatan}"</code> → <code>KELENGKAPAN PESERTA</code> → folder atas nama peserta (<code>strtoupper(name)</code>); semua via <code>firstOrCreate</code> (kunci: training_id + parent_id + name).</li>
+    <li>File disimpan <code>storeAs('documents', "{TYPE}_{slug(name)}_{uuid}.{ext}", 'public')</code>; <code>File::create</code> (display_name = nama asli upload); <code>$participant-&gt;update(["{type}_file_id" =&gt; file.id])</code>.</li>
+    <li>Return path.</li>
+</ul>
+
+<h3>C.5 <code>completeProfile</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /complete-profile</code> — <code>participant.profile.complete</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code> + <code>abort_unless(role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.')</code>.</p>
+    <p><strong>3. Request:</strong> —</p>
+    <p><strong>4. Controller flow:</strong> tampilkan form.</p>
+    <p><strong>5. Data fetched:</strong> <code>Auth::user()</code>.</p>
+    <p><strong>6. Response:</strong> View <code>participant.complete_profile</code> dengan <code>compact('user')</code>.</p>
+</div>
+
+<h3>C.6 <code>storeProfile</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /complete-profile</code> — <code>participant.profile.store</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>auth</code> + abort_unless participant.</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>user_type</code> (required|in:<code>peserta,narasumber,mitra</code>)<br>
+    - <code>nip_nik</code> (required|`unique:users,nip_nik,{user.id}`)<br>
+    - <code>whatsapp</code> (required), <code>gender</code> (required)<br>
+    - <code>birth_place</code> (required|string|max:255), <code>birth_date</code> (required|date|`before_or_equal:today`)<br>
+    - <code>jabatan</code> (required), <code>golongan</code> (nullable|in:<code>I/a,II/a,...,IV/d,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV</code>)<br>
+    - <code>instansi</code> (required), <code>provinsi</code> (required), <code>kota</code> (required), <code>kecamatan</code> (required), <code>kelurahan</code> (required), <code>address</code> (required|string|max:1000)<br>
+    - <code>status_kepegawaian</code> (required|in:<code>PNS,PPPK,PPPK-PW</code>)<br>
+    - <code>latitude</code> (required|numeric|between:-90,90), <code>longitude</code> (required|numeric|between:-180,180)</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>User::findOrFail(auth()-&gt;id())</code>; abort_unless participant.<br>
+    - Validasi; tentukan: <code>role = 'pengajar'</code> (jika narasumber) / <code>'participant'</code>; <code>user_type_status = 'approved'</code> (peserta/narasumber) / <code>'pending'</code> (mitra).<br>
+    - <code>$user-&gt;update([...])</code> — semua field profil + <code>bidang =&gt; null</code>, <code>user_type</code>, <code>user_type_status</code>, <code>role</code>.<br>
+    - Sinkronisasi: <code>Participant::where('nip_nik', user-&gt;nip_nik)-&gt;update(['user_id' =&gt; user-&gt;id])</code>.<br>
+    - Cabang: narasumber → <code>redirect()-&gt;route('pengajar.setup')</code> flash sukses aktifasi narasumber; peserta → dashboard "Profil peserta berhasil disimpan."; mitra → dashboard "Profil berhasil disimpan. Pengajuan sebagai Mitra menunggu persetujuan admin."</p>
+    <p><strong>5. Data fetched:</strong> User; mass-update Participant.</p>
+    <p><strong>6. Response:</strong> redirect + flash (lihat cabang).</p>
+</div>
+
+<h3>C.7 <code>showTrainingDetail</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /participant/training/{id}/detail</code> — <code>participant.training.show</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code>.</p>
+    <p><strong>3. Request:</strong> param route <code>id</code>; query <code>tab</code> (untuk redirect kelengkapan/sertifikat).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Training::with(['stages', 'schedules' (with pengajar, sort date/start_time), 'participants' (with user, hanya registration_status <code>approved</code>, sort name)])-&gt;findOrFail</code>.<br>
+    - Cari <code>$participant</code> (user_id ATAU nip_nik cocok).<br>
+    - Branch status (redirect ke <code>participant.trainings</code> + flash error):<br>
+    - tidak ditemukan → "Akses ditolak. Anda belum terdaftar di pelatihan ini."<br>
+    - <code>pending</code> → "Pendaftaran Anda sedang menunggu persetujuan (Approval) dari Admin Bidang."<br>
+    - <code>rejected</code> → "Maaf, pendaftaran Anda ditolak oleh Admin."<br>
+    - <code>$formsL1</code> = <code>EvaluationFormL1::with(['training','schedule.pengajar'])</code> training.<br>
+    - <code>$participantAttendances</code> = Attendance peserta dalam jadwal training, keyBy tanggal sesi.<br>
+    - <code>$attendanceDays</code> = group sesi per tanggal + <code>setup</code> (sesi pertama) + <code>attendance</code> peserta, sort by date.<br>
+    - <code>$participantCertificate</code> = <code>ParticipantCertificate</code> (training + participant).</p>
+    <p><strong>5. Data fetched:</strong> Training + stages/schedules/pengajar/participants/user; EvaluationFormL1; Attendance; ParticipantCertificate.</p>
+    <p><strong>6. Response:</strong> View <code>participant.training_detail</code> dengan <code>compact('training','participant','formsL1','user','attendanceDays','participantCertificate')</code>.</p>
+</div>
+
+<h3>C.8 <code>myHistory</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /participant/history</code> — <code>participant.history</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code>.</p>
+    <p><strong>3. Request:</strong> query <code>search</code> (opsional), <code>page</code>.</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - <code>Participant::with(['training','certificate'])-&gt;where(user_id = user OR nip_nik = user-&gt;nip_nik (bila terisi))</code>.<br>
+    - <code>when(search)</code> → whereHas training: LIKE <code>nama_pelatihan</code> / <code>bidang</code> / <code>model</code>, atau <code>whereYear('tgl_mulai')</code> bila search numerik.<br>
+    - Filter di koleksi: hanya <code>is_core_training_complete</code>; sort desc <code>training-&gt;tgl_selesai</code>.<br>
+    - Paginasi manual <code>LengthAwarePaginator</code> (perPage 10, path + query).<br>
+    - <code>$summary</code>: <code>trainings</code> (count), <code>certificates</code> (certificate final_file_path &amp; sent_at terisi), <code>latest_year</code> (tahun tgl_selesai terbaru).</p>
+    <p><strong>5. Data fetched:</strong> Participant + training + certificate.</p>
+    <p><strong>6. Response:</strong> View <code>participant.history</code> dengan <code>compact('history','summary','search')</code>.</p>
+</div>
+
+<h3>C.9 <code>uploadRequirement</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /participant/training/{id}/detail/upload</code> — <code>participant.training.upload</code></p>
+    <p><strong>2. Role/Auth:</strong> <code>can:isParticipant</code>.</p>
+    <p><strong>3. Request/body:</strong><br>
+    - <code>file</code> (required|mimes: <code>pas_foto</code> → <code>jpeg,png,jpg</code>; lainnya → <code>pdf</code>|max:5120).<br>
+    - <code>type</code> (required|in:<code>biodata,surat_tugas,pas_foto,sertifikat</code>).</p>
+    <p><strong>4. Controller flow:</strong><br>
+    - Validasi; <code>Training::with('folder')-&gt;findOrFail($id)</code>.<br>
+    - Cari participant (user_id ATAU nip_nik) — jika tidak ditemukan dua kali cek → <code>redirect()-&gt;route('participant.training.show', ['id'=&gt;$id,'tab'=&gt;'kelengkapan'])</code> flash error "Data peserta tidak ditemukan. Pastikan Anda sudah terdaftar di pelatihan ini."<br>
+    - Jika <code>user_id</code> peserta kosong → isi <code>user_id</code>.<br>
+    - Folder <code>firstOrCreate</code> bertingkat: root <code>{nama_pelatihan}</code> → <code>KELENGKAPAN PESERTA</code> → <code>{NAMA_PESERTA}</code> (kunci nama unik, <code>user_id =&gt; Auth::id() ?? 1</code>).<br>
+    - Simpan <code>storeAs('documents', "{TYPE}_{name_dengan_spasi->_}_{time()}.{ext}", 'public')</code>.<br>
+    - <code>File::create</code>; <code>$participant-&gt;update(["{type}_file_id" =&gt; file.id])</code>.<br>
+    - <code>$redirectTab</code> = <code>sertifikat</code> bila type <code>sertifikat</code>, selainnya <code>kelengkapan</code>.</p>
+    <p><strong>5. Data fetched:</strong> Training + folder; Participant; Folder; File.</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;route('participant.training.show', ['id'=&gt;$id,'tab'=&gt;$redirectTab])</code> flash <code>success</code> "Berkas {TYPE} berhasil diunggah."</p>
+</div>
+
+<h3>Empat catatan lintas-modul</h3>
+<ol>
+    <li><strong>Status string <code>registration_status</code>:</strong> nilai yang dipakai di seluruh alur: <code>pending</code>, <code>approved</code>, <code>rejected</code>.</li>
+    <li><strong>Status <code>schedule_type</code>:</strong> <code>learning</code>, <code>break</code>; status <code>venue_type</code>: <code>internal</code>, <code>external</code>.</li>
+    <li><strong>Auto-archive dokumen:</strong> <code>DocumentController::archiveInternal(training_id, label, fileName, content, ext)</code> dipanggil pada PDF jadwal (non-pengajar), export evaluasi, export data peserta, dan rekap kehadiran Excel.</li>
+    <li><strong>Struktur folder dokumen:</strong> otomatis dibuat saat <code>store</code> training, <code>enroll</code>/<code>uploadRequirement</code>, dan <code>uploadOrganizerDocument</code> (root → <code>KELENGKAPAN PESERTA</code> / <code>KELENGKAPAN PENYELENGGARA</code> → folder peserta).</li>
+</ol>
+<!-- ==================== 3. MODUL EVALUASI (KIRKPATRICK) ==================== -->
+<h2 class="page-break" id="mod-eval">3. Modul Evaluasi (Kirkpatrick L1–L4 &amp; Post-Evaluasi)</h2>
+
+<h3>REFERENSI TEKNIS MODUL EVALUASI (KIRKPATRICK)</h3>
+<h3>Aplikasi: BPSDM Integral (Laravel 12) — <code>C:\xampp\htdocs\bpsdm_integral</code></h3>
+<p>Dokumen ini mendokumentasikan secara menyeluruh modul Evaluasi (Kirkpatrick) yang mencakup: <code>EvaluationLevel1Controller</code>, <code>EvaluationLevel2Controller</code>, <code>EvaluationLevel12ReportController</code>, <code>EvaluationLevel34Controller</code>, <code>QuestionController</code>, dan <code>PostEvalControlController</code>, beserta seluruh route terkait di <code>routes/web.php</code> dan model pendukungnya.</p>
+
+<h3>0. Gambaran Umum Arsitektur Modul</h3>
+<table>
+    <tr><th>Level Kirkpatrick</th><th>Fitur</th><th>Tabel utama</th></tr>
+    <tr><td>Level 1 (Reaction)</td><td>Form publik per objek (Penyelenggara / Narasumber), progres pengisian, rangkuman saran-teks penyelenggara (manual + AI), ekspor Excel</td><td><code>evaluation_forms</code>, <code>evaluation_results_l1</code>, <code>evaluation_questions</code>, <code>evaluation_l1_text_summaries</code>, <code>ai_generations</code></td></tr>
+    <tr><td>Level 2 (Learning)</td><td>Input nilai pretest-posttest per peserta (AJAX single-save), import Excel massal, template Excel, rekap</td><td><code>evaluation_results_l2</code> (kolom <code>n_gain</code> virtual)</td></tr>
+    <tr><td>Laporan L1+L2</td><td>Dashboard analitik + rekomendasi eksekutif, analisis AI agregat, ekspor Word (template <code>template_laporan_lv12.docx</code>)</td><td>gabungan L1, L2, <code>ai_generations</code></td></tr>
+    <tr><td>Level 3 (Behavior) &amp; Level 4 (Results)</td><td>Gateway publik pilih peran, form 360 (mandiri/atasan/rekan), dashboard, AI analyze, ekspor Excel 3 sheet, Word <code>templateevaluasi34_integral.docx</code>, surat undangan <code>template_undangan_l34.docx</code></td><td><code>evaluation_results_l34</code>, <code>alumni_profiles</code>, <code>ai_generations</code></td></tr>
+    <tr><td>Kontrol Pasca Evaluasi</td><td>Dashboard distribusi kuisioner L3/L4 dengan hitung-mundur <code>tgl_sebar_l34</code></td><td><code>trainings</code> (accessor <code>tgl_sebar_l34</code>, <code>sisa_hari_sebar</code>)</td></tr>
+    <tr><td>Bank Soal</td><td>CRUD, import/export Excel, duplikasi bundle/soal, hapus bundle/terpilih/satu soal</td><td><code>evaluation_questions</code></td></tr>
+</table>
+
+<h3>Middleware &amp; otorisasi</h3>
+<ul>
+    <li>Seluruh route admin evaluasi berada di dalam grup <code>Route::middleware(['auth'])</code> (harus login). Tidak ada middleware role tambahan; otorisasi dilakukan <strong>inline</strong> per method (<code>abort_unless</code>, pen-scooping <code>bidang</code>).</li>
+    <li>Route publik (form L1, gateway/form/store L34) <strong>tanpa login</strong> dan <strong>tanpa throttle</strong> di <code>routes/web.php</code>.</li>
+    <li>Aturan scooping bidang yang konsisten: <code>Auth::user()->role !== 'superadmin'</code> → hanya melihat pelatihan/pertanyaan pada <code>bidang</code> milik user.</li>
+</ul>
+
+<h3>Mapping skor kualitatif → numerik (dipakai pada L34 &amp; laporan)</h3>
+<p>Dari <code>$toScore</code> di <code>EvaluationLevel34Controller::dashboard</code>, <code>generateAiAnalysis</code>, <code>exportWord</code> dan <code>Participant::getL4SummaryAttribute</code>:</p>
+<table>
+    <tr><th>Nilai <code>note</code> (lowercased/trim)</th><th>Skor</th></tr>
+    <tr><td><code>ya</code> / <code>sangat baik</code></td><td>100</td></tr>
+    <tr><td><code>baik</code></td><td>80</td></tr>
+    <tr><td><code>cukup</code></td><td>60</td></tr>
+    <tr><td><code>kurang</code></td><td>40</td></tr>
+    <tr><td><code>tidak</code> / <code>sangat kurang</code></td><td>20</td></tr>
+    <tr><td>lainnya / angka tidak dapat dibaca</td><td><code>null</code> (diabaikan)</td></tr>
+</table>
+<p>Catatan: jika <code>score</code> berisi angka (<code>is_numeric</code>), angka tersebut langsung dipakai dan <code>note</code> diabaikan.</p>
+
+<h3>Skor → Predikat (dashboard, laporan Word L12/L34)</h3>
+<p><code>$scoreCategory</code> (batas atas eksklusif, <code>&gt;</code>):</p>
+<table>
+    <tr><th>Skor</th><th>Predikat</th></tr>
+    <tr><td><code>null</code></td><td><code>Belum tersedia</code> / <code>Belum dapat dinilai</code></td></tr>
+    <tr><td><code>&gt; 90</code></td><td><code>Sangat Baik</code></td></tr>
+    <tr><td><code>&gt; 80</code></td><td><code>Baik</code></td></tr>
+    <tr><td><code>&gt; 70</code></td><td><code>Cukup</code></td></tr>
+    <tr><td><code>&gt; 60</code></td><td><code>Kurang</code></td></tr>
+    <tr><td>≤ 60</td><td><code>Sangat Kurang</code></td></tr>
+</table>
+
+<h3>Skor → Predikat (khusus footer Excel rekap L1 — <code>EvaluationL1Export::getPredicate</code>, inklusif <code>&lt;=</code>)</h3>
+<table>
+    <tr><th>Skor</th><th>Predikat</th></tr>
+    <tr><td>0 / tidak ada</td><td><code>-</code></td></tr>
+    <tr><td><code>&lt;= 60</code></td><td><code>SANGAT KURANG</code></td></tr>
+    <tr><td><code>&lt;= 70</code></td><td><code>KURANG</code></td></tr>
+    <tr><td><code>&lt;= 80</code></td><td><code>CUKUP</code></td></tr>
+    <tr><td><code>&lt;= 90</code></td><td><code>BAIK</code></td></tr>
+    <tr><td><code>&gt; 90</code></td><td><code>SANGAT BAIK</code></td></tr>
+</table>
+
+<h3>N-gain Level 2</h3>
+<ul>
+    <li>Kolom DB <code>evaluation_results_l2.n_gain</code> adalah <strong>virtual generated column</strong>: <code>n_gain</code> = <code>postest - pretest</code> (migration <code>2026_07_18_105109</code>, <code>$table-&gt;decimal('n_gain',5,2)-&gt;virtualAs('postest - pretest')</code>).</li>
+    <li>Respon <code>updateSingle</code> mengembalikan <code>n_gain</code> = <code>postest - pretest</code>.</li>
+    <li>Dashboard L12 menghitung <code>gainAverage = postAverage - preAverage</code> dan status per peserta: <code>increased</code> (postest&gt;pretest), <code>same</code> (sama), <code>decreased</code> (postest&lt;pretest).</li>
+</ul>
+
+<h3>accessor <code>tgl_sebar_l34</code> (di <code>Training</code>)</h3>
+<pre>program = strtoupper(training-&gt;program_evaluasi ?: 'PKTI/PKTU')
+jika program ∈ {CPNS, PKP, PKA, PKN}  → tgl_selesai +1 tahun
+selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
+<ul>
+    <li><code>sisa_hari_sebar</code> = <code>today</code> (Asia/Jakarta) selisih hari terhadap <code>tgl_sebar_l34</code> (positif = masa depan).</li>
+    <li><code>is_post_evaluation_due</code> (Participant) = <code>now() &gt;= tgl_sebar_l34</code>.</li>
+</ul>
+
+<h3><code>AiGeneration</code> (status &amp; source_hash)</h3>
+<ul>
+    <li>Kolom: <code>training_id, user_id, feature, model, source_hash (64), status, input_summary (json), generated_content (json), error_message, generated_at</code>.</li>
+    <li><code>status</code>: <code>processing</code> (awal) → <code>completed</code> (sukses, isi <code>generated_content</code>, <code>generated_at</code>) → <code>failed</code> (set <code>error_message</code>, <code>mb_substr(...,0,2000)</code>).</li>
+    <li><code>source_hash = hash('sha256', json_encode(payload))</code> (L12/L34 dashboard), atau <code>hash('sha256', toJson(groups))</code> untuk rangkuman teks L1.</li>
+    <li><code>feature</code> yang dipakai modul evaluasi: <code>evaluation_l1_organizer_summary</code>, <code>evaluation_dashboard_l12</code>, <code>evaluation_dashboard_l34</code>.</li>
+    <li><code>input_summary</code> menyatakan <code>aggregate_only = true</code> dan <code>participant_identities_sent = false</code> (dashboard), atau ringkasan jumlah pertanyaan/respons/responden untuk L1.</li>
+</ul>
+
+<h3>1. <code>EvaluationLevel1Controller</code> — Evaluasi Level 1 (Reaction)</h3>
+<p>File: <code>app/Http/Controllers/EvaluationLevel1Controller.php</code></p>
+
+<h3>1.1 Daftar Route</h3>
+<table>
+    <tr><th>Method</th><th>URL</th><th>Nama Route</th><th>Aksi</th><th>Akses</th></tr>
+    <tr><td>GET</td><td><code>/evaluasi/l1</code></td><td><code>evaluasi.l1</code></td><td><code>indexAll</code></td><td>auth, scoping bidang</td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l1</code></td><td><code>evall1.index</code></td><td><code>index</code></td><td>auth</td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l1/progres</code></td><td><code>evall1.progres</code></td><td><code>showProgres</code></td><td>auth</td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara</code></td><td><code>evall1.organizer-summary</code></td><td><code>organizerTextSummary</code></td><td>auth + superadmin/admin_bidang bidang sama</td></tr>
+    <tr><td>PUT</td><td><code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara</code></td><td><code>evall1.organizer-summary.store</code></td><td><code>storeOrganizerTextSummary</code></td><td>auth + superadmin/admin_bidang</td></tr>
+    <tr><td>POST</td><td><code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara/ai</code></td><td><code>evall1.organizer-summary.ai</code></td><td><code>generateOrganizerTextSummary</code></td><td>auth + superadmin/admin_bidang</td></tr>
+    <tr><td>POST</td><td><code>/trainings/{id}/evaluasi-l1/create-form</code></td><td><code>evall1.storeForm</code></td><td><code>storeForm</code></td><td>auth</td></tr>
+    <tr><td>DELETE</td><td><code>/evaluasi-l1/form/{id}</code></td><td><code>evall1.destroyForm</code></td><td><code>destroyForm</code></td><td>auth</td></tr>
+    <tr><td>DELETE</td><td><code>/trainings/{id}/evaluasi-l1/destroy</code></td><td><code>evall1.destroy</code></td><td><code>destroyForm</code> (alias)</td><td>auth</td></tr>
+    <tr><td>GET</td><td><code>/evaluasi-l1/export/{form_id}</code></td><td><code>evall1.export</code></td><td><code>exportExcel</code></td><td>auth</td></tr>
+    <tr><td>GET</td><td><code>/evaluasi-l1/form/{training_id}</code></td><td><code>public.evall1.form</code> (PUBLIC)</td><td><code>publicForm</code></td><td>tanpa login</td></tr>
+    <tr><td>POST</td><td><code>/evaluasi-l1/store/{training_id}</code></td><td><code>public.evall1.store</code> (PUBLIC)</td><td><code>publicStore</code></td><td>tanpa login</td></tr>
+</table>
+
+<h3>1.2 GET <code>/evaluasi/l1</code> — <code>indexAll</code> (daftar pelatihan, sisi sidebar)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /evaluasi/l1</code>, name <code>evaluasi.l1</code>, middleware <code>auth</code> (tanpa throttle).</p>
+    <p><strong>2. Role/Auth:</strong> login wajib. Non-<code>superadmin</code> → query dibatasi <code>where('bidang', Auth::user()-&gt;bidang)</code>.</p>
+    <p><strong>3. Request/body:</strong> tidak ada.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>Training::query()</code>; jika <code>role !== 'superadmin'</code> tambahkan filter <code>bidang = user.bidang</code>.<br>
+    - <code>latest()</code> → seluruh pelatihan.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (collection).</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l1_all</code>.</p>
+</div>
+
+<h3>1.3 GET <code>/trainings/{id}/evaluasi-l1</code> — <code>index</code> (detail Level 1)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/evaluasi-l1</code>, name <code>evall1.index</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib. Tidak ada abort_unless khusus (scoping berdasar akses menu).</p>
+    <p><strong>3. Request:</strong> <code>{id}</code> pelatihan (route binding manual via <code>findOrFail</code>).</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Load training + relasi: <code>schedules</code> (hanya <code>pengajar_id</code> tidak null, urut <code>date</code> &amp; <code>start_time</code>, <code>with('pengajar')</code>), <code>participants</code>.<br>
+    - Load <code>forms = EvaluationFormL1::with('schedule.pengajar')-&gt;where('training_id', $id)</code>.<br>
+    - Hitung progres: <code>results</code> = <code>EvaluationResultL1</code> diagregasi <code>count(distinct participant_id)</code> per <code>schedule_id</code> (untuk tabel progres form-by-form).<br>
+    - Hitung <code>organizerTextResponsesCount</code> = jumlah jawaban teks penyelenggara (<code>schedule_id</code> null, <code>note</code> tidak kosong, <code>question.category = 'l1_penyelenggara'</code>, <code>type = 'text'</code>).</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+<code>schedules.pengajar</code>, <code>participants</code>), <code>EvaluationFormL1</code> (+<code>schedule.pengajar</code>), <code>EvaluationResultL1</code> agregat.</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l1_index</code>.</p>
+</div>
+
+<h3>1.4 GET <code>/trainings/{id}/evaluasi-l1/progres</code> — <code>showProgres</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /trainings/{id}/evaluasi-l1/progres</code>, name <code>evall1.progres</code>, auth. Query param <code>?sid=&lt;schedule_id|null|''&gt;</code>.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>sid</code> = ID jadwal; jika string <code>'null'</code>/<code>''</code> → <code>schedule_id = null</code> (penyelenggara).</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>schedule_id = (sid === 'null' || sid === '') ? null : sid</code>.<br>
+    - Jika <code>schedule_id</code> ada → load <code>Schedule::with('pengajar')-&gt;where('training_id', $id)</code> (validasi pelatihan) via <code>findOrFail</code>.<br>
+    - <code>filledParticipantIds</code> = distinct <code>participant_id</code> pada <code>EvaluationResultL1</code> untuk <code>training_id</code> + <code>schedule_id</code> (bisa null).</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+<code>participants</code>), <code>Schedule</code> (+<code>pengajar</code>), daftar id peserta yang sudah mengisi.</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l1_progres</code>.</p>
+</div>
+
+<h3>1.5 GET <code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara</code> — <code>organizerTextSummary</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code> ..., name <code>evall1.organizer-summary</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless(role === 'superadmin' || (role === 'admin_bidang' &amp;&amp; user-&gt;bidang === training-&gt;bidang), 403)</code>.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code> pelatihan.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>Training::withCount('participants')</code>.<br>
+    - <code>textQuestions</code> = <code>Question::forTraining($training, 'l1_penyelenggara')</code> dengan <code>type = 'text'</code> urut <code>id</code>.<br>
+    - <code>responses</code> = <code>EvaluationResultL1::with(['participant','question'])</code> untuk <code>training_id</code>, <code>schedule_id</code> null, <code>question_id</code> ∈ soal teks, <code>note</code> tidak kosong, <code>latest()</code>.<br>
+    - Kelompokkan respons per pertanyaan (<code>responseGroups</code>), <code>respondentCount</code> = unique <code>participant_id</code>, <code>responseRate</code> = <code>round(respondentCount/participants_count*100, 1)</code>.<br>
+    - <code>adminSummary</code> = <code>EvaluationL1TextSummary::with('reviewer')</code> pertama.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+count participants), <code>Question</code>, <code>EvaluationResultL1</code> (+participant, question), <code>EvaluationL1TextSummary</code> (+reviewer).</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l1_text_summary</code>.</p>
+</div>
+
+<h3>1.6 PUT <code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara</code> — <code>storeOrganizerTextSummary</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>PUT</code> (form dapat memakai <code>_method=PUT</code>), name <code>evall1.organizer-summary.store</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> sama seperti 1.5 (<code>superadmin</code> atau <code>admin_bidang</code> bidang sama), <code>abort_unless(...,403)</code>.</p>
+    <p><strong>3. Validation rules:</strong><br>
+    - <code>conclusion</code> → <code>required|string|max:10000</code> (pesan: "Kesimpulan umum wajib diisi.")<br>
+    - <code>follow_up</code> → <code>required|string|max:10000</code> (pesan: "Rencana tindak lanjut wajib diisi.")</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>EvaluationL1TextSummary::updateOrCreate(['training_id' =&gt; $training-&gt;id], data + ['reviewed_by' =&gt; user-&gt;id, 'reviewed_at' =&gt; now()])</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code>; <code>EvaluationL1TextSummary</code> (update/insert).</p>
+    <p><strong>6. Response:</strong> redirect <code>route('evall1.organizer-summary', $training-&gt;id)</code> + flash <code>success</code> = "Kesimpulan umum dan rencana tindak lanjut berhasil disimpan untuk laporan."</p>
+</div>
+
+<h3>1.7 POST <code>/trainings/{id}/evaluasi-l1/rangkuman-penyelenggara/ai</code> — <code>generateOrganizerTextSummary</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>evall1.organizer-summary.ai</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless(superadmin || admin_bidang bidang sama, 403)</code>. Menginjeksi <code>OpenAiEvaluationSummaryService</code>.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code> pelatihan.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Ambil soal teks <code>l1_penyelenggara</code> + respons <code>EvaluationResultL1</code> (<code>schedule_id</code> null, <code>note</code> terisi).<br>
+    - Jika <code>responses</code> kosong → <code>back()-&gt;withErrors(['ai' =&gt; 'Belum ada saran atau masukan peserta yang dapat dianalisis.'])</code>.<br>
+    - <code>groups</code> = [{question, responses}].<br>
+    - <code>sourceHash = hash('sha256', toJson([question_id, [note,...]] per grup))</code>.<br>
+    - Buat <code>AiGeneration</code> (<code>feature=evaluation_l1_organizer_summary</code>, <code>model = ai-&gt;provider().':'.ai-&gt;model()</code>, <code>source_hash</code>, <code>status='processing'</code>, <code>input_summary</code> ringkasan jumlah soal/respons/responden, <code>identities_sent=false</code>).<br>
+    - Panggil <code>$ai-&gt;generate($groups)</code> → sukses: <code>status='completed'</code>, <code>generated_content=$draft</code>, <code>generated_at=now()</code>, <code>back()-&gt;with('ai_draft',$draft)-&gt;with('success','Draf AI berhasil dibuat...')</code>.<br>
+    - Error: <code>status='failed'</code>, <code>error_message=mb_substr(...)</code>, pesan khusus bila "no credits remaining", "quota"/"resource_exhausted"; <code>back()-&gt;with('ai_error',$message)-&gt;withErrors(['ai'=&gt;$message])</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code>, <code>Question</code>, <code>EvaluationResultL1</code>, <code>AiGeneration</code>.</p>
+    <p><strong>6. Response:</strong> redirect back + flash <code>ai_draft</code> / <code>ai_error</code> + <code>withErrors</code>.</p>
+</div>
+<h3>1.8 POST <code>/trainings/{id}/evaluasi-l1/create-form</code> — <code>storeForm</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>evall1.storeForm</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib (tanpa pemeriksaan role tambahan).</p>
+    <p><strong>3. Validation rules:</strong><br>
+    - <code>type</code> → <code>required|in:penyelenggara,narasumber</code><br>
+    - <code>name</code> → <code>required|string</code><br>
+    - <code>schedule_id</code> → <code>required_if:type,narasumber|nullable|exists:schedules,id</code><br>
+    - (bila <code>penyelenggara</code>: field ekstra <code>instansi_penyelenggara</code> dibaca manual untuk <code>target_name</code>)</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Jika <code>type='narasumber'</code>: cari <code>Schedule::with('pengajar')-&gt;where('training_id',$id)-&gt;whereNotNull('pengajar_id')-&gt;findOrFail(schedule_id)</code>; isi <code>schedule_id</code>, <code>target_name = schedule-&gt;pengajar-&gt;name</code>, <code>materi = schedule-&gt;activity</code>.<br>
+    - Jika <code>type='penyelenggara'</code>: <code>target_name = instansi_penyelenggara</code>.<br>
+    - <code>EvaluationFormL1::create($data)</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Schedule</code> (+pengajar), <code>EvaluationFormL1</code> (insert).</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;back()-&gt;with('success','Form Evaluasi berhasil dibuat.')</code>.</p>
+</div>
+<div class="note">
+    <p>Catatan model <code>EvaluationFormL1</code>:</p>
+    <ul>
+        <li><code>opensAt()</code>: narasumber = <code>Carbon::parse(schedule-&gt;date.' '.schedule-&gt;end_time, 'Asia/Jakarta')</code>; penyelenggara = <code>tgl_selesai</code> (startOfDay). Kembalikan <code>null</code> bila data tak lengkap.</li>
+        <li><code>isOpen()</code>: <code>now('Asia/Jakarta')-&gt;greaterThanOrEqualTo($opensAt)</code>.</li>
+    </ul>
+</div>
+
+<h3>1.9 DELETE <code>/evaluasi-l1/form/{id}</code> — <code>destroyForm</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>DELETE</code>, name <code>evall1.destroyForm</code> (juga alias <code>evall1.destroy</code> di <code>DELETE /trainings/{id}/evaluasi-l1/destroy</code>), auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code> form (bukan training).</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>$form = EvaluationFormL1::findOrFail($id)</code>.<br>
+    - Hapus dulu hasil: <code>EvaluationResultL1::where('training_id', form-&gt;training_id)-&gt;where('schedule_id', form-&gt;schedule_id)-&gt;delete()</code> (agar DB bersih, termasuk bila <code>schedule_id</code> null → menghapus seluruh respons penyelenggara form tersebut).<br>
+    - <code>$form-&gt;delete()</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>EvaluationFormL1</code>, <code>EvaluationResultL1</code> (delete).</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;back()-&gt;with('success','Form Evaluasi berhasil dihapus.')</code>.</p>
+</div>
+
+<h3>1.10 GET <code>/evaluasi-l1/export/{form_id}</code> — <code>exportExcel</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>evall1.export</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>{form_id}</code>.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>$form = EvaluationFormL1::with(['training','schedule.pengajar'])-&gt;findOrFail($form_id)</code>.<br>
+    - Jika <code>type='narasumber'</code> dan <code>schedule.pengajar</code> ada → perbaiki <code>target_name = pengajar-&gt;name</code> (kompatibilitas form lama).<br>
+    - <code>$export = new \App\Exports\EvaluationL1Export($form)</code>.<br>
+    - <code>fileName</code> = <code>REKAP_L1_PENYELENGGARA_&lt;ts&gt;.xlsx</code> atau <code>REKAP_L1_NARASUMBER_&lt;ts&gt;.xlsx</code>.<br>
+    - Auto-archive: <code>Excel::raw($export, XLSX)</code> → <code>DocumentController::archiveInternal($form-&gt;training_id, 'REKAP EVALUASI L1', $fileName, $fileContent, 'xlsx')</code>.<br>
+    - Streaming download.</p>
+    <p><strong>5. Data fetched:</strong> <code>EvaluationFormL1</code> (+training, schedule.pengajar).</p>
+    <p><strong>6. Response:</strong> file <code>.xlsx</code> (streamDownload) + arsip otomatis ke folder dokumen pelatihan.</p>
+</div>
+<p>Isi Excel (<code>EvaluationL1Export</code>): header informasi (Nama Pelatihan/Instansi/Pengajar/Materi/Periode), tabel <code>NO | NIP/NIK | NAMA LENGKAP | &lt;kolom per pertanyaan category l1_{type}&gt;</code>, baris per peserta (slider → <code>score</code>, selain slider → <code>note</code>), footer <code>RATA-RATA NILAI KESELURUHAN</code>, <code>PREDIKAT</code> (pakai <code>getPredicate</code> dengan batas <code>&lt;=</code>), <code>KESIMPULAN</code>. Catatan: kueri pertanyaan memakai <code>Question::where('category','l1_'.$form-&gt;type)</code> global (tidak di-scope bidang/metode/training).</p>
+
+<h3>1.11 GET <code>/evaluasi-l1/form/{training_id}</code> — <code>publicForm</code> (PUBLIC)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /evaluasi-l1/form/{training_id}</code>, name <code>public.evall1.form</code>, <strong>publik tanpa login, tanpa throttle</strong>.</p>
+    <p><strong>2. Role/Auth:</strong> publik. Opsional: bila sedang login sebagai <code>role='participant'</code>, mode self-service diterapkan (<code>isSelfService</code>).</p>
+    <p><strong>3. Request/query:</strong><br>
+    - <code>type</code> → wajib ∈ <code>penyelenggara</code> / <code>narasumber</code> (selain itu <code>abort(404)</code>).<br>
+    - <code>sid</code> → optional; <code>'null'</code>/<code>''</code> diperlakukan sebagai <code>null</code> (penyelenggara). Untuk narasumber wajib diisi valid.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>$training = Training::findOrFail($id)</code>.<br>
+    - Cari form aktif: <code>EvaluationFormL1::with(['training','schedule.pengajar'])-&gt;where('training_id',$id)-&gt;where('type',$type)</code> + <code>where('schedule_id',$sid)</code> atau <code>whereNull('schedule_id')</code>; <code>firstOrFail()</code>.<br>
+    - Cek <code>isOpen()</code> → jika belum dibuka: <code>abort_if(!$activeForm-&gt;isOpen(), 403, 'Evaluasi ini baru dapat diisi pada '.opensAt_translatedDateFormat)</code>. (Penyelenggara terbuka mulai <code>tgl_selesai</code>; narasumber mulai akhir sesi.)<br>
+    - <code>filledIds</code> = participant_id yang sudah mengisi untuk objek ini (<code>schedule_id</code> = <code>$sid</code>).<br>
+    - <code>participants</code> = peserta <code>training_id</code> yang BELUM mengisi (<code>whereNotIn('id',$filledIds)</code>), urut <code>name</code>.<br>
+    - Self-service: peserta wajib <code>registration_status='approved'</code> dan cocok <code>user_id</code> = user.id atau <code>nip_nik</code> = user.nip_nik (bila terisi); jika tidak cocok <code>abort(403,'Akun Anda tidak terdaftar sebagai peserta pelatihan ini.')</code>; <code>formParticipants</code> dibatasi hanya dirinya.<br>
+    - <code>alreadyFilled</code> = peserta yang SUDAH mengisi (list progres di kanan).<br>
+    - <code>category</code> = <code>l1_penyelenggara</code> / <code>l1_narasumber</code>; <code>questions = Question::forTraining($training,$category)-&gt;orderBy('id')</code>.<br>
+    - Untuk narasumber: <code>schedule</code> w/ <code>pengajar</code> (validasi <code>pengajar_id</code> not null); <code>abort_if($type==='narasumber' &amp;&amp; !$schedule, 404)</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code>, <code>EvaluationFormL1</code> (+training, schedule.pengajar), <code>Participant</code>, <code>Question</code>, <code>Schedule</code> (+pengajar).</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l1_public_form</code>.</p>
+</div>
+
+<h3>1.12 POST <code>/evaluasi-l1/store/{training_id}</code> — <code>publicStore</code> (PUBLIC)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST /evaluasi-l1/store/{training_id}</code>, name <code>public.evall1.store</code>, <strong>publik</strong>.</p>
+    <p><strong>2. Role/Auth:</strong> publik. Bila login sebagai <code>participant</code>, pembatasan hanya dapat mengisi atas nama sendiri.</p>
+    <p><strong>3. Validation rules:</strong><br>
+    - <code>participant_id</code> → <code>required|exists:participants,id</code><br>
+    - <code>answers</code> → <code>required|array</code><br>
+    - (<code>schedule_id</code> dibaca manual; jika ada &amp; bukan <code>''</code> → dipakai)</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>sid = (schedule_id &amp;&amp; schedule_id !== '') ? schedule_id : null</code>; <code>$training = Training::findOrFail($id)</code>.<br>
+    - Self-service: <code>Participant::where('training_id',$id)-&gt;where('registration_status','approved')</code> cocok <code>user_id</code>/<code>nip_nik</code>, <code>firstOrFail</code>; <code>abort_unless((int)$participant-&gt;id === (int)request('participant_id'), 403, 'Anda hanya dapat mengisi evaluasi atas nama sendiri.')</code>. Non-participant: validasi peserta milik training (<code>findOrFail</code>).<br>
+    - Jika <code>sid</code> ada → <code>Schedule::where('training_id',$id)-&gt;findOrFail($sid)</code>.<br>
+    - <code>$type = $sid ? 'narasumber' : 'penyelenggara'</code>; cari form aktif (sama seperti publicForm) + cek <code>isOpen()</code>.<br>
+    - <code>$category = $sid ? 'l1_narasumber' : 'l1_penyelenggara'</code>; <code>applicableQuestions = Question::forTraining($training,$category)-&gt;get()</code>.<br>
+    - <code>$allowedQuestions</code> = hanya jawaban utk <code>question_id</code> yang ada di kumpulan soal (hindari injeksi id acak).<br>
+    - Validasi checkbox: bila soal <code>type='checkbox'</code> dan <code>answers.&lt;id&gt;</code> kosong → throw <code>ValidationException</code> "Pilih minimal satu jawaban pada pertanyaan checkbox."<br>
+    - Loop <code>answers</code>: jika array (checkbox) → <code>note</code> = <code>json_encode(array_values(array_filter($value)), JSON_UNESCAPED_UNICODE)</code>, <code>score=null</code>; selainnya nilai numerik → <code>score</code>, bukan numerik/teks → <code>note</code>.<br>
+    - <code>EvaluationResultL1::create([... training_id, participant_id, question_id, schedule_id, score?, note?])</code>.<br>
+    - Catatan: <code>question</code> adalah objek <code>Question</code> model (Class <code>App\Models\Question</code>).</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code>, <code>Participant</code>, <code>Schedule</code>, <code>EvaluationFormL1</code>, <code>Question</code>, <code>EvaluationResultL1</code> (insert).</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;back()-&gt;with('success','Evaluasi berhasil disimpan!')</code>.</p>
+</div>
+
+<h3>2. <code>EvaluationLevel2Controller</code> — Evaluasi Level 2 (Learning)</h3>
+<p>File: <code>app/Http/Controllers/EvaluationLevel2Controller.php</code></p>
+<table>
+    <tr><th>Method</th><th>URL</th><th>Nama Route</th><th>Aksi</th></tr>
+    <tr><td>GET</td><td><code>/evaluasi/l2</code></td><td><code>evaluasi.l2</code></td><td><code>indexAll</code></td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l2</code></td><td><code>evall2.index</code></td><td><code>index</code></td></tr>
+    <tr><td>POST</td><td><code>/evaluasi-l2/update-single</code></td><td><code>evall2.update-single</code></td><td><code>updateSingle</code></td></tr>
+    <tr><td>POST</td><td><code>/trainings/{id}/evaluasi-l2/import</code></td><td><code>evall2.import</code></td><td><code>importExcel</code></td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l2/download-template</code></td><td><code>evall2.template</code></td><td><code>downloadTemplate</code></td></tr>
+    <tr><td>GET</td><td><code>/evaluasi-l2/download-template</code></td><td><code>evall2.template</code> (DUPLIKAT)</td><td><code>downloadTemplate</code> — <strong>rusak</strong> (tanpa <code>{id}</code>)</td></tr>
+</table>
+<div class="note">Catatan: dua route memakai nama <code>evall2.template</code>; registration kedua (tanpa parameter) menimpa nama route, sehingga <code>route('evall2.template')</code> → URL <code>/evaluasi-l2/download-template</code> yang akan gagal dipanggil karena method <code>downloadTemplate($id)</code> butuh argumen.</div>
+
+<h3>2.1 GET <code>/evaluasi/l2</code> — <code>indexAll</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET /evaluasi/l2</code>, name <code>evaluasi.l2</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib. <strong>Perhatian</strong>: TIDAK ada scoping bidang (superadmin maupun non-superadmin sama-sama melihat semua pelatihan).</p>
+    <p><strong>3. Request:</strong> tidak ada.</p>
+    <p><strong>4. Alur:</strong> <code>Training::latest()-&gt;get()</code>.</p>
+    <p><strong>5. Data:</strong> <code>Training</code>.</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l2_all</code>.</p>
+</div>
+
+<h3>2.2 GET <code>/trainings/{id}/evaluasi-l2</code> — <code>index</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>evall2.index</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code>.</p>
+    <p><strong>4. Alur:</strong> <code>Training::findOrFail($id)</code>; <code>participants</code> = <code>Participant::with('evaluationL2')-&gt;where('training_id',$id)</code>.</p>
+    <p><strong>5. Data:</strong> <code>Training</code>, <code>Participant</code> (+<code>evaluationL2</code>).</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l2_index</code>.</p>
+</div>
+
+<h3>2.3 POST <code>/evaluasi-l2/update-single</code> — <code>updateSingle</code> (AJAX)</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>evall2.update-single</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib. <strong>Perhatian</strong>: tanpa pemeriksaan role/bidang tambahan.</p>
+    <p><strong>3. Validation rules:</strong><br>
+    - <code>participant_id</code> → <code>required|exists:participants,id</code><br>
+    - <code>pretest</code> → <code>required|numeric|min:0|max:100</code><br>
+    - <code>postest</code> → <code>required|numeric|min:0|max:100</code></p>
+    <p><strong>4. Alur:</strong><br>
+    - <code>EvaluationResultL2::updateOrCreate(['participant_id'=&gt;...], ['pretest'=&gt;..., 'postest'=&gt;...])</code>.<br>
+    - <code>n_gain = postest - pretest</code> dihitung ulang di sisi PHP untuk respon.</p>
+    <p><strong>5. Data:</strong> <code>EvaluationResultL2</code>.</p>
+    <p><strong>6. Response:</strong> JSON <code>{status:'success', message:'Nilai berhasil disimpan', n_gain:&lt;postest-pretest&gt;}</code>.</p>
+</div>
+
+<h3>2.4 POST <code>/trainings/{id}/evaluasi-l2/import</code> — <code>importExcel</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>evall2.import</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib (tanpa scoping).</p>
+    <p><strong>3. Validation rules:</strong> <code>file</code> → <code>required|mimes:xlsx,xls</code>.</p>
+    <p><strong>4. Alur:</strong><br>
+    - <code>Excel::import(new ParticipantScoreImport($id), request-&gt;file('file'))</code>.<br>
+    - <code>ParticipantScoreImport</code>: baris ber-header (<code>nip_nik</code>, <code>nilai_pretest</code>, <code>nilai_posttest</code>); NIP di-<code>ltrim(..., "'")</code>; cari <code>Participant::where('training_id',$id)-&gt;where('nip_nik',$nip)-&gt;first()</code>; jika ketemu → <code>EvaluationResultL2::updateOrCreate(['participant_id'=&gt;...], ['pretest'=&gt;$row['nilai_pretest']??0, 'postest'=&gt;$row['nilai_posttest']??0])</code>; tidak ketemu → dilewati (<code>null</code>).</p>
+    <p><strong>5. Data:</strong> <code>Participant</code>, <code>EvaluationResultL2</code>.</p>
+    <p><strong>6. Response:</strong> <code>redirect()-&gt;back()-&gt;with('success','Nilai Pretest &amp; Posttest berhasil diimport.')</code>.</p>
+</div>
+
+<h3>2.5 GET <code>/trainings/{id}/evaluasi-l2/download-template</code> — <code>downloadTemplate</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>evall2.template</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code>.</p>
+    <p><strong>4. Alur:</strong><br>
+    - <code>participants</code> = <code>Participant::with('evaluationL2')-&gt;where('training_id',$id)-&gt;orderBy('name')</code>.<br>
+    - Header Excel: <code>['nip_nik','nama_lengkap','nilai_pretest','nilai_posttest']</code>.<br>
+    - Baris peserta: NIP diawali tanda kutip <code>'</code> agar Excel tidak menganggap angka, nilai pretest/postest diambil dari <code>evaluationL2</code> atau kosong.<br>
+    - Nama file: <code>Template_Nilai_L2_&lt;nama_pelatihan&gt;.xlsx</code> (spasi diganti <code>_</code>).</p>
+    <p><strong>5. Data:</strong> <code>Training</code>, <code>Participant</code> (+<code>evaluationL2</code>).</p>
+    <p><strong>6. Response:</strong> download <code>.xlsx</code> (anonymous <code>FromArray</code> export).</p>
+</div>
+
+<h3>3. <code>EvaluationLevel12ReportController</code> — Laporan Level 1 &amp; 2</h3>
+<p>File: <code>app/Http/Controllers/EvaluationLevel12ReportController.php</code></p>
+<table>
+    <tr><th>Method</th><th>URL</th><th>Nama Route</th><th>Aksi</th></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/evaluasi-l12/dashboard</code></td><td><code>evall12.dashboard</code></td><td><code>dashboard</code></td></tr>
+    <tr><td>POST</td><td><code>/trainings/{id}/evaluasi-l12/dashboard/ai</code></td><td><code>evall12.dashboard.ai</code></td><td><code>generateAiAnalysis</code></td></tr>
+    <tr><td>GET</td><td><code>/trainings/{id}/export-word-l12</code></td><td><code>evall12.export_word</code></td><td><code>exportWord</code></td></tr>
+</table>
+
+<h3>3.1 GET <code>/trainings/{id}/evaluasi-l12/dashboard</code> — <code>dashboard</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>evall12.dashboard</code>, auth.</p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless(role==='superadmin' || (role==='admin_bidang' &amp;&amp; user-&gt;bidang===training-&gt;bidang), 403)</code>.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code>.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>$training = Training::withCount('participants')-&gt;findOrFail($id)</code>.<br>
+    - <strong>L1</strong>: ambil semua <code>EvaluationResultL1::with('question')-&gt;where('training_id')</code>. <code>numericL1</code> = ber-<code>score</code>. <code>l1Respondents</code> = unique participant_id; <code>l1ResponseRate</code> = % terhadap participants_count. <code>l1Average</code> = rata-rata skor numerik. <code>organizerScores</code> (<code>schedule_id</code> null) vs <code>speakerScores</code> (<code>schedule_id</code> not null) → rerata masing-masing.<br>
+    - <code>indicatorData</code> = group per <code>question_id</code> → <code>label=question_text</code>, <code>average</code>, <code>responses</code>; urut naik; <code>lowestIndicator</code> = yang terendah.<br>
+    - <strong>L2</strong>: <code>EvaluationResultL2::with('participant')-&gt;whereHas(participant training_id)</code>. <code>l2Count</code>, <code>preAverage</code>, <code>postAverage</code>, <code>gainAverage=post-pre</code>, <code>l2Status</code> (<code>increased</code>/<code>same</code>/<code>decreased</code>), <code>increaseRate</code>.<br>
+    - <strong>Feedback teks</strong>: <code>textQuestions</code> = soal <code>l1_penyelenggara</code> type text; <code>textFeedback</code> = hasil L1 <code>schedule_id</code> null dengan <code>note</code> terisi.<br>
+    - <code>adminSummary</code> = <code>EvaluationL1TextSummary::with('reviewer')</code>.<br>
+    - <strong>Rekomendasi dinamis</strong>:<br>
+    1. Jika <code>l1ResponseRate &lt; 100</code>: prioritas <code>tinggi</code> bila <code>&lt;75</code>, <code>sedang</code> bila tidak; temuan jumlah peserta belum respons; aksi pengingat/verifikasi pengisian.<br>
+    2. <code>lowestIndicator</code> → prioritas <code>tinggi</code> jika avg <code>&lt;=80</code> (aksi telaah akar masalah) / <code>rendah</code> (pertahankan praktik).<br>
+    3. Jika ada penurunan (<code>decreased&gt;0</code> atau <code>gainAverage&lt;=0</code>) → prioritas <code>tinggi</code>, aksi telaah asesmen &amp; remediasi.<br>
+    4. Jika <code>adminSummary</code> ada → prioritas <code>sedang</code>, aksi = <code>follow_up</code> admin.<br>
+    - <code>scoreCategory</code> (muncul juga di view): <code>null→'Belum tersedia'</code>, <code>&gt;90→'Sangat Baik'</code>, <code>&gt;80→'Baik'</code>, <code>&gt;70→'Cukup'</code>, <code>&gt;60→'Kurang'</code>, <code>default→'Sangat Kurang'</code>.<br>
+    - <code>executiveNarrative</code> = narasi ringkas L1 (skor+kategori) &amp; L2 (perubahan gain, % peningkatan), dengan pesan default bila data belum tersedia.<br>
+    - <code>aiAnalysis</code> = <code>session('l12_ai_analysis') ?: AiGeneration::where('training_id')-&gt;where('feature','evaluation_dashboard_l12')-&gt;where('status','completed')-&gt;latest()-&gt;value('generated_content')</code>.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+participants_count), <code>EvaluationResultL1</code> (+question), <code>EvaluationResultL2</code> (+participant), <code>Question</code>, <code>EvaluationL1TextSummary</code> (+reviewer), <code>AiGeneration</code>.</p>
+    <p><strong>6. Response:</strong> view <code>evaluasi.l12_dashboard</code>.</p>
+</div>
+
+<h3>3.2 POST <code>/trainings/{id}/evaluasi-l12/dashboard/ai</code> — <code>generateAiAnalysis</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>evall12.dashboard.ai</code>, auth. Injeksi <code>AiEvaluationDashboardService</code>.</p>
+    <p><strong>2. Role/Auth:</strong> <code>abort_unless(superadmin || admin_bidang bidang sama, 403)</code>.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code>.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Kumpulkan statistik agregat: info pelatihan (nama, angkatan, bidang), cakupan (jumlah peserta, responden L1, peserta L2), L1 (rerata total/penyelenggara/narasumber + indikator ber-label &amp; rerata), L2 (rerata pre/post/perubahan, hitung meningkat/tetap/menurun), <code>kesimpulan_masukan_anonim</code> dari <code>EvaluationL1TextSummary</code>.<br>
+    - <code>runAiDashboard($training,$user,$ai,$payload,'evaluation_dashboard_l12','Level 1 dan 2','l12_ai_analysis')</code>:<br>
+    - <code>AiGeneration::create(... feature, model, source_hash=hash('sha256',json_encode($payload)), status='processing', input_summary=['aggregate_only'=&gt;true,'participant_identities_sent'=&gt;false])</code>.<br>
+    - <code>$ai-&gt;generate('Level 1 dan 2', $payload)</code> → sukses: <code>status='completed'</code>, <code>generated_content</code>, <code>generated_at</code>, <code>back()-&gt;with('l12_ai_analysis',$analysis)-&gt;with('success','Analisis eksekutif AI berhasil dibuat.')</code>.<br>
+    - Gagal: <code>status='failed'</code>, <code>error_message</code>, <code>back()-&gt;with('l12_ai_analysis_error',$exception-&gt;getMessage())</code>.<br>
+    - <code>AiEvaluationDashboardService::generate</code> memastikan ke-4 field ada (<code>executive_summary</code>, <code>key_findings</code>, <code>priority_actions</code>, <code>data_caution</code>; tiap nilai dipotong 12000 karakter) dan memakai <code>OpenAiEvaluationSummaryService::generateStructured</code> dengan skema JSON.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+participants_count), <code>EvaluationResultL1</code> (+question), <code>EvaluationResultL2</code>, <code>EvaluationL1TextSummary</code>, <code>AiGeneration</code>.</p>
+    <p><strong>6. Response:</strong> redirect back + flash <code>l12_ai_analysis</code> (atau <code>l12_ai_analysis_error</code>) + <code>success</code>.</p>
+</div>
+
+<h3>3.3 GET <code>/trainings/{id}/export-word-l12</code> — <code>exportWord</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>evall12.export_word</code>, auth. <code>Carbon::setLocale('id')</code>.</p>
+    <p><strong>2. Role/Auth:</strong> login wajib.</p>
+    <p><strong>3. Request:</strong> <code>{id}</code>.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Template: <code>public_path('templates/template_laporan_lv12.docx')</code>; <code>abort_unless(file_exists, 404, 'Template laporan Level 1 dan 2 tidak ditemukan.')</code>.<br>
+    - Eager load <code>participants.evaluationL2</code> + <code>schedules.pengajar</code>.<br>
+    - Komputasi:<br>
+    - <code>$l1Average</code>, <code>$l1OrganizerAverage</code>, <code>$l1SpeakerAverage</code>, <code>$l1Respondents</code>.<br>
+    - <code>l1ObjectRows</code>: per form (penyelenggara/narasumber unique by <code>type:schedule_id</code>) → <code>no, jenis, objek (pengajar/target_name/penyelenggara), materi, responden, skor, kategori</code>.<br>
+    - <code>l1IndicatorRows</code>: group <code>schedule_id|question_id</code> → <code>objek, indikator, responden, skor, kategori</code>.<br>
+    - <code>l2Rows</code>: peserta dengan <code>evaluationL2</code> → <code>no, nama, nip, pre, post, delta</code>, <code>status</code> = <code>Meningkat</code>/<code>Menurun</code>/<code>Tetap</code>; <code>preAverage/postAverage/gainAverage</code>; jumlah meningkat/tetap/menurun; <code>increaseRate</code>.<br>
+    - <code>setValue</code> kotak-kotak template: <code>nama_pelatihan</code>, <code>tahunpelaksanaan</code>, <code>tahunberjalan</code>, <code>tanggal_mulai/selesai</code>, <code>bidang</code>, <code>metode</code>, jumlah peserta, responden &amp; response rate L1/L2, skor &amp; kategori L1/penyelenggara/narasumber, rerata pre/post/gain, jumlah meningkat/tetap/menurun, <code>persentase_meningkat</code>.<br>
+    - <code>cloneRows</code> utk blok berulang: anchor <code>l1_obj_no</code>, <code>l1_ind_no</code>, <code>l2_no</code>, <code>rtl12_temuan</code> (dengan pesan fallback spasi bila kosong).<br>
+    - <strong>Follow-up rows</strong> (<code>rtl12_temuan</code>), kondisi bertingkat: keterisian tidak lengkap; indikator L1 terendah (aksi berbeduntuk <code>score&lt;=80</code>); masukan teks penyelenggara (pakai <code>follow_up</code> admin bila ada); L2 menurun/tetap vs meningkat (2 skenario); fallback "data belum memadai".<br>
+    - Narasi: <code>narasi_l1</code>, <code>narasi_l2</code>, <code>ringkasan_temuan</code>; <code>keterbatasan</code> (peringatan: data tersedia saat unduh, L1 persepsi, L2 perubahan skor, bukan bukti kausal); <code>kesimpulan</code>; <code>rekomendasi</code> (multi-bagian: dasar analisis, kesimpulan masukan, prioritas rekomendasi, arah pelaksanaan).<br>
+    - <code>$fileName = 'LAPORAN_EVALUASI_LV1_LV2_'.str_replace(' ','_',$training-&gt;nama_pelatihan).'.docx'</code>.<br>
+    - Simpan temp, <code>DocumentController::archiveInternal($id, 'LAPORAN EVALUASI LEVEL 1 DAN 2', $fileName, $content, 'docx')</code>, stream download.<br>
+    - Helper <code>cloneRows</code>: template row <code>prefix_field#n</code> pada anchor <code>..._no</code> / <code>..._</code>.<br>
+    - Helper <code>recommendation()</code> (cadangan) menghasilkan kalimat rekomendasi bila dipakai.</p>
+    <p><strong>5. Data fetched:</strong> <code>Training</code> (+participants.evaluationL2, schedules.pengajar), <code>EvaluationResultL1</code>, <code>EvaluationFormL1</code> (+schedule.pengajar), <code>EvaluationL1TextSummary</code>, <code>Question</code>, <code>Participant</code>.</p>
+    <p><strong>6. Response:</strong> stream download <code>.docx</code> + arsip otomatis.</p>
+</div>
+<!-- @@REG_BX@@ -->
+<!-- @@REG_C@@ -->
+<!-- @@REG_D@@ -->
+<!-- @@REG_E@@ -->
+
+</body>
+</html>
