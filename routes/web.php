@@ -385,6 +385,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{id}/execution-notes', [TrainingController::class, 'storeExecutionNote'])->name('trainings.execution-notes.store');
     Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
+    Route::get('trainings/{id}/participants/import-result', [TrainingController::class, 'downloadParticipantImportResult'])->name('participants.import-result');
     Route::put('participants/{id}', [TrainingController::class, 'updateParticipant'])->name('participants.update');
     Route::delete('participants/{id}', [TrainingController::class, 'destroyParticipant'])->name('participants.destroy');
     Route::post('trainings/{id}/participants/manual', [TrainingController::class, 'storeParticipant'])->name('participants.store');

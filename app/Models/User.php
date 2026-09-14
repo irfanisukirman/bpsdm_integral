@@ -17,7 +17,7 @@ class User extends Authenticatable
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
         'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 
         'provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude',
-        'status_kepegawaian', 'password', 'profile_photo'
+        'status_kepegawaian', 'password', 'profile_photo', 'must_complete_profile', 'must_change_password'
     ];
 
     /**
@@ -37,6 +37,8 @@ class User extends Authenticatable
         'latitude' => 'float',
         'longitude' => 'float',
         'birth_date' => 'date',
+        'must_complete_profile' => 'boolean',
+        'must_change_password' => 'boolean',
     ];
 
     /**

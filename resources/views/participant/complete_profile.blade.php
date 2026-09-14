@@ -11,6 +11,20 @@
 {{-- KONTEN INPUTAN FORM --}}
 @section('form_content')
 
+    @if($user->must_complete_profile || $user->must_change_password)
+    <div class="alert alert-warning border-0 shadow-sm mb-4">
+        <div class="d-flex gap-3"><i class="bx bx-shield-quarter fs-3"></i><div><strong>Akun hasil import peserta</strong><div class="small mt-1">Username login Anda adalah NIP/NIK <strong>{{ $user->nip_nik }}</strong>. Lengkapi seluruh profil dan buat password baru sebelum mengakses pelatihan.</div></div></div>
+    </div>
+    @endif
+
+    @if($user->must_change_password)
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <div class="form-section-title"><i class="bx bx-lock-alt fs-4 me-2"></i>Password Baru</div>
+            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Password baru <span class="required-star">*</span></label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter dan jangan gunakan NIP/NIK sebagai password.</div></div><div class="col-md-6 mb-3"><label class="form-label">Konfirmasi password <span class="required-star">*</span></label><input type="password" name="password_confirmation" class="form-control" minlength="8" required></div></div>
+        </div>
+    </div>
+    @endif
     <!-- KARTU 1: IDENTITAS & KEPEGAWAIAN -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
@@ -20,7 +34,8 @@
 
             <div class="mb-4">
                 <label class="form-label fw-bold">Daftar Sebagai <span class="required-star">*</span></label>
-                <select name="user_type" id="userTypeSelect" class="form-select form-select-lg border-primary" required>
+                @if($user->must_complete_profile)<input type="hidden" name="user_type" value="peserta">@endif
+                <select name="user_type" id="userTypeSelect" class="form-select form-select-lg border-primary" required @disabled($user->must_complete_profile)>
                     <option value="">-- Pilih tujuan pendaftaran --</option>
                     <option value="peserta" @selected(old('user_type', $user->user_type)==='peserta')>Peserta Pelatihan</option>
                     <option value="narasumber" @selected(old('user_type', $user->user_type)==='narasumber')>Narasumber / Pengajar</option>

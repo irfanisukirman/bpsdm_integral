@@ -342,15 +342,74 @@ class TrainingController extends Controller
 
     public function importParticipants(Request $request, $id)
     {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
+            'file' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
 
-        Excel::import(new ParticipantImport($id), $request->file('file'));
+        $import = new ParticipantImport((int) $training->id);
+        Excel::import($import, $request->file('file'));
 
-        return redirect()->back()->with('success', 'Data peserta berhasil diimport.');
+        $rows = [
+            ['HASIL IMPORT PESERTA'],
+            ['Pelatihan', $training->nama_pelatihan],
+            ['Waktu proses', now()->format('d-m-Y H:i:s')],
+            ['Peserta ditambahkan', $import->participantsAdded],
+            ['Akun baru dibuat', $import->accountsCreated],
+            ['Dilewati', $import->skipped],
+            ['Gagal', $import->failed],
+            [],
+            ['Baris Excel', 'NIP/NIK', 'Nama Lengkap', 'Instansi', 'Status', 'Username Login', 'Password Awal', 'Keterangan'],
+            ...$import->results,
+        ];
+
+        $export = new class($rows) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithStyles {
+            public function __construct(private array $rows) {}
+            public function array(): array { return $this->rows; }
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
+            {
+                $sheet->mergeCells('A1:H1');
+                $sheet->freezePane('A10');
+                $sheet->getStyle('A1:H1')->getFont()->setBold(true)->setSize(14);
+                $sheet->getStyle('A9:H9')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+                $sheet->getStyle('A9:H9')->getFill()->setFillType('solid')->getStartColor()->setARGB('FF5065D5');
+                $sheet->getStyle('B:B')->getNumberFormat()->setFormatCode('@');
+                return [];
+            }
+        };
+
+        $fileName = 'hasil-import-peserta-'.Str::slug($training->nama_pelatihan).'-'.now()->format('Ymd-His').'.xlsx';
+        $path = 'participant-import-results/'.Auth::id().'/training-'.$training->id.'.xlsx';
+        Excel::store($export, $path, 'local');
+        $request->session()->put('participant_import_results.'.$training->id, [
+            'path' => $path,
+            'file_name' => $fileName,
+            'participants_added' => $import->participantsAdded,
+            'accounts_created' => $import->accountsCreated,
+            'skipped' => $import->skipped,
+            'failed' => $import->failed,
+        ]);
+
+        return redirect()->route('trainings.participants', $training->id)->with(
+            'success',
+            "Import berhasil diproses: {$import->participantsAdded} peserta ditambahkan, {$import->accountsCreated} akun baru, {$import->skipped} dilewati, dan {$import->failed} gagal. Unduh hasil import untuk melihat kredensial akun baru."
+        );
     }
 
+    public function downloadParticipantImportResult(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+
+        $result = $request->session()->get('participant_import_results.'.$training->id);
+        abort_if(!$result || empty($result['path']) || !Storage::disk('local')->exists($result['path']), 404, 'File hasil import tidak ditemukan. Silakan lakukan import kembali.');
+
+        return Storage::disk('local')->download($result['path'], $result['file_name']);
+    }
     public function downloadTemplate()
     {
 

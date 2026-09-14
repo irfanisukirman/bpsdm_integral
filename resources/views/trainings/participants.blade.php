@@ -29,6 +29,9 @@
                 <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportParticipants">
+                    <i class="bx bx-spreadsheet me-1"></i> Import Peserta
+                </button>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdd">
                     <i class="bx bx-plus me-1"></i> Tambah
                 </button>
@@ -46,6 +49,17 @@
             </div>
         @endif
 
+        @php
+            $importResult = session('participant_import_results.'.$training->id);
+        @endphp
+        @if($importResult)
+            <div class="card border-0 shadow-sm mb-4" style="border-left:4px solid #71dd37!important">
+                <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div><div class="d-flex align-items-center gap-2 mb-2"><span class="avatar-initial rounded bg-label-success p-2"><i class="bx bx-check-circle fs-4"></i></span><div><h6 class="fw-bold mb-0">Hasil Import Siap Diunduh</h6><small class="text-muted">Simpan file ini karena password awal hanya dicantumkan pada laporan hasil.</small></div></div><div class="d-flex flex-wrap gap-2"><span class="badge bg-label-success">{{ $importResult['participants_added'] }} peserta ditambahkan</span><span class="badge bg-label-primary">{{ $importResult['accounts_created'] }} akun baru</span><span class="badge bg-label-warning">{{ $importResult['skipped'] }} dilewati</span><span class="badge bg-label-danger">{{ $importResult['failed'] }} gagal</span></div></div>
+                    <a href="{{route('participants.import-result',$training->id)}}" class="btn btn-success text-nowrap"><i class="bx bx-download me-1"></i>Download Hasil Import</a>
+                </div>
+            </div>
+        @endif
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible border-0 shadow-sm mb-4" role="alert">
                 <i class="bx bx-error-circle me-2"></i>{{ session('error') }}
@@ -320,6 +334,13 @@
             </form>
         </div>
     </div>
+<div class="modal fade" id="modalImportParticipants" tabindex="-1" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered modal-lg"><form action="{{route('participants.import',$training->id)}}" method="POST" enctype="multipart/form-data" class="modal-content border-0">@csrf
+  <div class="modal-header border-bottom"><div><h5 class="modal-title fw-bold"><i class="bx bx-spreadsheet text-success me-2"></i>Import Peserta Pelatihan</h5><small class="text-muted">Tambahkan peserta sekaligus berdasarkan NIP/NIK.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body p-4"><div class="alert alert-info border-0"><strong>Kolom wajib:</strong> NIP/NIK, nama lengkap, dan instansi.<ul class="mb-0 mt-2 ps-3"><li>Akun yang sudah ada langsung dihubungkan ke pelatihan.</li><li>Akun baru dibuat dengan username NIP/NIK.</li><li>Hasil import memuat password awal akun baru.</li><li>Akun baru wajib mengganti password dan melengkapi profil.</li></ul></div><div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 rounded bg-light mb-4"><div><strong>Belum memiliki format Excel?</strong><small class="d-block text-muted">Gunakan template resmi agar kolom terbaca.</small></div><a href="{{route('participants.template')}}" class="btn btn-outline-primary text-nowrap"><i class="bx bx-download me-1"></i>Unduh Template</a></div><label class="form-label fw-bold">File Excel peserta</label><input type="file" name="file" class="form-control" accept=".xlsx,.xls" required><div class="form-text">Maksimal 10 MB. Simpan file hasil import karena password awal hanya ditampilkan pada file tersebut.</div></div>
+  <div class="modal-footer border-top"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-success"><i class="bx bx-upload me-1"></i>Import & Unduh Hasil</button></div>
+ </form></div>
+</div>
 @endsection
 
 @push('css')

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CekSetupPengajar;
+use App\Http\Middleware\EnsureImportedParticipantProfileComplete;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Narasumber wajib melengkapi profil sebelum mengakses portal lainnya.
-        $middleware->web(append: [CekSetupPengajar::class]);
+        $middleware->web(append: [CekSetupPengajar::class, EnsureImportedParticipantProfileComplete::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

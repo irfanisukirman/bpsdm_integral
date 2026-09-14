@@ -12,6 +12,7 @@ use App\Models\File;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -171,9 +172,10 @@ class ParticipantController extends Controller
             'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+            'password' => [\Illuminate\Validation\Rule::requiredIf(fn () => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $requestedType = $request->user_type;
+        $requestedType = $user->must_complete_profile ? 'peserta' : $request->user_type;
         $role = $requestedType === 'narasumber' ? 'pengajar' : 'participant';
         $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
         $user->update([
@@ -198,11 +200,25 @@ class ParticipantController extends Controller
             'address' => $request->address,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'must_complete_profile' => false,
+            'must_change_password' => false,
+            ...($request->filled('password') ? ['password' => Hash::make($request->password)] : []),
         ]);
 
         // Sinkronisasi ke tabel participants
-        \App\Models\Participant::where('nip_nik', $user->nip_nik)
-            ->update(['user_id' => $user->id]);
+        \App\Models\Participant::where('nip_nik', $user->nip_nik)->update([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'phone' => $user->whatsapp,
+            'gender' => $user->gender,
+            'jabatan' => $user->jabatan,
+            'instansi' => $user->instansi,
+            'provinsi' => $user->provinsi,
+            'kota' => $user->kota,
+            'kecamatan' => $user->kecamatan,
+            'kelurahan' => $user->kelurahan,
+            'status_kepegawaian' => $user->status_kepegawaian,
+        ]);
 
         if ($requestedType === 'narasumber') {
             return redirect()->route('pengajar.setup')
