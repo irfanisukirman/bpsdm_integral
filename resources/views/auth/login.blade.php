@@ -40,10 +40,10 @@
                 <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label for="username" class="form-label fw-bold">Username / NIP</label>
+                        <label for="username" class="form-label fw-bold">NIP/NIK atau Username Pengelola</label>
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-user"></i></span>
-                            <input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Masukkan ID Anda" autofocus value="{{ old('username') }}" style="border-left: none;" />
+                            <input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Masukkan NIP/NIK atau username pengelola" autofocus value="{{ old('username') }}" style="border-left: none;" />
                         </div>
                         @error('username')
                             <small class="text-danger mt-1 d-block">{{ $message }}</small>

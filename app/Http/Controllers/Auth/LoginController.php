@@ -56,6 +56,28 @@ class LoginController extends Controller implements HasMiddleware
         return view('auth.login', ['loginHelp' => LoginHelpSetting::current()]);
     }
 
+    protected function attemptLogin(Request $request)
+    {
+        $identity = trim((string) $request->input($this->username()));
+        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'];
+
+        $user = User::where(function ($query) use ($identity, $administrativeRoles) {
+                $query->where(function ($admin) use ($identity, $administrativeRoles) {
+                    $admin->whereIn('role', $administrativeRoles)->where('username', $identity);
+                })->orWhere(function ($public) use ($identity, $administrativeRoles) {
+                    $public->whereNotIn('role', $administrativeRoles)->where('nip_nik', $identity);
+                })->orWhere(function ($legacy) use ($identity, $administrativeRoles) {
+                    $legacy->whereNotIn('role', $administrativeRoles)->whereNull('nip_nik')->where('username', $identity);
+                });
+            })->first();
+
+        if (!$user) return false;
+
+        return Auth::attempt([
+            'username' => $user->username,
+            'password' => $request->input('password'),
+        ], $request->boolean('remember'));
+    }
     protected function authenticated(Request $request, $user)
     {
         if ($user->role === 'intern' && $user->user_type_status !== 'approved') {
@@ -67,6 +89,7 @@ class LoginController extends Controller implements HasMiddleware
                 : 'Akun magang masih menunggu persetujuan pengelola.';
             return redirect()->route('login')->with('error', $message);
         }
+        if ($user->role === 'participant' && ($user->must_complete_profile || $user->must_change_password)) return redirect()->route('participant.profile.complete');
         if ($user->role === 'intern') return redirect()->route('internships.dashboard');
         if ($user->role === 'resepsionis') return redirect()->route('guest-book.index');
         if ($user->role === 'pengelola_magang') return redirect()->route('internships.index');

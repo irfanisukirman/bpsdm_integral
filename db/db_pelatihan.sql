@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 12 Sep 2026 pada 18.58
+-- Waktu pembuatan: 13 Sep 2026 pada 14.54
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -41,21 +41,6 @@ CREATE TABLE `activity_attendance_answers` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `activity_attendance_answers`
---
-
-INSERT INTO `activity_attendance_answers` (`id`, `activity_attendance_response_id`, `activity_attendance_question_id`, `value_text`, `value_json`, `file_path`, `original_name`, `mime_type`, `file_size`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'aku aja ini', NULL, NULL, NULL, NULL, NULL, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
-(2, 1, 2, 'maman karubu', NULL, NULL, NULL, NULL, NULL, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
-(3, 1, 3, NULL, NULL, 'activity-attendance/1/1/signature-3.png', 'tanda-tangan.png', 'image/png', 18866, '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
-(4, 2, 1, 'fasfasf', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
-(5, 2, 2, 'maman karubu', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
-(6, 2, 3, NULL, NULL, 'activity-attendance/1/2/signature-3.png', 'tanda-tangan.png', 'image/png', 10474, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
-(7, 2, 8, 'fasfas', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
-(8, 2, 9, 'dsdasdasfasfasfasfaf', NULL, NULL, NULL, NULL, NULL, '2026-09-12 13:03:40', '2026-09-12 13:03:40'),
-(9, 2, 10, NULL, NULL, 'activity-attendance/1/2/a9qQBefAl9ORJ5rzN6UME0QHdzDH23RZHXxrqgFM.pdf', 'rekap-presensi-rapat-persiapan-smmiso-2015 (2).pdf', 'application/pdf', 893358, '2026-09-12 13:03:40', '2026-09-12 13:03:40');
-
 -- --------------------------------------------------------
 
 --
@@ -83,7 +68,7 @@ CREATE TABLE `activity_attendance_forms` (
 --
 
 INSERT INTO `activity_attendance_forms` (`id`, `public_token`, `title`, `subtitle`, `bidang`, `status`, `opens_at`, `closes_at`, `location`, `confirmation_message`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, '9650538a-0da7-492b-9bce-1d4c198db37d', 'Rapat Persiapan SMM:ISO 2015', 'Semua akan baik baik saja dalam hal ini', 'bidang', 'open', '2026-09-12 11:43:00', '2026-09-13 11:43:00', 'Gedung Kelas Lantai 3', 'teriamkasih sudah mebgisi presensi ini yah ka :)', 2, '2026-09-12 11:43:48', '2026-09-12 12:58:33');
+(1, '9650538a-0da7-492b-9bce-1d4c198db37d', 'Rapat Persiapan SMM:ISO 2015', 'Semua akan baik baik saja dalam hal ini', 'bidang', 'open', '2026-09-12 11:43:00', '2026-09-14 11:43:00', 'Gedung Kelas Lantai 3', 'teriamkasih sudah mebgisi presensi ini yah ka :)', 2, '2026-09-12 11:43:48', '2026-09-13 11:52:11');
 
 -- --------------------------------------------------------
 
@@ -111,13 +96,13 @@ CREATE TABLE `activity_attendance_questions` (
 --
 
 INSERT INTO `activity_attendance_questions` (`id`, `activity_attendance_form_id`, `label`, `help_text`, `type`, `options`, `is_required`, `sort_order`, `max_file_size_kb`, `allowed_extensions`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Nama Kamu siapa', 'sdadas', 'short_text', NULL, 1, 1, 5120, NULL, '2026-09-12 11:44:39', '2026-09-12 11:44:39'),
-(2, 1, 'Mamah siapa', 'sdadas', 'dropdown', '[\"maman karubu\",\"susu budah\",\"asu asu\",\"palanglaraya\"]', 0, 2, 5120, NULL, '2026-09-12 11:45:20', '2026-09-12 11:45:20'),
-(3, 1, 'cob attd', 'kudu bener ngisina', 'signature', NULL, 1, 3, 5120, NULL, '2026-09-12 11:45:38', '2026-09-12 12:55:53'),
-(8, 1, 'ini paragrapft', NULL, 'long_text', NULL, 1, 4, 5120, NULL, '2026-09-12 12:55:46', '2026-09-12 12:56:01'),
-(9, 1, 'ini apa yahdasdas', NULL, 'radio', '[\"maksudnya gimanasdadasd\",\"dsdasdasfasfasfasfaf\",\"fasfasfasf\"]', 0, 5, 5120, NULL, '2026-09-12 12:56:39', '2026-09-12 12:56:39'),
-(10, 1, 'unggah dokumen', NULL, 'file', NULL, 1, 6, 5120, 'pdf', '2026-09-12 12:57:56', '2026-09-12 12:57:56'),
-(11, 1, 'shadgajgdas dasjgd jasdainformasi', NULL, 'info', NULL, 0, 7, 5120, NULL, '2026-09-12 12:58:24', '2026-09-12 12:58:24');
+(1, 1, 'Nama Kamu siapa', 'sdadas', 'short_text', NULL, 1, 2, 5120, NULL, '2026-09-12 11:44:39', '2026-09-13 11:51:48'),
+(2, 1, 'Mamah siapa', 'sdadas', 'dropdown', '[\"maman karubu\",\"susu budah\",\"asu asu\",\"palanglaraya\"]', 0, 3, 5120, NULL, '2026-09-12 11:45:20', '2026-09-13 11:51:48'),
+(3, 1, 'cob attd', 'kudu bener ngisina', 'signature', NULL, 1, 4, 5120, NULL, '2026-09-12 11:45:38', '2026-09-13 11:51:48'),
+(8, 1, 'ini paragrapft', NULL, 'long_text', NULL, 1, 5, 5120, NULL, '2026-09-12 12:55:46', '2026-09-13 11:51:48'),
+(9, 1, 'ini apa yahdasdas', NULL, 'radio', '[\"maksudnya gimanasdadasd\",\"dsdasdasfasfasfasfaf\",\"fasfasfasf\"]', 0, 7, 5120, NULL, '2026-09-12 12:56:39', '2026-09-13 11:51:48'),
+(11, 1, 'shadgajgdas dasjgd jasdainformasi', NULL, 'info', NULL, 0, 1, 5120, NULL, '2026-09-12 12:58:24', '2026-09-13 11:51:48'),
+(12, 1, 'apakah ini check', NULL, 'checkbox', '[\"weyuryarar\",\"fafhasfbas fasfas\",\"ffaksjfakj fasf\"]', 0, 6, 5120, NULL, '2026-09-13 11:41:46', '2026-09-13 11:51:48');
 
 -- --------------------------------------------------------
 
@@ -135,14 +120,6 @@ CREATE TABLE `activity_attendance_responses` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `activity_attendance_responses`
---
-
-INSERT INTO `activity_attendance_responses` (`id`, `response_token`, `activity_attendance_form_id`, `submitted_at`, `ip_hash`, `user_agent`, `created_at`, `updated_at`) VALUES
-(1, 'c775520e-e8a5-40c4-9b5a-da884d3fcc1d', 1, '2026-09-12 11:58:42', '36a74a16a18f16234cadfb61f7b8415680b095271f1f1d054bd144df6c498c2a', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:58:42', '2026-09-12 11:58:42'),
-(2, '4e9e59b0-6dbf-4a0d-b192-b6ce9d9f6d4a', 1, '2026-09-12 13:03:40', '36a74a16a18f16234cadfb61f7b8415680b095271f1f1d054bd144df6c498c2a', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 13:03:40', '2026-09-12 13:03:40');
 
 -- --------------------------------------------------------
 
@@ -623,14 +600,21 @@ CREATE TABLE `cache` (
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
 ('integral-cache-12345|127.0.0.1', 'i:1;', 1789226777),
 ('integral-cache-12345|127.0.0.1:timer', 'i:1789226777;', 1789226777),
-('integral-cache-3201125305870003|127.0.0.1', 'i:2;', 1789218763),
-('integral-cache-3201125305870003|127.0.0.1:timer', 'i:1789218763;', 1789218763),
+('integral-cache-3201125305870003|127.0.0.1', 'i:1;', 1789300490),
+('integral-cache-3201125305870003|127.0.0.1:timer', 'i:1789300490;', 1789300490),
+('integral-cache-472b07b9fcf2c2451e8781e944bf5f77cd8457c8', 'i:1;', 1789289055),
+('integral-cache-472b07b9fcf2c2451e8781e944bf5f77cd8457c8:timer', 'i:1789289055;', 1789289055),
 ('integral-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:2;', 1789210419),
 ('integral-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1789210419;', 1789210419),
 ('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940', 'i:1;', 1789210684),
 ('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940:timer', 'i:1789210684;', 1789210684),
-('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0', 'i:1;', 1789226562),
-('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0:timer', 'i:1789226562;', 1789226562);
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0', 'i:1;', 1789303062),
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0:timer', 'i:1789303062;', 1789303062),
+('integral-cache-nominatim-profile-geocode-last', 'd:1789288885.654393;', 1789289485),
+('integral-cache-profile-geocode:3ebe70b599539f449da2ab3730c613ffd8ee505f', 'a:0:{}', 1789375245),
+('integral-cache-profile-geocode:4e249487419effe7123e4dd5f4873f095a1267bf', 'a:0:{}', 1789375261),
+('integral-cache-profile-geocode:831c085d90fb161acf64fd7f3ac2dc808262caa5', 'a:0:{}', 1789375235),
+('integral-cache-profile-geocode:8cea8b05fe19f5d47d2f1e11728872bb230471c1', 'a:1:{i:0;a:5:{s:4:\"name\";s:14:\"Jalan Ciwaruga\";s:12:\"display_name\";s:87:\"Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia\";s:3:\"lat\";d:-6.8192959;s:3:\"lon\";d:107.5866061;s:4:\"type\";s:8:\"tertiary\";}}', 1789375284);
 
 -- --------------------------------------------------------
 
@@ -750,6 +734,13 @@ CREATE TABLE `electronic_signature_actions` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `electronic_signature_actions`
+--
+
+INSERT INTO `electronic_signature_actions` (`id`, `electronic_signature_document_id`, `electronic_signature_actor_id`, `status`, `signed_at`, `error_message`, `created_at`, `updated_at`) VALUES
+(21, 21, 19, 'pending', NULL, NULL, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
+
 -- --------------------------------------------------------
 
 --
@@ -765,6 +756,13 @@ CREATE TABLE `electronic_signature_actors` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `electronic_signature_actors`
+--
+
+INSERT INTO `electronic_signature_actors` (`id`, `electronic_signature_request_id`, `user_id`, `role`, `sequence`, `created_at`, `updated_at`) VALUES
+(19, 19, 18, 'signer', 1, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
 
 -- --------------------------------------------------------
 
@@ -795,6 +793,7 @@ CREATE TABLE `electronic_signature_documents` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `electronic_signature_request_id` bigint(20) UNSIGNED NOT NULL,
   `participant_certificate_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `internship_participant_id` bigint(20) UNSIGNED DEFAULT NULL,
   `external_user_id` varchar(255) DEFAULT NULL,
   `verification_token` char(36) DEFAULT NULL,
   `original_name` varchar(255) NOT NULL,
@@ -807,6 +806,13 @@ CREATE TABLE `electronic_signature_documents` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `electronic_signature_documents`
+--
+
+INSERT INTO `electronic_signature_documents` (`id`, `electronic_signature_request_id`, `participant_certificate_id`, `internship_participant_id`, `external_user_id`, `verification_token`, `original_name`, `original_path`, `current_path`, `final_path`, `file_size`, `status`, `completed_at`, `created_at`, `updated_at`) VALUES
+(21, 19, NULL, 1, NULL, '40e9988b-94d6-4b45-bc31-f67088e38249', '123456.pdf', 'internships/certificates/1/generated/1.pdf', 'internships/certificates/1/generated/1.pdf', NULL, 137175, 'waiting', NULL, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
 
 -- --------------------------------------------------------
 
@@ -830,6 +836,13 @@ CREATE TABLE `electronic_signature_requests` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `electronic_signature_requests`
+--
+
+INSERT INTO `electronic_signature_requests` (`id`, `uuid`, `title`, `description`, `bidang`, `source_type`, `page_format`, `training_id`, `external_reference`, `status`, `created_by`, `completed_at`, `created_at`, `updated_at`) VALUES
+(19, '44e7ec88-11b1-439c-af8e-d862895b741f', 'Sertifikat Magang/PKL - MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Penandatanganan 1 sertifikat peserta magang.', 'Sekretariat', 'training_certificates', 'f4_portrait', NULL, 'internship-program:1', 'in_progress', 2, NULL, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
 
 -- --------------------------------------------------------
 
@@ -1906,6 +1919,60 @@ INSERT INTO `folder_user_permissions` (`id`, `folder_id`, `user_id`, `permission
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `guest_book_locations`
+--
+
+CREATE TABLE `guest_book_locations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `public_token` char(36) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `guest_book_locations`
+--
+
+INSERT INTO `guest_book_locations` (`id`, `name`, `public_token`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 'BPSDM Provinsi Jawa Barat', '90b6e452-107a-4e8c-ae58-42b729df4c7f', 1, 2, '2026-09-13 12:28:54', '2026-09-13 12:28:54');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `guest_visits`
+--
+
+CREATE TABLE `guest_visits` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `guest_book_location_id` bigint(20) UNSIGNED NOT NULL,
+  `visit_code` varchar(30) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `position` varchar(255) DEFAULT NULL,
+  `institution` varchar(255) NOT NULL,
+  `purpose` text NOT NULL,
+  `target_bidang` varchar(255) DEFAULT NULL,
+  `whatsapp` varchar(30) NOT NULL,
+  `checked_in_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `checked_out_at` timestamp NULL DEFAULT NULL,
+  `ip_hash` varchar(64) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `guest_visits`
+--
+
+INSERT INTO `guest_visits` (`id`, `guest_book_location_id`, `visit_code`, `name`, `position`, `institution`, `purpose`, `target_bidang`, `whatsapp`, `checked_in_at`, `checked_out_at`, `ip_hash`, `created_at`, `updated_at`) VALUES
+(1, 1, 'BT-260913-LJJNKT', 'Samsidin', 'Pengelola', 'bpsdam', 'dmnasjdhasd hajdhajdhajkdads', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '08123456789', '2026-09-13 12:30:47', '2026-09-13 12:30:47', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-09-13 12:29:29', '2026-09-13 12:30:47'),
+(2, 1, 'BT-260913-SN7GQ5', 'SAMIDIN', 'Pengelola', 'Disdik', 'dkjasdadk adh askdah sdkah sd', 'Bidang Pengembangan Kompetensi Manajerial', '6281234567890', '2026-09-13 12:39:25', '2026-09-13 12:39:25', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-09-13 12:36:42', '2026-09-13 12:39:25');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `internship_attendances`
 --
 
@@ -1929,6 +1996,13 @@ CREATE TABLE `internship_attendances` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `internship_attendances`
+--
+
+INSERT INTO `internship_attendances` (`id`, `internship_participant_id`, `attendance_date`, `status`, `check_in_at`, `check_out_at`, `late_minutes`, `check_in_photo_path`, `check_out_photo_path`, `note`, `evidence_path`, `review_status`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(3, 2, '2026-09-13', 'present', '2026-09-13 09:01:58', '2026-09-13 09:02:22', 512, 'internships/attendance/2/2026-09-13/v55WFrrWqnJvuUVEC4zVhYHp1F8CPHFMB2xZMmuW.jpg', 'internships/attendance/2/2026-09-13/jA6mbhdKjINqXKc8dSDpTyeHmmW5TQvToGBUeCUl.jpg', NULL, NULL, 'not_required', NULL, NULL, NULL, '2026-09-13 09:01:58', '2026-09-13 09:02:22');
+
 -- --------------------------------------------------------
 
 --
@@ -1951,8 +2025,11 @@ CREATE TABLE `internship_participants` (
   `recommended_grade` enum('Sangat Baik','Baik','Cukup','Kurang') DEFAULT NULL,
   `final_grade` enum('Sangat Baik','Baik','Cukup','Kurang') DEFAULT NULL,
   `certificate_number` varchar(255) DEFAULT NULL,
+  `certificate_generated_file_path` varchar(255) DEFAULT NULL,
   `certificate_file_path` varchar(255) DEFAULT NULL,
   `certificate_generated_at` timestamp NULL DEFAULT NULL,
+  `certificate_sent_at` timestamp NULL DEFAULT NULL,
+  `certificate_sent_by` bigint(20) UNSIGNED DEFAULT NULL,
   `certificate_downloaded_at` timestamp NULL DEFAULT NULL,
   `review_note` text DEFAULT NULL,
   `reviewed_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1965,8 +2042,9 @@ CREATE TABLE `internship_participants` (
 -- Dumping data untuk tabel `internship_participants`
 --
 
-INSERT INTO `internship_participants` (`id`, `internship_program_id`, `user_id`, `name`, `student_number`, `major`, `institution`, `placement_unit`, `start_date`, `end_date`, `email`, `status`, `recommended_grade`, `final_grade`, `certificate_number`, `certificate_file_path`, `certificate_generated_at`, `certificate_downloaded_at`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 19, 'SAMSIDIN', '123456', 'Informatika', 'Institut Teknology Bandung', 'Bidang SKPK', '2026-09-06', '2026-09-11', 'sem@gmail.com', 'approved', 'Kurang', 'Sangat Baik', '002.1/Bspdm.04.1/GHD', 'internships/certificates/1/1.pdf', '2026-09-12 16:17:23', '2026-09-12 16:17:37', 'tolong dijaga kehadirannya yah', 2, '2026-09-12 15:25:10', '2026-09-12 15:21:42', '2026-09-12 16:17:37');
+INSERT INTO `internship_participants` (`id`, `internship_program_id`, `user_id`, `name`, `student_number`, `major`, `institution`, `placement_unit`, `start_date`, `end_date`, `email`, `status`, `recommended_grade`, `final_grade`, `certificate_number`, `certificate_generated_file_path`, `certificate_file_path`, `certificate_generated_at`, `certificate_sent_at`, `certificate_sent_by`, `certificate_downloaded_at`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 19, 'SAMSIDIN', '123456', 'Informatika', 'Institut Teknology Bandung', 'Bidang SKPK', '2026-09-06', '2026-09-11', 'sem@gmail.com', 'approved', 'Kurang', 'Sangat Baik', '002.1/Bspdm.04.1/GHD', 'internships/certificates/1/generated/1.pdf', NULL, '2026-09-13 11:53:39', NULL, NULL, NULL, 'tolong dijaga kehadirannya yah', 2, '2026-09-12 15:25:10', '2026-09-12 15:21:42', '2026-09-13 11:53:39'),
+(2, 1, 20, 'Saepuloh', '1234567890', 'Informatika', 'Institut Teknology Bandung', 'Bidang SKPK', '2026-09-12', '2026-09-19', 'sams@gmail.com', 'approved', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, '2026-09-13 06:23:25', '2026-09-13 06:21:02', '2026-09-13 06:23:25');
 
 -- --------------------------------------------------------
 
@@ -1990,7 +2068,10 @@ CREATE TABLE `internship_programs` (
   `certificate_number_format` varchar(255) DEFAULT NULL,
   `certificate_start_sequence` int(10) UNSIGNED NOT NULL DEFAULT 1,
   `certificate_issued_at` date DEFAULT NULL,
+  `certificate_signer_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `certificate_reviewer_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`certificate_reviewer_ids`)),
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `manager_id` bigint(20) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1999,8 +2080,8 @@ CREATE TABLE `internship_programs` (
 -- Dumping data untuk tabel `internship_programs`
 --
 
-INSERT INTO `internship_programs` (`id`, `public_token`, `title`, `bidang`, `description`, `registration_opens_at`, `registration_closes_at`, `check_in_opens_at`, `late_after`, `check_out_opens_at`, `status`, `certificate_template_path`, `certificate_number_format`, `certificate_start_sequence`, `certificate_issued_at`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, '6e729d43-0e4d-46d2-9f75-9afc72ec6c7f', 'MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Sekretariat', 'Magang ini ditujukan untuk daskdakjdhakd akdhaskdhaskd ashd kas', '2026-01-01', '2026-12-31', '06:00:00', '07:30:00', '16:00:00', 'open', 'internships/certificate-templates/xvtCfy6rLOxbUWXveTqoIfA5tdd5XtHLZyCfksfD.docx', '002.{X}/Bspdm.04.1/GHD', 1, '2026-09-12', 2, '2026-09-12 15:02:24', '2026-09-12 16:16:30');
+INSERT INTO `internship_programs` (`id`, `public_token`, `title`, `bidang`, `description`, `registration_opens_at`, `registration_closes_at`, `check_in_opens_at`, `late_after`, `check_out_opens_at`, `status`, `certificate_template_path`, `certificate_number_format`, `certificate_start_sequence`, `certificate_issued_at`, `certificate_signer_id`, `certificate_reviewer_ids`, `created_by`, `manager_id`, `created_at`, `updated_at`) VALUES
+(1, '6e729d43-0e4d-46d2-9f75-9afc72ec6c7f', 'MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Sekretariat', 'Magang ini ditujukan untuk daskdakjdhakd akdhaskdhaskd ashd kas', '2026-01-01', '2026-12-31', '06:00:00', '07:30:00', '16:00:00', 'open', 'internships/certificate-templates/NHGm2mQ6t1LuA90WgNhr2nqBsUSCV9uTWYGU8eep.docx', '002.{X}/Bspdm.04.1/GHD', 1, '2026-09-12', 18, NULL, 2, NULL, '2026-09-12 15:02:24', '2026-09-13 11:53:02');
 
 -- --------------------------------------------------------
 
@@ -2189,7 +2270,14 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (110, '2026_09_12_000003_create_login_help_settings_table', 45),
 (111, '2026_09_12_000004_create_internship_module_tables', 46),
 (112, '2026_09_12_000005_create_internship_attendances_table', 47),
-(113, '2026_09_12_000006_add_certificates_to_internship_module', 48);
+(113, '2026_09_12_000006_add_certificates_to_internship_module', 48),
+(114, '2026_09_12_000007_link_internship_certificates_to_tte', 49),
+(115, '2026_09_13_180000_add_identity_and_address_to_users_table', 50),
+(116, '2026_09_13_180100_normalize_kota_column_on_users_table', 51),
+(117, '2026_09_13_180200_rename_non_asn_employment_status_to_pppk_pw', 52),
+(118, '2026_09_13_180300_add_internship_manager_role_to_users', 53),
+(119, '2026_09_13_180400_create_guest_book_module', 54),
+(120, '2026_09_13_180500_add_target_bidang_to_guest_visits', 55);
 
 -- --------------------------------------------------------
 
@@ -2722,7 +2810,7 @@ CREATE TABLE `users` (
   `nip_nik` varchar(255) DEFAULT NULL,
   `whatsapp` varchar(255) DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
-  `role` enum('superadmin','admin_bidang','participant','pengajar','admin_aset','mitra','penandatangan','intern') NOT NULL,
+  `role` enum('superadmin','admin_bidang','participant','pengajar','admin_aset','mitra','penandatangan','intern','pengelola_magang','resepsionis') NOT NULL,
   `user_type` varchar(30) DEFAULT NULL,
   `user_type_status` varchar(20) NOT NULL DEFAULT 'approved',
   `bidang` varchar(255) DEFAULT NULL,
@@ -2731,12 +2819,16 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `gender` enum('Laki-Laki','Perempuan') DEFAULT NULL,
+  `birth_place` varchar(255) DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
   `jabatan` varchar(255) DEFAULT NULL,
+  `golongan` varchar(100) DEFAULT NULL,
   `instansi` varchar(255) DEFAULT NULL,
   `provinsi` varchar(255) DEFAULT NULL,
   `kota` varchar(255) DEFAULT NULL,
   `kecamatan` varchar(255) DEFAULT NULL,
   `kelurahan` varchar(255) DEFAULT NULL,
+  `address` text DEFAULT NULL,
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL,
   `status_kepegawaian` varchar(255) DEFAULT NULL
@@ -2746,21 +2838,22 @@ CREATE TABLE `users` (
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`, `whatsapp`, `profile_photo`, `role`, `user_type`, `user_type_status`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`, `gender`, `jabatan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `latitude`, `longitude`, `status_kepegawaian`) VALUES
-(1, '107781747552867366947', 'https://lh3.googleusercontent.com/a/ACg8ocJTdYYDR-py4kqvc2uXIM_JX56X0cang30ysQGyyWB23sdF2Q=s96-c', 'Simpan Aku aja 22', 'simpanakuajaduadua@gmail.com', '12387126387126438', '081382830814', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$HvkVkDVodkLIaQs6RniJ9.gPBvc7A8xecTEB12IXr1kuezKe.V1fq', NULL, '2026-08-28 04:30:55', '2026-08-28 14:43:37', 'Laki-Laki', 'Pengelola Layanan', 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', -6.8335548, 107.5854874, 'PNS'),
-(2, NULL, NULL, 'Super Administrator', 'superadmin@bpsdm.go.id', '19450817000000', '6281234567890', NULL, 'superadmin', NULL, 'approved', NULL, '$2y$12$82TUizUKE.owZ2/L0KDDg.7e.UydaeeVnpdqKnjkcqgV2KRqkKuym', NULL, '2026-08-28 06:19:21', '2026-08-30 14:16:38', 'Laki-Laki', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PNS'),
-(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', '3542312431523123', '989364374327', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', NULL, '2026-08-28 12:02:38', '2026-09-01 14:44:56', 'Laki-Laki', 'asdasfasfas', 'afasasfasfasfasf', 'DKI JAKARTA', 'KOTA JAKARTA PUSAT', 'SENEN', 'PASEBAN', -6.1929872, 106.8515287, 'PNS'),
-(5, NULL, NULL, 'Ali Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$YPxZ1PjL0nlyZ5xYpyDlpO/QybSb.V1hYbezpk8WV1dARs/x7vtsi', NULL, '2026-08-28 12:49:55', '2026-08-28 13:30:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(6, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', NULL, NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$mqKZXhhesDekZhQWFAcyruw1EL.3KL7DcOUQFWZz19dLLIlY4W4y6', NULL, '2026-08-28 13:01:31', '2026-08-28 13:01:31', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(9, NULL, NULL, 'Ghani', 'aset@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_aset', NULL, 'approved', 'Pengelola Aset', '$2y$12$1/1IVk5j2D/c5zf527T2a.RPbGf9Bu9e1AWOkVSsIcgNZ1dxS6K9i', NULL, '2026-08-29 14:38:46', '2026-08-29 14:38:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(11, '107913421320469114225', 'https://lh3.googleusercontent.com/a/ACg8ocLwmh1zFGix6WeyXU2zAzUMuDTawdX04V6cZhIgBrCbA9WmRA=s96-c', 'Simpan Aku', 'simpanakuaja@gmail.com', '34554834689342342', '0988653845345', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$QV8zTZcMbwc/SxFgVzTYeuWDWYvhzYQnQ.3jcCbZQzmEYQJ.K5A06', NULL, '2026-08-30 05:13:44', '2026-08-30 05:29:27', 'Perempuan', 'GURU AHLI PERTAMA', 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', -6.9338798, 107.6823923, 'PPPK'),
-(12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$qDWvuQDVTrjE7IM9ei0LYupJi5.tCiP9INKYaeq1clTkGd.OLfJyK', NULL, '2026-08-31 07:09:45', '2026-09-12 13:11:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', 'fsdfsdfsdfsdf', 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', -3.3569196, 122.8328450, 'PPPK'),
-(18, NULL, NULL, 'Samsidin, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', NULL, '2026-09-10 13:22:21', '2026-09-12 06:42:24', 'Laki-Laki', 'Pengelolaa Layanan Operasional', 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, 'PNS'),
-(19, NULL, NULL, 'SAMSIDIN', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$a6MzTi6cw54DV4KnfWboH.OlS4IOrfP6BKMW5oPyblI0O4rn6ttK.', NULL, '2026-09-12 15:21:42', '2026-09-12 15:25:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`, `whatsapp`, `profile_photo`, `role`, `user_type`, `user_type_status`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`, `gender`, `birth_place`, `birth_date`, `jabatan`, `golongan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `address`, `latitude`, `longitude`, `status_kepegawaian`) VALUES
+(1, '107781747552867366947', 'https://lh3.googleusercontent.com/a/ACg8ocJTdYYDR-py4kqvc2uXIM_JX56X0cang30ysQGyyWB23sdF2Q=s96-c', 'Simpan Aku aja 22', 'simpanakuajaduadua@gmail.com', '12387126387126438', '081382830814', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$HvkVkDVodkLIaQs6RniJ9.gPBvc7A8xecTEB12IXr1kuezKe.V1fq', NULL, '2026-08-28 04:30:55', '2026-08-28 14:43:37', 'Laki-Laki', NULL, NULL, 'Pengelola Layanan', NULL, 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, -6.8335548, 107.5854874, 'PNS'),
+(2, NULL, NULL, 'Super Administrator', 'superadmin@bpsdm.go.id', '19450817000000', '6281234567890', 'avatars/TF8Li4BqNhflk57ZhBXfkP5zRboFs4kS0OmSpwil.png', 'superadmin', NULL, 'approved', NULL, '$2y$12$82TUizUKE.owZ2/L0KDDg.7e.UydaeeVnpdqKnjkcqgV2KRqkKuym', NULL, '2026-08-28 06:19:21', '2026-09-13 07:49:39', 'Laki-Laki', NULL, NULL, 'Kepala Bpsdm Jabar', NULL, 'BPSDM Jabar', 'JAWA BARAT', 'KOTA CIMAHI', 'CIMAHI UTARA', 'CIPAGERAN', NULL, -6.8494402, 107.5469204, 'PNS'),
+(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', '3542312431523123', '989364374327', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', NULL, '2026-08-28 12:02:38', '2026-09-01 14:44:56', 'Laki-Laki', NULL, NULL, 'asdasfasfas', NULL, 'afasasfasfasfasf', 'DKI JAKARTA', 'KOTA JAKARTA PUSAT', 'SENEN', 'PASEBAN', NULL, -6.1929872, 106.8515287, 'PNS'),
+(5, NULL, NULL, 'Ali Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$YPxZ1PjL0nlyZ5xYpyDlpO/QybSb.V1hYbezpk8WV1dARs/x7vtsi', NULL, '2026-08-28 12:49:55', '2026-08-28 13:30:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, NULL, NULL, 'Ghani', 'aset@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_aset', NULL, 'approved', 'Pengelola Aset', '$2y$12$1/1IVk5j2D/c5zf527T2a.RPbGf9Bu9e1AWOkVSsIcgNZ1dxS6K9i', NULL, '2026-08-29 14:38:46', '2026-08-29 14:38:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, '107913421320469114225', 'https://lh3.googleusercontent.com/a/ACg8ocLwmh1zFGix6WeyXU2zAzUMuDTawdX04V6cZhIgBrCbA9WmRA=s96-c', 'Simpan Aku', 'simpanakuaja@gmail.com', '34554834689342342', '0988653845345', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$QV8zTZcMbwc/SxFgVzTYeuWDWYvhzYQnQ.3jcCbZQzmEYQJ.K5A06', NULL, '2026-08-30 05:13:44', '2026-08-30 05:29:27', 'Perempuan', NULL, NULL, 'GURU AHLI PERTAMA', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', NULL, -6.9338798, 107.6823923, 'PPPK'),
+(12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$qDWvuQDVTrjE7IM9ei0LYupJi5.tCiP9INKYaeq1clTkGd.OLfJyK', NULL, '2026-08-31 07:09:45', '2026-09-12 13:11:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', NULL, NULL, 'fsdfsdfsdfsdf', NULL, 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', NULL, -3.3569196, 122.8328450, 'PPPK'),
+(18, NULL, NULL, 'Samsidin, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', NULL, '2026-09-10 13:22:21', '2026-09-12 06:42:24', 'Laki-Laki', NULL, NULL, 'Pengelolaa Layanan Operasional', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, NULL, 'PNS'),
+(19, NULL, NULL, 'SAMSIDIN', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$a6MzTi6cw54DV4KnfWboH.OlS4IOrfP6BKMW5oPyblI0O4rn6ttK.', NULL, '2026-09-12 15:21:42', '2026-09-12 15:25:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20, NULL, NULL, 'Saepuloh', '1234567890', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$RlCfNjXJNraxsbulX6M7luNxWIvcBTZdzmPj9FWqgc/hZdoQk9sKK', NULL, '2026-09-13 06:21:02', '2026-09-13 06:23:25', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(21, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '3202450303950002', '08123456789', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$cmNRY0vYnL1bkr4P0g4Se.4WgQhpKdkt.kk7WE0L1aI.3eaGSJb2W', NULL, '2026-09-13 08:07:43', '2026-09-13 08:43:19', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa', 'III/a', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PNS');
 
 --
 -- Indexes for dumped tables
@@ -2977,7 +3070,8 @@ ALTER TABLE `electronic_signature_documents`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `electronic_signature_documents_verification_token_unique` (`verification_token`),
   ADD KEY `es_doc_request_fk` (`electronic_signature_request_id`),
-  ADD KEY `es_doc_participant_cert_idx` (`participant_certificate_id`);
+  ADD KEY `es_doc_participant_cert_idx` (`participant_certificate_id`),
+  ADD KEY `electronic_signature_documents_internship_participant_id_foreign` (`internship_participant_id`);
 
 --
 -- Indeks untuk tabel `electronic_signature_requests`
@@ -3085,6 +3179,23 @@ ALTER TABLE `folder_user_permissions`
   ADD KEY `folder_user_permissions_user_id_permission_index` (`user_id`,`permission`);
 
 --
+-- Indeks untuk tabel `guest_book_locations`
+--
+ALTER TABLE `guest_book_locations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `guest_book_locations_public_token_unique` (`public_token`),
+  ADD KEY `guest_book_locations_created_by_foreign` (`created_by`);
+
+--
+-- Indeks untuk tabel `guest_visits`
+--
+ALTER TABLE `guest_visits`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `guest_visits_visit_code_unique` (`visit_code`),
+  ADD KEY `guest_visits_guest_book_location_id_checked_in_at_index` (`guest_book_location_id`,`checked_in_at`),
+  ADD KEY `guest_visits_target_bidang_index` (`target_bidang`);
+
+--
 -- Indeks untuk tabel `internship_attendances`
 --
 ALTER TABLE `internship_attendances`
@@ -3099,7 +3210,8 @@ ALTER TABLE `internship_participants`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `intern_program_student_unique` (`internship_program_id`,`student_number`),
   ADD KEY `internship_participants_user_id_foreign` (`user_id`),
-  ADD KEY `internship_participants_reviewed_by_foreign` (`reviewed_by`);
+  ADD KEY `internship_participants_reviewed_by_foreign` (`reviewed_by`),
+  ADD KEY `internship_participants_certificate_sent_by_foreign` (`certificate_sent_by`);
 
 --
 -- Indeks untuk tabel `internship_programs`
@@ -3107,7 +3219,9 @@ ALTER TABLE `internship_participants`
 ALTER TABLE `internship_programs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `internship_programs_public_token_unique` (`public_token`),
-  ADD KEY `internship_programs_created_by_foreign` (`created_by`);
+  ADD KEY `internship_programs_created_by_foreign` (`created_by`),
+  ADD KEY `internship_programs_certificate_signer_id_foreign` (`certificate_signer_id`),
+  ADD KEY `internship_programs_manager_id_foreign` (`manager_id`);
 
 --
 -- Indeks untuk tabel `jobs`
@@ -3334,7 +3448,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `activity_attendance_answers`
 --
 ALTER TABLE `activity_attendance_answers`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT untuk tabel `activity_attendance_forms`
@@ -3346,13 +3460,13 @@ ALTER TABLE `activity_attendance_forms`
 -- AUTO_INCREMENT untuk tabel `activity_attendance_questions`
 --
 ALTER TABLE `activity_attendance_questions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `activity_attendance_responses`
 --
 ALTER TABLE `activity_attendance_responses`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `activity_logs`
@@ -3454,13 +3568,13 @@ ALTER TABLE `certification_types`
 -- AUTO_INCREMENT untuk tabel `electronic_signature_actions`
 --
 ALTER TABLE `electronic_signature_actions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_actors`
 --
 ALTER TABLE `electronic_signature_actors`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_attempts`
@@ -3472,13 +3586,13 @@ ALTER TABLE `electronic_signature_attempts`
 -- AUTO_INCREMENT untuk tabel `electronic_signature_documents`
 --
 ALTER TABLE `electronic_signature_documents`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_requests`
 --
 ALTER TABLE `electronic_signature_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT untuk tabel `evaluation_forms`
@@ -3547,16 +3661,28 @@ ALTER TABLE `folder_user_permissions`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT untuk tabel `guest_book_locations`
+--
+ALTER TABLE `guest_book_locations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `guest_visits`
+--
+ALTER TABLE `guest_visits`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT untuk tabel `internship_attendances`
 --
 ALTER TABLE `internship_attendances`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `internship_participants`
 --
 ALTER TABLE `internship_participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `internship_programs`
@@ -3580,7 +3706,7 @@ ALTER TABLE `login_help_settings`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -3718,7 +3844,7 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -3869,6 +3995,7 @@ ALTER TABLE `electronic_signature_attempts`
 -- Ketidakleluasaan untuk tabel `electronic_signature_documents`
 --
 ALTER TABLE `electronic_signature_documents`
+  ADD CONSTRAINT `electronic_signature_documents_internship_participant_id_foreign` FOREIGN KEY (`internship_participant_id`) REFERENCES `internship_participants` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `es_doc_participant_cert_fk` FOREIGN KEY (`participant_certificate_id`) REFERENCES `participant_certificates` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `es_doc_request_fk` FOREIGN KEY (`electronic_signature_request_id`) REFERENCES `electronic_signature_requests` (`id`) ON DELETE CASCADE;
 
@@ -3954,6 +4081,18 @@ ALTER TABLE `folder_user_permissions`
   ADD CONSTRAINT `folder_user_permissions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `guest_book_locations`
+--
+ALTER TABLE `guest_book_locations`
+  ADD CONSTRAINT `guest_book_locations_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Ketidakleluasaan untuk tabel `guest_visits`
+--
+ALTER TABLE `guest_visits`
+  ADD CONSTRAINT `guest_visits_guest_book_location_id_foreign` FOREIGN KEY (`guest_book_location_id`) REFERENCES `guest_book_locations` (`id`) ON DELETE CASCADE;
+
+--
 -- Ketidakleluasaan untuk tabel `internship_attendances`
 --
 ALTER TABLE `internship_attendances`
@@ -3964,6 +4103,7 @@ ALTER TABLE `internship_attendances`
 -- Ketidakleluasaan untuk tabel `internship_participants`
 --
 ALTER TABLE `internship_participants`
+  ADD CONSTRAINT `internship_participants_certificate_sent_by_foreign` FOREIGN KEY (`certificate_sent_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `internship_participants_internship_program_id_foreign` FOREIGN KEY (`internship_program_id`) REFERENCES `internship_programs` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `internship_participants_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `internship_participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
@@ -3972,7 +4112,9 @@ ALTER TABLE `internship_participants`
 -- Ketidakleluasaan untuk tabel `internship_programs`
 --
 ALTER TABLE `internship_programs`
-  ADD CONSTRAINT `internship_programs_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `internship_programs_certificate_signer_id_foreign` FOREIGN KEY (`certificate_signer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `internship_programs_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `internship_programs_manager_id_foreign` FOREIGN KEY (`manager_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Ketidakleluasaan untuk tabel `monitoring_results`
