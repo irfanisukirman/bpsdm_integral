@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 13 Sep 2026 pada 14.54
+-- Waktu pembuatan: 14 Sep 2026 pada 07.29
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -173,7 +173,9 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `activity`, `module`, `ip_address`
 (30, 2, 'Menghapus pelatihan Pelatihan Pengkajian Kebutuhan Pascabencana beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 06:10:34', '2026-09-12 06:10:34'),
 (31, 2, 'Menghapus pelatihan Pelatihan Contoh Kedalam Umum beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:06', '2026-09-12 11:05:06'),
 (32, 2, 'Menghapus pelatihan Pealtihan Keuangan Daerah beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:10', '2026-09-12 11:05:10'),
-(33, 2, 'Menghapus pelatihan PELATIHAN LATSAR beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:14', '2026-09-12 11:05:14');
+(33, 2, 'Menghapus pelatihan PELATIHAN LATSAR beserta peserta, evaluasi, monitoring, jadwal, forum, dan seluruh dokumen terkait.', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-12 11:05:14', '2026-09-12 11:05:14'),
+(34, 5, 'Membuat pelatihan & folder dokumen: Pelatihan Contoh Kedalam Umum', 'Pelatihan', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-14 01:27:04', '2026-09-14 01:27:04'),
+(35, 5, 'Menghapus kepesertaan Contoh Nama Peserta dari pelatihan Pelatihan Contoh Kedalam Umum beserta seluruh data terkait.', 'Peserta', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', '2026-09-14 04:47:27', '2026-09-14 04:47:27');
 
 -- --------------------------------------------------------
 
@@ -1890,7 +1892,8 @@ INSERT INTO `folders` (`id`, `training_id`, `document_year`, `is_archived`, `arc
 (54, NULL, 2026, 0, NULL, NULL, 'Sertifikasi', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 12, 0, NULL, '2026-08-30 10:02:29', '2026-09-05 10:49:14'),
 (71, NULL, 2026, 0, NULL, NULL, 'Pengajuan Mitra', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
 (72, NULL, NULL, 0, NULL, NULL, 'Kabupaten', 'Bidang Pengembangan Kompetensi Teknis Umum', 71, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
-(73, NULL, NULL, 0, NULL, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00');
+(73, NULL, NULL, 0, NULL, NULL, 'pasdjsdbjasfasf', 'Bidang Pengembangan Kompetensi Teknis Umum', 72, 5, 0, NULL, '2026-08-31 08:04:00', '2026-08-31 08:04:00'),
+(112, 13, 2026, 0, NULL, NULL, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', NULL, 5, 0, NULL, '2026-09-14 01:27:04', '2026-09-14 01:27:04');
 
 -- --------------------------------------------------------
 
@@ -2277,7 +2280,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (117, '2026_09_13_180200_rename_non_asn_employment_status_to_pppk_pw', 52),
 (118, '2026_09_13_180300_add_internship_manager_role_to_users', 53),
 (119, '2026_09_13_180400_create_guest_book_module', 54),
-(120, '2026_09_13_180500_add_target_bidang_to_guest_visits', 55);
+(120, '2026_09_13_180500_add_target_bidang_to_guest_visits', 55),
+(121, '2026_09_14_090000_add_import_onboarding_flags_to_users_table', 56);
 
 -- --------------------------------------------------------
 
@@ -2401,6 +2405,13 @@ CREATE TABLE `participants` (
   `surat_tugas_file_id` bigint(20) UNSIGNED DEFAULT NULL,
   `pas_foto_file_id` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `participants`
+--
+
+INSERT INTO `participants` (`id`, `training_id`, `user_id`, `nip_nik`, `phone`, `name`, `gender`, `jabatan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `status_kepegawaian`, `registration_status`, `created_at`, `updated_at`, `biodata_file_id`, `surat_tugas_file_id`, `pas_foto_file_id`) VALUES
+(30, 13, 23, '199503032024011001', NULL, 'Contoh Nama Peserta', NULL, NULL, 'BPSDM Provinsi Jawa Barat', NULL, NULL, NULL, NULL, NULL, 'approved', '2026-09-14 04:48:17', '2026-09-14 04:48:17', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -2642,6 +2653,13 @@ CREATE TABLE `trainings` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `trainings`
+--
+
+INSERT INTO `trainings` (`id`, `created_by`, `bidang`, `program_evaluasi`, `nama_pelatihan`, `invitation_code`, `link_lms`, `model`, `metode`, `lokasi`, `kerjasama`, `anggaran`, `angkatan`, `jumlah_peserta`, `jp`, `tgl_mulai`, `tgl_selesai`, `tgl_mulai_klasikal`, `tgl_selesai_klasikal`, `created_at`, `updated_at`) VALUES
+(13, 5, 'Bidang Pengembangan Kompetensi Teknis Umum', 'PKTI/PKTU', 'Pelatihan Contoh Kedalam Umum', 'T5OVCD', NULL, 'standar', 'full learning', 'Zoom', NULL, NULL, '3', 34, 50, '2026-09-13', '2026-09-19', NULL, NULL, '2026-09-14 01:27:04', '2026-09-14 01:27:04');
+
 -- --------------------------------------------------------
 
 --
@@ -2815,6 +2833,8 @@ CREATE TABLE `users` (
   `user_type_status` varchar(20) NOT NULL DEFAULT 'approved',
   `bidang` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
+  `must_complete_profile` tinyint(1) NOT NULL DEFAULT 0,
+  `must_change_password` tinyint(1) NOT NULL DEFAULT 0,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -2838,22 +2858,23 @@ CREATE TABLE `users` (
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`, `whatsapp`, `profile_photo`, `role`, `user_type`, `user_type_status`, `bidang`, `password`, `remember_token`, `created_at`, `updated_at`, `gender`, `birth_place`, `birth_date`, `jabatan`, `golongan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `address`, `latitude`, `longitude`, `status_kepegawaian`) VALUES
-(1, '107781747552867366947', 'https://lh3.googleusercontent.com/a/ACg8ocJTdYYDR-py4kqvc2uXIM_JX56X0cang30ysQGyyWB23sdF2Q=s96-c', 'Simpan Aku aja 22', 'simpanakuajaduadua@gmail.com', '12387126387126438', '081382830814', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$HvkVkDVodkLIaQs6RniJ9.gPBvc7A8xecTEB12IXr1kuezKe.V1fq', NULL, '2026-08-28 04:30:55', '2026-08-28 14:43:37', 'Laki-Laki', NULL, NULL, 'Pengelola Layanan', NULL, 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, -6.8335548, 107.5854874, 'PNS'),
-(2, NULL, NULL, 'Super Administrator', 'superadmin@bpsdm.go.id', '19450817000000', '6281234567890', 'avatars/TF8Li4BqNhflk57ZhBXfkP5zRboFs4kS0OmSpwil.png', 'superadmin', NULL, 'approved', NULL, '$2y$12$82TUizUKE.owZ2/L0KDDg.7e.UydaeeVnpdqKnjkcqgV2KRqkKuym', NULL, '2026-08-28 06:19:21', '2026-09-13 07:49:39', 'Laki-Laki', NULL, NULL, 'Kepala Bpsdm Jabar', NULL, 'BPSDM Jabar', 'JAWA BARAT', 'KOTA CIMAHI', 'CIMAHI UTARA', 'CIPAGERAN', NULL, -6.8494402, 107.5469204, 'PNS'),
-(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', '3542312431523123', '989364374327', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', NULL, '2026-08-28 12:02:38', '2026-09-01 14:44:56', 'Laki-Laki', NULL, NULL, 'asdasfasfas', NULL, 'afasasfasfasfasf', 'DKI JAKARTA', 'KOTA JAKARTA PUSAT', 'SENEN', 'PASEBAN', NULL, -6.1929872, 106.8515287, 'PNS'),
-(5, NULL, NULL, 'Ali Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$YPxZ1PjL0nlyZ5xYpyDlpO/QybSb.V1hYbezpk8WV1dARs/x7vtsi', NULL, '2026-08-28 12:49:55', '2026-08-28 13:30:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(9, NULL, NULL, 'Ghani', 'aset@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_aset', NULL, 'approved', 'Pengelola Aset', '$2y$12$1/1IVk5j2D/c5zf527T2a.RPbGf9Bu9e1AWOkVSsIcgNZ1dxS6K9i', NULL, '2026-08-29 14:38:46', '2026-08-29 14:38:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(11, '107913421320469114225', 'https://lh3.googleusercontent.com/a/ACg8ocLwmh1zFGix6WeyXU2zAzUMuDTawdX04V6cZhIgBrCbA9WmRA=s96-c', 'Simpan Aku', 'simpanakuaja@gmail.com', '34554834689342342', '0988653845345', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$QV8zTZcMbwc/SxFgVzTYeuWDWYvhzYQnQ.3jcCbZQzmEYQJ.K5A06', NULL, '2026-08-30 05:13:44', '2026-08-30 05:29:27', 'Perempuan', NULL, NULL, 'GURU AHLI PERTAMA', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', NULL, -6.9338798, 107.6823923, 'PPPK'),
-(12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$qDWvuQDVTrjE7IM9ei0LYupJi5.tCiP9INKYaeq1clTkGd.OLfJyK', NULL, '2026-08-31 07:09:45', '2026-09-12 13:11:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', NULL, NULL, 'fsdfsdfsdfsdf', NULL, 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', NULL, -3.3569196, 122.8328450, 'PPPK'),
-(18, NULL, NULL, 'Samsidin, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', NULL, '2026-09-10 13:22:21', '2026-09-12 06:42:24', 'Laki-Laki', NULL, NULL, 'Pengelolaa Layanan Operasional', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, NULL, 'PNS'),
-(19, NULL, NULL, 'SAMSIDIN', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$a6MzTi6cw54DV4KnfWboH.OlS4IOrfP6BKMW5oPyblI0O4rn6ttK.', NULL, '2026-09-12 15:21:42', '2026-09-12 15:25:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(20, NULL, NULL, 'Saepuloh', '1234567890', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$RlCfNjXJNraxsbulX6M7luNxWIvcBTZdzmPj9FWqgc/hZdoQk9sKK', NULL, '2026-09-13 06:21:02', '2026-09-13 06:23:25', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(21, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '3202450303950002', '08123456789', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$cmNRY0vYnL1bkr4P0g4Se.4WgQhpKdkt.kk7WE0L1aI.3eaGSJb2W', NULL, '2026-09-13 08:07:43', '2026-09-13 08:43:19', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa', 'III/a', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PNS');
+INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`, `whatsapp`, `profile_photo`, `role`, `user_type`, `user_type_status`, `bidang`, `password`, `must_complete_profile`, `must_change_password`, `remember_token`, `created_at`, `updated_at`, `gender`, `birth_place`, `birth_date`, `jabatan`, `golongan`, `instansi`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `address`, `latitude`, `longitude`, `status_kepegawaian`) VALUES
+(1, '107781747552867366947', 'https://lh3.googleusercontent.com/a/ACg8ocJTdYYDR-py4kqvc2uXIM_JX56X0cang30ysQGyyWB23sdF2Q=s96-c', 'Simpan Aku aja 22', 'simpanakuajaduadua@gmail.com', '12387126387126438', '081382830814', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$HvkVkDVodkLIaQs6RniJ9.gPBvc7A8xecTEB12IXr1kuezKe.V1fq', 0, 0, NULL, '2026-08-28 04:30:55', '2026-08-28 14:43:37', 'Laki-Laki', NULL, NULL, 'Pengelola Layanan', NULL, 'jdfsgfjsdbfsdjfsdf', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, -6.8335548, 107.5854874, 'PNS'),
+(2, NULL, NULL, 'Super Administrator', 'superadmin@bpsdm.go.id', '19450817000000', '6281234567890', 'avatars/TF8Li4BqNhflk57ZhBXfkP5zRboFs4kS0OmSpwil.png', 'superadmin', NULL, 'approved', NULL, '$2y$12$82TUizUKE.owZ2/L0KDDg.7e.UydaeeVnpdqKnjkcqgV2KRqkKuym', 0, 0, NULL, '2026-08-28 06:19:21', '2026-09-13 07:49:39', 'Laki-Laki', NULL, NULL, 'Kepala Bpsdm Jabar', NULL, 'BPSDM Jabar', 'JAWA BARAT', 'KOTA CIMAHI', 'CIMAHI UTARA', 'CIPAGERAN', NULL, -6.8494402, 107.5469204, 'PNS'),
+(4, '118339399391382672190', 'https://lh3.googleusercontent.com/a/ACg8ocJWem1Q3SnD_OF1CZI77YKZA_yxmXI7nkEf8tHs-xnvfPkYNg=s96-c', 'simpanakuaja delapan', 'simpanakuajadelapan@gmail.com', '3542312431523123', '989364374327', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$J4lpZbI2DwCPMgmoz.1dzekWiWnRaPI3L62Q9aECyZT6zLBhggQzy', 0, 0, NULL, '2026-08-28 12:02:38', '2026-09-01 14:44:56', 'Laki-Laki', NULL, NULL, 'asdasfasfas', NULL, 'afasasfasfasfasf', 'DKI JAKARTA', 'KOTA JAKARTA PUSAT', 'SENEN', 'PASEBAN', NULL, -6.1929872, 106.8515287, 'PNS'),
+(5, NULL, NULL, 'Ali Ridwan', 'bidangpktu@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Umum', '$2y$12$YPxZ1PjL0nlyZ5xYpyDlpO/QybSb.V1hYbezpk8WV1dARs/x7vtsi', 0, 0, NULL, '2026-08-28 12:49:55', '2026-08-28 13:30:36', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, NULL, NULL, 'Ghani', 'aset@bpsdm.go.id', NULL, '08123456789', NULL, 'admin_aset', NULL, 'approved', 'Pengelola Aset', '$2y$12$1/1IVk5j2D/c5zf527T2a.RPbGf9Bu9e1AWOkVSsIcgNZ1dxS6K9i', 0, 0, NULL, '2026-08-29 14:38:46', '2026-08-29 14:38:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, '107913421320469114225', 'https://lh3.googleusercontent.com/a/ACg8ocLwmh1zFGix6WeyXU2zAzUMuDTawdX04V6cZhIgBrCbA9WmRA=s96-c', 'Simpan Aku', 'simpanakuaja@gmail.com', '34554834689342342', '0988653845345', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$QV8zTZcMbwc/SxFgVzTYeuWDWYvhzYQnQ.3jcCbZQzmEYQJ.K5A06', 0, 0, NULL, '2026-08-30 05:13:44', '2026-08-30 05:29:27', 'Perempuan', NULL, NULL, 'GURU AHLI PERTAMA', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KOTA BANDUNG', 'ARCAMANIK', 'CISARANTEN KULON', NULL, -6.9338798, 107.6823923, 'PPPK'),
+(12, NULL, NULL, 'Rizky Adia Mukti', 'skpk@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$kxvFfhIPB4OljwYOXBTOheha3eWnpcmLMwY/skCJxZDnmok5upGcO', 0, 0, NULL, '2026-08-30 09:34:20', '2026-08-30 09:34:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(13, NULL, NULL, 'IMAN NOERMANA', 'bidangpkti@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Teknis Inti', '$2y$12$lcWJXnQoBoXxqKCQtXwtyu/.2vwcXPoY7z54YyExt4JQeefiJpWoO', 0, 0, NULL, '2026-08-30 23:52:17', '2026-08-30 23:52:17', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(14, NULL, NULL, 'Riswandi', 'bidangpkm@bpsdm.go.id', NULL, '6281382830814', NULL, 'admin_bidang', NULL, 'approved', 'Bidang Pengembangan Kompetensi Manajerial', '$2y$12$FhYT4QbCVf8L0PQwePC8seENol4Vsuvkj3YaHGH2F4jPsekqgUOGq', 0, 0, NULL, '2026-08-30 23:52:43', '2026-08-30 23:52:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(15, NULL, NULL, 'Kabupaten', 'kabupaten', '3201125305870003', '6281382830814', NULL, 'mitra', 'mitra', 'approved', NULL, '$2y$12$qDWvuQDVTrjE7IM9ei0LYupJi5.tCiP9INKYaeq1clTkGd.OLfJyK', 0, 0, NULL, '2026-08-31 07:09:45', '2026-09-12 13:11:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(17, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235235235', '8656565626333', NULL, 'pengajar', 'narasumber', 'approved', NULL, '$2y$12$CSMgGuQ76pirg0mVSc80wOiw50jB1euboqOuHJV484ocDNByMKGVy', 0, 0, NULL, '2026-09-01 15:12:43', '2026-09-01 15:14:09', 'Laki-Laki', NULL, NULL, 'fsdfsdfsdfsdf', NULL, 'faswefasfasf', 'SUMATERA BARAT', 'KABUPATEN TANAH DATAR', 'BATIPUH', 'GUNUNG RAJO', NULL, -3.3569196, 122.8328450, 'PPPK'),
+(18, NULL, NULL, 'Samsidin, A.Md.Kom.', '3202450303950001', '3202450303950001', '086654234', 'avatars/v7fsqOyeoo8YyVwKtN5CnrPLxFY2ezO4xJrSM4wB.png', 'penandatangan', NULL, 'approved', NULL, '$2y$12$blmDzUv97YejsCf.DbB5c..eETYj8tyvxXVvjusxj4Z4irv6l8QsO', 0, 0, NULL, '2026-09-10 13:22:21', '2026-09-12 06:42:24', 'Laki-Laki', NULL, NULL, 'Pengelolaa Layanan Operasional', NULL, 'Bpsdm Jabar', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', NULL, NULL, NULL, 'PNS'),
+(19, NULL, NULL, 'SAMSIDIN', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$a6MzTi6cw54DV4KnfWboH.OlS4IOrfP6BKMW5oPyblI0O4rn6ttK.', 0, 0, NULL, '2026-09-12 15:21:42', '2026-09-12 15:25:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20, NULL, NULL, 'Saepuloh', '1234567890', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$RlCfNjXJNraxsbulX6M7luNxWIvcBTZdzmPj9FWqgc/hZdoQk9sKK', 0, 0, NULL, '2026-09-13 06:21:02', '2026-09-13 06:23:25', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(21, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '3202450303950002', '08123456789', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$cmNRY0vYnL1bkr4P0g4Se.4WgQhpKdkt.kk7WE0L1aI.3eaGSJb2W', 0, 0, NULL, '2026-09-13 08:07:43', '2026-09-13 08:43:19', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa', 'III/a', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PNS'),
+(23, NULL, NULL, 'Contoh Nama Peserta', '199503032024011001', '199503032024011001', NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$5N4jzdq84PinjF4lkIL3xuPbs9FWkwoDzN1onn49IAbUHH3wbck..', 1, 1, NULL, '2026-09-14 04:48:17', '2026-09-14 04:48:17', NULL, NULL, NULL, NULL, NULL, 'BPSDM Provinsi Jawa Barat', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -3472,7 +3493,7 @@ ALTER TABLE `activity_attendance_responses`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT untuk tabel `agendas`
@@ -3652,7 +3673,7 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -3706,7 +3727,7 @@ ALTER TABLE `login_help_settings`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -3730,7 +3751,7 @@ ALTER TABLE `notification_reads`
 -- AUTO_INCREMENT untuk tabel `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT untuk tabel `participant_certificates`
@@ -3790,7 +3811,7 @@ ALTER TABLE `schedules`
 -- AUTO_INCREMENT untuk tabel `trainings`
 --
 ALTER TABLE `trainings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_activity_documentations`
@@ -3844,7 +3865,7 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
