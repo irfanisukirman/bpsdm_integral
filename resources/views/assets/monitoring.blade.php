@@ -16,12 +16,14 @@
                         $startHour=max(0,$booking->starts_at->hour+$booking->starts_at->minute/60);
                         $endHour=$booking->ends_at->isSameDay($booking->starts_at)?min(24,$booking->ends_at->hour+$booking->ends_at->minute/60):24;
                         $left=$startHour/24*100;$width=max(1,($endHour-$startHour)/24*100);
-                        $isTraining=class_basename($booking->bookable_type)==='Schedule';
-                        $label=$isTraining?($booking->bookable->activity??'Pelatihan'):($booking->bookable->agenda->name??'Agenda');
-                        $owner=$isTraining?($booking->bookable->pic??'-'):($booking->bookable->agenda->creator->name??'-');
+                        $isTraining=$booking->bookable instanceof \App\Models\Schedule;
+                        $isPublic=$booking->bookable instanceof \App\Models\AssetPublicReservation;
+                        $label=$isTraining?($booking->bookable?->activity??'Pelatihan'):($isPublic?('Reservasi '.$booking->bookable?->booking_code):($booking->bookable?->agenda?->name??'Agenda'));
+                        $owner=$isTraining?($booking->bookable?->pic??'-'):($isPublic?($booking->bookable?->full_name??'-'):($booking->bookable?->agenda?->creator?->name??'-'));
+                        $barColor=$isTraining?'bg-primary':($isPublic?'bg-success':'bg-info');
                         $tooltip='Aset: '.$assetRow->name.' | Kegiatan: '.$label.' | Peminjam/PIC: '.$owner.' | '.$booking->starts_at->format('H:i').'–'.$booking->ends_at->format('H:i');
                     @endphp
-                    <div class="position-absolute {{ $isTraining?'bg-primary':'bg-info' }} text-white rounded px-2 text-truncate"
+                    <div class="position-absolute {{ $barColor }} text-white rounded px-2 text-truncate"
                          style="left:{{ $left }}%;width:{{ $width }}%;height:34px;top:4px;line-height:34px;cursor:help"
                          title="{{ $tooltip }}">{{ $label }}</div>
                 @endforeach

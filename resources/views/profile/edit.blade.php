@@ -21,6 +21,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible border-0 shadow-sm mb-4" role="alert">
+            <div class="fw-bold mb-1"><i class="bx bx-error-circle me-1"></i>Profil belum dapat disimpan</div>
+            <ul class="mb-0 ps-3">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     <div class="row">
         <div class="col-md-12">
@@ -49,9 +56,10 @@
                                 <label for="upload" class="btn btn-primary me-2 mb-4" tabindex="0">
                                     <span class="d-none d-sm-block text-uppercase small fw-bold">Unggah Foto Baru</span>
                                     <i class="bx bx-upload d-block d-sm-none"></i>
-                                    <input type="file" id="upload" name="profile_photo" class="account-file-input" hidden accept="image/png, image/jpeg" />
+                                    <input type="file" id="upload" name="profile_photo" class="account-file-input" hidden accept="image/png,image/jpeg,image/webp" />
                                 </label>
-                                <p class="text-muted mb-0 small">Format: JPG atau PNG. Ukuran Maksimal: 2MB.</p>
+                                <p class="text-muted mb-0 small">Format: JPG, PNG, atau WebP. Ukuran maksimal 5 MB.</p>
+                                @error('profile_photo')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                             </div>
                         </div>
                     </div>
@@ -107,8 +115,16 @@
                                 <select name="status_kepegawaian" class="form-select">
                                     <option value="PNS" {{ $user->status_kepegawaian == 'PNS' ? 'selected' : '' }}>PNS</option>
                                     <option value="PPPK" {{ $user->status_kepegawaian == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                    <option value="Non-ASN" {{ $user->status_kepegawaian == 'Non-ASN' ? 'selected' : '' }}>Non-ASN</option>
+                                    <option value="PPPK-PW" {{ $user->status_kepegawaian == 'PPPK-PW' ? 'selected' : '' }}>PPPK-PW</option>
                                 </select>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-bold">Tempat Lahir</label>
+                                <input class="form-control" type="text" name="birth_place" value="{{old('birth_place',$user->birth_place)}}" placeholder="Contoh: Bandung" required>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-bold">Tanggal Lahir</label>
+                                <input class="form-control" type="date" name="birth_date" value="{{old('birth_date',$user->birth_date?->format('Y-m-d'))}}" max="{{today()->toDateString()}}" required>
                             </div>
                         </div>
 
@@ -120,8 +136,19 @@
                                 <input class="form-control" type="text" name="jabatan" value="{{ old('jabatan', $user->jabatan) }}" placeholder="Contoh: Analis SDM" />
                             </div>
                             <div class="mb-3 col-md-6">
+                                <label class="form-label fw-bold">Golongan</label>
+                                @php $selectedGolongan=old('golongan',$user->golongan); @endphp
+                                <select name="golongan" class="form-select">
+                                    <option value="">-- Tidak memiliki golongan --</option>
+                                    @foreach(['I/a','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV'] as $golongan)
+                                        <option value="{{$golongan}}" @selected($selectedGolongan===$golongan)>{{$golongan}}</option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Pilih golongan saat ini sesuai data kepegawaian.</div>
+                            </div>
+                            <div class="mb-3 col-12">
                                 <label class="form-label fw-bold">Instansi / Unit Kerja</label>
-                                <input class="form-control" type="text" name="instansi" value="{{ old('instansi', $user->instansi) }}" placeholder="Contoh: BPSDM Provinsi Jawa Barat" />
+                                <input class="form-control" type="text" name="instansi" value="{{ old('instansi', $user->instansi) }}" placeholder="Contoh: BPSDM Provinsi Jawa Barat" required />
                             </div>
                         </div>
 
@@ -155,6 +182,16 @@
                         </div>
 
                         <div class="mt-3">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Alamat Lengkap</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bx bx-search-alt"></i></span>
+                                    <input type="text" name="address" id="addressSearch" class="form-control" value="{{old('address',$user->address)}}" placeholder="Contoh: Jl. Nihmat, Bandung" autocomplete="street-address" required>
+                                    <button type="button" id="searchAddressButton" class="btn btn-primary"><i class="bx bx-search me-1"></i>Cari Alamat</button>
+                                </div>
+                                <div class="form-text">Tekan Cari Alamat, lalu pilih hasil yang sesuai. Peta dan koordinat akan diarahkan otomatis.</div>
+                                <div id="addressSearchResults" class="list-group mt-2 shadow-sm d-none" style="max-height:260px;overflow-y:auto"></div>
+                            </div>
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                 <div>
                                     <label class="form-label fw-bold mb-0">Titik Lokasi Desa/Kelurahan</label>
@@ -253,6 +290,8 @@
 
     locationMap.on('click', event => setLocationPoint(event.latlng.lat, event.latlng.lng, false));
     if (hasInitialPoint) setLocationPoint(initialLat, initialLng, false);
+
+@include('profile.partials.address-search-script')
 
     document.getElementById('useCurrentLocation').addEventListener('click', function() {
         if (!navigator.geolocation) return alert('Browser tidak mendukung deteksi lokasi.');

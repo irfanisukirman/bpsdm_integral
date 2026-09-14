@@ -5,7 +5,7 @@
         <a href="{{ route('dashboard') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
                 {{-- LOGO INTEGRAL --}}
-                <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786770700/Integral_1_ykmzxx.png" 
+                <img src="{{ asset('assets/img/favicon/inte.png') }}" 
                      alt="Integral Logo" 
                      style="width: 32px; filter: drop-shadow(0px 2px 4px rgba(105, 108, 255, 0.3));">
             </span>
@@ -21,6 +21,17 @@
 
     <ul class="menu-inner py-3">
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
+        @if(Auth::user()->role === 'resepsionis')
+            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>
+        @endif        @if(Auth::user()->role === 'pengelola_magang')
+            <li class="menu-item {{ request()->routeIs('internships.*') ? 'active' : '' }}">
+                <a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Presensi Magang/PKL</div></a>
+            </li>
+        @endif        @if(Auth::user()->role === 'penandatangan')
+            <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
+                <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
+            </li>
+        @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
             <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
                 <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
@@ -30,6 +41,12 @@
             <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
         @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+        @elseif(Auth::user()->role === 'resepsionis')
+            {{-- Menu Buku Tamu sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'pengelola_magang')
+            {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'intern')
+            <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
@@ -38,6 +55,8 @@
             </li>
         @elseif(Auth::user()->role === 'mitra')
             <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
+        @elseif(Auth::user()->role === 'penandatangan')
+            {{-- Dashboard akun penandatangan adalah Pusat Tanda Tangan Elektronik di atas. --}}
         @else
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
         @endif
@@ -56,6 +75,7 @@
                 <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('participant_trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('participant_trainings')>99?'99+':$menuNoticeCount('participant_trainings')}}</span>@endif</a>
             </li>
         @endif
+
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
             <li class="menu-item {{ request()->routeIs('daily-schedule.*') ? 'active' : '' }}">
                 <a href="{{ route('daily-schedule.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-check"></i><div>Monitoring Jadwal Harian</div></a>
@@ -75,6 +95,7 @@
                 <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div>Dashboard Aset</div></a></li>
             @endif
             <li class="menu-item {{ request()->routeIs('assets.index') ? 'active' : '' }}"><a href="{{ route('assets.index') }}" class="menu-link"><i class="menu-icon bx bx-cube"></i><div>Kelola Aset</div></a></li>
+            <li class="menu-item {{ request()->routeIs('asset-rentals.admin.*') ? 'active' : '' }}"><a href="{{ route('asset-rentals.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-star"></i><div>Kelola Reservasi</div>@if($menuNoticeCount('asset_rentals'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('asset_rentals')}}</span>@endif</a></li>
             <li class="menu-item {{ request()->routeIs('assets.monitoring') ? 'active' : '' }}"><a href="{{ route('assets.monitoring') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Monitoring Aset</div>@if($menuNoticeCount('asset_monitoring'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('asset_monitoring')>99?'99+':$menuNoticeCount('asset_monitoring')}}</span>@endif</a></li>
             <li class="menu-item {{ request()->routeIs('asset-loans.*') ? 'active' : '' }}"><a href="{{ route('asset-loans.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div>Persetujuan Peminjaman</div>@if($menuNoticeCount('asset_loans'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('asset_loans')>99?'99+':$menuNoticeCount('asset_loans')}}</span>@endif</a></li>
             <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div>@if($menuNoticeCount('agendas'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('agendas')>99?'99+':$menuNoticeCount('agendas')}}</span>@endif</a></li>
@@ -88,6 +109,19 @@
         <!-- 1. MENU KHUSUS ADMIN BIDANG & SUPERADMIN                  -->
         <!-- ========================================================= -->
         @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Presensi & Form Publik</span></li>
+
+            @if(Auth::user()->role === 'superadmin')
+            <li class="menu-item {{ request()->routeIs('internships.*') ? 'active' : '' }}"><a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div>Presensi Magang/PKL</div></a></li>
+            @endif
+            @if(Auth::user()->role === 'superadmin')
+            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div>Buku Tamu</div></a></li>
+            @endif            <li class="menu-item {{ request()->routeIs('activity-attendance.*') ? 'active' : '' }}">
+                <a href="{{ route('activity-attendance.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-clipboard"></i>
+                    <div>Presensi Kegiatan</div>
+                </a>
+            </li>
             @if(Auth::user()->role === 'superadmin' || in_array(Auth::user()->bidang, [
                 'Bidang Pengembangan Kompetensi Teknis Inti',
                 'Bidang Pengembangan Kompetensi Teknis Umum',
@@ -142,6 +176,16 @@
             </li>
 
             <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Persetujuan Elektronik</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
+                <a href="{{ route('electronic-signatures.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-pen"></i>
+                    <div>Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Dokumen menunggu tanda tangan">{{$menuNoticeCount('electronic_signatures')>99?'99+':$menuNoticeCount('electronic_signatures')}}</span>@endif
+                </a>
+            </li>
+
+            <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Manajemen Alumni</span>
             </li>
 
@@ -155,6 +199,12 @@
             @if(Auth::user()->role === 'superadmin')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan Sistem</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('settings.login-help.*') ? 'active' : '' }}">
+                <a href="{{ route('settings.login-help.edit') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-help-circle"></i>
+                    <div>Bantuan Login</div>
+                </a>
             </li>
             <li class="menu-item {{ request()->is('users*') ? 'active' : '' }}">
                 <a href="{{ route('users.index') }}" class="menu-link">
@@ -187,6 +237,7 @@
                     <div>Jadwal Mengajar</div>@if($menuNoticeCount('teacher_portal'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('teacher_portal')>99?'99+':$menuNoticeCount('teacher_portal')}}</span>@endif
                 </a>
             </li>
+
             <li class="menu-item {{ request()->routeIs('pengajar.history') ? 'active' : '' }}">
                 <a href="{{ route('pengajar.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
@@ -232,14 +283,24 @@
 
     /* Mempercantik Menu Header */
     .menu-header {
-        margin: 1.5rem 0 0.5rem 0 !important;
-        padding-left: 1.5rem;
+        min-height: auto !important;
+        margin: 1.35rem 1rem 0.55rem !important;
+        padding: 0.52rem 0.75rem !important;
+        border-left: 3px solid #8fa8ff;
+        border-radius: 0.5rem;
+    }
+
+    .menu-header:first-child {
+        margin-top: 0 !important;
     }
 
     .menu-header-text {
-        color: #a1acb8 !important;
-        font-weight: 700 !important;
-        letter-spacing: 1px;
+        color: #5d73c7 !important;
+        font-weight: 800 !important;
+        font-size: 0.67rem;
+        line-height: 1.25;
+        letter-spacing: 0.75px;
+        white-space: normal;
     }
 
     /* Badge Active Glow */
@@ -269,3 +330,4 @@
         flex: 0 0 2rem;
     }
 </style>
+

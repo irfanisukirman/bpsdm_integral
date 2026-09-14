@@ -29,11 +29,25 @@ class QuestionController extends Controller
             abort(404);
         }
 
+        $search = trim((string) $request->query('q', ''));
+        $selectedCategory = $request->query('category');
+        $selectedType = $request->query('type');
+        $categoryOptions = ['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'];
+        $typeOptions = ['slider', 'dropdown', 'checkbox', 'text'];
+        abort_if($selectedCategory && !in_array($selectedCategory, $categoryOptions, true), 404);
+        abort_if($selectedType && !in_array($selectedType, $typeOptions, true), 404);
+        abort_if(mb_strlen($search) > 100, 422, 'Pencarian maksimal 100 karakter.');
+
         $questions = $selectedBidang
             ? $this->evaluationQuestions()
                 ->where('bidang', $selectedBidang)
                 ->when($selectedProgram, fn ($query) => $query->where('program_evaluasi', $selectedProgram))
-                ->latest()->get()
+                ->when($selectedCategory, fn ($query) => $query->where('category', $selectedCategory))
+                ->when($selectedType, fn ($query) => $query->where('type', $selectedType))
+                ->when($search !== '', fn ($query) => $query->where('question_text', 'like', '%'.$search.'%'))
+                ->latest()
+                ->paginate(20)
+                ->withQueryString()
             : collect();
 
         $counts = $this->evaluationQuestions()
@@ -49,7 +63,7 @@ class QuestionController extends Controller
 
         return view('questions.index', compact(
             'questions', 'bidangOptions', 'isSuperadmin', 'selectedBidang', 'bundleStats',
-            'programOptions', 'selectedProgram'
+            'programOptions', 'selectedProgram', 'search', 'selectedCategory', 'selectedType', 'categoryOptions', 'typeOptions'
         ));
     }
 
@@ -122,7 +136,7 @@ class QuestionController extends Controller
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
             'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
-                ? ['required', Rule::in(['Data Diri Alumni', 'Penempatan Tugas dan Transfer Learning', 'Perubahan Perilaku', 'Dampak Pelatihan'])]
+                ? ['required', Rule::in(Question::l34SubCategoryOptions())]
                 : ['nullable'],
             'metode'        => in_array($request->input('category'), ['l1_penyelenggara', 'l1_narasumber'], true)
                 ? ['required', Rule::in(['semua', 'klasikal', 'full learning', 'blended'])]
@@ -170,7 +184,7 @@ class QuestionController extends Controller
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
             'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
-                ? ['required', Rule::in(['Data Diri Alumni', 'Penempatan Tugas dan Transfer Learning', 'Perubahan Perilaku', 'Dampak Pelatihan'])]
+                ? ['required', Rule::in(Question::l34SubCategoryOptions())]
                 : ['nullable'],
             'metode'        => in_array($request->input('category'), ['l1_penyelenggara', 'l1_narasumber'], true)
                 ? ['required', Rule::in(['semua', 'klasikal', 'full learning', 'blended'])]
@@ -228,7 +242,7 @@ class QuestionController extends Controller
         $data = $request->validate([
             'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
             'question_ids' => ['required', 'array', 'min:1'],
-            'question_ids.*' => ['required', 'integer', 'distinct', 'exists:questions,id'],
+            'question_ids.*' => ['required', 'integer', 'distinct', 'exists:evaluation_questions,id'],
             'program' => ['nullable', Rule::in(['semua', 'PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'])],
         ], [
             'question_ids.required' => 'Pilih minimal satu pertanyaan yang akan dihapus.',
@@ -297,6 +311,60 @@ class QuestionController extends Controller
             ->with('success', 'Bank soal berhasil diimpor ke '.$defaultBidang.'.');
     }
 
+    public function exportAll()
+    {
+        $user = Auth::user();
+        $query = $this->evaluationQuestions()
+            ->when($user->role !== 'superadmin', function ($query) use ($user) {
+                abort_if(blank($user->bidang), 422, 'Bidang akun Admin belum ditentukan.');
+                $query->where('bidang', $user->bidang);
+            })
+            ->orderBy('bidang')
+            ->orderBy('program_evaluasi')
+            ->orderBy('category')
+            ->orderBy('sub_category')
+            ->orderBy('id');
+
+        $rows = [[
+            'No.', 'Bidang', 'Program Evaluasi', 'Level / Peran', 'Bagian Evaluasi L3/L4',
+            'Metode', 'Tipe Jawaban', 'Pertanyaan', 'Pilihan Jawaban', 'Dibuat', 'Diperbarui'
+        ]];
+
+        $query->each(function (Question $question, int $index) use (&$rows) {
+            $rows[] = [
+                $index + 1,
+                $question->bidang ?: $question->training_type,
+                $question->program_evaluasi ?: 'PKTI/PKTU',
+                match ($question->category) {
+                    'l1_penyelenggara' => 'L1 Penyelenggara',
+                    'l1_narasumber' => 'L1 Narasumber',
+                    'l34_mandiri' => 'L3/L4 Mandiri (Alumni)',
+                    'l34_atasan' => 'L3/L4 Atasan',
+                    'l34_rekan' => 'L3/L4 Rekan Kerja',
+                    default => $question->category,
+                },
+                $question->sub_category ?: '-',
+                ucfirst((string) ($question->metode ?: 'semua')),
+                ucfirst($question->type),
+                $question->question_text,
+                collect($question->options ?? [])->join(' | ') ?: '-',
+                optional($question->created_at)->format('d-m-Y H:i'),
+                optional($question->updated_at)->format('d-m-Y H:i'),
+            ];
+        });
+
+        return Excel::download(new class($rows) implements FromArray, \Maatwebsite\Excel\Concerns\ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithStyles {
+            public function __construct(private array $rows) {}
+            public function array(): array { return $this->rows; }
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
+            {
+                $sheet->freezePane('A2');
+                $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+                $sheet->getStyle('H')->getAlignment()->setWrapText(true);
+                return [1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5065D5']]]];
+            }
+        }, 'seluruh-pertanyaan-evaluasi-'.now()->format('Ymd-His').'.xlsx');
+    }
     public function downloadTemplate(Request $request)
     {
         $bidang = Auth::user()->role === 'superadmin' ? $request->query('bidang') : Auth::user()->bidang;
@@ -306,35 +374,56 @@ class QuestionController extends Controller
             [$bidang, 'klasikal', 'PKTI/PKTU', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
             [$bidang, 'semua', 'PKTI/PKTU', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
         ];
-        $programs = $bidang === 'Bidang Pengembangan Kompetensi Manajerial'
-            ? ['semua', 'CPNS', 'PKP', 'PKA', 'PKN']
-            : ['semua', 'PKTI/PKTU'];
+        if ($bidang === 'Bidang Pengembangan Kompetensi Manajerial') {
+            $programs = ['CPNS', 'PKP', 'PKA', 'PKN'];
+            $commonSections = [
+                'Perubahan Sikap Perilaku',
+                'Dampak Pelatihan',
+                'Faktor Pendukung Aktualisasi',
+                'Faktor Penghambat Aktualisasi',
+                'Faktor Pendukung Aksi Perubahan',
+                'Faktor Penghambat Aksi Perubahan',
+                'Faktor Pendukung Proyek Perubahan',
+                'Kesesuaian Rekomendasi Kebijakan Dengan Kebutuhan Instansi',
+                'Kemanfaatan Rekomendasi',
+            ];
 
-        foreach ($programs as $program) {
-            foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
-                $header[] = [
-                    $bidang,
-                    'semua',
-                    $program,
-                    $peran,
-                    'Perubahan Perilaku',
-                    'slider',
-                    'Sejauh mana kompetensi hasil pelatihan diterapkan dalam pekerjaan?',
-                    '',
-                ];
-                $header[] = [
-                    $bidang,
-                    'semua',
-                    $program,
-                    $peran,
-                    'Dampak Pelatihan',
-                    'checkbox',
-                    'Dampak pelatihan apa saja yang terlihat setelah pelatihan?',
-                    'Produktivitas meningkat, Kualitas kerja meningkat',
-                ];
+            foreach ($programs as $program) {
+                foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
+                    $sections = $commonSections;
+                    if ($peran === 'Mandiri') {
+                        array_unshift($sections, 'Data Diri Alumni');
+                    } elseif ($peran === 'Atasan') {
+                        array_unshift($sections, 'Data Diri Atasan');
+                    }
+
+                    foreach ($sections as $section) {
+                        $usesSlider = in_array($section, [
+                            'Perubahan Sikap Perilaku',
+                            'Dampak Pelatihan',
+                            'Kesesuaian Rekomendasi Kebijakan Dengan Kebutuhan Instansi',
+                        ], true);
+                        $header[] = [
+                            $bidang,
+                            'semua',
+                            $program,
+                            $peran,
+                            $section,
+                            $usesSlider ? 'slider' : 'text',
+                            'Tuliskan butir pertanyaan untuk bagian '.$section,
+                            '',
+                        ];
+                    }
+                }
+            }
+        } else {
+            foreach (['semua', 'PKTI/PKTU'] as $program) {
+                foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
+                    $header[] = [$bidang, 'semua', $program, $peran, 'Perubahan Perilaku', 'slider', 'Sejauh mana kompetensi hasil pelatihan diterapkan dalam pekerjaan?', ''];
+                    $header[] = [$bidang, 'semua', $program, $peran, 'Dampak Pelatihan', 'checkbox', 'Dampak pelatihan apa saja yang terlihat setelah pelatihan?', 'Produktivitas meningkat, Kualitas kerja meningkat'];
+                }
             }
         }
-
         return \Maatwebsite\Excel\Facades\Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromArray {
             private $data;
             public function __construct($data) { $this->data = $data; }

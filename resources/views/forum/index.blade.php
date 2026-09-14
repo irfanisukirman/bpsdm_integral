@@ -103,7 +103,7 @@
     });
     list.addEventListener('click', async function (event) {
         var button = event.target.closest('[data-delete]');
-        if (!button || !confirm('Hapus pesan ini?')) return;
+        if (!button || !(await window.IntegralConfirm.ask('Hapus pesan ini?'))) return;
         var id = button.dataset.delete;
         var response = await fetch(deleteUrl.replace('__MESSAGE__', id), {method:'DELETE', headers:{Accept:'application/json','X-CSRF-TOKEN':csrf}});
         if (response.ok) document.getElementById('forum-message-' + id).remove();

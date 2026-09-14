@@ -48,7 +48,7 @@
                                 <option value="{{ $program }}" @selected(old('program_evaluasi', $training->program_evaluasi ?: 'PKTI/PKTU') === $program)>{{ $program }}</option>
                             @endforeach
                         </select>
-                        <div class="form-text">Menentukan kelompok pertanyaan evaluasi pascapelatihan yang ditampilkan.</div>
+                        <div class="form-text">Pilih kelompok pertanyaan Evaluasi L3 & L4 yang sesuai. Pilihan tidak bergantung pada bidang penyelenggara.</div>
                     </div>
 
                     @if($training->model === 'standar')

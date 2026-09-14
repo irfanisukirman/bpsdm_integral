@@ -1,0 +1,6 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\GuestBookLocation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+class PublicGuestBookController extends Controller {public function show(string $token){$location=GuestBookLocation::where('public_token',$token)->firstOrFail();abort_unless($location->is_active,404);return view('guest-book.public-form',compact('location'));}public function store(Request $request,string $token){$location=GuestBookLocation::where('public_token',$token)->firstOrFail();abort_unless($location->is_active,404);$data=$request->validate(['name'=>'required|string|max:255','position'=>'nullable|string|max:255','institution'=>'required|string|max:255','purpose'=>'required|string|max:2000','whatsapp'=>['required','string','max:30','regex:/^[0-9+\-\s()]+$/']]);$visit=$location->visits()->create($data+['visit_code'=>'BT-'.now()->format('ymd').'-'.strtoupper(Str::random(6)),'checked_in_at'=>now(),'ip_hash'=>hash('sha256',(string)$request->ip())]);return redirect()->route('guest-book.public.success',[$token,$visit->visit_code]);}public function success(string $token,string $code){$location=GuestBookLocation::where('public_token',$token)->firstOrFail();$visit=$location->visits()->where('visit_code',$code)->firstOrFail();return view('guest-book.success',compact('location','visit'));}}

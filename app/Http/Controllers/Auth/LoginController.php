@@ -8,6 +8,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Str; 
 use App\Models\User;
+use App\Models\LoginHelpSetting;
 use Laravel\Socialite\Facades\Socialite; 
 use Illuminate\Support\Facades\Auth; // Penting untuk Auth::login
 use Illuminate\Http\Request;
@@ -48,6 +49,27 @@ class LoginController extends Controller implements HasMiddleware
         return [
             new Middleware('guest', except: ['logout']),
         ];
+    }
+
+    public function showLoginForm()
+    {
+        return view('auth.login', ['loginHelp' => LoginHelpSetting::current()]);
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if ($user->role === 'intern' && $user->user_type_status !== 'approved') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $message = $user->user_type_status === 'rejected'
+                ? 'Pendaftaran magang Anda ditolak. Silakan hubungi pengelola.'
+                : 'Akun magang masih menunggu persetujuan pengelola.';
+            return redirect()->route('login')->with('error', $message);
+        }
+        if ($user->role === 'intern') return redirect()->route('internships.dashboard');
+        if ($user->role === 'resepsionis') return redirect()->route('guest-book.index');
+        if ($user->role === 'pengelola_magang') return redirect()->route('internships.index');
     }
 
     /**
@@ -99,7 +121,6 @@ class LoginController extends Controller implements HasMiddleware
             if (empty(Auth::user()->nip_nik) || empty(Auth::user()->gender)) {
                 return redirect()->route('participant.profile.complete');
             }
-
             return redirect()->intended($this->redirectTo);
 
         } catch (\Exception $e) {

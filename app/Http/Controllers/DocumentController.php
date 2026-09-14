@@ -41,6 +41,8 @@ class DocumentController extends Controller
             // Ambil Folder Global (yang dibuat superadmin di halaman depan)
             $globalFolders = Folder::with(['user'])->withCount(['files', 'children'])->where('bidang', 'Semua Bidang')
                 ->where('parent_id', null)
+                ->where('is_archived', false)
+                ->where('document_year', '>=', now()->year)
                 ->get();
 
             $documentStats = [
@@ -68,6 +70,7 @@ class DocumentController extends Controller
         elseif ($user->role !== 'superadmin') {$folderQuery->where(fn ($location) => $location->whereNull('parent_id')->orWhereHas('permissions', fn ($permission) => $permission->where('user_id', $user->id)));}
         else {$folderQuery->whereNull('parent_id');}
         if (!$currentFolder) {
+            $folderQuery->where('is_archived', false)->where('document_year', '>=', now()->year);
             if ($user->role === 'superadmin' && $currentBidang) {
                 $folderQuery->where(fn ($scope) => $scope->where('bidang', $currentBidang)->orWhere('bidang', 'Semua Bidang'));
             } elseif ($user->role !== 'superadmin') {
@@ -78,27 +81,32 @@ class DocumentController extends Controller
                 });
             }
         }
+        $activeYear = $request->integer('year') ?: null;
+        if (!$currentFolder && $activeYear) $folderQuery->where('document_year', $activeYear);
         $folders = $folderQuery->orderBy('training_id', 'desc')->orderBy('name')->get();
         $files = $currentFolder ? File::with(['user', 'versions'])->where('folder_id', $currentFolder->id)->latest()->get() : collect();
+        $archiveRoot = $currentFolder;
+        while ($archiveRoot?->parent) $archiveRoot = $archiveRoot->parent;
+        $isArchivedContext = $archiveRoot ? ($archiveRoot->is_archived || ($archiveRoot->document_year && $archiveRoot->document_year < now()->year)) : false;
         $currentPermission = $currentFolder ? $access->permission($user, $currentFolder) : null;
-        $canContribute = $currentFolder ? $access->canContribute($user, $currentFolder) : in_array($user->role, ['superadmin', 'admin_bidang'], true);
-        $canManageCurrent = $currentFolder ? $access->canManage($user, $currentFolder) : $user->role === 'superadmin';
+        $canContribute = !$isArchivedContext && ($currentFolder ? $access->canContribute($user, $currentFolder) : in_array($user->role, ['superadmin', 'admin_bidang'], true));
+        $canManageCurrent = !$isArchivedContext && ($currentFolder ? $access->canManage($user, $currentFolder) : $user->role === 'superadmin');
         $documentStats = ['folders'=>$folders->count(),'files'=>$files->count(),'size'=>(int)$files->sum('file_size'),'public'=>$folders->where('is_public',true)->count()];
-        return view('documents.index', compact('folders','files','currentFolder','currentBidang','documentStats','currentPermission','canContribute','canManageCurrent'));
+        return view('documents.index', compact('folders','files','currentFolder','currentBidang','documentStats','currentPermission','canContribute','canManageCurrent','isArchivedContext','activeYear'));
     }
     /**
      * Membuat Folder Baru
      */
     public function createFolder(Request $request)
     {
-        $data = $request->validate(['name'=>'required|string|max:255','parent_id'=>'nullable|exists:folders,id','bidang'=>'nullable|string|max:255']);
+        $data = $request->validate(['name'=>'required|string|max:255','parent_id'=>'nullable|exists:folders,id','bidang'=>'nullable|string|max:255','document_year'=>'nullable|integer|min:2000|max:'.(now()->year + 1)]);
         $user = Auth::user();$parent = !empty($data['parent_id']) ? Folder::findOrFail($data['parent_id']) : null;
         if ($parent) {
             abort_unless(app(DocumentAccessService::class)->canContribute($user, $parent), 403);
             $attributes=['parent_id'=>$parent->id,'bidang'=>$parent->bidang,'is_public'=>$parent->is_public,'share_token'=>$parent->is_public?Str::random(40):null];
         } else {
             abort_unless(in_array($user->role,['superadmin','admin_bidang'],true),403);
-            $attributes=['parent_id'=>null,'bidang'=>$user->role==='superadmin'?($data['bidang']?:'Semua Bidang'):$user->bidang,'is_public'=>false];
+            $attributes=['parent_id'=>null,'bidang'=>$user->role==='superadmin'?($data['bidang']?:'Semua Bidang'):$user->bidang,'is_public'=>false,'document_year'=>(int)($data['document_year']??now()->year)];
         }
         $folder=Folder::create($attributes+['name'=>$data['name'],'user_id'=>$parent?$parent->user_id:$user->id]);
         LogHelper::record('Dokumen','Membuat folder: '.$folder->name.' di '.($parent?->name?:'root'));
@@ -111,7 +119,7 @@ class DocumentController extends Controller
     public function uploadFiles(Request $request)
     {
         $request->validate(['folder_id'=>'required|exists:folders,id','attachments'=>'required|array','attachments.*'=>'required|file|max:20480']);
-        $folder=Folder::findOrFail($request->folder_id);abort_unless(app(DocumentAccessService::class)->canContribute(Auth::user(),$folder),403);
+        $folder=Folder::findOrFail($request->folder_id);abort_unless(app(DocumentAccessService::class)->canContribute(Auth::user(),$folder),403);$root=$folder;while($root->parent)$root=$root->parent;abort_if($root->is_archived||($root->document_year&&$root->document_year<now()->year),422,'Folder arsip bersifat baca saja. Dokumen otomatis dari sistem tetap dapat tersimpan.');
         $uploadedCount=0;$versionCount=0;
         foreach($request->file('attachments',[]) as $upload){
             $path=$upload->store('documents','public');$existing=File::where('folder_id',$folder->id)->where('display_name',$upload->getClientOriginalName())->first();
@@ -187,6 +195,46 @@ class DocumentController extends Controller
         return redirect()->back()->with('success', 'Folder berhasil dihapus.');
     }
 
+    public function archives(Request $request)
+    {
+        $user = Auth::user();
+        $query = Folder::with(['user', 'archiver'])->withCount(['files', 'children'])->whereNull('parent_id');
+        if ($user->role !== 'superadmin') {
+            $query->where(function ($scope) use ($user) {
+                $scope->where('bidang', 'Semua Bidang')->orWhere('user_id', $user->id)
+                    ->orWhereHas('permissions', fn ($permission) => $permission->where('user_id', $user->id));
+                if ($user->role === 'admin_bidang' && $user->bidang) $scope->orWhere('bidang', $user->bidang);
+            });
+        } elseif ($request->filled('bidang')) {
+            $query->where('bidang', $request->bidang);
+        }
+        $query->where(fn ($scope) => $scope->where('is_archived', true)->orWhere('document_year', '<', now()->year));
+        $years = (clone $query)->whereNotNull('document_year')->distinct()->orderByDesc('document_year')->pluck('document_year');
+        if ($request->filled('year')) $query->where('document_year', (int) $request->year);
+        if ($request->filled('q')) $query->where('name', 'like', '%'.$request->q.'%');
+        $folders = $query->orderByDesc('document_year')->orderBy('name')->paginate(16)->withQueryString();
+        $bidangOptions = $user->role === 'superadmin' ? Folder::whereNull('parent_id')->distinct()->orderBy('bidang')->pluck('bidang') : collect();
+        return view('documents.archives', compact('folders', 'years', 'bidangOptions'));
+    }
+
+    public function archiveFolder(Folder $folder)
+    {
+        abort_unless(!$folder->parent_id, 422, 'Hanya folder induk yang dapat diarsipkan.');
+        abort_unless(app(DocumentAccessService::class)->canManage(Auth::user(), $folder), 403);
+        $folder->update(['is_archived' => true, 'archived_at' => now(), 'archived_by' => Auth::id()]);
+        LogHelper::record('Dokumen', 'Mengarsipkan folder induk '.$folder->name.' tahun '.$folder->document_year);
+        return back()->with('success', 'Folder '.$folder->name.' berhasil diarsipkan. Seluruh isi tetap tersimpan.');
+    }
+
+    public function restoreFolder(Folder $folder)
+    {
+        abort_unless(!$folder->parent_id, 422, 'Hanya folder induk yang dapat dipulihkan.');
+        abort_unless(app(DocumentAccessService::class)->canManage(Auth::user(), $folder), 403);
+        abort_if($folder->document_year < now()->year, 422, 'Folder tahun sebelumnya tetap menjadi arsip otomatis dan tidak dapat dipindahkan ke halaman aktif.');
+        $folder->update(['is_archived' => false, 'archived_at' => null, 'archived_by' => null]);
+        LogHelper::record('Dokumen', 'Mengembalikan folder '.$folder->name.' ke dokumen aktif');
+        return redirect()->route('documents.index', ['bidang' => $folder->bidang])->with('success', 'Folder dikembalikan ke dokumen aktif.');
+    }
     public function sharing(Folder $folder)
     {
         abort_unless(app(DocumentAccessService::class)->canManage(Auth::user(),$folder),403);$folder->load(['permissions.user','permissions.sharer']);return view('documents.sharing',compact('folder'));

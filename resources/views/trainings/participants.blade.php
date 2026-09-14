@@ -167,7 +167,7 @@
                                         {{ $p->user->gender ?? $p->gender }}
                                     </small>
                                     @php
-                                        $currentStatus = strtoupper($p->user->status_kepegawaian ?? $p->status_kepegawaian ?? 'NON-ASN');
+                                        $currentStatus = strtoupper($p->user->status_kepegawaian ?? $p->status_kepegawaian ?? 'BELUM DIISI');
                                         $statusColor = 'bg-label-secondary';
                                         if(str_contains($currentStatus, 'PNS')) $statusColor = 'bg-label-success';
                                         elseif(str_contains($currentStatus, 'PPPK')) $statusColor = 'bg-label-warning';
@@ -378,9 +378,12 @@
         updateBulkApprovalState();
     });
     participantCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateBulkApprovalState));
-    approveSelectedButton?.addEventListener('click', function (event) {
+    approveSelectedButton?.addEventListener('click', async function (event) {
+        event.preventDefault();
         const selectedCount = participantCheckboxes.filter(checkbox => checkbox.checked).length;
-        if (!selectedCount || !confirm(`Setujui ${selectedCount} peserta yang dipilih?`)) event.preventDefault();
+        if (selectedCount && await window.IntegralConfirm.ask(`Setujui ${selectedCount} peserta yang dipilih?`)) {
+            document.getElementById('bulk-approve-form')?.requestSubmit(approveSelectedButton);
+        }
     });
     updateBulkApprovalState();
 

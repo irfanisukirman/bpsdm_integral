@@ -7,7 +7,8 @@
     <h4 class="fw-bold py-3 mb-0">
         <span class="text-muted fw-light">Sistem /</span> Kelola Indikator Monitoring
     </h4>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('indicators.export') }}" class="btn btn-outline-primary"><i class="bx bx-download me-1"></i>Export Excel</a>
         <!-- Tombol Modal Import -->
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
             <i class="bx bx-file me-1"></i> Import Excel
@@ -107,7 +108,8 @@
                     <td><span class="badge bg-label-secondary text-capitalize">{{ $ind->metode }}</span></td>
                     <td class="text-wrap" style="min-width: 300px;">{{ $ind->question_text }}</td>
                     <td>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('indicators.export') }}" class="btn btn-outline-primary"><i class="bx bx-download me-1"></i>Export Excel</a>
                             <button type="button" class="btn btn-sm btn-icon btn-outline-warning" 
                                 data-bs-toggle="modal" data-bs-target="#editModal" 
                                 onclick="editIndicator({{ json_encode($ind) }})">

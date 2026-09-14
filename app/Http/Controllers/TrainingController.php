@@ -127,9 +127,6 @@ class TrainingController extends Controller
             abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
             $data['bidang'] = Auth::user()->bidang;
         }
-        if ($data['bidang'] !== 'Bidang Pengembangan Kompetensi Manajerial') {
-            $data['program_evaluasi'] = 'PKTI/PKTU';
-        }
 
         if ($request->model === 'blended') {
             $data['metode'] = 'blended';
@@ -246,7 +243,7 @@ class TrainingController extends Controller
             'kota' => 'required', // Disesuaikan
             'kecamatan' => 'required', // Ditambahkan
             'kelurahan' => 'required', // Ditambahkan
-            'status_kepegawaian' => 'required',
+            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
         ]);
 
         $participant->update([
@@ -718,9 +715,6 @@ class TrainingController extends Controller
             abort_if(blank(Auth::user()->bidang), 422, 'Bidang akun Admin belum ditentukan.');
             $data['bidang'] = Auth::user()->bidang;
         }
-        if ($data['bidang'] !== 'Bidang Pengembangan Kompetensi Manajerial') {
-            $data['program_evaluasi'] = 'PKTI/PKTU';
-        }
 
         $training->update($data);
 
@@ -892,7 +886,7 @@ class TrainingController extends Controller
 
     public function manage($id)
     {
-        $training = Training::withCount('participants')->with(['schedules'])->findOrFail($id);
+        $training = Training::withCount(['participants', 'executionNotes'])->with(['schedules'])->findOrFail($id);
         $user = Auth::user();
         abort_unless(
             $user->role === 'superadmin'
@@ -926,6 +920,48 @@ class TrainingController extends Controller
         ));
     }
 
+    public function executionNotes($id)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang),
+            403
+        );
+
+        $notes = $training->executionNotes()->with('author')->latest()->paginate(10);
+
+        return view('trainings.execution-notes.index', compact('training', 'notes'));
+    }
+
+    public function storeExecutionNote(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless(
+            $user->role === 'superadmin'
+            || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang),
+            403
+        );
+
+        $data = $request->validate([
+            'note_title' => ['required', 'string', 'max:200'],
+            'note_content' => ['required', 'string', 'max:10000'],
+        ], [
+            'note_title.required' => 'Judul catatan wajib diisi.',
+            'note_content.required' => 'Isi catatan pelaksanaan wajib diisi.',
+        ]);
+
+        $training->executionNotes()->create([
+            'title' => $data['note_title'],
+            'note' => $data['note_content'],
+            'created_by' => $user->id,
+        ]);
+
+        return redirect()->route('trainings.execution-notes.index', $training)
+            ->with('success', 'Catatan pelaksanaan berhasil disimpan.');
+    }
     public function uploadOrganizerDocument(Request $request, $id)
     {
         $training = Training::findOrFail($id);

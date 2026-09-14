@@ -21,9 +21,7 @@ use PhpOffice\PhpSpreadsheet\Chart\Title;
 class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSize
 {
     protected $training;
-    protected $questionsL3;
-    protected $questionsL4;
-    protected $questionsPlacement;
+    protected $questionsBySection;
 
     public function __construct($training)
     {
@@ -41,32 +39,15 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
         $profiles = AlumniProfile::where('training_id', $id)->get();
         $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
 
-        $this->questionsL3 = Question::forTraining($this->training, 'l34_mandiri')
-            ->where('sub_category', 'Perubahan Perilaku')
-            ->get()
-            ->unique('question_text')
+        $allQuestions = collect(['mandiri', 'atasan', 'rekan'])
+            ->flatMap(fn ($role) => Question::forTraining($this->training, 'l34_'.$role)->orderBy('id')->get())
             ->values();
-
-        $this->questionsL4 = Question::forTraining($this->training, 'l34_mandiri')
-            ->where('sub_category', 'Dampak Pelatihan')
-            ->get()
-            ->unique('question_text')
-            ->values();
-
-        $this->questionsPlacement = Question::forTraining($this->training, 'l34_mandiri')
-            ->where('sub_category', 'Penempatan Tugas dan Transfer Learning')
-            ->get()
-            ->unique('question_text')
-            ->values();
-
-        $allQuestions = Question::query()
-            ->where(function ($query) {
-                $query->where('bidang', $this->training->bidang)
-                    ->orWhere('bidang', 'Semua Bidang');
-            })
-            ->where('category', 'LIKE', 'l34_%')
-            ->get();
-
+        $sectionOrder = array_flip(Question::l34SubCategoryOptions());
+        $this->questionsBySection = $allQuestions
+            ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text)
+            ->groupBy(fn ($question) => $question->sub_category ?: 'Bagian Lainnya')
+            ->sortKeysUsing(fn ($left, $right) => ($sectionOrder[$left] ?? 999) <=> ($sectionOrder[$right] ?? 999))
+            ->map(fn ($items) => $items->values());
         $totalResponden = [
             'mandiri' => $results->where('evaluator_role', 'mandiri')->unique('participant_id')->count(),
             'atasan' => $results->where('evaluator_role', 'atasan')->unique('participant_id')->count(),
@@ -76,9 +57,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
         return view('evaluasi.excel.l34_olah_data', [
             'profiles' => $profiles,
             'results' => $results,
-            'questionsL3' => $this->questionsL3,
-            'questionsL4' => $this->questionsL4,
-            'questionsPlacement' => $this->questionsPlacement,
+            'questionsBySection' => $this->questionsBySection,
             'allQuestions' => $allQuestions,
             'training' => $this->training,
             'totalResponden' => $totalResponden,
@@ -93,11 +72,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
         // Baris 1-11 berisi identitas pelatihan dan ringkasan perubahan data diri.
         $currentRow = 11;
         $chartTopRow = 20;
-        $sections = [
-            'Penempatan & Transfer Learning' => $this->questionsPlacement ?? collect(),
-            'Perubahan Perilaku (L3)' => $this->questionsL3 ?? collect(),
-            'Dampak Pelatihan (L4)' => $this->questionsL4 ?? collect(),
-        ];
+        $sections = $this->questionsBySection ?? collect();
 
         foreach ($sections as $sectionTitle => $questions) {
             $currentRow++; // Judul bagian.

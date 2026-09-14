@@ -6,13 +6,14 @@
 @php
     $coverageColor = $overallCoverage >= 90 ? 'success' : ($overallCoverage >= 75 ? 'warning' : 'danger');
     $fmt = fn ($value) => $value === null ? '-' : number_format($value, 1, ',', '.');
+    $quantitativeSections = $dashboardSections->whereNotNull('average');
 @endphp
 <div class="container-xxl flex-grow-1 container-p-y l34-dashboard">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 no-print">
         <div>
             <a href="{{ route('trainings.manage', $training->id) }}" class="small text-muted text-decoration-none"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pengelolaan</a>
             <h4 class="fw-bold mt-2 mb-1">Dashboard Evaluasi Level 3 &amp; 4</h4>
-            <p class="text-muted mb-0">Perubahan perilaku, dampak pelatihan, dan kelengkapan penilaian 360&deg;.</p>
+            <p class="text-muted mb-0">Ringkasan seluruh bagian evaluasi pascapelatihan dan kelengkapan penilaian 360&deg;.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <button onclick="window.print()" class="btn btn-outline-primary"><i class="bx bx-printer me-1"></i>Cetak Dashboard</button>
@@ -67,13 +68,35 @@
             <div class="card-body"><div class="chart-box"><canvas id="coverageChart"></canvas></div></div>
         </div></div>
         <div class="col-xl-7"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Perbandingan Antar-Perspektif</h5><small class="text-muted">Level 3 dan Level 4 dalam skala 0-100.</small></div>
+            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Perbandingan Antar-Perspektif</h5><small class="text-muted">Perbandingan skor setiap bagian evaluasi pada seluruh perspektif dalam skala 0-100.</small></div>
             <div class="card-body"><div class="chart-box"><canvas id="roleChart"></canvas></div></div>
         </div></div>
     </div>
 
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header border-bottom d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
+            <div><h5 class="fw-bold mb-1">Ringkasan Seluruh Bagian Evaluasi</h5><small class="text-muted">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'PKTI/PKTU' }} dan bank pertanyaan yang berlaku.</small></div>
+            <span class="badge bg-label-primary">{{ $dashboardSections->count() }} bagian aktif</span>
+        </div>
+        <div class="card-body">
+            @if($dashboardSections->isNotEmpty())
+                <div class="section-summary-grid">
+                    @foreach($dashboardSections as $section)
+                        @php $tone = $section['average'] === null ? 'secondary' : ($section['average'] >= 80 ? 'success' : ($section['average'] >= 70 ? 'warning' : 'danger')); @endphp
+                        <div class="section-summary-item">
+                            <span class="section-summary-item__icon bg-label-{{ $tone }}"><i class="bx {{ str_contains($section['name'], 'Pendukung') ? 'bx-like' : (str_contains($section['name'], 'Penghambat') ? 'bx-error-circle' : 'bx-bar-chart-alt-2') }}"></i></span>
+                            <div class="min-w-0 flex-grow-1"><strong class="d-block text-break">{{ $section['name'] }}</strong><small class="text-muted">{{ $section['respondents'] }} alumni &middot; {{ $section['responses'] }} jawaban</small></div>
+                            <div class="text-end flex-shrink-0">@if($section['average'] !== null)<strong class="text-{{ $tone }}">{{ $fmt($section['average']) }}</strong><small class="d-block text-muted">skor</small>@else<span class="badge bg-label-secondary">Kualitatif</span>@endif</div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-center text-muted mb-0 py-4">Belum tersedia bagian evaluasi untuk program pelatihan ini.</p>
+            @endif
+        </div>
+    </div>
     <div class="row g-4 mb-4">
-        @foreach([['id'=>'l3Chart','title'=>'Indikator Level 3: Perubahan Perilaku','items'=>$l3Indicators,'lowest'=>$lowestL3], ['id'=>'l4Chart','title'=>'Indikator Level 4: Dampak Pelatihan','items'=>$l4Indicators,'lowest'=>$lowestL4]] as $chart)
+        @foreach([['id'=>'l3Chart','title'=>'Indikator Level 3: '.$l3Category,'items'=>$l3Indicators,'lowest'=>$lowestL3], ['id'=>'l4Chart','title'=>'Indikator Level 4: '.$l4Category,'items'=>$l4Indicators,'lowest'=>$lowestL4]] as $chart)
             <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
                 <div class="card-header border-bottom d-flex justify-content-between align-items-start gap-2">
                     <div><h5 class="fw-bold mb-1">{{ $chart['title'] }}</h5><small class="text-muted">Target acuan minimal 80.</small></div>
@@ -115,8 +138,8 @@
 
 @push('styles')
 <style>
-.dashboard-hero{background:linear-gradient(135deg,#253b80 0%,#5668d8 55%,#20a6b7 100%)}.chart-box{position:relative;height:310px}.chart-tall{height:370px}
-@media print{.no-print,.layout-navbar,.layout-menu,.content-footer{display:none!important}.layout-page{padding:0!important}.card{box-shadow:none!important;break-inside:avoid}.l34-dashboard{padding:0!important}.chart-box{height:250px}}
+.dashboard-hero{background:linear-gradient(135deg,#253b80 0%,#5668d8 55%,#20a6b7 100%)}.section-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.section-summary-item{display:flex;align-items:center;gap:.75rem;min-width:0;padding:.9rem;border:1px solid #e8e8ef;border-radius:.75rem;background:#fff}.section-summary-item__icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:10px;font-size:1.2rem}.section-summary-item>div:last-child>strong{font-size:1.15rem}.chart-box{position:relative;height:310px}.chart-tall{height:370px}
+@media(max-width:767.98px){.section-summary-grid{grid-template-columns:1fr}}@media print{.no-print,.layout-navbar,.layout-menu,.content-footer{display:none!important}.layout-page{padding:0!important}.card{box-shadow:none!important;break-inside:avoid}.l34-dashboard{padding:0!important}.chart-box{height:250px}}
 </style>
 @endpush
 
@@ -128,10 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const colors = ['#5668d8','#20a6b7','#71c68b'];
     const base = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}};
     new Chart(document.getElementById('coverageChart'), {type:'bar',data:{labels:roles,datasets:[{label:'Cakupan (%)',data:@json($coverageByRole->values()),backgroundColor:colors,borderRadius:8}]},options:{...base,scales:{y:{beginAtZero:true,max:100}}}});
-    new Chart(document.getElementById('roleChart'), {type:'bar',data:{labels:roles,datasets:[
-        {label:'Level 3',data:@json($activeRoles->keys()->map(fn($r) => $averagesByRole[$r]['Perubahan Perilaku'])),backgroundColor:'#5668d8',borderRadius:6},
-        {label:'Level 4',data:@json($activeRoles->keys()->map(fn($r) => $averagesByRole[$r]['Dampak Pelatihan'])),backgroundColor:'#20a6b7',borderRadius:6}
-    ]},options:{...base,scales:{y:{beginAtZero:true,max:100}}}});
+    const sectionLabels = @json($evaluationSections->values());
+    const roleSeries = @json($roleChartSeries);
+
+    new Chart(document.getElementById('roleChart'), {type:'bar',data:{labels:sectionLabels,datasets:roleSeries.map((series,index)=>({...series,backgroundColor:colors[index % colors.length],borderRadius:6}))},options:{...base,scales:{y:{beginAtZero:true,max:100}}}});
     function indicatorChart(id, items, color) {
         const el=document.getElementById(id); if(!el || !items.length) return;
         new Chart(el,{type:'bar',data:{labels:items.map(x=>x.label),datasets:[{label:'Skor',data:items.map(x=>x.average),backgroundColor:color,borderRadius:6}]},options:{...base,indexAxis:'y',scales:{x:{beginAtZero:true,max:100}},plugins:{...base.plugins,legend:{display:false}}}});

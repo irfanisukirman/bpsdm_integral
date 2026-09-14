@@ -38,6 +38,29 @@ return [
         'timeout' => env('OPENAI_TIMEOUT', 60),
     ],
 
+    'bsre' => [
+        'url' => env('BSRE_URL'),
+        'username' => env('BSRE_AUTH_USERNAME'),
+        'password' => env('BSRE_AUTH_PASSWORD'),
+        'timeout' => (int) env('BSRE_TIMEOUT', 120),
+        'verify_ssl' => filter_var(env('BSRE_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
+    ],
+
+    'libreoffice' => [
+        'binary' => env('LIBREOFFICE_BINARY'),
+    ],
+
+    'nominatim' => [
+        'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'INTEGRAL-BPSDM/1.0'),
+    ],
+
+    'jct' => [
+        'url' => env('JCT_API_URL'),
+        'username' => env('JCT_API_USERNAME'),
+        'password' => env('JCT_API_PASSWORD'),
+        'timeout' => (int) env('JCT_TIMEOUT', 30),
+    ],
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -108,7 +108,7 @@
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold text-dark">{{ $user->name }}</span>
                                     <small class="text-muted" style="font-size: 10px;">
-                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true)
+                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'], true)
                                             ? strtoupper(str_replace('_', ' ', $user->role))
                                             : strtoupper(match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' }) }}
                                     </small>
@@ -117,9 +117,9 @@
                         </td>
                         <td class="text-wrap">
                             @php
-                                $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true);
+                                $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'], true);
                                 $typeLabel = match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' };
-                                $scopeLabel = $isAdmin ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : 'Admin Bidang')) : $typeLabel;
+                                $scopeLabel = $isAdmin ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : ($user->role === 'pengelola_magang' ? 'Pengelola Magang/PKL' : ($user->role === 'resepsionis' ? 'Pengelola Buku Tamu' : 'Admin Bidang')))) : $typeLabel;
                                 $scopeColor = $isAdmin ? 'danger' : match($user->user_type) { 'narasumber' => 'info', 'mitra' => 'warning', default => 'success' };
                             @endphp
                             <span class="badge bg-label-{{ $scopeColor }} mb-1">{{ $scopeLabel }}</span>
@@ -289,6 +289,8 @@
                             <select name="role" id="create_role" class="form-select" required>
                                 <option value="admin_bidang">Admin Bidang</option>
                                 <option value="admin_aset">Admin Pengelola Aset</option>
+                                <option value="pengelola_magang">Pengelola Magang/PKL</option>
+                                <option value="resepsionis">Pengelola Buku Tamu</option>
                                 <option value="superadmin">Superadmin</option>
                             </select>
                         </div>
@@ -360,6 +362,8 @@
                             <option value="mitra">Mitra</option>
                             <option value="admin_bidang">Admin Bidang</option>
                             <option value="admin_aset">Admin Pengelola Aset</option>
+                                <option value="pengelola_magang">Pengelola Magang/PKL</option>
+                                <option value="resepsionis">Pengelola Buku Tamu</option>
                             <option value="superadmin">Superadmin</option>
                         </select>
                     </div>
@@ -434,7 +438,7 @@
         $('#edit_name').val(data.name);
         $('#edit_username').val(data.username);
         $('#edit_nip_nik').val(data.nip_nik);
-        const administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset'];
+        const administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'];
         const editableRole = administrativeRoles.includes(data.role)
             ? data.role
             : (data.user_type === 'narasumber' ? 'pengajar' : (data.user_type === 'mitra' ? 'mitra' : 'participant'));

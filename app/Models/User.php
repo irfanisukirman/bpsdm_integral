@@ -15,8 +15,8 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
-        'nip_nik', 'gender', 'jabatan', 'instansi', 
-        'provinsi', 'kota', 'kecamatan', 'kelurahan', 'latitude', 'longitude',
+        'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 
+        'provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude',
         'status_kepegawaian', 'password', 'profile_photo'
     ];
 
@@ -36,6 +36,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'latitude' => 'float',
         'longitude' => 'float',
+        'birth_date' => 'date',
     ];
 
     /**
@@ -46,6 +47,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Participant::class, 'nip_nik', 'username');
     }
+    public function managedInternshipPrograms()
+    {
+        return $this->hasMany(InternshipProgram::class, 'manager_id');
+    }
+
+    public function internshipParticipant()
+    {
+        return $this->hasOne(InternshipParticipant::class);
+    }
+
     public function pengajar()
     {
         return $this->hasOne(Pengajar::class);
@@ -58,6 +69,11 @@ class User extends Authenticatable
     public function teachingSchedules()
     {
         return $this->hasMany(Schedule::class, 'pengajar_id');
+    }
+
+    public function electronicSignatureActors()
+    {
+        return $this->hasMany(ElectronicSignatureActor::class, 'user_id');
     }
 
     public function isNarasumber(): bool

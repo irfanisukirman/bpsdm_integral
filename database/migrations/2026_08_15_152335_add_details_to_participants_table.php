@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('gender', ['Laki-Laki', 'Perempuan'])->nullable()->after('name');
             $table->string('provinsi')->nullable()->after('instansi');
             $table->string('kabupaten_kota')->nullable()->after('provinsi');
-            $table->string('status_kepegawaian')->nullable()->after('kabupaten_kota'); // ASN / NON-ASN / PNS
+            $table->string('status_kepegawaian')->nullable()->after('kabupaten_kota'); // PNS / PPPK / PPPK-PW
         });
     }
 

@@ -158,13 +158,17 @@ class ParticipantController extends Controller
             'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
             'whatsapp' => 'required',
             'gender' => 'required',
+            'birth_place' => 'required|string|max:255',
+            'birth_date' => 'required|date|before_or_equal:today',
             'jabatan' => 'required',
+            'golongan' => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
             'instansi' => 'required',
             'provinsi' => 'required',
             'kota' => 'required', // <--- Gunakan 'kota'
             'kecamatan' => 'required',
             'kelurahan' => 'required',
-            'status_kepegawaian' => 'required',
+            'address' => 'required|string|max:1000',
+            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ]);
@@ -181,13 +185,17 @@ class ParticipantController extends Controller
             'nip_nik' => $request->nip_nik,
             'whatsapp' => $request->whatsapp,
             'gender' => $request->gender,
+            'birth_place' => $request->birth_place,
+            'birth_date' => $request->birth_date,
             'jabatan' => $request->jabatan,
+            'golongan' => $request->golongan,
             'instansi' => $request->instansi,
             'status_kepegawaian' => $request->status_kepegawaian,
             'provinsi' => $request->provinsi,
             'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
             'kecamatan' => $request->kecamatan,
             'kelurahan' => $request->kelurahan,
+            'address' => $request->address,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
         ]);
@@ -399,7 +407,7 @@ class ParticipantController extends Controller
         );
         $summary = [
             'trainings' => $historyItems->count(),
-            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path))->count(),
+            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path) && filled($participant->certificate?->sent_at))->count(),
             'latest_year' => $historyItems->first()?->training?->tgl_selesai
                 ? \Carbon\Carbon::parse($historyItems->first()->training->tgl_selesai)->year
                 : null,

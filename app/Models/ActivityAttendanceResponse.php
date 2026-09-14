@@ -1,0 +1,10 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class ActivityAttendanceResponse extends Model
+{
+    protected $guarded=[];
+    protected $casts=['submitted_at'=>'datetime'];
+    public function form(){return $this->belongsTo(ActivityAttendanceForm::class,'activity_attendance_form_id');}
+    public function answers(){return $this->hasMany(ActivityAttendanceAnswer::class)->with('question');}
+}
