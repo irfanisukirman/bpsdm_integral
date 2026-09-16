@@ -9,7 +9,7 @@ class TicketResponseMail extends Mailable {
  use Queueable, SerializesModels;
  public function __construct(public Ticket $ticket,public TicketMessage $message){}
  public function build():self{
-  return $this->subject('Respons Tiket Hotline - '.$this->ticket->ticket_number)
-   ->view('emails.ticket-response',['ticket'=>$this->ticket,'message'=>$this->message]);
+return $this->subject('Respons Tiket Hotline - '.$this->ticket->ticket_number)
+    ->view('emails.ticket-response',['ticket'=>$this->ticket,'response'=>$this->message]);
  }
 }

@@ -97,14 +97,11 @@
         <h6 class="mb-0 fw-bold"><i class="bx bx-pencil me-2 text-primary"></i>Balas Pesan</h6>
     </div>
     <div class="card-body">
-        <form action="{{ route('hotline.tracking.reply', $ticket->tracking_token) }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <textarea name="message" class="form-control" rows="4" required maxlength="5000" placeholder="Tulis balasan Anda..."></textarea>
-                @error('message')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-            </div>
-            <button type="submit" class="btn btn-primary"><i class="bx bx-send me-1"></i>Kirim Balasan</button>
-        </form>
+        <div class="mb-3">
+            <textarea name="message" class="form-control" rows="4" required maxlength="5000" placeholder="Tulis balasan Anda..."></textarea>
+            @error('message')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+        </div>
+        <button type="submit" id="btnSendReply" class="btn btn-primary d-inline-flex align-items-center justify-content-center"><i class="bx bx-send me-1"></i><span>Kirim Balasan</span></button>
     </div>
 </div>
 @else
@@ -114,3 +111,16 @@
 </div>
 @endif
 @endsection
+
+@push('form_js')
+<script>
+$(document).ready(function() {
+    if (!$('#btnSendReply').length) return;
+    $('#reusableForm').on('submit', function() {
+        const btn = $('#btnSendReply');
+        btn.prop('disabled', true);
+        btn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...');
+    });
+});
+</script>
+@endpush

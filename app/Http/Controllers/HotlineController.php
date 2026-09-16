@@ -5,8 +5,10 @@ use App\Models\TicketService;
 use App\Models\TicketCategory;
 use App\Models\TicketMessage;
 use App\Models\User;
+use App\Mail\TicketUserReplyMail;
 use App\Services\TicketingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 class HotlineController extends Controller {
  private function guardPengguna():void{
@@ -76,11 +78,24 @@ public function store(Request $request){
    'sender_user_id'=>$ticket->created_by_user_id,
    'message'=>$validated['message'],
   ]);
-  if($ticket->status==='MENUNGGU_PENGGUNA'){
-   TicketingService::changeStatus($ticket,'DIPROSES',$ticket->submitter_name,$ticket->created_by_user_id,'Pengguna merespons');
-  }elseif($ticket->status==='RESOLVED'){
-   TicketingService::changeStatus($ticket,'DIPROSES',$ticket->submitter_name,$ticket->created_by_user_id,'Pengguna membuka kembali tiket');
+if($ticket->status==='MENUNGGU_PENGGUNA'){
+    TicketingService::changeStatus($ticket,'DIPROSES',$ticket->submitter_name,$ticket->created_by_user_id,'Pengguna merespons');
+   }elseif($ticket->status==='RESOLVED'){
+    TicketingService::changeStatus($ticket,'DIPROSES',$ticket->submitter_name,$ticket->created_by_user_id,'Pengguna membuka kembali tiket');
+   }
+   $this->notifyPicsOfUserReply($ticket,$msg);
+   return back()->with('success','Balasan berhasil dikirim.');
   }
-  return back()->with('success','Balasan berhasil dikirim.');
+  private function notifyPicsOfUserReply(Ticket $ticket,TicketMessage $msg):void{
+   $recipients=collect();
+   if($ticket->assigned_to){
+    $pic=User::find($ticket->assigned_to);
+    if($pic&&$pic->email)$recipients->push($pic);
+   }
+   User::where('role','admin_bidang')->where('bidang',$ticket->bidang)->whereNotNull('email')->get()->each(function($u)use($recipients){$recipients->push($u);});
+   $recipients=$recipients->filter(fn($u)=>filter_var($u->email,FILTER_VALIDATE_EMAIL))->unique('email');
+   $recipients->each(function($u)use($ticket,$msg){
+    try{Mail::to($u->email)->send(new TicketUserReplyMail($ticket,$msg));}catch(\Exception $e){}
+   });
+  }
  }
-}

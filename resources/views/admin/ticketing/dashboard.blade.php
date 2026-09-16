@@ -18,7 +18,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="card shadow-sm border-0">
             <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-3 bg-label-primary p-3"><i class="bx bx-ticket fs-3"></i></div>
+                <div class="rounded-3 bg-label-primary p-3"><i class="bx bx-collection fs-3"></i></div>
                 <div><div class="text-muted small">Total Tiket</div><div class="fs-4 fw-bold">{{ $stats['total'] }}</div></div>
             </div>
         </div>

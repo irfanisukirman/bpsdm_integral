@@ -92,7 +92,7 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-pencil me-2 text-primary"></i>Tambah Respons</h6></div>
             <div class="card-body">
-                <form action="{{ route('ticketing.reply', $ticket) }}" method="POST">
+                <form action="{{ route('ticketing.reply', $ticket) }}" method="POST" id="replyForm">
                     @csrf
                     <div class="mb-3">
                         <textarea name="message" class="form-control" rows="4" required maxlength="5000" placeholder="Tulis respons atau catatan..."></textarea>
@@ -105,7 +105,7 @@
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bx bx-send me-1"></i>Kirim Respons</button>
+                    <button type="submit" id="btnSendReply" class="btn btn-primary d-inline-flex align-items-center justify-content-center"><i class="bx bx-send me-1"></i><span>Kirim Respons</span></button>
                 </form>
             </div>
         </div>
@@ -204,3 +204,15 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script>
+$(document).ready(function() {
+    $('#replyForm').on('submit', function() {
+        const btn = $('#btnSendReply');
+        btn.prop('disabled', true);
+        btn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...');
+    });
+});
+</script>
+@endpush
