@@ -19,17 +19,24 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
 
         // Atau ubah menjadi seperti ini:
-        \App\Models\User::factory()->create([
-            'name' => 'Test User',
-            'username' => 'testuser',
-            'role' => 'superadmin',
-            'bidang' => 'Bidang Pengembangan Kompetensi Teknis Inti',
-            'password' => bcrypt('password'),
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['username' => 'testuser'],
+            [
+                'name' => 'Test User',
+                'role' => 'superadmin',
+                'bidang' => 'Bidang Pengembangan Kompetensi Teknis Inti',
+                'password' => bcrypt('password'),
+            ]
+        );
 
         // Tambahkan panggil Seeder L34 yang kita buat sebelumnya
         $this->call([
             EvaluasiL34Seeder::class,
+            TicketServiceSeeder::class,
+            TicketCategorySeeder::class,
+            TicketBidangSeeder::class,
+            TicketRoutingRuleSeeder::class,
+            TicketSlaSeeder::class,
         ]);
     }
 }

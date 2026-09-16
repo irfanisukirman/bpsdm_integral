@@ -14,7 +14,7 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
+        'name', 'username', 'email', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
         'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 
         'provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude',
         'status_kepegawaian', 'password', 'profile_photo', 'must_complete_profile', 'must_change_password'
@@ -88,5 +88,15 @@ class User extends Authenticatable
     public function canAccessNarasumberPortal(): bool
     {
         return $this->isNarasumber();
+    }
+
+    public function assignedTickets()
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to');
+    }
+
+    public function createdTickets()
+    {
+        return $this->hasMany(Ticket::class, 'created_by_user_id');
     }
 }

@@ -44,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
             return $user->role === 'participant';
         });
 
+        \Illuminate\Support\Facades\Gate::define('ticketing-access', function ($user) {
+            return in_array($user->role, ['superadmin', 'admin_bidang']);
+        });
+
         \Illuminate\Pagination\Paginator::useBootstrapFive(); 
     }
 }

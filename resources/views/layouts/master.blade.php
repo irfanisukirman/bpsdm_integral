@@ -98,6 +98,10 @@
 
     <div class="modal fade integral-confirm-modal" id="integralConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-body text-center"><div class="integral-confirm-icon"><i class="bx bx-help-circle"></i></div><h5 class="mb-2" id="integralConfirmTitle">Konfirmasi Tindakan</h5><p class="integral-confirm-message mb-4" id="integralConfirmMessage"></p><div class="d-flex gap-2 justify-content-center"><button type="button" class="btn btn-label-secondary flex-fill" data-bs-dismiss="modal">Batal</button><button type="button" class="btn btn-primary flex-fill" id="integralConfirmAction">Ya, Lanjutkan</button></div></div></div></div></div>
 
+    @if(Auth::check() && !in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+        @include('hotline.widget')
+    @endif
+
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>

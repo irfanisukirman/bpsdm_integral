@@ -48,6 +48,9 @@ use App\Http\Controllers\ActivityAttendanceController;
 use App\Http\Controllers\PublicActivityAttendanceController;
 use App\Http\Controllers\GuestBookController;
 use App\Http\Controllers\PublicGuestBookController;
+use App\Http\Controllers\HotlineController;
+use App\Http\Controllers\Admin\TicketingController;
+use App\Http\Controllers\Admin\TicketingMasterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +63,12 @@ use App\Http\Controllers\PublicGuestBookController;
 | 1. PUBLIC ROUTES (Tanpa Login)
 |--------------------------------------------------------------------------
 */
+
+// HOTLINE (Widget & Tracking)
+Route::post('hotline', [HotlineController::class, 'store'])->middleware('throttle:10,1')->name('hotline.store');
+Route::get('hotline/success/{ticket_number}', [HotlineController::class, 'success'])->name('hotline.success');
+Route::get('hotline/tracking/{token}', [HotlineController::class, 'tracking'])->where('token', '[a-f0-9]{64}')->name('hotline.tracking');
+Route::post('hotline/tracking/{token}', [HotlineController::class, 'replyTracking'])->where('token', '[a-f0-9]{64}')->middleware('throttle:10,1')->name('hotline.tracking.reply');
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
@@ -484,6 +493,40 @@ Route::middleware(['auth'])->group(function () {
     Route::get('alumni-statistics/export', [AlumniController::class, 'exportExcel'])->name('alumni.export');
     Route::get('alumni', [AlumniController::class, 'index'])->name('alumni.index');
         
+    // --- KELOLA TICKETING (Admin Bidang & Superadmin) ---
+    Route::middleware(['can:ticketing-access'])->prefix('ticketing')->group(function () {
+        Route::get('/', [TicketingController::class, 'dashboard'])->name('ticketing.dashboard');
+        Route::get('/tiket', [TicketingController::class, 'index'])->name('ticketing.index');
+        Route::get('/tiket/{ticket}', [TicketingController::class, 'show'])->name('ticketing.show');
+        Route::put('/tiket/{ticket}/status', [TicketingController::class, 'updateStatus'])->name('ticketing.update-status');
+        Route::post('/tiket/{ticket}/reply', [TicketingController::class, 'reply'])->name('ticketing.reply');
+        Route::put('/tiket/{ticket}/assign', [TicketingController::class, 'assign'])->name('ticketing.assign');
+        Route::put('/tiket/{ticket}/transfer', [TicketingController::class, 'transfer'])->name('ticketing.transfer');
+        Route::get('/export/excel', [TicketingController::class, 'exportExcel'])->name('ticketing.export.excel');
+        Route::get('/export/pdf', [TicketingController::class, 'exportPdf'])->name('ticketing.export.pdf');
+        // Master Data (Superadmin only)
+        Route::middleware(['can:superadmin-only'])->group(function () {
+            Route::get('/master/layanan', [TicketingMasterController::class, 'services'])->name('ticketing.master.services');
+            Route::post('/master/layanan', [TicketingMasterController::class, 'storeService'])->name('ticketing.master.services.store');
+            Route::put('/master/layanan/{service}', [TicketingMasterController::class, 'updateService'])->name('ticketing.master.services.update');
+            Route::delete('/master/layanan/{service}', [TicketingMasterController::class, 'destroyService'])->name('ticketing.master.services.destroy');
+            Route::get('/master/kategori', [TicketingMasterController::class, 'categories'])->name('ticketing.master.categories');
+            Route::post('/master/kategori', [TicketingMasterController::class, 'storeCategory'])->name('ticketing.master.categories.store');
+            Route::put('/master/kategori/{category}', [TicketingMasterController::class, 'updateCategory'])->name('ticketing.master.categories.update');
+            Route::delete('/master/kategori/{category}', [TicketingMasterController::class, 'destroyCategory'])->name('ticketing.master.categories.destroy');
+            Route::get('/master/bidang', [TicketingMasterController::class, 'bidang'])->name('ticketing.master.bidang');
+            Route::post('/master/bidang', [TicketingMasterController::class, 'storeBidang'])->name('ticketing.master.bidang.store');
+            Route::put('/master/bidang/{bidang}', [TicketingMasterController::class, 'updateBidang'])->name('ticketing.master.bidang.update');
+            Route::delete('/master/bidang/{bidang}', [TicketingMasterController::class, 'destroyBidang'])->name('ticketing.master.bidang.destroy');
+            Route::get('/master/routing', [TicketingMasterController::class, 'routing'])->name('ticketing.master.routing');
+            Route::post('/master/routing', [TicketingMasterController::class, 'storeRouting'])->name('ticketing.master.routing.store');
+            Route::delete('/master/routing/{rule}', [TicketingMasterController::class, 'destroyRouting'])->name('ticketing.master.routing.destroy');
+            Route::get('/master/sla', [TicketingMasterController::class, 'sla'])->name('ticketing.master.sla');
+            Route::post('/master/sla', [TicketingMasterController::class, 'storeSla'])->name('ticketing.master.sla.store');
+            Route::delete('/master/sla/{sla}', [TicketingMasterController::class, 'destroySla'])->name('ticketing.master.sla.destroy');
+        });
+    });
+
     // --- 3. RUTE KHUSUS PESERTA (Sudah Login & Role Participant) ---
     Route::middleware(['can:isParticipant'])->prefix('participant')->group(function () {
         Route::get('/dashboard', [ParticipantController::class, 'index'])->name('participant.dashboard');
@@ -498,5 +541,8 @@ Route::middleware(['auth'])->group(function () {
         // Riwayat
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
     });
+
+    // --- ADUAN SAYA (Daftar tiket milik pengguna yang login) ---
+    Route::get('aduan-saya', [HotlineController::class, 'myTickets'])->name('hotline.my');
 
 });

@@ -105,6 +105,52 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Daftar Perangkat Daerah (untuk dropdown form Hotline)
+    |--------------------------------------------------------------------------
+    | Perangkat daerah Provinsi Jawa Barat + kabupaten/kota se-Jawa Barat.
+    */
+
+    'perangkat_daerah' => [
+        'Sekretariat Daerah Provinsi Jawa Barat',
+        'Sekretariat DPRD Provinsi Jawa Barat',
+        'Inspektorat Daerah Provinsi Jawa Barat',
+        'BPSDM Provinsi Jawa Barat',
+        'Bappeda Provinsi Jawa Barat',
+        'Bapenda Provinsi Jawa Barat',
+        'BPKAD Provinsi Jawa Barat',
+        'BPBD Provinsi Jawa Barat',
+        'BKPSDM Provinsi Jawa Barat',
+        'Dinas Pendidikan',
+        'Dinas Kesehatan',
+        'Dinas Pekerjaan Umum dan Tata Ruang',
+        'Dinas Perumahan dan Kawasan Permukiman',
+        'Dinas Sosial',
+        'Dinas Tenaga Kerja dan Transmigrasi',
+        'Dinas Pemberdayaan Perempuan dan Perlindungan Anak',
+        'Dinas Ketahanan Pangan dan Peternakan',
+        'Dinas Lingkungan Hidup',
+        'Dinas Kependudukan dan Catatan Sipil',
+        'Dinas Pemberdayaan Masyarakat dan Desa',
+        'Dinas Pengendalian Penduduk dan Keluarga Berencana',
+        'Dinas Perhubungan',
+        'Dinas Komunikasi dan Informatika',
+        'Dinas Koperasi dan Usaha Kecil',
+        'Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu',
+        'Dinas Kepemudaan dan Olahraga',
+        'Dinas Pariwisata dan Kebudayaan',
+        'Dinas Perpustakaan dan Kearsipan Daerah',
+        'Dinas Kelautan dan Perikanan',
+        'Dinas Pertanian dan Ketahanan Pangan',
+        'Dinas Kehutanan',
+        'Dinas ESDM Provinsi Jawa Barat',
+        'Dinas Perindustrian dan Perdagangan',
+        'Kantor Kesatuan Bangsa dan Politik',
+        'Satpol PP Provinsi Jawa Barat',
+        'RSUD Provinsi Jawa Barat',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Koordinat Kabupaten/Kota (untuk marker peta)
     |--------------------------------------------------------------------------
     | Format: 'NAMA' => [latitude, longitude]. Ditambah bertahap sesuai data.

@@ -111,6 +111,7 @@
                     @yield('form_content')
 
                     <!-- TOMBOL SUBMIT & RESET BAWAH -->
+                    @section('form_footer')
                     <div class="card shadow-sm border-0 mb-5">
                         <div class="card-body p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <small class="text-muted">
@@ -128,6 +129,7 @@
                             </div>
                         </div>
                     </div>
+                    @show
                 </form>
 
             </div>

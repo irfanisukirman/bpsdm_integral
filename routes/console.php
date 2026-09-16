@@ -34,6 +34,11 @@ Artisan::command('internships:purge-photos', function () {
     $this->info($deleted.' foto presensi lama berhasil dihapus.');
 })->purpose('Menghapus foto selfie presensi magang yang berusia lebih dari tujuh hari');
 
+\Illuminate\Support\Facades\Schedule::command('tickets:auto-close')
+    ->everyThirtyMinutes()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
 \Illuminate\Support\Facades\Schedule::command('internships:purge-photos')
     ->dailyAt('01:15')
     ->timezone('Asia/Jakarta')

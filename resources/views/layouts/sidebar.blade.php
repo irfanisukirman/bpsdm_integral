@@ -105,9 +105,6 @@
             <li class="menu-item {{ request()->routeIs('agendas.*') ? 'active' : '' }}"><a href="{{ route('agendas.index') }}" class="menu-link"><i class="menu-icon bx bx-calendar-event"></i><div>Kelola Agenda</div>@if($menuNoticeCount('agendas'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('agendas')>99?'99+':$menuNoticeCount('agendas')}}</span>@endif</a></li>
         @endif
         
-        <!-- ========================================================= -->
-        <!-- 1. MENU KHUSUS ADMIN BIDANG & SUPERADMIN                  -->
-        <!-- ========================================================= -->
         @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Presensi & Form Publik</span></li>
 
@@ -243,6 +240,13 @@
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Riwayat Mengajar</div>
                 </a>
+            </li>
+        @endif
+
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Kelola Layanan</span></li>
+            <li class="menu-item {{ request()->routeIs('ticketing.*') ? 'active' : '' }}">
+                <a href="{{ route('ticketing.dashboard') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>Manajemen Layanan</div>@if($menuNoticeCount('ticketing'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Tiket menunggu tindakan">{{$menuNoticeCount('ticketing')>99?'99+':$menuNoticeCount('ticketing')}}</span>@endif</a>
             </li>
         @endif
         <li class="menu-spacer" aria-hidden="true"></li>

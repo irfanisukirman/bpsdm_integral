@@ -285,6 +285,9 @@
                     <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#kalender-kegiatan">Kalender</a></li>
                     <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#aset-publik">Aset</a></li>
                     <li class="nav-item"><a class="nav-link fw-semibold px-3" href="{{ route('public.asset-rentals.index') }}">Reservasi Fasilitas</a></li>
+                    @if(!auth()->check() || !in_array(auth()->user()->role, ['superadmin', 'admin_bidang'], true))
+                        <li class="nav-item"><a class="nav-link fw-semibold px-3" href="javascript:void(0)" onclick="if(window.HotlineWidget)window.HotlineWidget.open()" title="Layanan Hotline"><i class="bx bx-support me-1"></i>Buat Aduan</a></li>
+                    @endif
                 </ul>
                 
                 <div class="ms-auto">
@@ -557,6 +560,10 @@
     <!-- Core JS -->
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
+
+    @if(!auth()->check() || !in_array(auth()->user()->role, ['superadmin', 'admin_bidang'], true))
+        @include('hotline.widget')
+    @endif
 
     <script>
         // Navbar Scroll Effect

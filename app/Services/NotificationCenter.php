@@ -21,6 +21,7 @@ use App\Models\AssetBooking;
 use App\Models\AssetLoanRequest;
 use App\Models\AssetPublicReservation;
 use App\Models\AgendaSchedule;
+use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,7 @@ class NotificationCenter
         if (in_array($user->role, ['superadmin', 'admin_bidang'], true)) {
             $items = $items->merge($this->adminItems($user));
             $items = $items->merge($this->adminPartnerItems($user));
+            $items = $items->merge($this->ticketingItems($user));
         }
         if (in_array($user->role, ['superadmin', 'admin_aset', 'admin_bidang'], true)) {
             $items = $items->merge($this->assetLoanItems($user));
@@ -76,6 +78,37 @@ class NotificationCenter
             $item['due_at'] ?? '9999-12-31 23:59:59',
             $item['title']
         ))->values();
+    }
+
+    private function ticketingItems(User $user): Collection
+    {
+        $query = Ticket::whereIn('status', ['BARU', 'DIPROSES', 'MENUNGGU_PENGGUNA'])
+            ->whereNotIn('status', ['RESOLVED', 'CLOSED']);
+        if ($user->role !== 'superadmin') {
+            $query->where('bidang', $user->bidang);
+        }
+        $tickets = $query->latest()->get();
+        if ($tickets->isEmpty()) {
+            return collect();
+        }
+        $baru = $tickets->where('status', 'BARU')->count();
+        $waiting = $tickets->where('status', 'MENUNGGU_PENGGUNA')->count();
+        $overdue = $tickets->filter(fn ($t) => $t->sla_indicator === 'terlewati')->count();
+        $level = $overdue > 0 ? 'danger' : ($baru > 0 ? 'warning' : 'info');
+        $parts = [];
+        if ($baru) $parts[] = $baru.' tiket baru';
+        if ($waiting) $parts[] = $waiting.' menunggu pengguna';
+        if ($overdue) $parts[] = $overdue.' melewati SLA';
+        $key = 'ticketing-'.$user->id.'-'.now()->format('YmdHi').'-'.$tickets->max('updated_at')->timestamp;
+        return collect([$this->item(
+            $key,
+            'Tiket Hotline menunggu penanganan',
+            implode(' · ', $parts ?: ['Beberapa tiket aktif.']),
+            $level,
+            'bx-support',
+            route('ticketing.dashboard'),
+            'Kelola tiket'
+        )]);
     }
 
     private function electronicSignatureItems(User $user): Collection
@@ -428,6 +461,7 @@ class NotificationCenter
             str_starts_with($id, 'pending-participants-'), str_starts_with($id, 'admin-attendance-'), str_starts_with($id, 'forum-') => 'trainings',
             str_starts_with($id, 'participant-docs-'), str_starts_with($id, 'attendance-'), str_starts_with($id, 'evaluation-'), str_starts_with($id, 'certificate-issued-') => 'participant_trainings',
             str_starts_with($id, 'teacher-') => 'teacher_portal',
+            str_starts_with($id, 'ticketing-') => 'ticketing',
             default => null,
         };
     }

@@ -121,6 +121,12 @@
                         </a>
                     </li>
                     <li>
+                        <a class="dropdown-item" href="{{ route('hotline.my') }}">
+                            <i class="bx bx-support me-2"></i>
+                            <span class="align-middle">Aduan Saya</span>
+                        </a>
+                    </li>
+                    <li>
                         <div class="dropdown-divider"></div>
                     </li>
                     <!-- TOMBOL LOGOUT -->
