@@ -63,9 +63,10 @@ use App\Http\Controllers\Admin\TicketingMasterController;
 | 1. PUBLIC ROUTES (Tanpa Login)
 |--------------------------------------------------------------------------
 */
-
 // HOTLINE (Widget & Tracking)
-Route::post('hotline', [HotlineController::class, 'store'])->middleware('throttle:10,1')->name('hotline.store');
+Route::get('hotline/availability', [HotlineController::class, 'availability'])->name('hotline.availability');
+Route::post('hotline', [HotlineController::class, 
+'store'])->middleware('throttle:10,1')->name('hotline.store');
 Route::get('hotline/success/{ticket_number}', [HotlineController::class, 'success'])->name('hotline.success');
 Route::get('hotline/tracking/{token}', [HotlineController::class, 'tracking'])->where('token', '[a-f0-9]{64}')->name('hotline.tracking');
 Route::post('hotline/tracking/{token}', [HotlineController::class, 'replyTracking'])->where('token', '[a-f0-9]{64}')->middleware('throttle:10,1')->name('hotline.tracking.reply');
@@ -496,6 +497,7 @@ Route::middleware(['auth'])->group(function () {
     // --- KELOLA TICKETING (Admin Bidang & Superadmin) ---
     Route::middleware(['can:ticketing-access'])->prefix('ticketing')->group(function () {
         Route::get('/', [TicketingController::class, 'dashboard'])->name('ticketing.dashboard');
+        Route::post('/availability', [TicketingController::class, 'updateAvailability'])->name('ticketing.availability');
         Route::get('/tiket', [TicketingController::class, 'index'])->name('ticketing.index');
         Route::get('/tiket/{ticket}', [TicketingController::class, 'show'])->name('ticketing.show');
         Route::put('/tiket/{ticket}/status', [TicketingController::class, 'updateStatus'])->name('ticketing.update-status');

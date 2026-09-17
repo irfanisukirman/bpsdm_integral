@@ -51,7 +51,29 @@ class TicketingController extends Controller {
   })->values();
   $categoryData=$tickets->groupBy('category')->map(fn($g)=>$g->count())->sortDesc();
   $bidangData=$tickets->groupBy('bidang')->map(fn($g)=>$g->count())->sortDesc();
-  return view('admin.ticketing.dashboard',compact('stats','monthlyData','categoryData','bidangData'));
+  $availability=\App\Models\HotlineAvailabilitySetting::current();
+  return view('admin.ticketing.dashboard',compact('stats','monthlyData','categoryData','bidangData','availability'));
+ }
+ public function updateAvailability(Request $request){
+  abort_unless(Auth::user()->role==='superadmin',403,'Hanya superadmin yang dapat mengubah status ketersediaan hotline.');
+  $validated=$request->validate([
+   'mode'=>'required|in:auto,manual_online,manual_offline',
+   'opens_at'=>['nullable','date_format:H:i'],
+   'closes_at'=>['nullable','date_format:H:i'],
+   'workdays'=>'nullable|array',
+   'workdays.*'=>'integer|between:0,6',
+   'note'=>'nullable|string|max:255',
+  ]);
+  $setting=\App\Models\HotlineAvailabilitySetting::current();
+  $setting->update([
+   'mode'=>$validated['mode'],
+   'opens_at'=>$validated['opens_at']?:null,
+   'closes_at'=>$validated['closes_at']?:null,
+   'workdays'=>(array)($validated['workdays']??\App\Models\HotlineAvailabilitySetting::DEFAULT_WORKDAYS),
+   'note'=>$validated['note']?:null,
+   'updated_by'=>Auth::id(),
+  ]);
+  return back()->with('success','Status ketersediaan Hotline berhasil diperbarui.');
  }
  public function index(Request $request){
   $q=$this->getScopeQuery()->with('assignee');

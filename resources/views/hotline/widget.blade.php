@@ -2,6 +2,7 @@
 if(!isset($widgetServices)){ $widgetServices=\App\Models\TicketService::where('is_active',true)->orderBy('sort_order')->get(); }
 if(!isset($widgetCategories)){ $widgetCategories=\App\Models\TicketCategory::where('is_active',true)->orderBy('sort_order')->get(); }
 if(!isset($widgetPerangkatDaerah)){ $widgetPerangkatDaerah=config('wilayah.perangkat_daerah',[]); }
+if(!isset($widgetAvailability)){ $widgetAvailability=\App\Models\HotlineAvailabilitySetting::current()->statusInfo(); }
 @endphp
 <div class="hotline-widget" id="hotlineWidget">
     <div class="hotline-panel" id="hotlinePanel" aria-hidden="true">
@@ -11,12 +12,19 @@ if(!isset($widgetPerangkatDaerah)){ $widgetPerangkatDaerah=config('wilayah.peran
                 <div>
                     <div class="fw-bold hotline-title">Hotline Integral</div>
                     <div class="hotline-sub">BPSDM Provinsi Jawa Barat</div>
+                    <div class="hotline-presence @if($widgetAvailability['online']) is-online @endif" id="hotlinePresence">
+                        <span class="hotline-presence-dot"></span>
+                        <span class="hotline-presence-label">{{ $widgetAvailability['label'] }}</span>
+                    </div>
                 </div>
             </div>
             <button type="button" class="btn hotline-close" id="hotlineClose" aria-label="Tutup"><i class="bx bx-x"></i></button>
         </div>
         <div class="hotline-body" id="hotlineBody">
             <div class="hotline-msg msg-bot">Halo! 👋 Ada kendala atau pertanyaan? Ceritakan aduan Anda di bawah ini.</div>
+            @if(!$widgetAvailability['online'])
+            <div class="hotline-msg small-msg">⏰ Sedang di luar jam layanan ({{ $widgetAvailability['days'] }}, {{ $widgetAvailability['hours'] }}). Aduan tetap diterima dan akan ditindaklanjuti pada jam kerja berikutnya.</div>
+            @endif
         </div>
         <form id="hotlineForm" class="hotline-form" enctype="multipart/form-data">
             @csrf
@@ -79,7 +87,13 @@ if(!isset($widgetPerangkatDaerah)){ $widgetPerangkatDaerah=config('wilayah.peran
                     </label>
                 </div>
                 <div class="text-danger small mb-1" id="hwError" style="display:none"></div>
-                <div class="hotline-info"><i class="bx bx-info-circle me-1"></i>Bukan live chat — aduan akan ditindaklanjuti unit terkait dan dijawab via email.</div>
+                <div class="hotline-info" id="hotlineInfo">
+                    @if($widgetAvailability['online'])
+                        <i class="bx bx-info-circle me-1"></i>Admin sedang online — aduan akan diproses segera. Bukan live chat, jawaban dikirim via email.
+                    @else
+                        <i class="bx bx-info-circle me-1"></i>Di luar jam layanan ({{ $widgetAvailability['days'] }}, {{ $widgetAvailability['hours'] }}) — aduan tetap diterima dan diproses di jam berikutnya.
+                    @endif
+                </div>
             </div>
             <button type="submit" class="btn btn-primary w-100 hotline-send" id="hwSubmit"><span class="hotline-send-label"><i class="bx bx-send me-1"></i>Kirim Aduan</span><span class="spinner-border spinner-border-sm hotline-btn-spinner" aria-hidden="true"></span></button>
         </form>
@@ -105,6 +119,11 @@ if(!isset($widgetPerangkatDaerah)){ $widgetPerangkatDaerah=config('wilayah.peran
 .hotline-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.35rem}
 .hotline-title{font-size:.95rem;line-height:1.1}
 .hotline-sub{font-size:.72rem;opacity:.85}
+.hotline-presence{display:inline-flex;align-items:center;gap:.35rem;margin-top:.4rem;padding:.15rem .55rem;border-radius:999px;background:rgba(255,255,255,.14);font-size:.7rem;line-height:1.4}
+.hotline-presence-dot{width:8px;height:8px;border-radius:50%;background:#ff3e1d;box-shadow:0 0 0 3px rgba(255,62,29,.25);flex:0 0 auto}
+.hotline-presence.is-online .hotline-presence-dot{background:#58e07f;box-shadow:0 0 0 3px rgba(88,224,127,.25);animation:hotlinePulse 2s infinite}
+.hotline-presence .hotline-presence-label{white-space:nowrap}
+@keyframes hotlinePulse{0%,100%{opacity:1}50%{opacity:.45}}
 .hotline-close{color:#fff;font-size:1.3rem;padding:0 .25rem;line-height:1}
 .hotline-close:hover{color:#fff;opacity:.8}
 .hotline-body{flex:0 0 auto;overflow-y:auto;padding:1rem;background:#f4f6fb;display:flex;flex-direction:column;gap:.5rem}

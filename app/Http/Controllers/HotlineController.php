@@ -5,14 +5,18 @@ use App\Models\TicketService;
 use App\Models\TicketCategory;
 use App\Models\TicketMessage;
 use App\Models\User;
+use App\Models\HotlineAvailabilitySetting;
 use App\Mail\TicketUserReplyMail;
 use App\Services\TicketingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 class HotlineController extends Controller {
- private function guardPengguna():void{
-  abort_if(auth()->check()&&in_array(auth()->user()->role,['superadmin','admin_bidang'],true),403,'Halaman ini khusus untuk pengguna biasa. Gunakan menu Kelola Layanan untuk administrasi tiket.');
+private function guardPengguna():void{
+   abort_if(auth()->check()&&in_array(auth()->user()->role,['superadmin','admin_bidang'],true),403,'Halaman ini khusus untuk pengguna biasa. Gunakan menu Kelola Layanan untuk administrasi tiket.');
+  }
+public function availability(){
+   return response()->json(HotlineAvailabilitySetting::current()->statusInfo());
  }
 public function store(Request $request){
   $this->guardPengguna();
