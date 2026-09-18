@@ -92,17 +92,30 @@ class TicketingController extends Controller {
   $pics=$this->getPics();
   return view('admin.ticketing.index',compact('tickets','services','categories','bidangs','pics'));
  }
- public function show(Ticket $ticket){
-  $this->authorizeTicketAccess($ticket);
-  $ticket->load(['assignee','creator','messages.sender','statusHistories.changedBy']);
-  $userMessages=$ticket->messages()->where('is_internal',false)->orderBy('created_at')->get();
-  $internalMessages=Auth::user()->role==='superadmin'||$ticket->bidang===Auth::user()->bidang
-   ?$ticket->messages()->where('is_internal',true)->orderBy('created_at')->get():collect();
-  $bidangs=\App\Models\TicketBidang::where('is_active',true)->get();
-  $pics=$this->getPics();
-  $canManage=Auth::user()->role==='superadmin'||(Auth::user()->role==='admin_bidang'&&$ticket->bidang===Auth::user()->bidang);
-  return view('admin.ticketing.show',compact('ticket','userMessages','internalMessages','bidangs','pics','canManage'));
- }
+public function show(Ticket $ticket){
+   $this->authorizeTicketAccess($ticket);
+   $ticket->load(['assignee','creator','messages.sender','statusHistories.changedBy']);
+   $userMessages=$ticket->messages()->where('is_internal',false)->orderBy('created_at')->get();
+   $internalMessages=Auth::user()->role==='superadmin'||$ticket->bidang===Auth::user()->bidang
+    ?$ticket->messages()->where('is_internal',true)->orderBy('created_at')->get():collect();
+   $bidangs=\App\Models\TicketBidang::where('is_active',true)->get();
+   $pics=$this->getPics();
+   $canManage=Auth::user()->role==='superadmin'||(Auth::user()->role==='admin_bidang'&&$ticket->bidang===Auth::user()->bidang);
+   return view('admin.ticketing.show',compact('ticket','userMessages','internalMessages','bidangs','pics','canManage'));
+  }
+  public function messages(Ticket $ticket){
+   $this->authorizeTicketAccess($ticket);
+   $user=Auth::user();
+   $userMessages=$ticket->messages()->where('is_internal',false)->orderBy('created_at')->get();
+   $internalMessages=($user->role==='superadmin'||$ticket->bidang===$user->bidang)
+    ?$ticket->messages()->where('is_internal',true)->orderBy('created_at')->get():collect();
+   $allMessages=$userMessages->concat($internalMessages)->sortBy('created_at');
+   return response()->json([
+    'count'=>$allMessages->count(),
+    'last_id'=>$allMessages->last()?->id,
+    'html'=>view('admin.ticketing.partials.messages',['messages'=>$allMessages,'user'=>$user])->render(),
+   ]);
+  }
 public function updateStatus(Request $request,Ticket $ticket){
    $this->authorizeTicketAccess($ticket);
    if($ticket->status==='CLOSED'){

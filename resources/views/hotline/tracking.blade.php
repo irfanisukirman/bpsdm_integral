@@ -67,26 +67,12 @@
         <h6 class="mb-0 fw-bold"><i class="bx bx-message-rounded-dots me-2 text-primary"></i>Riwayat Percakapan</h6>
     </div>
     <div class="card-body">
-        @forelse($messages as $msg)
-            @php $isUser = $msg->sender_role === 'user'; @endphp
-            <div class="d-flex mb-3 {{ $isUser ? '' : 'justify-content-end' }}">
-                <div class="rounded-3 p-3 shadow-sm" style="{{ $isUser ? 'max-width:80%;background:#f1f3ff;' : 'max-width:80%;background:#e8f5e9;' }}">
-                    <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
-                        <div class="fw-bold small {{ $isUser ? 'text-primary' : 'text-success' }}">
-                            <i class="bx {{ $isUser ? 'bx-user' : 'bx-briefcase' }} me-1"></i>{{ $msg->sender_name }}
-                            @if(!$isUser)<span class="badge bg-label-success ms-1">PIC</span>@endif
-                        </div>
-                        <small class="text-muted">{{ $msg->created_at->translatedFormat('d F Y H:i') }}</small>
-                    </div>
-                    <div style="white-space:pre-wrap;" class="small">{{ $msg->message }}</div>
-                </div>
+        <div id="messagesWrapper" style="position:relative;">
+            <div id="messagesContainer">
+                @include('hotline.partials.messages', ['messages' => $messages])
             </div>
-        @empty
-            <div class="text-center py-4 text-muted">
-                <i class="bx bx-chat fs-1 d-block mb-2"></i>
-                Belum ada percakapan.
-            </div>
-        @endforelse
+            <button type="button" id="newMessagesPill" class="btn btn-sm btn-primary rounded-pill shadow-sm" style="display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:5;border:0;"><i class="bx bx-down-arrow-alt me-1"></i>Pesan baru</button>
+        </div>
     </div>
 </div>
 
@@ -114,12 +100,59 @@
 @push('form_js')
 <script>
 $(document).ready(function() {
-    if (!$('#btnSendReply').length) return;
-    $('#reusableForm').on('submit', function() {
-        const btn = $('#btnSendReply');
-        btn.prop('disabled', true);
-        btn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...');
+    if ($('#btnSendReply').length) {
+        $('#reusableForm').on('submit', function() {
+            const btn = $('#btnSendReply');
+            btn.prop('disabled', true);
+            btn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...');
+        });
+    }
+
+    var $wrapper = $('#messagesWrapper');
+    if (!$wrapper.length) return;
+    var $container = $('#messagesContainer');
+    var $pill = $('#newMessagesPill');
+    var POLL_INTERVAL = 5000;
+    var pollUrl = '{{ route('hotline.tracking.messages', $ticket->tracking_token) }}';
+    var lastId = null, lastCount = null, timer = null;
+
+    function nearBottom() {
+        var rect = $wrapper.closest('.card')[0].getBoundingClientRect();
+        return (rect.bottom - 40) <= window.innerHeight;
+    }
+    function stickToBottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+    function sync() {
+        if (document.hidden) return;
+        $.getJSON(pollUrl, function(res) {
+            if (res.count === lastCount && res.last_id === lastId) return;
+            var sawChanges = lastId !== null;
+            var wasBottom = nearBottom();
+            $container.html(res.html);
+            if (sawChanges && wasBottom) stickToBottom();
+            else if (sawChanges) $pill.fadeIn(150);
+            lastId = res.last_id;
+            lastCount = res.count;
+        }).fail(function() { /* biarkan tick berikutnya */ });
+    }
+    function start() {
+        if (timer) return;
+        timer = setInterval(sync, POLL_INTERVAL);
+    }
+    $(document).on('visibilitychange', function() {
+        if (document.hidden) return;
+        clearInterval(timer);
+        timer = null;
+        sync();
+        start();
     });
+    $pill.on('click', function() {
+        stickToBottom();
+        $pill.fadeOut(150);
+    });
+    sync();
+    start();
 });
 </script>
 @endpush

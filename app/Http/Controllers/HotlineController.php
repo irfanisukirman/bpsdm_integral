@@ -63,7 +63,16 @@ public function store(Request $request){
   $canReply=in_array($ticket->status,['BARU','DIPROSES','MENUNGGU_PENGGUNA','RESOLVED']);
   return view('hotline.tracking',compact('ticket','messages','statusHistories','canReply'));
  }
- public function replyTracking(Request $request,string $token){
+ public function messages(string $token){
+   $ticket=Ticket::where('tracking_token',$token)->firstOrFail();
+   $messages=$ticket->messages()->where('is_internal',false)->orderBy('created_at')->get();
+   return response()->json([
+    'count'=>$messages->count(),
+    'last_id'=>$messages->last()?->id,
+    'html'=>view('hotline.partials.messages',compact('messages'))->render(),
+   ]);
+  }
+  public function replyTracking(Request $request,string $token){
   $ticket=Ticket::where('tracking_token',$token)->firstOrFail();
   if(!in_array($ticket->status,['BARU','DIPROSES','MENUNGGU_PENGGUNA','RESOLVED'])){
    return back()->with('error','Tiket tidak dapat dibalas.');

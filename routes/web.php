@@ -69,6 +69,7 @@ Route::post('hotline', [HotlineController::class,
 'store'])->middleware('throttle:10,1')->name('hotline.store');
 Route::get('hotline/success/{ticket_number}', [HotlineController::class, 'success'])->name('hotline.success');
 Route::get('hotline/tracking/{token}', [HotlineController::class, 'tracking'])->where('token', '[a-f0-9]{64}')->name('hotline.tracking');
+Route::get('hotline/tracking/{token}/messages', [HotlineController::class, 'messages'])->where('token', '[a-f0-9]{64}')->middleware('throttle:60,1')->name('hotline.tracking.messages');
 Route::post('hotline/tracking/{token}', [HotlineController::class, 'replyTracking'])->where('token', '[a-f0-9]{64}')->middleware('throttle:10,1')->name('hotline.tracking.reply');
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
@@ -500,6 +501,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/availability', [TicketingController::class, 'updateAvailability'])->name('ticketing.availability');
         Route::get('/tiket', [TicketingController::class, 'index'])->name('ticketing.index');
         Route::get('/tiket/{ticket}', [TicketingController::class, 'show'])->name('ticketing.show');
+        Route::get('/tiket/{ticket}/messages', [TicketingController::class, 'messages'])->name('ticketing.messages');
         Route::put('/tiket/{ticket}/status', [TicketingController::class, 'updateStatus'])->name('ticketing.update-status');
         Route::post('/tiket/{ticket}/reply', [TicketingController::class, 'reply'])->name('ticketing.reply');
         Route::put('/tiket/{ticket}/assign', [TicketingController::class, 'assign'])->name('ticketing.assign');

@@ -63,26 +63,12 @@
             <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-message-rounded-dots me-2 text-primary"></i>Percakapan</h6></div>
             <div class="card-body">
                 @php $allMessages = $userMessages->concat($internalMessages)->sortBy('created_at'); @endphp
-                @forelse($allMessages as $msg)
-                    @php
-                        $isUser = $msg->sender_role === 'user';
-                        $isInternal = $msg->is_internal && in_array($user->role, ['superadmin','admin_bidang']);
-                    @endphp
-                    <div class="d-flex mb-3 {{ $isUser ? '' : 'justify-content-end' }}">
-                        <div class="rounded-3 p-3 shadow-sm {{ $isUser ? 'bg-label-primary' : ($isInternal ? 'bg-label-secondary border-start border-2 border-warning' : 'bg-label-success') }}" style="max-width:80%;">
-                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
-                                <div class="fw-bold small {{ $isUser ? 'text-primary' : ($isInternal ? 'text-secondary' : 'text-success') }}">
-                                    <i class="bx {{ $isUser ? 'bx-user' : 'bx-briefcase' }} me-1"></i>{{ $msg->sender_name }}
-                                    @if(!$isUser){!! $msg->is_internal ? '<span class="badge bg-warning ms-1">Internal</span>' : '<span class="badge bg-label-success ms-1">PIC</span>' !!}@endif
-                                </div>
-                                <small class="text-muted">{{ $msg->created_at->format('d/m/Y H:i') }}</small>
-                            </div>
-                            <div style="white-space:pre-wrap;" class="small">{{ $msg->message }}</div>
-                        </div>
+                <div id="messagesWrapper" style="position:relative;">
+                    <div id="messagesContainer">
+                        @include('admin.ticketing.partials.messages', ['messages' => $allMessages, 'user' => $user])
                     </div>
-                @empty
-                    <div class="text-center py-4 text-muted"><i class="bx bx-chat fs-1 d-block mb-2"></i>Belum ada percakapan.</div>
-                @endforelse
+                    <button type="button" id="newMessagesPill" class="btn btn-sm btn-primary rounded-pill shadow-sm" style="display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:5;border:0;"><i class="bx bx-down-arrow-alt me-1"></i>Pesan baru</button>
+                </div>
             </div>
         </div>
 
@@ -182,6 +168,57 @@ $(document).ready(function() {
         btn.prop('disabled', true);
         btn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...');
     });
+
+    var $wrapper = $('#messagesWrapper');
+    if (!$wrapper.length) return;
+    var $container = $('#messagesContainer');
+    var $pill = $('#newMessagesPill');
+    var POLL_INTERVAL = 5000;
+    var pollUrl = '{{ route('ticketing.messages', $ticket) }}';
+    var lastId = null, lastCount = null, timer = null;
+
+    function nearBottom() {
+        var rect = $wrapper.closest('.card')[0].getBoundingClientRect();
+        return (rect.bottom - 40) <= window.innerHeight;
+    }
+    function stickToBottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+    function sync() {
+        if (document.hidden) return;
+        $.ajax({
+            url: pollUrl,
+            dataType: 'json',
+            cache: false,
+            success: function(res) {
+                if (res.count === lastCount && res.last_id === lastId) return;
+                var sawChanges = lastId !== null;
+                var wasBottom = nearBottom();
+                $container.html(res.html);
+                if (sawChanges && wasBottom) stickToBottom();
+                else if (sawChanges) $pill.fadeIn(150);
+                lastId = res.last_id;
+                lastCount = res.count;
+            }
+        });
+    }
+    function start() {
+        if (timer) return;
+        timer = setInterval(sync, POLL_INTERVAL);
+    }
+    $(document).on('visibilitychange', function() {
+        if (document.hidden) return;
+        clearInterval(timer);
+        timer = null;
+        sync();
+        start();
+    });
+    $pill.on('click', function() {
+        stickToBottom();
+        $pill.fadeOut(150);
+    });
+    sync();
+    start();
 });
 </script>
 @endpush
