@@ -25,7 +25,8 @@
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select form-select-sm">
                     <option value="">Semua</option>
-                    @foreach($statuses as $st)<option value="{{ $st }}" {{ request('status')===$st?'selected':'' }}>{{ ucwords(str_replace('_',' ',$st)) }}</option>@endforeach
+                    <option value="open" @selected(request('status')==='open')>Belum Ditutup</option>
+                    <option value="closed" @selected(request('status')==='closed')>Sudah Ditutup</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -86,7 +87,6 @@
                     <th>Pengaju</th>
                     <th>Layanan</th>
                     <th>Kategori</th>
-                    <th>Status</th>
                     @if(Auth::user()->role==='superadmin')<th>Bidang</th>@endif
                     <th>PIC</th>
                     <th>SLA</th>
@@ -101,7 +101,6 @@
                     <td class="small">{{ $t->submitter_name }}<br><span class="text-muted">{{ $t->email }}</span></td>
                     <td class="small">{{ ucwords(str_replace('-',' ',$t->service)) }}</td>
                     <td class="small">{{ ucwords(str_replace('-',' ',$t->category)) }}</td>
-                    <td><span class="badge bg-{{ $t->status_color }}">{{ $t->status_label }}</span></td>
                     @if(Auth::user()->role==='superadmin')<td class="small">{{ $t->bidang }}</td>@endif
                     <td class="small">{{ $t->assignee?->name ?? '-' }}</td>
                     <td>
@@ -115,7 +114,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="10" class="text-center py-4 text-muted">Tidak ada tiket ditemukan.</td></tr>
+                <tr><td colspan="9" class="text-center py-4 text-muted">Tidak ada tiket ditemukan.</td></tr>
                 @endforelse
             </tbody>
         </table>

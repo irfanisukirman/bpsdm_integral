@@ -27,7 +27,6 @@
             <small class="text-muted">Dibuat {{ $ticket->created_at->translatedFormat('d F Y H:i') }}</small>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <span class="badge bg-{{ $ticket->status_color }} rounded-pill">{{ $ticket->status_label }}</span>
             <span class="badge bg-label-{{ $slaInfo['color'] }} rounded-pill d-inline-flex align-items-center gap-1"><i class="bx {{ $slaInfo['icon'] }}"></i>SLA: {{ $slaInfo['label'] }}</span>
         </div>
     </div>
@@ -107,7 +106,7 @@
 @else
 <div class="alert alert-secondary mb-5">
     <i class="bx bx-lock-alt me-2"></i>
-    Tiket ini sudah <strong>{{ $ticket->status_label }}</strong> dan tidak dapat dibalas lagi.
+    Tiket ini sudah ditutup oleh admin dan tidak dapat dibalas lagi.
 </div>
 @endif
 @endsection

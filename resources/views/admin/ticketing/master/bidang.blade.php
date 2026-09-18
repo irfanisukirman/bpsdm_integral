@@ -7,25 +7,30 @@
         <h4 class="fw-bold py-1 mb-1"><span class="text-muted fw-light">Manajemen Layanan /</span> Master Bidang</h4>
         <p class="text-muted small mb-0">Kelola bidang penanggung jawab tiket.</p>
     </div>
-    <a href="{{ route('ticketing.dashboard') }}" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="bx bx-arrow-back me-1"></i>Kembali</a>
+    <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bx bx-plus me-1"></i>Tambah Data</button>
 </div>
 
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-plus-circle me-2 text-primary"></i>Tambah Bidang</h6></div>
-    <div class="card-body">
-        <form action="{{ route('ticketing.master.bidang.store') }}" method="POST" class="row g-2 align-items-end">
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('ticketing.master.bidang.store') }}" class="modal-content">
             @csrf
-            <div class="col-md-5">
-                <input type="text" name="name" class="form-control" placeholder="Nama bidang" required>
+            <div class="modal-header"><h5 class="modal-title">Tambah Bidang</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nama Bidang</label>
+                    <input type="text" name="name" class="form-control" placeholder="Nama bidang" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Default Handler</label>
+                    <select name="default_handler_user_id" class="form-select">
+                        <option value="">-- Default Handler (Opsional) --</option>
+                        @foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }} ({{ $u->role }})</option>@endforeach
+                    </select>
+                </div>
             </div>
-            <div class="col-md-5">
-                <select name="default_handler_user_id" class="form-select">
-                    <option value="">-- Default Handler (Opsional) --</option>
-                    @foreach($users as $u)<option value="{{ $u->id }}">{{ $u->name }} ({{ $u->role }})</option>@endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary">Simpan</button>
             </div>
         </form>
     </div>

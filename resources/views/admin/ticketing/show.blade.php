@@ -40,22 +40,20 @@
             <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <h6 class="mb-0 fw-bold"><i class="bx bx-info-circle me-2 text-primary"></i>Informasi Tiket</h6>
                 <div class="d-flex gap-2 align-items-center">
-                    <span class="badge bg-{{ $ticket->status_color }} rounded-pill">{{ $ticket->status_label }}</span>
                     <span class="badge bg-label-{{ $slaInfo['color'] }} rounded-pill d-inline-flex align-items-center gap-1"><i class="bx {{ $slaInfo['icon'] }}"></i>SLA: {{ $slaInfo['label'] }}</span>
                 </div>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6"><div class="text-muted small">Pengaju</div><div class="fw-semibold">{{ $ticket->submitter_name }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Jenis Pengguna</div><div class="fw-semibold">{{ $ticket->user_type }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">NIP/NIK</div><div class="fw-semibold">{{ $ticket->nip_nik }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Perangkat Daerah</div><div class="fw-semibold">{{ $ticket->perangkat_daerah ?? '-' }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Email</div><div class="fw-semibold">{{ $ticket->email }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Telepon</div><div class="fw-semibold">+{{ $ticket->phone }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Layanan</div><div class="fw-semibold">{{ ucwords(str_replace('-',' ',$ticket->service)) }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Kategori</div><div class="fw-semibold">{{ ucwords(str_replace('-',' ',$ticket->category)) }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">Bidang</div><div class="fw-semibold">{{ $ticket->bidang }}</div></div>
-                    <div class="col-md-6"><div class="text-muted small">PIC</div><div class="fw-semibold">{{ $ticket->assignee?->name ?? 'Belum ditugaskan' }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Pengaju</div><div class="fw-semibold">{{ $ticket->submitter_name }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Jenis Pengguna</div><div class="fw-semibold">{{ $ticket->user_type }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">NIP/NIK</div><div class="fw-semibold">{{ $ticket->nip_nik }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Perangkat Daerah</div><div class="fw-semibold">{{ $ticket->perangkat_daerah ?? '-' }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Email</div><div class="fw-semibold">{{ $ticket->email }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Layanan</div><div class="fw-semibold">{{ ucwords(str_replace('-',' ',$ticket->service)) }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Kategori</div><div class="fw-semibold">{{ ucwords(str_replace('-',' ',$ticket->category)) }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">Bidang</div><div class="fw-semibold">{{ $ticket->bidang }}</div></div>
+                    <div class="col-md-4"><div class="text-muted small">PIC</div><div class="fw-semibold">{{ $ticket->assignee?->name ?? 'Belum ditugaskan' }}</div></div>
                     <div class="col-12"><div class="text-muted small">Isi Aduan</div><div class="alert alert-light border-0 bg-light mb-0" style="white-space:pre-wrap;">{{ $ticket->message }}</div>@if($ticket->attachment_path)<a href="javascript:void(0)" class="btn btn-sm btn-outline-primary mt-2" onclick="var p=document.getElementById('shotPreview');p.classList.toggle('d-none');this.querySelector('i').classList.toggle('bx-image');this.querySelector('i').classList.toggle('bx-x');"><i class="bx bx-image me-1"></i>Lihat Screenshot</a><div id="shotPreview" class="mt-2 d-none w-100"><img src="{{ asset('storage/'.$ticket->attachment_path) }}" alt="Screenshot" class="img-fluid rounded-3 border shadow-sm" style="cursor:pointer;" onclick="window.open(this.src,'_blank')"></div>@endif</div>
                 </div>
             </div>
@@ -121,16 +119,11 @@
                 <div class="alert alert-secondary small mb-3"><i class="bx bx-lock-alt me-1"></i>Tiket CLOSED bersifat final dan tidak dapat diubah.</div>
                 @else
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">Ubah Status</label>
-                    <form action="{{ route('ticketing.update-status', $ticket) }}" method="POST" class="d-flex gap-2">
+                    <label class="form-label small fw-bold">Penutupan Tiket</label>
+                    <form action="{{ route('ticketing.update-status', $ticket) }}" method="POST" onsubmit="return confirm('Tutup tiket ini? Tiket yang ditutup tidak dapat diubah lagi.')">
                         @csrf @method('PUT')
-                        <select name="status" class="form-select form-select-sm" required>
-                            <option value="DIPROSES" {{ $ticket->status==='DIPROSES'?'selected':'' }}>Diproses</option>
-                            <option value="MENUNGGU_PENGGUNA" {{ $ticket->status==='MENUNGGU_PENGGUNA'?'selected':'' }}>Menunggu Respons Pengguna</option>
-                            <option value="RESOLVED" {{ $ticket->status==='RESOLVED'?'selected':'' }}>Resolved</option>
-                            <option value="CLOSED" {{ $ticket->status==='CLOSED'?'selected':'' }}>Closed</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+                        <input type="hidden" name="status" value="CLOSED">
+                        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bx bx-lock-alt me-1"></i>Tutup Tiket</button>
                     </form>
                 </div>
                 @endif
@@ -176,31 +169,7 @@
             </div>
         </div>
 
-        @if($ticket->statusHistories->count())
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-history me-2 text-primary"></i>Riwayat Status</h6></div>
-            <div class="card-body small">
-                <ul class="timeline mb-0" style="list-style:none;padding-left:0;">
-                    @foreach($ticket->statusHistories as $sh)
-                    <li class="mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            @if($sh->from_status)
-                                <span class="badge bg-secondary">{{ $sh->from_status }}</span>
-                                <i class="bx bx-right-arrow-alt"></i>
-                            @endif
-                            <span class="badge bg-primary">{{ $sh->to_status }}</span>
-                        </div>
-                        <div class="mt-1">
-                            <i class="bx bx-user me-1"></i>{{ $sh->changed_by_name }}
-                            <span class="text-muted">Â· {{ $sh->created_at ? $sh->created_at->format('d/m/Y H:i') : '-' }}</span>
-                        </div>
-                        @if($sh->note)<div class="text-muted">{{ $sh->note }}</div>@endif
-                    </li>
-                    @endforeach
-                </ul>
-            </div>
         </div>
-        @endif
     </div>
 </div>
 @endsection

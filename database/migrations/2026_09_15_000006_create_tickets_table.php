@@ -16,7 +16,6 @@ return new class extends Migration {
       $t->string('nip_nik');
       $t->string('perangkat_daerah')->nullable();
       $t->string('email');
-      $t->string('phone');
       $t->string('service');
       $t->string('category');
       $t->text('message');

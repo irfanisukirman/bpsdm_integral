@@ -68,7 +68,7 @@
             ['key' => 'admin', 'label' => 'Admin & Superadmin', 'value' => $stats['admin'], 'icon' => 'bx-shield-quarter', 'color' => 'danger'],
             ['key' => 'peserta', 'label' => 'Peserta', 'value' => $stats['peserta'], 'icon' => 'bx-user', 'color' => 'success'],
             ['key' => 'narasumber', 'label' => 'Narasumber', 'value' => $stats['narasumber'], 'icon' => 'bx-chalkboard', 'color' => 'info'],
-            ['key' => 'mitra', 'label' => 'Mitra', 'value' => $stats['mitra'], 'icon' => 'bx-handshake', 'color' => 'warning'],
+            ['key' => 'mitra', 'label' => 'Mitra', 'value' => $stats['mitra'], 'icon' => 'bx-link', 'color' => 'warning'],
         ] as $item)
             <div class="col-6 col-xl">
                 <a href="{{ route('users.index', array_filter(['category' => $item['key'], 'search' => $search])) }}" class="card border-0 shadow-sm h-100 text-decoration-none {{ ($category ?? '') === $item['key'] ? 'border border-2 border-'.$item['color'] : '' }}">

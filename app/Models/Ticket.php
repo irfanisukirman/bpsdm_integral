@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Ticket extends Model {
  use HasFactory;
- protected $fillable=['ticket_number','tracking_token','user_type','submitter_name','nip_nik','perangkat_daerah','email','phone','service','category','message','attachment_path','status','bidang','assigned_to','created_by_user_id','sla_respond_hours','sla_resolve_hours','first_response_at','resolved_at','closed_at','is_reopened','reopen_count','auto_close_at'];
+ protected $fillable=['ticket_number','tracking_token','user_type','submitter_name','nip_nik','perangkat_daerah','email','service','category','message','attachment_path','status','bidang','assigned_to','created_by_user_id','sla_respond_hours','sla_resolve_hours','first_response_at','resolved_at','closed_at','is_reopened','reopen_count','auto_close_at'];
  protected $casts=['first_response_at'=>'datetime','resolved_at'=>'datetime','closed_at'=>'datetime','auto_close_at'=>'datetime','is_reopened'=>'boolean'];
  public function messages(){return $this->hasMany(TicketMessage::class)->orderBy('created_at');}
  public function statusHistories(){return $this->hasMany(TicketStatusHistory::class)->orderBy('created_at');}

@@ -11,22 +11,27 @@
         <h4 class="fw-bold py-1 mb-1"><span class="text-muted fw-light">Manajemen Layanan /</span> {{ $viewTitle }}</h4>
         <p class="text-muted small mb-0">{{ $description }}</p>
     </div>
-    <a href="{{ route('ticketing.dashboard') }}" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="bx bx-arrow-back me-1"></i>Kembali</a>
+    <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bx bx-plus me-1"></i>Tambah Data</button>
 </div>
 
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-plus-circle me-2 text-primary"></i>Tambah {{ $itemUnit === 'service' ? 'Layanan' : 'Kategori' }}</h6></div>
-    <div class="card-body">
-        <form action="{{ $storeRoute }}" method="POST" class="row g-2 align-items-end">
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ $storeRoute }}" class="modal-content">
             @csrf
-            <div class="col-md-5">
-                <input type="text" name="name" class="form-control" placeholder="Nama" required>
+            <div class="modal-header"><h5 class="modal-title">Tambah {{ $itemUnit === 'service' ? 'Layanan' : 'Kategori' }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nama</label>
+                    <input type="text" name="name" class="form-control" placeholder="Nama {{ $itemUnit === 'service' ? 'layanan' : 'kategori' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Slug</label>
+                    <input type="text" name="slug" class="form-control" placeholder="huruf kecil, tanpa spasi, contoh: cara-penggunaan" required pattern="[a-z0-9\-]+">
+                </div>
             </div>
-            <div class="col-md-5">
-                <input type="text" name="slug" class="form-control" placeholder="Slug (huruf kecil, tanpa spasi, contoh: cara-penggunaan)" required pattern="[a-z0-9\-]+">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary">Simpan</button>
             </div>
         </form>
     </div>

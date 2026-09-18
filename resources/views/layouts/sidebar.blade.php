@@ -22,43 +22,43 @@
     <ul class="menu-inner py-3">
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
         @if(Auth::user()->role === 'resepsionis')
-            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>
+            <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div>Buku Tamu</div></a></li>
         @endif        @if(Auth::user()->role === 'pengelola_magang')
             <li class="menu-item {{ request()->routeIs('internships.*') ? 'active' : '' }}">
-                <a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Presensi Magang/PKL</div></a>
+                <a href="{{ route('internships.index') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div>Presensi Magang/PKL</div></a>
             </li>
         @endif        @if(Auth::user()->role === 'penandatangan')
             <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
-                <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
+                <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div>Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
             </li>
         @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
             <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
-                <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
+                <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div>Asisten AI</div></a>
             </li>
         @endif
         @if(Auth::user()->role === 'admin_aset')
-            <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
+            <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div>Dashboard Aset</div></a></li>
         @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
-            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div>Dashboard Admin</div></a></li>
         @elseif(Auth::user()->role === 'resepsionis')
             {{-- Menu Buku Tamu sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'pengelola_magang')
             {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
-            <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
+            <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div>Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')
-            <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Saya</div></a></li>
+            <li class="menu-item {{ request()->routeIs('participant.dashboard') ? 'active' : '' }}"><a href="{{ route('participant.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div>Dashboard Saya</div></a></li>
         @elseif(Auth::user()->role === 'pengajar')
             <li class="menu-item {{ request()->routeIs('pengajar.index') || request()->routeIs('pengajar.manage') ? 'active' : '' }}">
-                <a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Narasumber</div></a>
+                <a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div>Dashboard Narasumber</div></a>
             </li>
         @elseif(Auth::user()->role === 'mitra')
-            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
+            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-link"></i><div>Pengajuan Mitra</div></a></li>
         @elseif(Auth::user()->role === 'penandatangan')
             {{-- Dashboard akun penandatangan adalah Pusat Tanda Tangan Elektronik di atas. --}}
         @else
-            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
+            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div>Dashboard</div></a></li>
         @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
@@ -73,6 +73,12 @@
         @elseif(Auth::user()->role === 'participant')
             <li class="menu-item {{ request()->routeIs('participant.trainings') ? 'active' : '' }}">
                 <a href="{{ route('participant.trainings') }}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('participant_trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('participant_trainings')>99?'99+':$menuNoticeCount('participant_trainings')}}</span>@endif</a>
+            </li>
+        @endif
+
+        @if(!in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-item {{ request()->routeIs('hotline.my') ? 'active' : '' }}">
+                <a href="{{ route('hotline.my') }}" class="menu-link"><i class="menu-icon bx bx-support"></i><div>Aduan Saya</div></a>
             </li>
         @endif
 
@@ -127,7 +133,7 @@
             ], true))
                 <li class="menu-header small text-uppercase"><span class="menu-header-text">Kemitraan</span></li>
                 <li class="menu-item {{ request()->routeIs('mitra.admin.*') || (request()->routeIs('mitra.submissions.show') && Auth::user()->role !== 'mitra') ? 'active' : '' }}">
-                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
+                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-link"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
                 </li>
             @endif
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
@@ -245,9 +251,34 @@
 
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Kelola Layanan</span></li>
-            <li class="menu-item {{ request()->routeIs('ticketing.*') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('ticketing.*') && !request()->routeIs('ticketing.master.*') ? 'active' : '' }}">
                 <a href="{{ route('ticketing.dashboard') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>Manajemen Layanan</div>@if($menuNoticeCount('ticketing'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Tiket menunggu tindakan">{{$menuNoticeCount('ticketing')>99?'99+':$menuNoticeCount('ticketing')}}</span>@endif</a>
             </li>
+            @if(Auth::user()->role === 'superadmin')
+            <li class="menu-item {{ request()->routeIs('ticketing.master.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-cog"></i>
+                    <div>Master Data</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->routeIs('ticketing.master.categories*') ? 'active' : '' }}">
+                        <a href="{{ route('ticketing.master.categories') }}" class="menu-link"><div>Kategori Aduan</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('ticketing.master.services*') ? 'active' : '' }}">
+                        <a href="{{ route('ticketing.master.services') }}" class="menu-link"><div>Layanan</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('ticketing.master.bidang*') ? 'active' : '' }}">
+                        <a href="{{ route('ticketing.master.bidang') }}" class="menu-link"><div>Bidang</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('ticketing.master.routing*') ? 'active' : '' }}">
+                        <a href="{{ route('ticketing.master.routing') }}" class="menu-link"><div>Routing</div></a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('ticketing.master.sla*') ? 'active' : '' }}">
+                        <a href="{{ route('ticketing.master.sla') }}" class="menu-link"><div>SLA</div></a>
+                    </li>
+                </ul>
+            </li>
+            @endif
         @endif
         <li class="menu-spacer" aria-hidden="true"></li>
 
@@ -265,8 +296,8 @@
         box-shadow: 0 .15rem .45rem rgba(255, 62, 29, .3);
     }
     .menu-item.active > .menu-link .menu-notification-badge { border-color: rgba(255,255,255,.65); }
-    /* Transisi menu */
-    .menu-vertical .menu-item .menu-link {
+    /* Transisi menu (hanya menu level-1, biarkan sub-menu memakai indent bawaan template) */
+    .menu-vertical > .menu-inner > .menu-item > .menu-link {
         transition: all 0.2s ease-in-out;
         border-radius: 0.375rem;
         margin: 0.15rem 1rem;
@@ -274,13 +305,13 @@
     }
 
     /* Efek Hover */
-    .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover {
+    .menu-vertical > .menu-inner > .menu-item:not(.active):not(.open) > .menu-link:hover {
         background-color: rgba(105, 108, 255, 0.08) !important;
         transform: translateX(5px);
         color: #696cff !important;
     }
 
-    .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover i {
+    .menu-vertical > .menu-inner > .menu-item:not(.active):not(.open) > .menu-link:hover i {
         color: #696cff !important;
         transform: scale(1.1);
     }
@@ -316,6 +347,19 @@
 
     .menu-vertical .menu-item.active > .menu-link i {
         color: #fff !important;
+    }
+
+    .menu-vertical .menu-item.active > .menu-link {
+        font-weight: 700 !important;
+    }
+
+    /* Active sub-menu: ringan — bold ungu + aksen garis, tanpa gradien berat */
+    .menu-vertical .menu-sub .menu-item.active > .menu-link {
+        background: transparent !important;
+        color: #696cff !important;
+        font-weight: 700 !important;
+        box-shadow: none !important;
+        border-left: 3px solid #696cff;
     }
 
     /* Animasi Dropdown */

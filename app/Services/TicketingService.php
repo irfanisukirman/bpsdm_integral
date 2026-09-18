@@ -26,7 +26,7 @@ $ticket=Ticket::create([
      'ticket_number'=>$ticketNumber,'tracking_token'=>$trackingToken,
      'user_type'=>$data['user_type'],'submitter_name'=>$data['name'],
      'nip_nik'=>$data['nip_nik'],'perangkat_daerah'=>$data['perangkat_daerah']??null,
-     'email'=>$data['email'],'phone'=>$data['phone'],
+     'email'=>$data['email'],
      'service'=>$data['service'],'category'=>$data['category'],
      'message'=>$data['message'],'attachment_path'=>$data['attachment_path']??null,
      'status'=>'BARU','bidang'=>$bidang,

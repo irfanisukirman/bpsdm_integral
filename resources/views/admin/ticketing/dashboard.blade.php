@@ -5,7 +5,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
         <h4 class="fw-bold py-1 mb-1"><span class="text-muted fw-light">Manajemen Layanan /</span> Dashboard</h4>
-        <p class="text-muted small mb-0">Ringkasan tiket Hotline semua status.</p>
+        <p class="text-muted small mb-0">Ringkasan tiket Hotline.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
         <span class="badge bg-label-{{ $availability->isOnline() ? 'success' : 'secondary' }} fs-6 py-2 px-3 shadow-sm">
@@ -98,32 +98,8 @@
     <div class="col-md-3 col-sm-6">
         <div class="card shadow-sm border-0">
             <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-3 bg-label-primary p-3"><i class="bx bx-plus-circle fs-3"></i></div>
-                <div><div class="text-muted small">Tiket Baru</div><div class="fs-4 fw-bold text-primary">{{ $stats['baru'] }}</div></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-3 bg-label-info p-3"><i class="bx bx-loader-circle fs-3"></i></div>
-                <div><div class="text-muted small">Diproses</div><div class="fs-4 fw-bold text-info">{{ $stats['diproses'] }}</div></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-3 bg-label-warning p-3"><i class="bx bx-hourglass fs-3"></i></div>
-                <div><div class="text-muted small">Menunggu Respons Pengguna</div><div class="fs-4 fw-bold text-warning">{{ $stats['menunggu'] }}</div></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-3 bg-label-success p-3"><i class="bx bx-check-circle fs-3"></i></div>
-                <div><div class="text-muted small">Resolved</div><div class="fs-4 fw-bold text-success">{{ $stats['resolved'] }}</div></div>
+                <div><div class="text-muted small">Dalam Proses</div><div class="fs-4 fw-bold text-info">{{ $stats['open'] }}</div></div>
             </div>
         </div>
     </div>
@@ -131,7 +107,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-3 bg-label-secondary p-3"><i class="bx bx-x-circle fs-3"></i></div>
-                <div><div class="text-muted small">Closed</div><div class="fs-4 fw-bold text-secondary">{{ $stats['closed'] }}</div></div>
+                <div><div class="text-muted small">Ditutup</div><div class="fs-4 fw-bold text-secondary">{{ $stats['closed'] }}</div></div>
             </div>
         </div>
     </div>

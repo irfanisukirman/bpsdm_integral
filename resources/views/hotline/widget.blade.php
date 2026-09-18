@@ -59,10 +59,6 @@ if(!isset($widgetAvailability)){ $widgetAvailability=\App\Models\HotlineAvailabi
                     <label for="hwEmail">Email <b class="text-danger">*</b></label>
                 </div>
                 <div class="form-floating hotline-field">
-                    <input type="text" name="phone" id="hwPhone" class="form-control" placeholder=" " inputmode="numeric">
-                    <label for="hwPhone">No. HP (628xxxxxxxxxx) <b class="text-danger">*</b></label>
-                </div>
-                <div class="form-floating hotline-field">
                     <select name="service" id="hwService" class="form-select form-select-sm">
                         <option value="">-- Pilih Layanan --</option>
                         @foreach($widgetServices as $service)<option value="{{ $service->slug }}">{{ $service->name }}</option>@endforeach
@@ -159,7 +155,6 @@ if(!isset($widgetAvailability)){ $widgetAvailability=\App\Models\HotlineAvailabi
     var errBox=document.getElementById('hwError');
     var userType=document.getElementById('hwUserType');
     var nipLabel=document.getElementById('hwNipLabel');
-    var phone=document.getElementById('hwPhone');
     var fileInput=document.getElementById('hwAttachment');
     var fileName=document.getElementById('hwFileName');
 
@@ -174,7 +169,6 @@ if(!isset($widgetAvailability)){ $widgetAvailability=\App\Models\HotlineAvailabi
         var max=this.value==='Non-ASN'?16:(this.value?18:30);
         document.getElementById('hwNip').setAttribute('maxlength',String(max));
     });
-    phone.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').replace(/^0+/,'');});
     fileInput.addEventListener('change',function(){fileName.textContent=fileInput.files[0]?fileInput.files[0].name:'Lampiran screenshot (opsional)';});
 
     function addMsg(text){

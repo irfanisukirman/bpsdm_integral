@@ -5,48 +5,59 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
         <h4 class="fw-bold py-1 mb-1"><span class="text-muted fw-light">Manajemen Layanan /</span> Routing Rules</h4>
-        <p class="text-muted small mb-0">Mapping Layanan + Kategori â†’ Bidang â†’ PIC.</p>
+        <p class="text-muted small mb-0">Mapping Layanan + Kategori → Bidang → PIC.</p>
     </div>
-    <a href="{{ route('ticketing.dashboard') }}" class="btn btn-outline-secondary btn-sm shadow-sm"><i class="bx bx-arrow-back me-1"></i>Kembali</a>
+    <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bx bx-plus me-1"></i>Tambah Data</button>
 </div>
 
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold"><i class="bx bx-plus-circle me-2 text-primary"></i>Tambahkan Routing Rule</h6></div>
-    <div class="card-body">
-        <form action="{{ route('ticketing.master.routing.store') }}" method="POST" class="row g-2">
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form action="{{ route('ticketing.master.routing.store') }}" method="POST" class="modal-content">
             @csrf
-            <div class="col-md-3">
-                <select name="service_id" class="form-select" required>
-                    <option value="">-- Layanan --</option>
-                    @foreach($services as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
-                </select>
+            <div class="modal-header"><h5 class="modal-title">Tambah Routing Rule</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Layanan</label>
+                        <select name="service_id" class="form-select" required>
+                            <option value="">-- Layanan --</option>
+                            @foreach($services as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Kategori</label>
+                        <select name="category_id" class="form-select" required>
+                            <option value="">-- Kategori --</option>
+                            @foreach($categories as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Bidang Tujuan</label>
+                        <select name="bidang_id" class="form-select" required>
+                            <option value="">-- Bidang --</option>
+                            @foreach($bidangs as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">PIC Default (Opsional)</label>
+                        <select name="default_pic_user_id" class="form-select">
+                            <option value="">-- PIC Default (Opsional) --</option>
+                            @foreach($pics as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SLA Respons (jam, opsional)</label>
+                        <input type="number" name="sla_respond_hours" step="0.1" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SLA Penyelesaian (jam, opsional)</label>
+                        <input type="number" name="sla_resolve_hours" step="0.1" class="form-control">
+                    </div>
+                </div>
             </div>
-            <div class="col-md-3">
-                <select name="category_id" class="form-select" required>
-                    <option value="">-- Kategori --</option>
-                    @foreach($categories as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="bidang_id" class="form-select" required>
-                    <option value="">-- Bidang --</option>
-                    @foreach($bidangs as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="default_pic_user_id" class="form-select">
-                    <option value="">-- PIC Default (Opsional) --</option>
-                    @foreach($pics as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <input type="number" name="sla_respond_hours" step="0.1" class="form-control" placeholder="SLA Respons (jam), opsional">
-            </div>
-            <div class="col-md-3">
-                <input type="number" name="sla_resolve_hours" step="0.1" class="form-control" placeholder="SLA Penyelesaian (jam), opsional">
-            </div>
-            <div class="col-md-6 d-flex align-items-end">
-                <button class="btn btn-primary"><i class="bx bx-save me-1"></i>Simpan Rule</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary">Simpan Rule</button>
             </div>
         </form>
     </div>

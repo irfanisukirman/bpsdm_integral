@@ -147,7 +147,7 @@ class NotificationCenter
                     'final' => 'Pengajuan Mitra telah final',
                     default => 'Pengajuan menunggu persetujuan final',
                 };
-                return $this->item('partner-submission-'.$submission->id.'-'.$submission->status, $title, $submission->title.' · '.$submission->status_label.'.', $level, 'bx-handshake', route('mitra.submissions.show', $submission), 'Buka pengajuan', $submission->updated_at?->format('Y-m-d H:i:s'));
+                return $this->item('partner-submission-'.$submission->id.'-'.$submission->status, $title, $submission->title.' · '.$submission->status_label.'.', $level, 'bx-link', route('mitra.submissions.show', $submission), 'Buka pengajuan', $submission->updated_at?->format('Y-m-d H:i:s'));
             })->values();
     }
 
@@ -157,7 +157,7 @@ class NotificationCenter
             ->when($user->role !== 'superadmin', fn ($query) => $query->where('target_bidang', $user->bidang))
             ->latest('updated_at')->get();
         if ($items->isEmpty()) return collect();
-        return collect([$this->item('partner-admin-'.$user->id, 'Pengajuan Mitra menunggu tindakan', $items->count().' pengajuan perlu diperiksa atau disetujui.', 'warning', 'bx-handshake', route('mitra.admin.index'), 'Periksa pengajuan', $items->first()->updated_at?->format('Y-m-d H:i:s'))]);
+        return collect([$this->item('partner-admin-'.$user->id, 'Pengajuan Mitra menunggu tindakan', $items->count().' pengajuan perlu diperiksa atau disetujui.', 'warning', 'bx-link', route('mitra.admin.index'), 'Periksa pengajuan', $items->first()->updated_at?->format('Y-m-d H:i:s'))]);
     }
     private function folderShareItems(User $user): Collection
     {

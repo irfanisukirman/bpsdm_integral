@@ -33,7 +33,7 @@
                 <td>{{ $t->submitter_name }}</td>
                 <td>{{ ucwords(str_replace('-',' ',$t->service)) }}</td>
                 <td>{{ ucwords(str_replace('-',' ',$t->category)) }}</td>
-                <td><span class="badge" style="background:#eef1f6;">{{ $t->status_label }}</span></td>
+                <td><span class="badge" style="background:#eef1f6;">{{ $t->status==='CLOSED'?'Sudah Ditutup':'Dalam Proses' }}</span></td>
                 <td>{{ $t->bidang }}</td>
                 <td>{{ $t->assignee?->name ?? '-' }}</td>
             </tr>

@@ -25,16 +25,12 @@ public function store(Request $request){
    'name'=>'required|string|max:255',
    'nip_nik'=>'required|string|max:30',
    'perangkat_daerah'=>'required|string|max:255',
-   'email'=>'required|email|max:255',
-   'phone'=>'required|string|max:20',
-   'service'=>'required|exists:ticket_services,slug',
+'email'=>'required|email|max:255',
+    'service'=>'required|exists:ticket_services,slug',
    'category'=>'required|exists:ticket_categories,slug',
    'message'=>'required|string|max:5000',
    'attachment'=>'nullable|file|max:2048|mimes:jpg,jpeg,png,gif',
   ]);
-  $phone=$validated['phone'];
-  if(!str_starts_with($phone,'62')){$phone='62'.$phone;}
-  $validated['phone']=$phone;
   $validated['attachment_path']=$request->hasFile('attachment')?$request->file('attachment')->store('ticket-attachments','public'):null;
   $userId=auth()->check()?auth()->id():null;
   $validated['user_id']=$userId;

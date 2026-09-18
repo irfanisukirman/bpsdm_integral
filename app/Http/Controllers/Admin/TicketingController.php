@@ -28,10 +28,7 @@ class TicketingController extends Controller {
   $q=$this->getScopeQuery();
   $stats=[
    'total'=>(clone $q)->count(),
-   'baru'=>(clone $q)->where('status','BARU')->count(),
-   'diproses'=>(clone $q)->where('status','DIPROSES')->count(),
-   'menunggu'=>(clone $q)->where('status','MENUNGGU_PENGGUNA')->count(),
-   'resolved'=>(clone $q)->where('status','RESOLVED')->count(),
+   'open'=>(clone $q)->where('status','!=','CLOSED')->count(),
    'closed'=>(clone $q)->where('status','CLOSED')->count(),
   ];
   $tickets=(clone $q)->with('assignee')->latest()->get();
@@ -77,7 +74,10 @@ class TicketingController extends Controller {
  }
  public function index(Request $request){
   $q=$this->getScopeQuery()->with('assignee');
-  if($request->filled('status'))$q->where('status',$request->status);
+  if($request->filled('status')){
+   if($request->status==='closed'){$q->where('status','CLOSED');}
+   elseif($request->status==='open'){$q->where('status','!=','CLOSED');}
+  }
   if($request->filled('service'))$q->where('service',$request->service);
   if($request->filled('category'))$q->where('category',$request->category);
   if($request->filled('bidang')&&Auth::user()->role==='superadmin')$q->where('bidang',$request->bidang);
@@ -86,12 +86,11 @@ class TicketingController extends Controller {
   if($request->filled('date_from'))$q->whereDate('created_at','>=',$request->date_from);
   if($request->filled('date_to'))$q->whereDate('created_at','<=',$request->date_to);
   $tickets=$q->latest()->paginate(20)->withQueryString();
-  $statuses=['BARU','DIPROSES','MENUNGGU_PENGGUNA','RESOLVED','CLOSED'];
   $services=\App\Models\TicketService::where('is_active',true)->get();
   $categories=\App\Models\TicketCategory::where('is_active',true)->get();
   $bidangs=\App\Models\TicketBidang::where('is_active',true)->get();
   $pics=$this->getPics();
-  return view('admin.ticketing.index',compact('tickets','statuses','services','categories','bidangs','pics'));
+  return view('admin.ticketing.index',compact('tickets','services','categories','bidangs','pics'));
  }
  public function show(Ticket $ticket){
   $this->authorizeTicketAccess($ticket);
@@ -109,7 +108,7 @@ public function updateStatus(Request $request,Ticket $ticket){
    if($ticket->status==='CLOSED'){
     return back()->with('error','Tiket CLOSED bersifat final dan tidak dapat diubah.');
    }
-   $validated=$request->validate(['status'=>'required|in:DIPROSES,MENUNGGU_PENGGUNA,RESOLVED,CLOSED','note'=>'nullable|string|max:500']);
+   $validated=$request->validate(['status'=>'required|in:CLOSED','note'=>'nullable|string|max:500']);
    TicketingService::changeStatus($ticket,$validated['status'],Auth::user()->name,Auth::id(),$validated['note']??null);
    return back()->with('success','Status tiket berhasil diperbarui.');
   }
@@ -156,7 +155,7 @@ public function reply(Request $request,Ticket $ticket){
    $sheet->setCellValueByColumnAndRow(5,$row,$t->email);
    $sheet->setCellValueByColumnAndRow(6,$row,$t->service);
    $sheet->setCellValueByColumnAndRow(7,$row,$t->category);
-   $sheet->setCellValueByColumnAndRow(8,$row,$t->status_label);
+   $sheet->setCellValueByColumnAndRow(8,$row,$t->status==='CLOSED'?'Sudah Ditutup':'Dalam Proses');
    $sheet->setCellValueByColumnAndRow(9,$row,$t->bidang);
    $sheet->setCellValueByColumnAndRow(10,$row,$t->assignee?->name??'-');
    $sheet->setCellValueByColumnAndRow(11,$row,$t->sla_indicator);
@@ -174,7 +173,10 @@ public function reply(Request $request,Ticket $ticket){
   return $pdf->download('tickets_'.date('Y-m-d').'.pdf');
  }
  private function applyFilters($q,$request){
-  if($request->filled('status'))$q->where('status',$request->status);
+  if($request->filled('status')){
+   if($request->status==='closed'){$q->where('status','CLOSED');}
+   elseif($request->status==='open'){$q->where('status','!=','CLOSED');}
+  }
   if($request->filled('service'))$q->where('service',$request->service);
   if($request->filled('category'))$q->where('category',$request->category);
   if($request->filled('date_from'))$q->whereDate('created_at','>=',$request->date_from);
