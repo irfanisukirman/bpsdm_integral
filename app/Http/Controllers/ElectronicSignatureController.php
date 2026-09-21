@@ -13,6 +13,7 @@ use App\Models\Training;
 use App\Models\User;
 use App\Services\ElectronicSignature\BsreClient;
 use App\Services\ElectronicSignature\JctClient;
+use App\Services\ElectronicSignature\JctSyncService;
 use App\Services\ElectronicSignature\PdfLegalNoticeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +72,34 @@ class ElectronicSignatureController extends Controller
             'other_documents' => 'electronic-signatures.documents.create',
             default => 'electronic-signatures.create',
         };
-        return view('electronic-signatures.index', compact('requests', 'myPending', 'sourceCounts', 'documentStats', 'createRoute', 'certificateYear', 'certificateChart'));
+        $jctOverview = null;
+        if ($request->source === 'jct_certificates') {
+            $sync = app(JctSyncService::class);
+            $diagnostics = $sync->diagnostics();
+            try {
+                $remoteTemplates = collect(app(JctClient::class)->templates())
+                    ->map(fn ($item) => $this->normalizeJctTemplate((array) $item, $sync));
+                $jctOverview = [
+                    'api_connected' => true,
+                    'template_count' => $remoteTemplates->count(),
+                    'certificate_count' => $remoteTemplates->sum(fn ($item) => count($item['user_ids'])),
+                    'db_configured' => $diagnostics['configured'],
+                    'db_connected' => $diagnostics['connected'],
+                    'message' => $diagnostics['message'],
+                ];
+            } catch (\Throwable $exception) {
+                report($exception);
+                $jctOverview = [
+                    'api_connected' => false,
+                    'template_count' => 0,
+                    'certificate_count' => 0,
+                    'db_configured' => $diagnostics['configured'],
+                    'db_connected' => $diagnostics['connected'],
+                    'message' => 'API JCT belum dapat dihubungi: '.Str::limit($exception->getMessage(), 140),
+                ];
+            }
+        }
+        return view('electronic-signatures.index', compact('requests', 'myPending', 'sourceCounts', 'documentStats', 'createRoute', 'certificateYear', 'certificateChart', 'jctOverview'));
     }
 
     public function category(Request $request, string $source)
@@ -81,7 +109,7 @@ class ElectronicSignatureController extends Controller
         return $this->index($request);
     }
 
-    public function create(Request $request, JctClient $jct, ?string $source = null)
+public function create(Request $request, JctClient $jct, ?string $source = null)
     {
         $this->authorizeManager();
         $user = Auth::user();
@@ -94,12 +122,20 @@ class ElectronicSignatureController extends Controller
             ->orderByDesc('tgl_mulai')->get(['id', 'nama_pelatihan', 'bidang', 'tgl_mulai']);
         $presetSource = in_array($source, ['training_certificates','jct_certificates','other_documents'], true) ? $source : null;
         $jctConfigured = filled(config('services.jct.url'));
-        $jctOptions = collect(); $jctError = null;
+        $jctOptions = collect(); $jctError = null; $jctWarning = null; $jctDbConfigured = false; $jctDbConnected = false;
         if ($presetSource === 'jct_certificates' && $jctConfigured) {
-            try { $jctOptions = collect($jct->templates())->map(fn ($item) => $this->normalizeJctTemplate((array) $item))->filter(fn ($item) => filled($item['activity_id'])); }
-            catch (\Throwable $exception) { $jctError = 'Data JCT belum dapat diambil: '.Str::limit($exception->getMessage(), 160); }
+            $jctSync = app(JctSyncService::class);
+            try {
+                $diagnostics = $jctSync->diagnostics();
+                $jctDbConfigured = $diagnostics['configured'];
+                $jctDbConnected = $diagnostics['connected'];
+                if (!$jctDbConnected) $jctWarning = $diagnostics['message'];
+                $jctOptions = collect($jct->templates())
+                    ->map(fn ($item) => $this->normalizeJctTemplate((array) $item, $jctSync))
+                    ->filter(fn ($item) => filled($item['activity_id']));
+            } catch (\Throwable $exception) { $jctError = 'Data JCT belum dapat diambil: '.Str::limit($exception->getMessage(), 160); }
         }
-        return view('electronic-signatures.create', compact('users', 'trainings', 'jctConfigured', 'presetSource', 'jctOptions', 'jctError'));
+        return view('electronic-signatures.create', compact('users', 'trainings', 'jctConfigured', 'presetSource', 'jctOptions', 'jctError', 'jctWarning', 'jctDbConfigured', 'jctDbConnected'));
     }
 
     public function createIntegral(Request $request, JctClient $jct)
@@ -130,20 +166,136 @@ class ElectronicSignatureController extends Controller
         return $this->store($request, $jct);
     }
 
-    public function storeDocuments(Request $request, JctClient $jct)
+public function storeDocuments(Request $request, JctClient $jct)
     {
         $request->merge(['source_type' => 'other_documents']);
         return $this->store($request, $jct);
     }
 
-    private function normalizeJctTemplate(array $item): array
+    public function jctDownloadInfo(Request $request, JctClient $jct)
     {
-        $participants = collect(data_get($item, 'ordering_num_template', data_get($item, 'participants', data_get($item, 'sertif', data_get($item, 'certificates', [])))));
+        $this->authorizeManager();
+        $data = $request->validate([
+            'id' => 'required|string|max:255',
+            'activity' => 'required|string|max:255',
+        ]);
+        $idTemplate = $data['id'];
+        $activityId = $data['activity'];
+        $jctSync = app(JctSyncService::class);
+        $ordering = collect($jctSync->orderingRows($idTemplate));
+        $template = null;
+        $pemaraf = '';
+        try {
+            $template = collect($jct->templates())->firstWhere('id_template', $idTemplate);
+            if ($template) {
+                $pemaraf = (string) ($template['pemaraf'] ?? '');
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+        if ($ordering->isEmpty()) {
+            $ordering = collect(($template['ordering_num_template'] ?? []) ?: [])
+                ->map(fn ($row) => ['user_id' => data_get($row, 'user_id', ''), 'versi_tandatangan' => data_get($row, 'versi_tandatangan', '')]);
+        }
+        if ($ordering->isEmpty() && !$jctSync->diagnostics()['connected']) {
+            return response()->json(['message' => 'Jumlah sertifikat belum dapat dibaca karena database bridge JCT belum terhubung. Lengkapi konfigurasi JCT_DB_* pada server Integral.'], 422);
+        }
+        $perVersion = [];
+        $ada = 0;
+        $tidakAda = 0;
+        foreach ($ordering as $row) {
+            $userId = (string) ($row['user_id'] ?? '');
+            $versi = trim((string) ($row['versi_tandatangan'] ?? ''));
+            if ($versi === '') $versi = 'unknown';
+            if (!isset($perVersion[$versi])) $perVersion[$versi] = ['versi' => $versi, 'total' => 0, 'haveDownload' => 0, 'notHaveDownload' => 0];
+            $perVersion[$versi]['total']++;
+            if (Storage::disk('local')->exists($this->jctCertificatePath($activityId, $userId))) {
+                $ada++;
+                $perVersion[$versi]['haveDownload']++;
+            } else {
+                $tidakAda++;
+                $perVersion[$versi]['notHaveDownload']++;
+            }
+        }
+        if (!empty($perVersion)) {
+            uksort($perVersion, function ($a, $b) {
+                if ($a === 'unknown' && $b === 'unknown') return 0;
+                if ($a === 'unknown') return 1;
+                if ($b === 'unknown') return -1;
+                $ta = strtotime($a);
+                $tb = strtotime($b);
+                if ($ta === false && $tb === false) return strcmp($a, $b) * -1;
+                if ($ta === false) return 1;
+                if ($tb === false) return -1;
+                return $tb <=> $ta;
+            });
+        }
+        return response()->json([
+            'total_sertif' => $ordering->count(),
+            'haveDownload' => $ada,
+            'notHaveDownload' => $tidakAda,
+            'perVersion' => array_values($perVersion),
+            'sertif' => $ordering,
+            'pemaraf' => $pemaraf,
+            'id_template' => $idTemplate,
+        ]);
+    }
+
+    public function jctDownloadSingle(Request $request, JctClient $jct)
+    {
+        $this->authorizeManager();
+        $data = $request->validate([
+            'id_template' => 'required|string|max:255',
+            'id_activity' => 'required|string|max:255',
+            'user_id' => 'required|string|max:255',
+            'row' => 'nullable|integer',
+            'pemaraf' => 'nullable|string',
+        ]);
+        $rowNumber = (int) ($data['row'] ?? 1);
+        $userId = $data['user_id'];
+        $return = [
+            'status' => true,
+            'msg' => $rowNumber.'. Gagal. [USER: '.$userId.']',
+            'download_status' => false,
+            'update_status' => false,
+        ];
+        try {
+            $pdf = $jct->downloadCertificate($data['id_activity'], $userId);
+            Storage::disk('local')->put($this->jctCertificatePath($data['id_activity'], $userId), $pdf);
+            $return['msg'] = $rowNumber.'. Berhasil download. [USER: '.$userId.']';
+            $return['download_status'] = true;
+            $jctSync = app(JctSyncService::class);
+            if ($jctSync->isConfigured()) {
+                $return['update_status'] = $jctSync->syncDownloaded($data['id_template'], $userId, blank($data['pemaraf']) ? null : $data['pemaraf']);
+            }
+        } catch (\Throwable $exception) {
+            $return['status'] = false;
+            $return['msg'] = $rowNumber.'. Gagal. [USER: '.$userId.'] '.Str::limit($exception->getMessage(), 200);
+        }
+        return response()->json($return);
+    }
+
+    private function jctCertificatePath(string $activityId, string $userId): string
+    {
+        return 'jct_certificate/'.$activityId.'/'.$userId.'.pdf';
+    }
+
+private function normalizeJctTemplate(array $item, ?JctSyncService $jctSync = null): array
+    {
+        $templateId = (string) ($item['id_template'] ?? $item['template_id'] ?? data_get($item, 'template.id', ''));
+        $activityId = (string) ($item['activity_id'] ?? $item['id_activity'] ?? data_get($item, 'activity._id', data_get($item, 'activity.id', '')));
+        $apiUserIds = collect(data_get($item, 'ordering_num_template', data_get($item, 'participants', data_get($item, 'sertif', data_get($item, 'certificates', [])))))
+            ->map(fn ($row) => is_scalar($row) ? (string) $row : (string) data_get($row, 'user_id', data_get($row, 'id_user', data_get($row, 'user.id', ''))))->filter()->unique()->values()->all();
+        $dbUserIds = $jctSync?->participantUserIds($templateId) ?? [];
+        $userIds = collect(array_merge($dbUserIds, $apiUserIds))->filter()->unique()->values()->all();
         return [
-            'template_id' => (string) ($item['id_template'] ?? ''),
-            'activity_id' => (string) ($item['activity_id'] ?? data_get($item, 'activity.id', '')),
-            'name' => (string) (data_get($item, 'pelatihan.full_name') ?: data_get($item, 'activity.detail.title') ?: $item['title'] ?? 'Kegiatan JCT'),
-            'user_ids' => $participants->map(fn ($row) => (string) data_get($row, 'user_id', data_get($row, 'id_user', '')))->filter()->unique()->values()->all(),
+            'template_id' => $templateId,
+            'activity_id' => $activityId,
+            'name' => (string) (data_get($item, 'pelatihan.full_name') ?: data_get($item, 'activity.detail.title') ?: ($item['nama_template'] ?? $item['title'] ?? 'Kegiatan JCT')),
+            'user_ids' => $userIds,
+            'signer' => (string) ($item['signer'] ?? ''),
+            'pemaraf' => $item['pemaraf'] ?? null,
+            'sign_mode' => (int) ($item['sign_mode'] ?? 1),
         ];
     }
 
@@ -157,7 +309,8 @@ class ElectronicSignatureController extends Controller
             'description' => 'nullable|string|max:2000', 'bidang' => 'nullable|string|max:255',
             'document_zip' => 'nullable|file|mimes:zip|max:512000',
             'documents' => 'nullable|array|max:100', 'documents.*' => 'file|mimes:pdf|max:20480',
-            'jct_activity_id' => 'required_if:source_type,jct_certificates|nullable|string|max:255',
+'jct_activity_id' => 'required_if:source_type,jct_certificates|nullable|string|max:255',
+            'jct_template_id' => 'required_if:source_type,jct_certificates|nullable|string|max:255',
             'jct_training_name' => 'required_if:source_type,jct_certificates|nullable|string|max:255',
             'jct_user_ids' => 'required_if:source_type,jct_certificates|nullable|string|max:50000',
             'reviewer_ids' => 'nullable|array|max:10',
@@ -174,14 +327,12 @@ class ElectronicSignatureController extends Controller
                 ->whereNotNull('generated_file_path')->orderBy('participant_id')->get()
                 ->filter(fn ($certificate) => Storage::disk('local')->exists($certificate->generated_file_path));
             if ($certificates->isEmpty()) return back()->withInput()->withErrors(['training_id' => 'Pelatihan belum memiliki PDF sertifikat hasil generate yang tersedia.']);
-        } elseif ($data['source_type'] === 'jct_certificates') {
+} elseif ($data['source_type'] === 'jct_certificates') {
             $userIds = collect(preg_split('/[\r\n,;]+/', $data['jct_user_ids']))->map(fn ($id) => trim($id))->filter()->unique()->values();
             if ($userIds->isEmpty() || $userIds->count() > 500) return back()->withInput()->withErrors(['jct_user_ids' => 'Masukkan 1 sampai 500 User ID JCT.']);
-            try {
-                foreach ($userIds as $userId) $jctDocuments->push(['user_id' => $userId, 'content' => $jct->downloadCertificate($data['jct_activity_id'], $userId)]);
-            } catch (\Throwable $exception) {
-                return back()->withInput()->withErrors(['jct_user_ids' => 'Pengambilan sertifikat JCT gagal: '.$exception->getMessage()]);
-            }
+            $missingUserIds = $userIds->filter(fn ($userId) => !Storage::disk('local')->exists($this->jctCertificatePath($data['jct_activity_id'], $userId)))->values();
+            if ($missingUserIds->isNotEmpty()) return back()->withInput()->withErrors(['jct_user_ids' => 'Sertifikat JCT belum di-download ke Integral. Silakan download dulu dari JCT. (User ID belum ada: '.$missingUserIds->implode(', ').')']);
+            foreach ($userIds as $userId) $jctDocuments->push(['user_id' => $userId, 'content' => Storage::disk('local')->get($this->jctCertificatePath($data['jct_activity_id'], $userId))]);
         }
         $signatureRequest = DB::transaction(function () use ($request, $data, $training, $certificates, $jctDocuments) {
             $signatureRequest = SignatureRequest::create([
@@ -189,8 +340,9 @@ class ElectronicSignatureController extends Controller
                 'title' => $training ? 'Sertifikat - '.$training->nama_pelatihan : ($data['source_type'] === 'jct_certificates' ? 'Sertifikat JCT - '.$data['jct_training_name'] : $data['title']),
                 'description' => $data['description'] ?? ($training ? 'Penandatanganan '.$certificates->count().' sertifikat peserta.' : null),
                 'bidang' => $training?->bidang ?: (Auth::user()->role === 'admin_bidang' ? Auth::user()->bidang : $request->input('bidang')),
-                'source_type' => $data['source_type'], 'training_id' => $training?->id,
+'source_type' => $data['source_type'], 'training_id' => $training?->id,
                 'external_reference' => $data['source_type'] === 'jct_certificates' ? $data['jct_activity_id'] : null,
+                'external_template_id' => $data['source_type'] === 'jct_certificates' ? $data['jct_template_id'] : null,
                 'status' => 'in_progress', 'created_by' => Auth::id(),
             ]);
             $actors = collect($data['reviewer_ids'] ?? [])->filter()->values()
@@ -215,10 +367,55 @@ class ElectronicSignatureController extends Controller
                 if ($request->hasFile('document_zip')) $this->createDocumentsFromZip($request->file('document_zip'), $signatureRequest, $actors);
                 abort_if($signatureRequest->documents()->doesntExist(), 422, 'Unggah beberapa PDF atau satu ZIP berisi PDF.');
             }
-            return $signatureRequest;
+return $signatureRequest;
         });
+        if ($data['source_type'] === 'jct_certificates') $this->syncJctOnStore($signatureRequest);
         return redirect()->route('electronic-signatures.show', $signatureRequest)->with('success',
             $training ? $certificates->count().' sertifikat berhasil dimasukkan ke antrean tanda tangan.' : 'Dokumen berhasil diajukan.');
+    }
+
+    private function syncJctOnStore(SignatureRequest $signatureRequest): void
+    {
+        $jctSync = app(JctSyncService::class);
+        if (!$jctSync->isConfigured()) return;
+        try {
+            $templateId = $signatureRequest->external_template_id;
+            $jctOption = collect(app(JctClient::class)->templates())
+                ->map(fn ($item) => $this->normalizeJctTemplate((array) $item))
+                ->firstWhere('template_id', $templateId);
+            $templatePemaraf = $this->decodePemarafPayload((string) ($jctOption['pemaraf'] ?? ''));
+            $statusPemarafJson = !empty($templatePemaraf) ? $jctOption['pemaraf'] : null;
+            $jctSync->syncTemplate(
+                $templateId,
+                (string) ($jctOption['signer'] ?? ''),
+                $templatePemaraf,
+                (int) ($jctOption['sign_mode'] ?? 1)
+            );
+            foreach ($signatureRequest->documents()->whereNotNull('external_user_id')->get() as $document) {
+                $jctSync->syncDownloaded($templateId, $document->external_user_id, $statusPemarafJson);
+            }
+        } catch (\Throwable $exception) { report($exception); }
+    }
+
+    private function decodePemarafPayload(string $json): array
+    {
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function syncJctOnSign(ElectronicSignatureAction $action): void
+    {
+        $jctSync = app(JctSyncService::class);
+        if (!$jctSync->isConfigured()) return;
+        $templateId = $action->document->request->external_template_id;
+        $userId = $action->document->external_user_id;
+        if ($action->actor->role === 'reviewer') {
+            $jctSync->syncPemarafSigned($templateId, $userId, null, $action->actor->sequence);
+            return;
+        }
+        if ($action->actor->role === 'signer') {
+            $jctSync->syncSignerSigned($templateId, $userId);
+        }
     }
 
     private function createDocumentsFromZip($upload, SignatureRequest $request, $actors): void
@@ -310,7 +507,7 @@ class ElectronicSignatureController extends Controller
             $signedFileName = $this->signedFileName($action->document, $signatureCount);
             $newPath = 'electronic-signatures/'.$action->document->electronic_signature_request_id.'/signed/'.$action->document->id.'/'.$signedFileName;
             Storage::disk('local')->put($newPath, $pdf);
-            $hasNext = $action->document->actions()->where('status', 'waiting')->exists();
+$hasNext = $action->document->actions()->where('status', 'waiting')->exists();
             if (!$hasNext && $action->document->request->source_type === 'jct_certificates') {
                 $jct->uploadFinalCertificate($action->document->request->external_reference, $action->document->external_user_id, Storage::disk('local')->path($newPath));
             }
@@ -327,9 +524,13 @@ class ElectronicSignatureController extends Controller
                 }
                 if (!$document->request->documents()->where('status', '!=', 'completed')->exists()) $document->request->update(['status' => 'completed', 'completed_at' => now()]);
             });
-            if (!$hasNext && $action->document->request->source_type === 'training_certificates') {
+if (!$hasNext && $action->document->request->source_type === 'training_certificates') {
                 try { $this->archiveIntegralDocument($action->document->fresh('request'), $newPath); }
                 catch (\Throwable $archiveException) { report($archiveException); }
+            }
+            if ($action->document->request->source_type === 'jct_certificates') {
+                try { $this->syncJctOnSign($action); }
+                catch (\Throwable $syncException) { report($syncException); }
             }
             ElectronicSignatureAttempt::create(['electronic_signature_action_id' => $action->id, 'user_id' => Auth::id(), 'successful' => true, 'response_code' => 'PDF', 'message' => 'Tanda tangan berhasil', 'duration_ms' => (int) ((microtime(true)-$start)*1000), 'ip_address' => $request->ip()]);
             $message = 'Dokumen berhasil ditandatangani melalui BSrE.';

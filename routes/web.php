@@ -163,6 +163,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('tanda-tangan-elektronik/integral', [ElectronicSignatureController::class, 'storeIntegral'])->name('electronic-signatures.integral.store');
     Route::get('tanda-tangan-elektronik/jct/create', [ElectronicSignatureController::class, 'createJct'])->name('electronic-signatures.jct.create');
     Route::post('tanda-tangan-elektronik/jct', [ElectronicSignatureController::class, 'storeJct'])->name('electronic-signatures.jct.store');
+    Route::post('tanda-tangan-elektronik/jct/download-info', [ElectronicSignatureController::class, 'jctDownloadInfo'])->name('electronic-signatures.jct.download-info');
+    Route::post('tanda-tangan-elektronik/jct/download', [ElectronicSignatureController::class, 'jctDownloadSingle'])->name('electronic-signatures.jct.download');
     Route::get('tanda-tangan-elektronik/dokumen-lain/create', [ElectronicSignatureController::class, 'createDocuments'])->name('electronic-signatures.documents.create');
     Route::post('tanda-tangan-elektronik/dokumen-lain', [ElectronicSignatureController::class, 'storeDocuments'])->name('electronic-signatures.documents.store');
     Route::get('tanda-tangan-elektronik/create', [ElectronicSignatureController::class, 'create'])->name('electronic-signatures.create');
