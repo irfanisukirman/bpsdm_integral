@@ -12,6 +12,38 @@ class JctSyncService
         return filled(config('database.connections.jct.url')) || filled(config('database.connections.jct.host'));
     }
 
+    public function diagnostics(): array
+    {
+        if (!$this->isConfigured()) {
+            return [
+                'configured' => false,
+                'connected' => false,
+                'message' => 'Database bridge JCT belum dikonfigurasi. Isi JCT_DB_HOST, JCT_DB_PORT, JCT_DB_DATABASE, JCT_DB_USERNAME, dan JCT_DB_PASSWORD.',
+            ];
+        }
+
+        try {
+            $connection = $this->db();
+            $connection->getPdo();
+            $orderingCount = (int) $connection->table('ordering_num_template')->count();
+            $templateCount = (int) $connection->table('template')->count();
+
+            return [
+                'configured' => true,
+                'connected' => true,
+                'ordering_count' => $orderingCount,
+                'template_count' => $templateCount,
+                'message' => 'Database bridge JCT terhubung.',
+            ];
+        } catch (\Throwable $exception) {
+            report($exception);
+            return [
+                'configured' => true,
+                'connected' => false,
+                'message' => 'Database bridge JCT belum dapat dihubungi. Periksa host, port, nama database, username, password, dan akses jaringan server.',
+            ];
+        }
+    }
     /**
      * Daftar user_id peserta untuk sebuah template JCT.
      * Mengikuti perilaku ttdintec: baca ordering_num_template dengan LIKE id template.

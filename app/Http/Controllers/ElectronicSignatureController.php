@@ -72,7 +72,34 @@ class ElectronicSignatureController extends Controller
             'other_documents' => 'electronic-signatures.documents.create',
             default => 'electronic-signatures.create',
         };
-        return view('electronic-signatures.index', compact('requests', 'myPending', 'sourceCounts', 'documentStats', 'createRoute', 'certificateYear', 'certificateChart'));
+        $jctOverview = null;
+        if ($request->source === 'jct_certificates') {
+            $sync = app(JctSyncService::class);
+            $diagnostics = $sync->diagnostics();
+            try {
+                $remoteTemplates = collect(app(JctClient::class)->templates())
+                    ->map(fn ($item) => $this->normalizeJctTemplate((array) $item, $sync));
+                $jctOverview = [
+                    'api_connected' => true,
+                    'template_count' => $remoteTemplates->count(),
+                    'certificate_count' => $remoteTemplates->sum(fn ($item) => count($item['user_ids'])),
+                    'db_configured' => $diagnostics['configured'],
+                    'db_connected' => $diagnostics['connected'],
+                    'message' => $diagnostics['message'],
+                ];
+            } catch (\Throwable $exception) {
+                report($exception);
+                $jctOverview = [
+                    'api_connected' => false,
+                    'template_count' => 0,
+                    'certificate_count' => 0,
+                    'db_configured' => $diagnostics['configured'],
+                    'db_connected' => $diagnostics['connected'],
+                    'message' => 'API JCT belum dapat dihubungi: '.Str::limit($exception->getMessage(), 140),
+                ];
+            }
+        }
+        return view('electronic-signatures.index', compact('requests', 'myPending', 'sourceCounts', 'documentStats', 'createRoute', 'certificateYear', 'certificateChart', 'jctOverview'));
     }
 
     public function category(Request $request, string $source)
@@ -95,17 +122,20 @@ public function create(Request $request, JctClient $jct, ?string $source = null)
             ->orderByDesc('tgl_mulai')->get(['id', 'nama_pelatihan', 'bidang', 'tgl_mulai']);
         $presetSource = in_array($source, ['training_certificates','jct_certificates','other_documents'], true) ? $source : null;
         $jctConfigured = filled(config('services.jct.url'));
-        $jctOptions = collect(); $jctError = null; $jctDbConfigured = false;
+        $jctOptions = collect(); $jctError = null; $jctWarning = null; $jctDbConfigured = false; $jctDbConnected = false;
         if ($presetSource === 'jct_certificates' && $jctConfigured) {
             $jctSync = app(JctSyncService::class);
             try {
-                $jctDbConfigured = $jctSync->isConfigured();
+                $diagnostics = $jctSync->diagnostics();
+                $jctDbConfigured = $diagnostics['configured'];
+                $jctDbConnected = $diagnostics['connected'];
+                if (!$jctDbConnected) $jctWarning = $diagnostics['message'];
                 $jctOptions = collect($jct->templates())
                     ->map(fn ($item) => $this->normalizeJctTemplate((array) $item, $jctSync))
                     ->filter(fn ($item) => filled($item['activity_id']));
             } catch (\Throwable $exception) { $jctError = 'Data JCT belum dapat diambil: '.Str::limit($exception->getMessage(), 160); }
         }
-        return view('electronic-signatures.create', compact('users', 'trainings', 'jctConfigured', 'presetSource', 'jctOptions', 'jctError', 'jctDbConfigured'));
+        return view('electronic-signatures.create', compact('users', 'trainings', 'jctConfigured', 'presetSource', 'jctOptions', 'jctError', 'jctWarning', 'jctDbConfigured', 'jctDbConnected'));
     }
 
     public function createIntegral(Request $request, JctClient $jct)
@@ -166,6 +196,9 @@ public function storeDocuments(Request $request, JctClient $jct)
         if ($ordering->isEmpty()) {
             $ordering = collect(($template['ordering_num_template'] ?? []) ?: [])
                 ->map(fn ($row) => ['user_id' => data_get($row, 'user_id', ''), 'versi_tandatangan' => data_get($row, 'versi_tandatangan', '')]);
+        }
+        if ($ordering->isEmpty() && !$jctSync->diagnostics()['connected']) {
+            return response()->json(['message' => 'Jumlah sertifikat belum dapat dibaca karena database bridge JCT belum terhubung. Lengkapi konfigurasi JCT_DB_* pada server Integral.'], 422);
         }
         $perVersion = [];
         $ada = 0;
@@ -249,16 +282,16 @@ public function storeDocuments(Request $request, JctClient $jct)
 
 private function normalizeJctTemplate(array $item, ?JctSyncService $jctSync = null): array
     {
-        $templateId = (string) ($item['id_template'] ?? '');
-        $activityId = (string) ($item['activity_id'] ?? data_get($item, 'activity.id', ''));
+        $templateId = (string) ($item['id_template'] ?? $item['template_id'] ?? data_get($item, 'template.id', ''));
+        $activityId = (string) ($item['activity_id'] ?? $item['id_activity'] ?? data_get($item, 'activity._id', data_get($item, 'activity.id', '')));
         $apiUserIds = collect(data_get($item, 'ordering_num_template', data_get($item, 'participants', data_get($item, 'sertif', data_get($item, 'certificates', [])))))
-            ->map(fn ($row) => (string) data_get($row, 'user_id', data_get($row, 'id_user', '')))->filter()->unique()->values()->all();
+            ->map(fn ($row) => is_scalar($row) ? (string) $row : (string) data_get($row, 'user_id', data_get($row, 'id_user', data_get($row, 'user.id', ''))))->filter()->unique()->values()->all();
         $dbUserIds = $jctSync?->participantUserIds($templateId) ?? [];
         $userIds = collect(array_merge($dbUserIds, $apiUserIds))->filter()->unique()->values()->all();
         return [
             'template_id' => $templateId,
             'activity_id' => $activityId,
-            'name' => (string) (data_get($item, 'pelatihan.full_name') ?: data_get($item, 'activity.detail.title') ?: $item['title'] ?? 'Kegiatan JCT'),
+            'name' => (string) (data_get($item, 'pelatihan.full_name') ?: data_get($item, 'activity.detail.title') ?: ($item['nama_template'] ?? $item['title'] ?? 'Kegiatan JCT')),
             'user_ids' => $userIds,
             'signer' => (string) ($item['signer'] ?? ''),
             'pemaraf' => $item['pemaraf'] ?? null,

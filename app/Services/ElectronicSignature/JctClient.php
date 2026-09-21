@@ -11,7 +11,14 @@ class JctClient
     {
         $response = $this->request()->get($this->url('getTemplateForIntegral'));
         $response->throw();
-        return (array) ($response->json('data') ?? []);
+        $payload = $response->json();
+        $templates = data_get($payload, 'data.data')
+            ?? data_get($payload, 'data.items')
+            ?? data_get($payload, 'data')
+            ?? data_get($payload, 'items')
+            ?? $payload;
+
+        return is_array($templates) && array_is_list($templates) ? $templates : [];
     }
 
     public function downloadCertificate(string $activityId, string $userId): string
