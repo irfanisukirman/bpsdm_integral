@@ -945,7 +945,7 @@ class TrainingController extends Controller
 
     public function manage($id)
     {
-        $training = Training::withCount(['participants', 'executionNotes'])->with(['schedules'])->findOrFail($id);
+        $training = Training::withCount(['participants', 'executionNotes'])->with(['schedules', 'identityCardSetting'])->findOrFail($id);
         $user = Auth::user();
         abort_unless(
             $user->role === 'superadmin'

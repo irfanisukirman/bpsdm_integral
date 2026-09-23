@@ -89,6 +89,11 @@ class Participant extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function identityCard()
+    {
+        return $this->hasOne(ParticipantIdentityCard::class);
+    }
+
     public function certificate()
     {
         return $this->hasOne(ParticipantCertificate::class, 'participant_id');

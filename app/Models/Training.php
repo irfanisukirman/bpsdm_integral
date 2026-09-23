@@ -48,6 +48,11 @@ class Training extends Model
     /**
      * Relasi ke Tabel Participant (Satu Pelatihan memiliki Banyak Peserta)
      */
+    public function identityCardSetting()
+    {
+        return $this->hasOne(TrainingIdentityCardSetting::class);
+    }
+
     public function participants()
     {
         return $this->hasMany(Participant::class);
