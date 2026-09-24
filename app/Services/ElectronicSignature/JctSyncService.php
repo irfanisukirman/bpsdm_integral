@@ -220,10 +220,19 @@ class JctSyncService
             return false;
         }
         try {
-            return (bool) $this->db()->table('ordering_num_template')
+            $row = $this->orderingRow($templateId, $userId);
+            if (!$row) {
+                return false;
+            }
+            if (in_array($row->status_proses_ttde ?? null, [true, 1, '1', 'true'], true)) {
+                return true;
+            }
+            $this->db()->table('ordering_num_template')
                 ->where('id', 'like', '%'.$templateId.'%')
                 ->where('user_id', $userId)
                 ->update(['status_proses_ttde' => 'true']);
+            $updated = $this->orderingRow($templateId, $userId);
+            return $updated && in_array($updated->status_proses_ttde ?? null, [true, 1, '1', 'true'], true);
         } catch (\Throwable $exception) {
             report($exception);
             return false;

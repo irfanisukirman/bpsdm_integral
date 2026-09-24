@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $activeTab = in_array(request('tab'), ['info', 'peserta', 'kelengkapan', 'evaluasi', 'sertifikat'])
+    $activeTab = in_array(request('tab'), ['info', 'peserta', 'kelengkapan', 'evaluasi', 'idcard', 'sertifikat'])
         ? request('tab')
         : 'info';
     $completedDocuments = collect([$participant->pas_foto_file_id, $participant->biodata_file_id, $participant->surat_tugas_file_id])->filter()->count();
@@ -83,6 +83,11 @@
                         </button>
                     </li>
                     <li class="nav-item">
+                        <button type="button" class="nav-link {{ $activeTab === 'idcard' ? 'active' : '' }}" role="tab" data-tab="idcard" data-bs-toggle="tab" data-bs-target="#navs-pills-idcard">
+                            <i class="bx bx-id-card me-1"></i> ID Card
+                            @if($identityCardSetting?->enabled)<i class="bx bxs-check-circle text-success ms-1"></i>@else<span class="badge badge-dot bg-secondary ms-1"></span>@endif
+                        </button>
+                    </li>                    <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'sertifikat' ? 'active' : '' }}" role="tab" data-tab="sertifikat" data-bs-toggle="tab" data-bs-target="#navs-pills-sertifikat">
                             <i class="bx bx-medal me-1"></i> Sertifikat
                             @if($certificateComplete)
@@ -450,6 +455,14 @@
                         </div>
                     </div>
 
+                    {{-- TAB: ID CARD --}}
+                    <div class="tab-pane fade {{ $activeTab === 'idcard' ? 'show active' : '' }}" id="navs-pills-idcard" role="tabpanel">
+                        @if($identityCardSetting?->enabled)
+                        <div class="row align-items-center g-4 py-3"><div class="col-lg-7"><span class="badge bg-label-primary mb-3">ID Card Peserta</span><h4 class="fw-bold">Kartu peserta Anda siap dibuat</h4><p class="text-muted">Foto awal diambil dari dokumen kelengkapan. Anda dapat mengganti dan memotong foto khusus ID card tanpa mengubah foto profil.</p><div class="d-flex flex-wrap gap-2"><a href="{{route('participant.identity-card.edit',$training)}}" class="btn btn-primary"><i class="bx bx-palette me-1"></i>Buka & Atur ID Card</a><a href="{{route('participant.identity-card.pdf',$training)}}" class="btn btn-outline-primary"><i class="bx bx-download me-1"></i>Unduh PDF</a></div><small class="text-muted d-block mt-3"><i class="bx bx-ruler me-1"></i>Ukuran cetak 9,2 × 12,4 cm portrait.</small></div><div class="col-lg-5 text-center"><div class="idcard-mini"><i class="bx bx-id-card"></i><strong>{{strtoupper($participant->name)}}</strong><span>{{$training->nama_pelatihan}}</span></div></div></div>
+                        @else
+                        <div class="text-center py-5 bg-light rounded border border-dashed"><i class="bx bx-id-card text-muted" style="font-size:4rem"></i><h5 class="fw-bold mt-3">ID Card sedang dipersiapkan</h5><p class="text-muted mb-0">Pengelola belum mengaktifkan desain ID card untuk pelatihan ini.</p></div>
+                        @endif
+                    </div>
                     {{-- TAB: SERTIFIKAT --}}
                     <div class="tab-pane fade {{ $activeTab === 'sertifikat' ? 'show active' : '' }}" id="navs-pills-sertifikat" role="tabpanel">
                         @if($participantCertificate?->final_file_path && $participantCertificate?->sent_at)
@@ -494,6 +507,7 @@
         padding: .8rem 1rem;
     }
     .participant-search { min-width: min(290px, 75vw); }
+    .idcard-mini{display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:9.2/12.4;max-width:340px;margin:auto;padding:1.5rem;border-radius:18px;background:linear-gradient(135deg,#3157a4,#243d78);color:#fff;box-shadow:0 15px 35px rgba(49,87,164,.25)}.idcard-mini i{font-size:4rem;color:#f4b740}.idcard-mini strong{margin-top:1rem;font-size:1.05rem}.idcard-mini span{margin-top:.35rem;font-size:.72rem;opacity:.8;text-align:center}
     .training-tabs .badge { font-size: .68rem; }
     .card { transition: all 0.3s ease; }
     .bg-label-success { background-color: #eafbea !important; }

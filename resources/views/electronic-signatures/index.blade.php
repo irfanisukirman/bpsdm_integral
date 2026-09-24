@@ -28,8 +28,8 @@ $active=request('source');$meta=$active?($sources[$active]??null):null;$currentS
    </div>
    <div class="row g-3">
     <div class="col-md-4"><div class="rounded bg-label-info p-3 h-100"><small class="d-block mb-1">Kegiatan dari API JCT</small><h3 class="mb-0">{{$jctOverview['template_count']}}</h3></div></div>
-    <div class="col-md-4"><div class="rounded bg-label-{{$jctOverview['db_connected']?'success':'warning'}} p-3 h-100"><small class="d-block mb-1">Sertifikat terbaca</small><h3 class="mb-0">{{$jctOverview['db_connected']?$jctOverview['certificate_count']:'—'}}</h3><small>{{$jctOverview['db_connected']?'peserta siap diproses':'jumlah belum dapat dibaca'}}</small></div></div>
-    <div class="col-md-4"><div class="rounded bg-light p-3 h-100"><small class="text-muted d-block mb-1">Status sinkronisasi</small><strong>{{$jctOverview['db_connected']?'Siap membuat pengajuan':'Memerlukan konfigurasi server'}}</strong></div></div>
+    <div class="col-md-4"><div class="rounded bg-label-{{$jctOverview['db_connected']?'success':'warning'}} p-3 h-100"><small class="d-block mb-1">Sertifikat terbaca</small><h3 class="mb-0">{{$jctOverview['db_connected']?$jctOverview['certificate_count']:0}}</h3><small>{{$jctOverview['db_connected']?'peserta siap diproses':'jumlah belum dapat dibaca'}}</small></div></div>
+    <div class="col-md-4"><div class="rounded bg-light p-3 h-100"><small class="text-muted d-block mb-2">Hasil sinkronisasi lokal</small><div class="d-flex flex-wrap gap-2"><span class="badge bg-label-success">{{$jctOverview['local_synced']}} terkirim</span><span class="badge bg-label-danger">{{$jctOverview['local_failed']}} gagal</span><span class="badge bg-label-warning">{{$jctOverview['local_pending']}} menunggu</span></div></div></div>
    </div>
    @if(!$jctOverview['api_connected'] || !$jctOverview['db_connected'])<div class="alert alert-warning mt-3 mb-0"><i class="bx bx-info-circle me-1"></i>{{$jctOverview['message']}}</div>@endif
   </div>
