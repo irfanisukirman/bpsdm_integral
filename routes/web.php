@@ -160,6 +160,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('tanda-tangan-elektronik/create', [ElectronicSignatureController::class, 'create'])->name('electronic-signatures.create');
     Route::post('tanda-tangan-elektronik', [ElectronicSignatureController::class, 'store'])->name('electronic-signatures.store');
     Route::get('tanda-tangan-elektronik/{electronicSignature}/download-zip', [ElectronicSignatureController::class, 'downloadZip'])->name('electronic-signatures.download-zip');
+    Route::post('tanda-tangan-elektronik/documents/{document}/retry-jct', [ElectronicSignatureController::class, 'retryJctSync'])->middleware('throttle:10,1')->name('electronic-signatures.jct.retry');
     Route::get('tanda-tangan-elektronik/{electronicSignature}', [ElectronicSignatureController::class, 'show'])->name('electronic-signatures.show');
     Route::delete('tanda-tangan-elektronik/{electronicSignature}', [ElectronicSignatureController::class, 'destroyRequest'])->name('electronic-signatures.destroy');
     Route::post('tanda-tangan-elektronik/actions/{action}/sign', [ElectronicSignatureController::class, 'sign'])->middleware('throttle:5,1')->name('electronic-signatures.sign');

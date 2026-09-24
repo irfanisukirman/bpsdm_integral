@@ -74,6 +74,10 @@ class ElectronicSignatureController extends Controller
         };
         $jctOverview = null;
         if ($request->source === 'jct_certificates') {
+            $localSyncCounts = ElectronicSignatureDocument::query()
+                ->whereIn('electronic_signature_request_id', (clone $visible)->where('source_type', 'jct_certificates')->select('id'))
+                ->get(['jct_sync_status'])
+                ->countBy(fn ($document) => $document->jct_sync_status ?: 'pending');
             $sync = app(JctSyncService::class);
             $diagnostics = $sync->diagnostics();
             try {
@@ -86,6 +90,9 @@ class ElectronicSignatureController extends Controller
                     'db_configured' => $diagnostics['configured'],
                     'db_connected' => $diagnostics['connected'],
                     'message' => $diagnostics['message'],
+                    'local_synced' => (int) ($localSyncCounts['synced'] ?? 0),
+                    'local_failed' => (int) ($localSyncCounts['failed'] ?? 0),
+                    'local_pending' => (int) (($localSyncCounts['pending'] ?? 0) + ($localSyncCounts['syncing'] ?? 0)),
                 ];
             } catch (\Throwable $exception) {
                 report($exception);
@@ -96,6 +103,9 @@ class ElectronicSignatureController extends Controller
                     'db_configured' => $diagnostics['configured'],
                     'db_connected' => $diagnostics['connected'],
                     'message' => 'API JCT belum dapat dihubungi: '.Str::limit($exception->getMessage(), 140),
+                    'local_synced' => (int) ($localSyncCounts['synced'] ?? 0),
+                    'local_failed' => (int) ($localSyncCounts['failed'] ?? 0),
+                    'local_pending' => (int) (($localSyncCounts['pending'] ?? 0) + ($localSyncCounts['syncing'] ?? 0)),
                 ];
             }
         }
@@ -443,7 +453,8 @@ return $signatureRequest;
     private function createDocument(SignatureRequest $request, $actors, string $path, string $name, ?int $certificateId = null, ?string $externalUserId = null): void
     {
         $document = $request->documents()->create(['participant_certificate_id' => $certificateId, 'external_user_id' => $externalUserId, 'original_name' => $name,
-            'original_path' => $path, 'current_path' => $path, 'file_size' => Storage::disk('local')->size($path), 'status' => 'waiting']);
+            'original_path' => $path, 'current_path' => $path, 'file_size' => Storage::disk('local')->size($path), 'status' => 'waiting',
+            'jct_sync_status' => $request->source_type === 'jct_certificates' ? 'pending' : null]);
         foreach ($actors as $index => $actor) $document->actions()->create(['electronic_signature_actor_id' => $actor->id, 'status' => $index === 0 ? 'pending' : 'waiting']);
     }
 
@@ -507,10 +518,7 @@ return $signatureRequest;
             $signedFileName = $this->signedFileName($action->document, $signatureCount);
             $newPath = 'electronic-signatures/'.$action->document->electronic_signature_request_id.'/signed/'.$action->document->id.'/'.$signedFileName;
             Storage::disk('local')->put($newPath, $pdf);
-$hasNext = $action->document->actions()->where('status', 'waiting')->exists();
-            if (!$hasNext && $action->document->request->source_type === 'jct_certificates') {
-                $jct->uploadFinalCertificate($action->document->request->external_reference, $action->document->external_user_id, Storage::disk('local')->path($newPath));
-            }
+            $hasNext = $action->document->actions()->where('status', 'waiting')->exists();
             DB::transaction(function () use ($action, $newPath) {
                 $action->update(['status' => 'completed', 'signed_at' => now(), 'error_message' => null]);
                 $document = $action->document; $document->update(['current_path' => $newPath]);
@@ -524,16 +532,23 @@ $hasNext = $action->document->actions()->where('status', 'waiting')->exists();
                 }
                 if (!$document->request->documents()->where('status', '!=', 'completed')->exists()) $document->request->update(['status' => 'completed', 'completed_at' => now()]);
             });
-if (!$hasNext && $action->document->request->source_type === 'training_certificates') {
+            if (!$hasNext && $action->document->request->source_type === 'training_certificates') {
                 try { $this->archiveIntegralDocument($action->document->fresh('request'), $newPath); }
                 catch (\Throwable $archiveException) { report($archiveException); }
             }
+            $jctSyncSucceeded = null;
             if ($action->document->request->source_type === 'jct_certificates') {
-                try { $this->syncJctOnSign($action); }
-                catch (\Throwable $syncException) { report($syncException); }
+                if (!$hasNext) {
+                    $jctSyncSucceeded = $this->syncFinalJctDocument($action->document->fresh('request'), $newPath, $jct);
+                } else {
+                    try { $this->syncJctOnSign($action); }
+                    catch (\Throwable $syncException) { report($syncException); }
+                }
             }
             ElectronicSignatureAttempt::create(['electronic_signature_action_id' => $action->id, 'user_id' => Auth::id(), 'successful' => true, 'response_code' => 'PDF', 'message' => 'Tanda tangan berhasil', 'duration_ms' => (int) ((microtime(true)-$start)*1000), 'ip_address' => $request->ip()]);
             $message = 'Dokumen berhasil ditandatangani melalui BSrE.';
+            if ($jctSyncSucceeded === true) $message .= ' Sertifikat berhasil dikirim dan status JCT telah diperbarui.';
+            if ($jctSyncSucceeded === false) $message .= ' TTE lokal tersimpan, tetapi sinkronisasi JCT gagal dan dapat dikirim ulang oleh pengelola.';
             if ($request->expectsJson()) return response()->json(['ok' => true, 'message' => $message, 'document_id' => $action->document->id]);
             return back()->with('success', $message);
         } catch (\Throwable $exception) {
@@ -631,6 +646,53 @@ if (!$hasNext && $action->document->request->source_type === 'training_certifica
         return redirect()->route($route)->with('success', 'Pengajuan TTE beserta seluruh berkasnya berhasil dihapus.');
     }
 
+    public function retryJctSync(ElectronicSignatureDocument $document, JctClient $jct)
+    {
+        $document->load('request');
+        abort_unless($document->request?->source_type === 'jct_certificates', 404);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $document->request->bidang), 403);
+        abort_unless($document->status === 'completed' && filled($document->final_path) && Storage::disk('local')->exists($document->final_path), 422, 'PDF final belum tersedia untuk dikirim ke JCT.');
+
+        $success = $this->syncFinalJctDocument($document, $document->final_path, $jct);
+        return back()->with($success ? 'success' : 'error', $success
+            ? 'Sertifikat berhasil dikirim ulang dan status JCT telah menjadi true.'
+            : 'Sinkronisasi JCT masih gagal. Periksa keterangan error dan konfigurasi koneksi JCT.');
+    }
+
+    private function syncFinalJctDocument(ElectronicSignatureDocument $document, string $signedPath, JctClient $jct): bool
+    {
+        $document->update([
+            'jct_sync_status' => 'syncing', 'jct_sync_error' => null,
+            'jct_sync_attempts' => ((int) $document->jct_sync_attempts) + 1,
+        ]);
+        try {
+            $signatureRequest = $document->request;
+            if (!$signatureRequest?->external_reference || !$signatureRequest?->external_template_id || !$document->external_user_id) {
+                throw new \RuntimeException('Referensi activity, template, atau user JCT tidak lengkap.');
+            }
+            $jct->uploadFinalCertificate($signatureRequest->external_reference, $document->external_user_id, Storage::disk('local')->path($signedPath));
+            $jctSync = app(JctSyncService::class);
+            if (!$jctSync->isConfigured()) throw new \RuntimeException('Database bridge JCT belum dikonfigurasi.');
+
+            $reviewerActions = $document->actions()->with('actor')->where('status', 'completed')
+                ->whereHas('actor', fn ($query) => $query->where('role', 'reviewer'))->get();
+            foreach ($reviewerActions as $reviewerAction) {
+                if (!$jctSync->syncPemarafSigned($signatureRequest->external_template_id, $document->external_user_id, null, $reviewerAction->actor->sequence)) {
+                    throw new \RuntimeException('Status pemaraf JCT gagal diperbarui pada urutan '.$reviewerAction->actor->sequence.'.');
+                }
+            }
+            if (!$jctSync->syncSignerSigned($signatureRequest->external_template_id, $document->external_user_id)) {
+                throw new \RuntimeException("Kolom status_proses_ttde JCT gagal diperbarui menjadi 'true'.");
+            }
+            $document->update(['jct_sync_status' => 'synced', 'jct_synced_at' => now(), 'jct_sync_error' => null]);
+            return true;
+        } catch (\Throwable $exception) {
+            report($exception);
+            $document->update(['jct_sync_status' => 'failed', 'jct_synced_at' => null, 'jct_sync_error' => Str::limit($exception->getMessage(), 2000)]);
+            return false;
+        }
+    }
     private function signedFileName(ElectronicSignatureDocument $document, int $signatureCount): string
     {
         $baseName = pathinfo($document->original_name, PATHINFO_FILENAME);
