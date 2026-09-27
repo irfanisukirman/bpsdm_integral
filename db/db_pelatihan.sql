@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 23 Sep 2026 pada 11.09
+-- Waktu pembuatan: 24 Sep 2026 pada 03.26
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -837,6 +837,10 @@ CREATE TABLE `electronic_signature_documents` (
   `file_size` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `status` varchar(30) NOT NULL DEFAULT 'waiting',
   `completed_at` timestamp NULL DEFAULT NULL,
+  `jct_sync_status` varchar(20) DEFAULT NULL,
+  `jct_synced_at` timestamp NULL DEFAULT NULL,
+  `jct_sync_error` text DEFAULT NULL,
+  `jct_sync_attempts` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -845,8 +849,8 @@ CREATE TABLE `electronic_signature_documents` (
 -- Dumping data untuk tabel `electronic_signature_documents`
 --
 
-INSERT INTO `electronic_signature_documents` (`id`, `electronic_signature_request_id`, `participant_certificate_id`, `internship_participant_id`, `external_user_id`, `verification_token`, `original_name`, `original_path`, `current_path`, `final_path`, `file_size`, `status`, `completed_at`, `created_at`, `updated_at`) VALUES
-(21, 19, NULL, 1, NULL, '40e9988b-94d6-4b45-bc31-f67088e38249', '123456.pdf', 'internships/certificates/1/generated/1.pdf', 'internships/certificates/1/generated/1.pdf', NULL, 137175, 'waiting', NULL, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
+INSERT INTO `electronic_signature_documents` (`id`, `electronic_signature_request_id`, `participant_certificate_id`, `internship_participant_id`, `external_user_id`, `verification_token`, `original_name`, `original_path`, `current_path`, `final_path`, `file_size`, `status`, `completed_at`, `jct_sync_status`, `jct_synced_at`, `jct_sync_error`, `jct_sync_attempts`, `created_at`, `updated_at`) VALUES
+(21, 19, NULL, 1, NULL, '40e9988b-94d6-4b45-bc31-f67088e38249', '123456.pdf', 'internships/certificates/1/generated/1.pdf', 'internships/certificates/1/generated/1.pdf', NULL, 137175, 'waiting', NULL, NULL, NULL, NULL, 0, '2026-09-13 11:53:39', '2026-09-13 11:53:39');
 
 -- --------------------------------------------------------
 
@@ -2387,7 +2391,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (120, '2026_09_13_180500_add_target_bidang_to_guest_visits', 55),
 (121, '2026_09_14_090000_add_import_onboarding_flags_to_users_table', 56),
 (122, '2026_09_18_000001_add_external_template_id_to_electronic_signature_requests', 57),
-(123, '2026_09_21_100000_create_training_identity_card_tables', 58);
+(123, '2026_09_21_100000_create_training_identity_card_tables', 58),
+(124, '2026_09_24_090000_add_jct_sync_tracking_to_electronic_signature_documents', 59);
 
 -- --------------------------------------------------------
 
@@ -3950,7 +3955,7 @@ ALTER TABLE `login_help_settings`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
