@@ -83,9 +83,12 @@
         @endif
 
         @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'))
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Sertifikasi SKPK</span></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Panel SKPK</span></li>
             <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
                 <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('cooperations.*') ? 'active' : '' }}">
+                <a href="{{ route('cooperations.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Kelola Kerja Sama</div></a>
             </li>
         @endif
 
