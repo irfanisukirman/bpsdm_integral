@@ -108,7 +108,7 @@
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold text-dark">{{ $user->name }}</span>
                                     <small class="text-muted" style="font-size: 10px;">
-                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'], true)
+                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan'], true)
                                             ? strtoupper(str_replace('_', ' ', $user->role))
                                             : strtoupper(match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' }) }}
                                     </small>
@@ -117,9 +117,10 @@
                         </td>
                         <td class="text-wrap">
                             @php
-                                $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'], true);
+                                $isAdmin = in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan'], true);
                                 $typeLabel = match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' };
                                 $scopeLabel = $isAdmin ? ($user->role === 'superadmin' ? 'Superadmin' : ($user->role === 'admin_aset' ? 'Admin Pengelola Aset' : ($user->role === 'pengelola_magang' ? 'Pengelola Magang/PKL' : ($user->role === 'resepsionis' ? 'Pengelola Buku Tamu' : 'Admin Bidang')))) : $typeLabel;
+                                if ($user->role === 'pengelola_keuangan') $scopeLabel = 'Pengelola Keuangan Bidang';
                                 $scopeColor = $isAdmin ? 'danger' : match($user->user_type) { 'narasumber' => 'info', 'mitra' => 'warning', default => 'success' };
                             @endphp
                             <span class="badge bg-label-{{ $scopeColor }} mb-1">{{ $scopeLabel }}</span>
@@ -186,7 +187,7 @@
     @if($users->hasPages())
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
             <small class="text-muted">
-                Menampilkan {{ $users->firstItem() }}–{{ $users->lastItem() }} dari {{ $users->total() }} pengguna
+                Menampilkan {{ $users->firstItem() }}â€“{{ $users->lastItem() }} dari {{ $users->total() }} pengguna
             </small>
             {{ $users->onEachSide(1)->links() }}
         </div>
@@ -291,6 +292,7 @@
                                 <option value="admin_aset">Admin Pengelola Aset</option>
                                 <option value="pengelola_magang">Pengelola Magang/PKL</option>
                                 <option value="resepsionis">Pengelola Buku Tamu</option>
+                                <option value="pengelola_keuangan">Pengelola Keuangan Bidang</option>
                                 <option value="superadmin">Superadmin</option>
                             </select>
                         </div>
@@ -364,6 +366,7 @@
                             <option value="admin_aset">Admin Pengelola Aset</option>
                                 <option value="pengelola_magang">Pengelola Magang/PKL</option>
                                 <option value="resepsionis">Pengelola Buku Tamu</option>
+                                <option value="pengelola_keuangan">Pengelola Keuangan Bidang</option>
                             <option value="superadmin">Superadmin</option>
                         </select>
                     </div>
@@ -411,7 +414,7 @@
             assetOption.prop('disabled', true).prop('hidden', true);
             regularOptions.prop('disabled', false).prop('hidden', false);
             if (bidang.val() === 'Pengelola Aset') {
-                bidang.val(role === 'admin_bidang' ? bidang.find('option:not([data-asset-only])').first().val() : '');
+                bidang.val(['admin_bidang','pengelola_keuangan'].includes(role) ? bidang.find('option:not([data-asset-only])').first().val() : '');
             }
         }
     }
@@ -438,7 +441,7 @@
         $('#edit_name').val(data.name);
         $('#edit_username').val(data.username);
         $('#edit_nip_nik').val(data.nip_nik);
-        const administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'];
+        const administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan'];
         const editableRole = administrativeRoles.includes(data.role)
             ? data.role
             : (data.user_type === 'narasumber' ? 'pengajar' : (data.user_type === 'mitra' ? 'mitra' : 'participant'));
