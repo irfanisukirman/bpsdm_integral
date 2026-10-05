@@ -234,7 +234,7 @@
         <div class="subtitle">Sistem Informasi Terintegrasi BPSDM — Pelatihan, Aset, Buku Tamu, Magang, TTE, Hotline,
             dan Layanan Publik</div>
         <div class="org">Badan Pengembangan Sumber Daya Manusia</div>
-        <div class="date">Versi 1.0.1 — 16 September 2026</div>
+        <div class="date">Versi 1.0.2 — 25 September 2026</div>
     </div>
 
     <!-- ==================== DAFTAR ISI ==================== -->
@@ -258,6 +258,7 @@
             <li class="sub"><a href="#s4">4.2 Dashboard Peserta</a></li>
             <li class="sub"><a href="#s4">4.3 Riwayat Pelatihan</a></li>
             <li class="sub"><a href="#s4">4.4 Kelengkapan Dokumen</a></li>
+            <li class="sub"><a href="#s4">4.5 Kartu Identitas Pelatihan (ID Card)</a></li>
             <li><strong>5. Modul Kehadiran (Absensi)</strong></li>
             <li class="sub"><a href="#s5">5.1 Absensi Publik</a></li>
             <li class="sub"><a href="#s5">5.2 Monitoring Admin</a></li>
@@ -295,7 +296,7 @@
             <li class="sub"><a href="#s15">15.4 Penerbitan Sertifikat + TTE</a></li>
             <li><strong>16. Modul Sertifikasi SKPK</strong></li>
             <li><strong>17. Modul Sertifikat Pelatihan</strong></li>
-            <li><strong>18. Modul Tanda Tangan Elektronik (TTE)</strong></li>
+            <li><strong>18. Modul Tanda Tangan Elektronik (TTE)</strong> <em>(termasuk integrasi JCT untuk sertifikat kegiatan eksternal)</em></li>
             <li><strong>19. Modul Aset, Peminjaman &amp; Rental</strong></li>
             <li class="sub"><a href="#s19">19.1 Dashboard Aset</a></li>
             <li class="sub"><a href="#s19">19.2 Peminjaman Internal</a></li>
@@ -317,6 +318,8 @@
             <li class="sub"><a href="#s28">28.4 Penanganan Admin (Kelola Tiket)</a></li>
             <li class="sub"><a href="#s28">28.5 Notifikasi Email</a></li>
             <li class="sub"><a href="#s28">28.6 Master Data Ticketing</a></li>
+            <li class="sub"><a href="#s28">28.7 Ketersediaan Admin Hotline (Online/Offline)</a></li>
+            <li><strong>29. Modul Kartu Identitas Pelatihan (ID Card Peserta)</strong></li>
         </ul>
     </div>
 
@@ -580,6 +583,11 @@
     <h3>4.4 Kelengkapan Dokumen</h3>
     <p>Peserta mengunggah dokumen persyaratan (identitas, berkas pendukung) di portal; status kelengkapan ditandai
         otomatis dan menjadi salah satu sumber notifikasi "dokumen belum lengkap".</p>
+
+    <h3>4.5 Kartu Identitas Pelatihan (ID Card)</h3>
+    <p>Modul baru (v1.0.2+) membuat <strong>ID card peserta</strong> per pelatihan (ukuran cetak 9,2 × 12,4 cm
+        portrait). Pengelola mengaktifkan &amp; mendesain kartu; peserta menyiapkan/memotong foto lalu mengunduh hasil.
+        Diulas pada <a href="#s29">bagian 29</a>.</p>
 
     <!-- ==================== 5. MODUL KEHADIRAN ==================== -->
     <h2 class="page-break" id="s5">5. Modul Kehadiran (Absensi)</h2>
@@ -946,6 +954,26 @@
         riwayat; <code>penandatangan</code> dibuat oleh superadmin (wajib ber-NIP/NIK). Notifikasi "tanda tangan
         elektronik pending" muncul pada badge.</p>
 
+    <h3>18.1 Sertifikat Kegiatan JCT (Integrasi Eksternal)</h3>
+    <p>Selain sertifikat dari modul internal, antrean TTE menerima kategori <code>jct_certificates</code> untuk
+        menandatangani <strong>sertifikat kegiatan JCT</strong>:</p>
+    <ul>
+        <li><strong>Persiapan:</strong> admin mengunduh sertifikat dari API JCT (tombol "Cek &amp; Download Sertifikat")
+            ke penyimpanan lokal <code>jct_certificate/{activity}/{user_id}.pdf</code>; daftar peserta dibaca dari
+            <em>database bridge</em> JCT (koneksi DB <code>jct</code>, tabel <code>ordering_num_template</code>).</li>
+        <li><strong>Pengajuan:</strong> pilih template JCT + daftar User ID (1–500); bundel TTE dibuat dengan
+            <code>external_reference</code> (activity) &amp; <code>external_template_id</code>; konfigurasi
+            <code>signer</code>/<code>pemaraf</code>/<code>sign_mode</code> ditulis balik ke tabel <code>template</code>
+            JCT.</li>
+        <li><strong>Pelaksanaan:</strong> setiap tanda tangan reviewer/signer menyinkronkan
+            <code>status_pemaraf</code> (status_tdt=1) dan <code>status_proses_ttde='true'</code> pada JCT.</li>
+        <li><strong>Upload akhir:</strong> setelah semua aktor menandatangani, PDF final di-upload kembali ke API JCT;
+            status sinkronisasi tercatat pada dokumen (<code>pending</code>/<code>syncing</code>/<code>synced</code>/
+            <code>failed</code>) dan dapat di-<em>retry</em> dari detail dokumen bila gagal.</li>
+        <li><strong>Diagnostik:</strong> halaman indeks JCT menampilkan status koneksi API &amp; database bridge serta
+            ringkasan dokumen tersinkron/gagal/antre.</li>
+    </ul>
+
     <!-- ==================== 19. ASET, PEMINJAMAN & RENTAL ==================== -->
     <h2 class="page-break" id="s19">19. Modul Aset, Peminjaman &amp; Rental</h2>
 
@@ -1060,7 +1088,7 @@
         </tr>
         <tr>
             <td>Landing page</td>
-            <td>Informasi lembaga, tautan layanan utama</td>
+            <td>Informasi lembaga, tautan layanan utama, dan profil program layanan (termasuk banner integrasi JCT)</td>
         </tr>
         <tr>
             <td>Daerah pelatihan (katalog)</td>
@@ -1104,7 +1132,9 @@
         </tr>
         <tr>
             <td>Hotline &amp; tracking</td>
-            <td>Widget aduan (buat tiket + lampiran), halaman sukses, halaman tracking/respons via token 64-hex</td>
+            <td>Widget aduan (tanpa isian telepon — kontak via email; lampiran gambar; indikator online/offline &amp; jam
+                layanan via JSON publik), halaman sukses, halaman tracking/respons via token 64-hex dengan percakapan
+                auto-refresh</td>
         </tr>
         <tr>
             <td>Bantuan login</td>
@@ -1391,6 +1421,19 @@
             <td style="text-align:center">Sign</td>
         </tr>
         <tr>
+            <td>Kartu Identitas Pelatihan</td>
+            <td style="text-align:center">Desain + Aktif</td>
+            <td style="text-align:center">Desain Bidang</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">Kelola Foto + Unduh</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+        </tr>
+        <tr>
             <td>TTE</td>
             <td style="text-align:center">Riwayat</td>
             <td style="text-align:center">Riwayat Bidang</td>
@@ -1470,7 +1513,7 @@
         </tr>
         <tr>
             <td>Hotline / Kelola Layanan</td>
-            <td style="text-align:center">Kelola Semua + Master</td>
+            <td style="text-align:center">Kelola Semua + Master + Atur Status Ketersediaan</td>
             <td style="text-align:center">Kelola Bidang</td>
             <td style="text-align:center">-</td>
             <td style="text-align:center">-</td>
@@ -1561,7 +1604,8 @@
             <td>hasMany</td>
             <td><code>schedules</code>, <code>participants</code>, <code>training_stages</code>,
                 <code>evaluation_forms</code>, <code>monitoring_results</code>, <code>monitoring_summaries</code>,
-                <code>folders</code>, <code>training_messages</code>, <code>training_activity_reports</code></td>
+                <code>folders</code>, <code>training_messages</code>, <code>training_activity_reports</code>,
+                <code>training_identity_card_settings</code></td>
         </tr>
         <tr>
             <td><code>schedules</code></td>
@@ -1742,6 +1786,19 @@
             <td>belongsTo</td>
             <td><code>users</code>, <code>signature_requests</code></td>
         </tr>
+        <tr>
+            <td><code>electronic_signature_requests</code> (JCT)</td>
+            <td>extra fields</td>
+            <td><code>external_reference</code> (activity JCT), <code>external_template_id</code> untuk
+                <code>source_type = 'jct_certificates'</code></td>
+        </tr>
+        <tr>
+            <td><code>electronic_signature_documents</code> (JCT)</td>
+            <td>extra fields</td>
+            <td><code>external_user_id</code>, <code>jct_sync_status</code> (pending/syncing/synced/failed),
+                <code>jct_synced_at</code>, <code>jct_sync_error</code>, <code>jct_sync_attempts</code>; di-sinkronkan ke
+                database bridge JCT (tabel <code>template</code> &amp; <code>ordering_num_template</code>)</td>
+        </tr>
     </table>
 
     <h3>Magang Flow</h3>
@@ -1814,7 +1871,8 @@
             <td><code>tickets</code></td>
             <td>hasMany / belongsTo</td>
             <td><code>ticket_messages</code>, <code>ticket_status_histories</code>, <code>users</code> (assignee/PIC,
-                creator)</td>
+                creator). <em>Kolom <code>phone</code> telah dihapus (migrasi <code>drop_phone_from_tickets</code>);
+                    kontak pengaju via email.</em></td>
         </tr>
         <tr>
             <td><code>ticket_messages</code></td>
@@ -1848,7 +1906,36 @@
             <td><code>ticket_slas</code></td>
             <td>belongsTo</td>
             <td><code>ticket_services</code>, <code>ticket_categories</code>, <code>ticket_bidang</code>; dipakai
-                <code>SlaService</code> untuk hitung batas respond/resolve</td>
+                <code>SlaService</code> untuk hitung batas respond/resolve
+            </td>
+        </tr>
+        <tr>
+            <td><code>hotline_availability_settings</code></td>
+            <td>single-row</td>
+            <td>mode (auto/manual_online/manual_offline), <code>workdays</code>, <code>opens_at</code>/<code>closes_at</code>,
+                <code>note</code>, <code>updated_by</code>; dipakai indikator online/offline widget &amp; dashboard</td>
+        </tr>
+    </table>
+
+    <h3>Kartu Identitas (ID Card) Flow</h3>
+    <table>
+        <tr>
+            <th>Tabel</th>
+            <th>Relasi</th>
+            <th>Tabel Terkait</th>
+        </tr>
+        <tr>
+            <td><code>training_identity_card_settings</code></td>
+            <td>belongsTo</td>
+            <td><code>trainings</code> (1:1); <code>logo_path</code>, <code>background_path</code>,
+                <code>primary_color</code>/<code>accent_color</code>/<code>text_color</code>,
+                <code>background_opacity</code>, <code>enabled</code>, <code>updated_by</code></td>
+        </tr>
+        <tr>
+            <td><code>participant_identity_cards</code></td>
+            <td>belongsTo</td>
+            <td><code>participants</code> (1:1); <code>photo_path</code> (foto khusus ID card), <code>generated_at</code>
+            </td>
         </tr>
     </table>
 
@@ -1863,11 +1950,13 @@
     <h3>28.1 Pengajuan Aduan (Publik / Widget)</h3>
     <div class="workflow">
         <strong>Alur Pengajuan:</strong><br>
-        1. Pengunjung membuka widget Hotline (tombol mengambang) pada halaman publik sistem<br>
+        1. Pengunjung membuka widget Hotline (tombol mengambang) pada halaman publik sistem; widget menampilkan
+        indikator <strong>online/offline</strong> &amp; jam layanan (<code>hotline.availability</code>), dan pesan
+        "di luar jam layanan" bila admin tidak aktif<br>
         2. Mengisi form: jenis pengguna (<code>PNS</code>/<code>PPPK</code>/<code>Non-ASN</code>), nama, NIP/NIK,
-        perangkat daerah (pilihan dari konfigurasi wilayah), email, telepon (otomatis dinormalisasi awalan
-        <code>62</code>), layanan, kategori, uraian aduan (maks. 5000 karakter), dan lampiran opsional (JPG/PNG/GIF ≤ 2
-        MB)<br>
+        perangkat daerah (pilihan dari konfigurasi wilayah), email, layanan, kategori, uraian aduan (maks. 5000
+        karakter), dan lampiran opsional (JPG/PNG/GIF ≤ 2 MB). <em>Kolom telepon sudah dihapus (v1.0.2+) — kontak
+            pengaju hanya lewat email</em><br>
         3. Validasi server + rate limit; bila pengguna sudah login (dan bukan admin), nama terisi otomatis dan tiket
         dikaitkan ke akun (<code>created_by_user_id</code>) → muncul di halaman "Aduan Saya"<br>
         4. Sistem membangkitkan <strong>nomor tiket</strong> <code>INT-{tahun}-{000001+}</code> dan <strong>token
@@ -1893,6 +1982,10 @@
         <li><strong>Reopen:</strong> bila pengaju membalas pada status <code>MENUNGGU_PENGGUNA</code> atau
             <code>RESOLVED</code>, tiket otomatis kembali <code>DIPROSES</code> (penghitung <code>reopen_count</code>
             bertambah).</li>
+        <li><strong>Penyederhanaan antarmuka (v1.0.2+):</strong> aksi manual admin <code>updateStatus</code> kini hanya
+            menutup tiket (<code>CLOSED</code>); transisi <code>DIPROSES</code>/<code>MENUNGGU_PENGGUNA</code>/
+            <code>RESOLVED</code> berjalan otomatis dari respons admin &amp; balasan pengguna. Dashboard &amp; filter
+            memakai kelompok <code>open</code> (status ≠ CLOSED) dan <code>closed</code>.</li>
     </ul>
 
     <h3>28.3 Tracking &amp; Percakapan</h3>
@@ -1900,10 +1993,12 @@
         <strong>Alur Tracking Publik:</strong><br>
         1. Pengguna membuka tautan tracking <code>/hotline/tracking/{token}</code> yang dibagikan sistem<br>
         2. Halaman menampilkan status terkini, riwayat perubahan status, dan percakapan <em>publik</em> (pesan pengguna
-        &amp; jawaban admin); pesan internal admin tidak pernah tampil<br>
+        &amp; jawaban admin); pesan internal admin tidak pernah tampil. <em>Percakapan di-refresh otomatis setiap 5
+            detik (polling <code>hotline.tracking.messages</code>) dengan pill "Pesan baru"</em><br>
         3. Pengguna dapat menambah balasan/pertanyaan selama tiket bukan <code>CLOSED</code>; balasan memicu notifikasi
         email kepada penanggung jawab<br>
-        4. Pengguna login juga melihat seluruh tantangannya pada halaman "Aduan Saya" (<code>/aduan-saya</code>)
+        4. Pengguna login juga melihat seluruh aduannya pada halaman "Aduan Saya" (<code>/aduan-saya</code>, kini menu
+        sidebar) — kolom Status tidak lagi ditampilkan (v1.0.2+)
     </div>
     <p>Token tracking <code>tracking_token</code> (64-hex) menjadi <em>kredensial</em> akses: tidak ada login khusus —
         kerahasiaan link setara kata sandi (hanya dibagikan ke email pengaju).</p>
@@ -1920,8 +2015,9 @@
             <td>Dashboard</td>
             <td>superadmin / admin_bidang</td>
             <td><code>ticketing.dashboard</code></td>
-            <td>Total &amp; per status, SLA mendekati/terlewati, tren bulanan, distribusi kategori &amp; bidang; kartu
-                "Semua Tiket"/per-bidang hanya untuk superadmin</td>
+            <td>Total / <code>open</code> (belum CLOSED) / <code>closed</code>, SLA mendekati/terlewati, tren bulanan,
+                distribusi kategori &amp; bidang, kartu "Semua Tiket"/per-bidang (superadmin), dan status ketersediaan
+                hotline</td>
         </tr>
         <tr>
             <td>Daftar &amp; Filter</td>
@@ -1937,10 +2033,11 @@
             <td>Percakapan publik + catatan internal; balasan publik mengirim email ke pengaju</td>
         </tr>
         <tr>
-            <td>Ubah Status</td>
+            <td>Ubah Status (Tutup Tiket)</td>
             <td>superadmin / admin_bidang</td>
             <td><code>ticketing.update-status</code></td>
-            <td>DIPROSES / MENUNGGU_PENGGUNA / RESOLVED / CLOSED + catatan; CLOSED diblokir</td>
+            <td>Hanya <code>CLOSED</code> + catatan (v1.0.2+); CLOSED final diblokir untuk diubah/dibalas. Transisi lain
+                berjalan otomatis lewat respons admin/balasan pengguna</td>
         </tr>
         <tr>
             <td>Tugaskan PIC</td>
@@ -1955,11 +2052,18 @@
             <td>Pindah ke bidang lain (+ PIC default bidang tujuan bila ada)</td>
         </tr>
         <tr>
+            <td>Status Ketersediaan</td>
+            <td>superadmin</td>
+            <td><code>ticketing.availability</code> (POST)</td>
+            <td>Atur mode auto/manual online/manual offline, hari kerja, jam layanan &amp; catatan; status tampil pada
+                widget publik &amp; dashboard</td>
+        </tr>
+        <tr>
             <td>Ekspor</td>
             <td>superadmin / admin_bidang (scope bidang)</td>
             <td><code>ticketing.export.excel</code> / <code>ticketing.export.pdf</code></td>
-            <td>Rekap sesuai filter (No, Nomor, Tanggal, Pengaju, Email, Layanan, Kategori, Status, Bidang, PIC, SLA)
-            </td>
+            <td>Rekap sesuai filter (No, Nomor, Tanggal, Pengaju, Email, Layanan, Kategori, Status, Bidang, PIC, SLA);
+                kolom Status = "Dalam Proses" / "Sudah Ditutup"</td>
         </tr>
     </table>
     <p>Batasan akses disaring dua lapis: middleware <code>can:ticketing-access</code> (hanya superadmin &amp;
@@ -1998,7 +2102,9 @@
         tidak menggagalkan proses (dibungkus <code>try/catch</code>).</p>
 
     <h3>28.6 Master Data Ticketing</h3>
-    <p>Seluruh master <strong>hanya dapat dikelola superadmin</strong> (menu Kelola Layanan → Master):</p>
+    <p>Seluruh master <strong>hanya dapat dikelola superadmin</strong> (menu Kelola Layanan → submenu
+        <strong>Master Data</strong> di sidebar). Daftar &amp; formulir tambah/edit ditampilkan memakai
+        <strong>modal</strong> untuk konsistensi (v1.0.2+).</p>
     <ul>
         <li><strong>Layanan &amp; Kategori</strong> (CRUD): nama + slug unik, status aktif, urutan tampil; penghapusan
             diblokir bila masih dipakai aturan routing.</li>
@@ -2010,10 +2116,60 @@
             spesifik/parsial/global, status aktif.</li>
     </ul>
 
+    <h3>28.7 Ketersediaan Admin Hotline (Online/Offline)</h3>
+    <p>Fitur baru (v1.0.2+) untuk mengelola <strong>status kehadiran/admin layanan</strong> yang ditampilkan pada widget
+        Hotline &amp; dashboard kelola tiket. Disimpan pada satu baris pengaturan
+        (<code>hotline_availability_settings</code>, model <code>HotlineAvailabilitySetting</code>).</p>
+    <ul>
+        <li><strong>Mode:</strong> <code>auto</code> (mengikuti hari kerja &amp; jam layanan), <code>manual_online</code>,
+            <code>manual_offline</code>.</li>
+        <li><strong>Jam &amp; hari kerja:</strong> <code>workdays</code> (default Senin–Jumat), <code>opens_at</code>/
+            <code>closes_at</code> (default 07:30–16:00). Di luar jadwal, sistem menilai <em>offline</em>.</li>
+        <li><strong>Catatan kustom:</strong> <code>note</code> mengganti label status pada mode manual (mis. "Admin
+            sedang menangani pelatihan").</li>
+        <li><strong>Tampilan:</strong> widget menampilkan titik indikator + label + banner "aduan tetap diterima di luar
+            jam layanan"; dashboard admin menunjukkan badge status &amp; formulir pengaturan (khusus superadmin).</li>
+        <li><strong>Endpoint:</strong> <code>GET /hotline/availability</code> (publik, JSON) dan <code>POST
+                /ticketing/availability</code> (superadmin).</li>
+    </ul>
+
+    <!-- ==================== 29. KARTU IDENTITAS PELATIHAN ==================== -->
+    <h2 class="page-break" id="s29">29. Modul Kartu Identitas Pelatihan (ID Card Peserta)</h2>
+    <p>Modul baru (v1.0.2+) menyediakan <strong>ID card peserta</strong> berukuran cetak <code>9,2 × 12,4 cm</code>
+        portrait untuk setiap pelatihan: pengelola mengatur desain &amp; mengaktifkan kartu, peserta menyiapkan foto
+        (dengan alat potong 3:4) lalu mengunduh hasil PNG/JPG/PDF.</p>
+
+    <h3>29.1 Pengelola — Desain &amp; Aktifasi</h3>
+    <div class="workflow">
+        <strong>Alur Pengelola:</strong><br>
+        1. Buka menu <strong>Kelola Pelatihan</strong> → kartu "Desain ID Card" (status Aktif/"Atur desain")<br>
+        2. Halaman <code>/trainings/{training}/identity-card</code> (superadmin atau admin_bidang se-bidang): upload
+        logo &amp; latar belakang, atur warna primer/aksen/teks (hex), opasitas latar (0–100), dan aktifkan kartu<br>
+        3. Contoh kartu dirender langsung memakai data peserta pertama yang <code>approved</code> sebagai pratinjau;
+        posisi elemen dikunci agar konsisten untuk seluruh peserta<br>
+        4. Perubahan tersimpan di <code>training_identity_card_settings</code> (firstOrCreate per pelatihan) dan
+        aset desain disimpan di <code>identity-cards/{training}/</code>
+    </div>
+
+    <h3>29.2 Peserta — Foto &amp; Unduhan</h3>
+    <div class="workflow">
+        <strong>Alur Peserta:</strong><br>
+        1. Pada detail pelatihan (tab ID Card / @when pengelola aktif) peserta membuka
+        <code>/training/{training}/identity-card</code> (hanya peserta <code>approved</code> pada pelatihan itu)<br>
+        2. Peserta mengganti/memotong foto khusus ID card (rasio 3:4) — tidak mengubah foto profil utama; foto awal
+        diambil dari dokumen kelengkapan<br>
+        3. Kartu dapat diunduh sebagai <strong>PNG/JPG</strong> (render GD, kanvas 920×1240) atau <strong>PDF</strong>
+        (DomPDF, ukuran kertas ID-1) dengan nama file <code>IDCARD_{NIP}.{ext}</code><br>
+        4. Tiap perubahan foto/unduhan memperbarui <code>generated_at</code> pada
+        <code>participant_identity_cards</code>
+    </div>
+    <p>Hak akses: pengelola = superadmin / admin_bidang se-bidang; peserta = dirinya sendiri. Pengelola dapat
+        menonaktifkan kartu kapan saja (peserta menerima 403 "ID card belum diaktifkan").</p>
+
     <div style="margin-top: 40px; text-align: center; color: #718096; font-size: 10pt;">
         <hr>
         <p>Dokumen ini dihasilkan dari analisis kode sumber aplikasi BPSDM Integral.<br>
-            Versi 1.0.1 — Last updated: 16 September 2026</p>
+            Versi 1.0.2 — Last updated: 25 September 2026</p>
     </div>
 
 </body>

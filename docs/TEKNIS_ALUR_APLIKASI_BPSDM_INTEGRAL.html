@@ -102,6 +102,9 @@
         <li class="sub"><a href="#c18-5">18.5 Endpoint — Hotline (Publik &amp; Pengguna Login)</a></li>
         <li class="sub"><a href="#c18-6">18.6 Endpoint — Kelola Tiket (Admin Bidang &amp; Superadmin)</a></li>
         <li class="sub"><a href="#c18-7">18.7 Endpoint — Master Data (Superadmin Only)</a></li>
+        <li class="sub"><a href="#c18-8">18.8 Ketersediaan Admin Hotline (Online/Offline &amp; Jam Layanan)</a></li>
+        <li><strong>19. Modul TTE — Integrasi JCT (Sertifikat Eksternal &amp; Database Bridge)</strong></li>
+        <li><strong>20. Modul Kartu Identitas Pelatihan (ID Card Peserta)</strong></li>
     </ul>
 </div>
 
@@ -112,7 +115,7 @@
 <h3 id="c1-1">1.1 Struktur Rute &amp; Middleware</h3>
 <ul>
     <li><strong>Grup <code>auth</code></strong> (<code>routes/web.php</code> ±baris 142) membungkus hampir seluruh rute admin/support: pelatihan, peserta, kehadiran, evaluasi, monitoring, dokumen, pengajar, forum, AI, aset, agenda, sertifikasi, TTE, magang, buku tamu, presensi kegiatan, profil, notifikasi.</li>
-    <li><strong>Rute publik</strong> (di luar grup auth, blok "PUBLIC ROUTES"): landing page; <code>global.search</code> (±baris 82, controller memakai scope bila user login); <code>documents.file.view</code> &amp; <code>documents.file.download</code> (±baris 93–94, otorisasi sepenuhnya di controller via <code>authorizeFileAccess()</code> — folder publik boleh tanpa login, privat wajib login+<code>canView</code>); <code>documents.public</code> (<code>/share/folder/{token}</code>), <code>documents.public.file</code>, <code>documents.public.excel</code>; verifikasi sertifikat/TTE; form publik buku tamu, presensi kegiatan, pendaftaran magang &amp; rental; bantuan login.</li>
+    <li><strong>Rute publik</strong> (di luar grup auth, blok "PUBLIC ROUTES"): landing page; <code>global.search</code> (±baris 82, controller memakai scope bila user login); <code>documents.file.view</code> &amp; <code>documents.file.download</code> (±baris 93–94, otorisasi sepenuhnya di controller via <code>authorizeFileAccess()</code> — folder publik boleh tanpa login, privat wajib login+<code>canView</code>); <code>documents.public</code> (<code>/share/folder/{token}</code>), <code>documents.public.file</code>, <code>documents.public.excel</code>; verifikasi sertifikat/TTE; form publik buku tamu, presensi kegiatan, pendaftaran magang &amp; rental; bantuan login; Hotline (<code>hotline.store</code>, <code>hotline.success</code>, <code>hotline.tracking</code>, <code>hotline.tracking.reply</code>) + <code>hotline.availability</code> (JSON status online/offline, ±68) + <code>hotline.tracking.messages</code> (JSON polling percakapan, ±73).</li>
     <li><strong>Middleware global</strong> <code>CekSetupPengajar</code> (append grup <code>web</code>): narasumber yang belum memiliki record <code>Pengajar</code> selalu diarahkan ke <code>pengajar.setup</code> (kecuali halaman setup/logout).</li>
     <li><strong>Gate kustom</strong> (didefinisikan <code>AppServiceProvider::boot()</code>): <code>superadmin-only</code> (role === 'superadmin'), <code>isParticipant</code> (role === 'participant'), dan <code>ticketing-access</code> (role <code>superadmin</code> ATAU <code>admin_bidang</code>).</li>
     <li><strong>Rate limit</strong> pada beberapa rute publik (<code>throttle:...</code>) untuk mencegah penyalahgunaan form publik.</li>
@@ -146,9 +149,10 @@
 <h3 id="c1-4">1.4 Katalog Status</h3>
 <table>
     <tr><th>Entitas</th><th>Status / Transisi</th></tr>
-    <tr><td><code>tickets.status</code></td><td><code>BARU</code> (tiket dibuat) → <code>DIPROSES</code> (respons pertama diisi admin/PIC) → <code>MENUNGGU_PENGGUNA</code> → <code>RESOLVED</code> → <code>CLOSED</code>. <code>CLOSED</code> bersifat final (tidak dapat diubah/direspons). Balasan pengguna saat <code>MENUNGGU_PENGGUNA</code>/<code>RESOLVED</code> otomatis kembali ke <code>DIPROSES</code> (<code>reopen_count</code>+1, <code>is_reopened=true</code>). <code>auto_close_at</code> dijadwalkan +72 jam (config <code>ticketing.auto_close_hours</code>) saat <code>RESOLVED</code>.</td></tr>
+    <tr><td><code>tickets.status</code></td><td><code>BARU</code> (tiket dibuat) → <code>DIPROSES</code> (respons pertama diisi admin/PIC) → <code>MENUNGGU_PENGGUNA</code> → <code>RESOLVED</code> → <code>CLOSED</code>. <code>CLOSED</code> bersifat final (tidak dapat diubah/direspons). Balasan pengguna saat <code>MENUNGGU_PENGGUNA</code>/<code>RESOLVED</code> otomatis kembali ke <code>DIPROSES</code> (<code>reopen_count</code>+1, <code>is_reopened=true</code>). <code>auto_close_at</code> dijadwalkan +72 jam (config <code>ticketing.auto_close_hours</code>) saat <code>RESOLVED</code>. <strong>Catatan (v1.0.2+):</strong> antarmuka admin menyederhanakan status menjadi dua kelompok — <code>open</code> (semua status selain CLOSED) dan <code>closed</code> (<code>status === 'CLOSED'</code>) — dipakai pada dashboard (kartu statistik), filter <code>index</code>, dan kolom Status pada ekspor ("Dalam Proses" / "Sudah Ditutup"). Aksi manual <code>updateStatus</code> kini hanya mengizinkan nilai <code>CLOSED</code> (penutupan tiket).</td></tr>
+    <tr><td><code>electronic_signature_documents.jct_sync_status</code></td><td>Status sinkronisasi dokumen JCT: <code>pending</code> (registrasi, belum dikirim) → <code>syncing</code> (sedang dikirim ulang/upload final) → <code>synced</code> (PDF final terupload ke JCT + status <code>status_proses_ttde</code>/<code>status_pemaraf</code> diperbarui) / <code>failed</code> (gagal, <code>jct_sync_error</code> terisi, bisa di-retry via <code>electronic-signatures.jct.retry</code>).</td></tr>
     <tr><td><code>monitoring_results.workflow_status</code></td><td><code>open</code> → <code>in_progress</code> → <code>submitted</code> → <code>verified</code>; <code>submitted</code> → <code>rejected</code> → kembali <code>in_progress</code>; jawaban "ya" → <code>not_required</code>. <code>is_resolved=true</code> hanya saat <code>verified</code>. Prioritas <code>rendah/sedang/tinggi/kritis</code> (default <code>sedang</code>); <code>overdue</code> = bukan verified &amp; <code>due_date</code> lampau.</td></tr>
-    <tr><td>Signature request (bundel TTE)</td><td><code>pending</code> ↔ <code>processing</code> → <code>completed</code> / <code>failed</code>. Aksi yang macet &gt;5 menit atau ber-<code>error_message</code> dikembalikan ke <code>pending</code>.</td></tr>
+    <tr><td>Signature request (bundel TTE)</td><td><code>pending</code> ↔ <code>processing</code> → <code>completed</code> / <code>failed</code>. Aksi yang macet &gt;5 menit atau ber-<code>error_message</code> dikembalikan ke <code>pending</code>. Untuk sumber <code>jct_certificates</code>: menyimpan <code>external_reference</code> (activity id) &amp; <code>external_template_id</code> (template JCT); dokumen menyimpan <code>external_user_id</code> + <code>jct_sync_status</code>.</td></tr>
     <tr><td>Evaluasi — skor</td><td><code>ya/sangat baik</code>=100, <code>baik</code>=80, <code>cukup</code>=60, <code>kurang</code>=40, <code>tidak/sangat kurang</code>=20 (skala), predikat: &gt;90 Sangat Baik, &gt;80 Baik, &gt;70 Cukup, &gt;60 Kurang, ≤60 Sangat Kurang. L2 menerapkan N-gain; <code>tgl_sebar_l34</code> = Manajerial +1 tahun, selain itu +4 bulan.</td></tr>
     <tr><td><code>ai_generations.status</code></td><td><code>processing</code> → <code>completed</code> / <code>failed</code>; dedup lewat <code>source_hash</code> (sha256 payload).</td></tr>
     <tr><td><code>asset_loan_requests.status</code></td><td><code>pending</code> → <code>approved</code> / <code>rejected</code> / <code>revision</code>; deteksi bentrok <code>AssetBooking::hasConflict</code>.</td></tr>
@@ -166,6 +170,9 @@
     <tr><td><code>storage/app/private (disk local) internships/certificates/…</code></td><td>Sertifikat magang (template + PDF hasil render per peserta)</td></tr>
     <tr><td><code>public/templates/*.docx</code></td><td>Template laporan monitoring, tindak lanjut, laporan kegiatan</td></tr>
     <tr><td>Storage jawaban berkas</td><td>Berkas jawaban form presensi kegiatan (disimpan per respons, dihapus saat form dihapus)</td></tr>
+    <tr><td><code>storage/app/public/ticket-attachments/</code></td><td>Lampiran form Hotline (gambar JPG/PNG/GIF, disebut <code>attachment_path</code> pada tiket)</td></tr>
+    <tr><td><code>storage/app/private (local) jct_certificate/{activity}/{user_id}.pdf</code></td><td>Sertifikat JCT yang di-download dari API JCT sebelum dimasukkan ke antrean TTE; menjadi prasyarat pembuatan pengajuan JCT</td></tr>
+    <tr><td><code>storage/app/public/identity-cards/{training}/…</code></td><td>Aset ID card pelatihan: <code>identity-cards/{training}/</code> (logo &amp; background desain) dan <code>identity-cards/{training}/participants/</code> (foto khusus ID card per peserta)</td></tr>
 </table>
 
 <h3 id="c1-6">1.6 Peta Rute Terverifikasi</h3>
@@ -179,8 +186,10 @@
     <tr><td>Pengajar</td><td><code>pengajar.setup/setup.store</code>, <code>pengajar.index/manage/profile.update/requirements.upload/session.upload</code>, <code>pengajar.schedule</code>, <code>pengajar.history</code></td></tr>
     <tr><td>AI / Forum / Search</td><td><code>ai-assistant.index</code>, <code>training.forum.index/messages/store/destroy</code> (±232–235), <code>global.search</code> (publik, ±82)</td></tr>
     <tr><td>Referensi baris penting</td><td>auth group ±142; <code>Route::resource('trainings')</code> ±317; monitoring ±436–446; followup ±448–451; dokumen ±343–358; pengajar setup ±301–302, schedule ±309, history ±458</td></tr>
-    <tr><td>Hotline (publik)</td><td><code>hotline.store</code> (<code>POST /hotline</code>), <code>hotline.success</code>, <code>hotline.tracking</code>, <code>hotline.tracking.reply</code> (±67–71), <code>hotline.my</code> (<code>/aduan-saya</code>, grup auth ±546)</td></tr>
-    <tr><td>Ticketing</td><td>group <code>can:ticketing-access</code> prefix <code>/ticketing</code>: <code>ticketing.dashboard/index/show/update-status/reply/assign/transfer/export.excel/export.pdf</code> (±496–528); master superadmin: <code>ticketing.master.services/categories/bidang/routing/sla</code> (CRUD)</td></tr>
+    <tr><td>TTE — Integrasi JCT</td><td>kategori sertifikat JCT: <code>electronic-signatures.jct</code> (<code>/tanda-tangan-elektronik/jct</code>), <code>.jct.create/.jct.store</code> (±161–166); <code>electronic-signatures.jct.download-info</code> &amp; <code>.jct.download</code> (cek &amp; unduh sertifikat JCT, POST ±167–168); <code>electronic-signatures.jct.retry</code> (<code>POST .../documents/{document}/retry-jct</code>, ±174)</td></tr>
+    <tr><td>Kartu Identitas Pelatihan</td><td>pengelola: <code>training-id-cards.settings</code> (<code>GET/PUT /trainings/{training}/identity-card</code>, ±399–400); peserta: <code>participant.identity-card.edit/photo/image/pdf</code> (<code>/training/{training}/identity-card...*</code>, ±547–550)</td></tr>
+    <tr><td>Hotline (publik)</td><td><code>hotline.store</code> (<code>POST /hotline</code>), <code>hotline.success</code>, <code>hotline.tracking</code>, <code>hotline.tracking.messages</code> (JSON polling), <code>hotline.tracking.reply</code> (±68–74), <code>hotline.availability</code> (JSON online/offline, ±68), <code>hotline.my</code> (<code>/aduan-saya</code>, grup auth ±560)</td></tr>
+    <tr><td>Ticketing</td><td>group <code>can:ticketing-access</code> prefix <code>/ticketing</code>: <code>ticketing.dashboard/index/show/messages/update-status/reply/assign/transfer/export.excel/export.pdf</code> (±505–516); <code>ticketing.availability</code> (POST, superadmin-only, ±507); master superadmin: <code>ticketing.master.services/categories/bidang/routing/sla</code> (CRUD, ±519–536)</td></tr>
 </table>
 
 <h3 id="c1-7">1.7 Format Blok Alur Endpoint</h3>
@@ -1487,7 +1496,7 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
 <h3 id="c18-1">18.1 Tata Kelola Data (Tabel &amp; Relasi)</h3>
 <table>
     <tr><th>Tabel</th><th>Isi / Kolom utama</th></tr>
-    <tr><td><code>tickets</code></td><td><code>ticket_number</code> (format <code>INT-{YEAR}-{sekuens 6 digit}</code>, generator <code>TicketNumberGenerator</code>), <code>tracking_token</code> (64-hex, <code>TrackingTokenService</code>, dipakai di URL tracking), <code>user_type</code> (PNS/PPPK/Non-ASN), <code>submitter_name</code>, <code>nip_nik</code>, <code>perangkat_daerah</code>, <code>email</code>, <code>phone</code> (dinormalisasi prefix <code>62</code>), <code>service</code>/<code>category</code> (slug), <code>message</code>, <code>attachment_path</code> (disk public, dir <code>ticket-attachments</code>), <code>status</code>, <code>bidang</code> (hasil routing), <code>assigned_to</code> (PIC, <code>users.id</code>), <code>created_by_user_id</code>, <code>sla_respond_hours</code>, <code>sla_resolve_hours</code>, <code>first_response_at</code>, <code>resolved_at</code>, <code>closed_at</code>, <code>is_reopened</code>, <code>reopen_count</code>, <code>auto_close_at</code>. Relasi <code>messages()</code>, <code>statusHistories()</code>, <code>assignee()</code>, <code>creator()</code>; helper <code>status_label</code>, <code>status_color</code>, <code>sla_indicator</code>, <code>isAccessibleBy($user)</code>.</td></tr>
+    <tr><td><code>tickets</code></td><td><code>ticket_number</code> (format <code>INT-{YEAR}-{sekuens 6 digit}</code>, generator <code>TicketNumberGenerator</code>), <code>tracking_token</code> (64-hex, <code>TrackingTokenService</code>, dipakai di URL tracking), <code>user_type</code> (PNS/PPPK/Non-ASN), <code>submitter_name</code>, <code>nip_nik</code>, <code>perangkat_daerah</code>, <code>email</code>, <code>service</code>/<code>category</code> (slug), <code>message</code>, <code>attachment_path</code> (disk public, dir <code>ticket-attachments</code>), <code>status</code>, <code>bidang</code> (hasil routing), <code>assigned_to</code> (PIC, <code>users.id</code>), <code>created_by_user_id</code>, <code>sla_respond_hours</code>, <code>sla_resolve_hours</code>, <code>first_response_at</code>, <code>resolved_at</code>, <code>closed_at</code>, <code>is_reopened</code>, <code>reopen_count</code>, <code>auto_close_at</code>. <em>Kolom <code>phone</code> telah dihapus (migrasi <code>drop_phone_from_tickets</code>) — kontak pengaju cukup via email.</em> Relasi <code>messages()</code>, <code>statusHistories()</code>, <code>assignee()</code>, <code>creator()</code>; helper <code>status_label</code>, <code>status_color</code>, <code>sla_indicator</code>, <code>isAccessibleBy($user)</code>.</td></tr>
     <tr><td><code>ticket_messages</code></td><td>Percakapan: <code>sender_name</code>, <code>sender_role</code>, <code>sender_user_id</code>, <code>message</code>, <code>is_internal</code> (catatan administratif, hanya ditampilkan ke admin bidang tiket &amp; superadmin), <code>attachment_path</code>.</td></tr>
     <tr><td><code>ticket_status_histories</code></td><td>Audit log transisi: <code>from_status</code>, <code>to_status</code>, <code>changed_by_name</code>, <code>changed_by_user_id</code>, <code>note</code>; <code>$timestamps=false</code> dengan <code>created_at</code> diisi event <code>creating</code>.</td></tr>
     <tr><td><code>ticket_services</code></td><td>Master layanan (mis. kepegawaian, sistem &amp; aplikasi): <code>name</code>, <code>slug</code> unik, <code>is_active</code>, <code>sort_order</code>; relasi <code>routingRules()</code>, <code>slas()</code>.</td></tr>
@@ -1495,6 +1504,7 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <tr><td><code>ticket_bidang</code></td><td>Master bidang tujuan penanganan: <code>name</code> unik, <code>is_active</code>, <code>default_handler_user_id</code> (PIC default); relasi <code>defaultHandler()</code>.</td></tr>
     <tr><td><code>ticket_routing_rules</code></td><td>Pasangan unik <code>service_id</code> + <code>category_id</code> → <code>bidang_id</code>, <code>default_pic_user_id</code>, <code>sla_respond_hours</code>, <code>sla_resolve_hours</code>, <code>is_active</code>; disimpan via <code>updateOrCreate</code>.</td></tr>
     <tr><td><code>ticket_slas</code></td><td>Konfigurasi SLA opsional: <code>service_id</code>/<code>category_id</code>/<code>bidang_id</code> (nullable), <code>respond_hours</code>, <code>resolve_hours</code>, <code>working_hours_start</code>, <code>working_hours_end</code>, <code>is_active</code>.</td></tr>
+    <tr><td><code>hotline_availability_settings</code></td><td>Pengaturan kehadiran admin (single active row via <code>HotlineAvailabilitySetting::current()</code>): <code>mode</code> (<code>auto</code>/<code>manual_online</code>/<code>manual_offline</code>), <code>workdays</code> (array hari, default Senin–Jumat [1,2,3,4,5]), <code>opens_at</code>/<code>closes_at</code> (default 07:30–16:00), <code>note</code> (label kustom), <code>updated_by</code>. Helper <code>isOnline()</code> &amp; <code>statusInfo()</code>.</td></tr>
 </table>
 
 <h3 id="c18-2">18.2 Status Tiket, Reopen &amp; Indikator SLA</h3>
@@ -1505,6 +1515,7 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <li>Auto-close: saat <code>RESOLVED</code> dan <code>auto_close_at</code> kosong → <code>now()+72 jam</code> (config <code>ticketing.auto_close_hours</code>); saat <code>CLOSED</code> → <code>auto_close_at=null</code>.</li>
     <li>Indikator SLA (<code>SlaService::calculateIndicator</code>): <code>selesai</code> (RESOLVED/CLOSED), <code>terlewati</code> (lewat deadline), <code>mendekati</code> (sisa ≤50% total), <code>aman</code>, <code>tidak_ditentukan</code> (tanpa <code>sla_resolve_hours</code>).</li>
     <li>Resolusi SLA saat create (<code>SlaService::resolve</code>): prioritas paling spesifik service+category+bidang → parsial service+category (bidang null) → fallback global (semua null) → default 48/72 jam, jam kerja 08:00–17:00.</li>
+    <li>Pada lapisan admin, transisi status manual disederhanakan: <code>updateStatus</code> hanya menerima <code>CLOSED</code> (menutup tiket); status <code>DIPROSES</code>/<code>MENUNGGU_PENGGUNA</code>/<code>RESOLVED</code> kini bergerak otomatis dari aksi balas/respons (<code>respond</code>) dan balasan pengguna pada tracking (lihat 18.6.6 &amp; 18.5.4). Tampilan dashboard &amp; filter <code>index</code> memakai kelompok <code>open</code>/<code>closed</code>.</li>
 </ul>
 
 <h3 id="c18-3">18.3 Notifikasi Email</h3>
@@ -1523,19 +1534,20 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <li><code>getScopeQuery()`</code>: superadmin = semua (bisa difilter <code>bidang</code> di query string); admin_bidang selalu <code>where('bidang', user->bidang)</code>.</li>
     <li><code>guardPengguna()`</code> (HotlineController): halaman publik Hotline menolak <code>superadmin</code>/<code>admin_bidang</code> yang login (403 — disarankan menu Komplain/Ticketing admin).</li>
     <li>Daftar PIC (<code>getPics()</code>): <code>superadmin</code> + <code>admin_bidang</code>; admin_bidang hanya melihat PIC se-bidangnya.</li>
+    <li>Ketersediaan Hotline (<code>updateAvailability</code>): <code>abort_unless(role === 'superadmin', 403)</code> — hanya superadmin yang dapat mengubah status online/offline.</li>
 </ul>
 
 <h3 id="c18-5">18.5 Endpoint — Hotline (Publik &amp; Pengguna Login)</h3>
-<p>Rute publik (grup auth dikecualikan), ±baris 267–271 <code>routes/web.php</code>; <code>throttle:10,1</code> pada <code>store</code> &amp; <code>replyTracking</code>.</p>
+<p>Rute publik (grup auth dikecualikan), ±baris 68–74 <code>routes/web.php</code>; <code>throttle:10,1</code> pada <code>store</code> &amp; <code>replyTracking</code>, <code>throttle:60,1</code> pada <code>tracking.messages</code>.</p>
 
 <h3>18.5.1 POST <code>/hotline</code> — <code>store</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>hotline.store</code>, <code>throttle:10,1</code>.</p>
     <p><strong>2. Role/Auth:</strong> Publik (tanpa login diperbolehkan); <code>guardPengguna()</code> menolak superadmin/admin_bidang. Bila login → <code>created_by_user_id=auth()->id()</code>.</p>
-    <p><strong>3. Request:</strong> <code>user_type</code> in:PNS,PPPK,Non-ASN; <code>name</code> max255; <code>nip_nik</code> max30; <code>perangkat_daerah</code> max255; <code>email</code>; <code>phone</code> max20; <code>service</code> exists:<code>ticket_services,slug</code>; <code>category</code> exists:<code>ticket_categories,slug</code>; <code>message</code> max5000; <code>attachment</code> nullable file ≤2048KB, mimes jpg/jpeg/png/gif.</p>
+    <p><strong>3. Request:</strong> <code>user_type</code> in:PNS,PPPK,Non-ASN; <code>name</code> max255; <code>nip_nik</code> max30; <code>perangkat_daerah</code> max255; <code>email</code>; <code>service</code> exists:<code>ticket_services,slug</code>; <code>category</code> exists:<code>ticket_categories,slug</code>; <code>message</code> max5000; <code>attachment</code> nullable file ≤2048KB, mimes jpg/jpeg/png/gif. (<em>Kolom <code>phone</code> tidak lagi diminta/wajib karena kolom sudah dihapus dari tabel <code>tickets</code>.</em>)</p>
     <p><strong>4. Alur logika:</strong><br>
-    - Normalisasi <code>phone</code>: belum diawali <code>62</code> → prepend <code>62</code>.<br>
     - Simpan <code>attachment_path</code> bila ada (store disk <code>public</code>, dir <code>ticket-attachments</code>).<br>
+    - <code>user_id</code> diisi <code>auth()->id()</code> bila pengguna login (di-<code>fill</code> sebagai <code>created_by_user_id</code>).<br>
     - <code>TicketingService::create</code> dalam satu transaksi DB:<br>
     1. <code>TicketNumberGenerator::generate()</code> → <code>INT-{tahun}-{000001+}</code> (berdasarkan max tiket tahun berjalan).<br>
     2. <code>TrackingTokenService::generate()</code> → <code>bin2hex(random_bytes(32))</code>, unik.<br>
@@ -1584,18 +1596,40 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>6. Response:</strong> redirect back + flash success.</p>
 </div>
 
-<h3>18.5.5 GET <code>/aduan-saya</code> — <code>myTickets</code></h3>
+<h3>18.5.5 GET <code>/hotline/availability</code> — <code>availability</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>hotline.availability</code> (±baris 68).</p>
+    <p><strong>2. Role/Auth:</strong> Publik (dipanggil widget via fetch untuk indikator online/offline).</p>
+    <p><strong>3. Request:</strong> —.</p>
+    <p><strong>4. Alur:</strong> <code>HotlineAvailabilitySetting::current()->statusInfo()</code> → hitung <code>isOnline()</code> berdasar mode &amp; jadwal layanan.</p>
+    <p><strong>5. Data fetched:</strong> <code>HotlineAvailabilitySetting</code>.</p>
+    <p><strong>6. Response:</strong> JSON <code>{online, label, mode, hours, days, note}</code>.</p>
+</div>
+
+<h3>18.5.6 GET <code>/hotline/tracking/{token}/messages</code> — <code>messages</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>hotline.tracking.messages</code>, <code>throttle:60,1</code>, <code>where('token','[a-f0-9]{64}')</code> (±baris 73).</p>
+    <p><strong>2. Role/Auth:</strong> Publik (dengan token).</p>
+    <p><strong>3. Request:</strong> <code>{token}</code>.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Cari tiket via <code>tracking_token</code>; ambil pesan non-internal urut waktu.<br>
+    - Render partial <code>hotline.partials.messages</code> untuk <em>auto-refresh/polling</em> percakapan halaman tracking (interval 5 detik).</p>
+    <p><strong>5. Data fetched:</strong> <code>Ticket</code> + <code>TicketMessage</code> (non-internal).</p>
+    <p><strong>6. Response:</strong> JSON <code>{count, last_id, html}</code>.</p>
+</div>
+
+<h3>18.5.7 GET <code>/aduan-saya</code> — <code>myTickets</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>hotline.my</code>, dalam grup auth (±546).</p>
     <p><strong>2. Role/Auth:</strong> Login; hanya tiket <code>created_by_user_id = auth()->id()</code>.</p>
     <p><strong>3. Request:</strong> query <code>page</code>.</p>
     <p><strong>4. Alur:</strong> <code>Ticket::where('created_by_user_id', auth()->id())-&gt;with('assignee')-&gt;orderByDesc('created_at')-&gt;paginate(10)</code>.</p>
     <p><strong>5. Data fetched:</strong> <code>Ticket</code> + <code>assignee</code>.</p>
-    <p><strong>6. Response:</strong> view <code>hotline.my</code> (compact <code>tickets</code>).</p>
+    <p><strong>6. Response:</strong> view <code>hotline.my</code> (compact <code>tickets</code>) — menampilkan No. Tiket, Tanggal, Layanan, Kategori, dan aksi "Lacak"; <em>kolom Status dihapus (v1.0.2+) dan seluruh aduan dibuat via widget Hotline // "Aduan Saya" kini menjadi menu sidebar untuk role pengguna (participant/mitra/pengajar/intern).</em></p>
 </div>
 
 <h3 id="c18-6">18.6 Endpoint — Kelola Tiket (Admin Bidang &amp; Superadmin)</h3>
-<p>Prefix <code>/ticketing</code>, group middleware <code>can:ticketing-access</code> (routes/web.php ±497); master data tambahan <code>can:superadmin-only</code> (±508).</p>
+<p>Prefix <code>/ticketing</code>, group middleware <code>can:ticketing-access</code> (routes/web.php ±505); <code>ticketing.availability</code> &amp; master data tambahan <code>can:superadmin-only</code> (±507, ±518–536).</p>
 
 <h3>18.6.1 GET <code>/ticketing</code> — <code>dashboard</code></h3>
 <div class="ep">
@@ -1603,25 +1637,38 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>2. Role/Auth:</strong> Gate <code>ticketing-access</code>; scope bidang via <code>getScopeQuery()</code>.</p>
     <p><strong>3. Request:</strong> —.</p>
     <p><strong>4. Alur logika:</strong><br>
-    - Statistik: <code>total, baru, diproses, menunggu, resolved, closed</code> (count per status dalam scope).<br>
+    - Statistik: <code>total</code>, <code>open</code> (<code>status != 'CLOSED'</code>), <code>closed</code> (<code>status = 'CLOSED'</code>) dalam scope.<br>
     - Loop tiket (scope) untuk menghitung <code>sla_approaching</code> &amp; <code>sla_overdue</code> via <code>SlaService::calculateIndicator</code> (state non-RESOLVED/CLOSED dengan <code>sla_resolve_hours</code>).<br>
     - <code>monthlyData</code>: 12 angka per bulan (tahun berjalan, dari tiket scope).<br>
-    - <code>categoryData</code> &amp; <code>bidangData</code>: distribusi groupBy category/bidang (desc).</p>
-    <p><strong>5. Data fetched:</strong> <code>Ticket</code> (+assignee), <code>SlaService::calculateIndicator</code>.</p>
-    <p><strong>6. Response:</strong> view <code>admin.ticketing.dashboard</code>; kartu per-bidang &amp; data bulanan hanya untuk superadmin (view menggunakan <code>auth()-&gt;user()-&gt;role</code>).</p>
+    - <code>categoryData</code> &amp; <code>bidangData</code>: distribusi groupBy category/bidang (desc).<br>
+    - Muat <code>HotlineAvailabilitySetting::current()</code> untuk indikator/status ketersediaan hotline.</p>
+    <p><strong>5. Data fetched:</strong> <code>Ticket</code> (+assignee), <code>SlaService::calculateIndicator</code>, <code>HotlineAvailabilitySetting</code>.</p>
+    <p><strong>6. Response:</strong> view <code>admin.ticketing.dashboard</code>; kartu per-bidang &amp; data bulanan hanya untuk superadmin (view menggunakan <code>auth()-&gt;user()-&gt;role</code>); form "Status Ketersediaan Hotline" hanya tampil untuk superadmin.</p>
 </div>
 
-<h3>18.6.2 GET <code>/ticketing/tiket</code> — <code>index</code></h3>
+<h3>18.6.2 POST <code>/ticketing/availability</code> — <code>updateAvailability</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>ticketing.availability</code> (±baris 507), prefix <code>/ticketing</code>.</p>
+    <p><strong>2. Role/Auth:</strong> <code>can:ticketing-access</code> + cek di controller <code>abort_unless(role === 'superadmin', 403)</code>.</p>
+    <p><strong>3. Request:</strong> <code>mode</code> required in:auto,manual_online,manual_offline; <code>opens_at</code>/<code>closes_at</code> nullable format H:i; <code>workdays</code> nullable array (integer 0–6); <code>note</code> nullable max255.</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - <code>HotlineAvailabilitySetting::current()</code> lalu <code>update(...)</code> (workdays default <code>[1,2,3,4,5]</code> bila kosong; <code>updated_by = Auth::id()</code>).<br>
+    - Status ini dipakai widget/publik (via <code>hotline.availability</code>) untuk menampilkan indikator online/offline &amp; pesan "di luar jam layanan".</p>
+    <p><strong>5. Data:</strong> <code>HotlineAvailabilitySetting</code> di-update.</p>
+    <p><strong>6. Response:</strong> redirect back + flash success.</p>
+</div>
+
+<h3>18.6.3 GET <code>/ticketing/tiket</code> — <code>index</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>ticketing.index</code>.</p>
     <p><strong>2. Role/Auth:</strong> Gate <code>ticketing-access</code>; <code>getScopeQuery()</code>.</p>
-    <p><strong>3. Request:</strong> query opsional: <code>status</code> (BARU/DIPROSES/MENUNGGU_PENGGUNA/RESOLVED/CLOSED), <code>service</code>, <code>category</code>, <code>bidang</code> (hanya superadmin), <code>assigned_to</code>, <code>search</code> (ticket_number/submitter_name/email/nip_nik LIKE), <code>date_from</code>, <code>date_to</code>.</p>
+    <p><strong>3. Request:</strong> query opsional: <code>status</code> (<code>open</code>=status != CLOSED, <code>closed</code>=status CLOSED), <code>service</code>, <code>category</code>, <code>bidang</code> (hanya superadmin), <code>assigned_to</code>, <code>search</code> (ticket_number/submitter_name/email/nip_nik LIKE), <code>date_from</code>, <code>date_to</code>.</p>
     <p><strong>4. Alur:</strong> eager <code>with('assignee')</code> + filter <code>when(filled(...))</code> + <code>latest()->paginate(20)->withQueryString()</code>; muat daftar status, layanan/kategori/bidang aktif, serta PIC via <code>getPics()</code>.</p>
     <p><strong>5. Data fetched:</strong> <code>Ticket</code> (+assignee), <code>TicketService</code>, <code>TicketCategory</code>, <code>TicketBidang</code>, <code>User</code> (PIC).</p>
     <p><strong>6. Response:</strong> view <code>admin.ticketing.index</code>.</p>
 </div>
 
-<h3>18.6.3 GET <code>/ticketing/tiket/{ticket}</code> — <code>show</code></h3>
+<h3>18.6.4 GET <code>/ticketing/tiket/{ticket}</code> — <code>show</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>ticketing.show</code>.</p>
     <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>.</p>
@@ -1634,17 +1681,29 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>6. Response:</strong> view <code>admin.ticketing.show</code>.</p>
 </div>
 
-<h3>18.6.4 PUT <code>/ticketing/tiket/{ticket}/status</code> — <code>updateStatus</code></h3>
+<h3>18.6.5 GET <code>/ticketing/tiket/{ticket}/messages</code> — <code>messages</code></h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>ticketing.messages</code> (±baris 510).</p>
+    <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>.</p>
+    <p><strong>3. Request:</strong> <code>{ticket}</code> (route model binding).</p>
+    <p><strong>4. Alur logika:</strong><br>
+    - Pesan non-internal dikumpulkan; pesan internal hanya untuk superadmin atau admin_bidang se-bidang.<br>
+    - Gabung &amp; urut waktu, render partial <code>admin.ticketing.partials.messages</code> untuk <em>auto-refresh/polling</em> percakapan admin (interval 5 detik).</p>
+    <p><strong>5. Data fetched:</strong> <code>Ticket</code>, <code>TicketMessage</code> (publik + internal sesuai scope).</p>
+    <p><strong>6. Response:</strong> JSON <code>{count, last_id, html}</code>.</p>
+</div>
+
+<h3>18.6.6 PUT <code>/ticketing/tiket/{ticket}/status</code> — <code>updateStatus</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>PUT</code>, name <code>ticketing.update-status</code>.</p>
     <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>.</p>
-    <p><strong>3. Request:</strong> <code>status</code> required in:DIPROSES,MENUNGGU_PENGGUNA,RESOLVED,CLOSED; <code>note</code> nullable max500.</p>
-    <p><strong>4. Alur:</strong> tolak bila <code>CLOSED</code> (final); <code>TicketingService::changeStatus($ticket, status, Auth::user()-&gt;name, Auth::id(), note)</code> — mengisi <code>first_response_at</code> (BARU→DIPROSES), <code>resolved_at</code>/<code>auto_close_at</code> (RESOLVED), <code>closed_at</code> (CLOSED), flag reopen (DIPROSES dari RESOLVED), menulis history, kirim <code>TicketResolvedMail</code> (RESOLVED/CLOSED).</p>
+    <p><strong>3. Request:</strong> <code>status</code> required in:CLOSED; <code>note</code> nullable max500. (<em>v1.0.2+: aksi manual hanya menutup tiket; transisi DIPROSES/MENUNGGU_PENGGUNA/RESOLVED berjalan otomatis melalui respons admin &amp; balasan pengguna.</em>)</p>
+    <p><strong>4. Alur:</strong> tolak bila sudah <code>CLOSED</code> (final); <code>TicketingService::changeStatus($ticket, 'CLOSED', Auth::user()-&gt;name, Auth::id(), note)</code> — mengisi <code>closed_at=now()</code>, <code>auto_close_at=null</code>, menulis history, kirim <code>TicketResolvedMail</code>.</p>
     <p><strong>5. Data:</strong> <code>Ticket</code> + <code>TicketStatusHistory</code>.</p>
     <p><strong>6. Response:</strong> redirect back + flash success.</p>
 </div>
 
-<h3>18.6.5 POST <code>/ticketing/tiket/{ticket}/reply</code> — <code>reply</code></h3>
+<h3>18.6.7 POST <code>/ticketing/tiket/{ticket}/reply</code> — <code>reply</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>POST</code>, name <code>ticketing.reply</code>.</p>
     <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>; tolak bila <code>CLOSED</code>.</p>
@@ -1658,7 +1717,7 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>6. Response:</strong> redirect back + flash success.</p>
 </div>
 
-<h3>18.6.6 PUT <code>/ticketing/tiket/{ticket}/assign</code> — <code>assign</code></h3>
+<h3>18.6.8 PUT <code>/ticketing/tiket/{ticket}/assign</code> — <code>assign</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>PUT</code>, name <code>ticketing.assign</code>.</p>
     <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>.</p>
@@ -1668,7 +1727,7 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>6. Response:</strong> redirect back + flash success.</p>
 </div>
 
-<h3>18.6.7 PUT <code>/ticketing/tiket/{ticket}/transfer</code> — <code>transfer</code></h3>
+<h3>18.6.9 PUT <code>/ticketing/tiket/{ticket}/transfer</code> — <code>transfer</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>PUT</code>, name <code>ticketing.transfer</code>.</p>
     <p><strong>2. Role/Auth:</strong> <code>authorizeTicketAccess($ticket)</code>.</p>
@@ -1678,13 +1737,13 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
     <p><strong>6. Response:</strong> redirect back + flash success.</p>
 </div>
 
-<h3>18.6.8 GET <code>/ticketing/export/excel</code> &amp; <code>/ticketing/export/pdf</code></h3>
+<h3>18.6.10 GET <code>/ticketing/export/excel</code> &amp; <code>/ticketing/export/pdf</code></h3>
 <div class="ep">
     <p><strong>1. URL/Route:</strong> <code>GET</code>, name <code>ticketing.export.excel</code> &amp; <code>ticketing.export.pdf</code>.</p>
     <p><strong>2. Role/Auth:</strong> Gate <code>ticketing-access</code>.</p>
-    <p><strong>3. Request:</strong> query opsional seperti <code>index</code> (status/service/category/date_from/date_to via <code>applyFilters</code>; scope bidang tetap berlaku).</p>
+    <p><strong>3. Request:</strong> query opsional seperti <code>index</code> (<code>status</code> open/closed, service/category/date_from/date_to via <code>applyFilters</code>; scope bidang tetap berlaku).</p>
     <p><strong>4. Alur:</strong><br>
-    - Excel: <code>PhpSpreadsheet</code>, header <code>No, Nomor Tiket, Tanggal, Pengaju, Email, Layanan, Kategori, Status, Bidang, PIC, SLA</code>; simpane temp <code>storage/app/tickets_export.xlsx</code> lalu <code>response()-&gt;download('tickets_{Y-m-d}.xlsx')-&gt;deleteFileAfterSend(true)</code>.<br>
+    - Excel: <code>PhpSpreadsheet</code>, header <code>No, Nomor Tiket, Tanggal, Pengaju, Email, Layanan, Kategori, Status, Bidang, PIC, SLA</code>; kolom Status ditampilkan sebagai <code>Sudah Ditutup</code> (CLOSED) / <code>Dalam Proses</code> (selainnya); simpan temp <code>storage/app/tickets_export.xlsx</code> lalu <code>response()-&gt;download('tickets_{Y-m-d}.xlsx')-&gt;deleteFileAfterSend(true)</code>.<br>
     - PDF: <code>Barryvdh\DomPDF\Facade\Pdf::loadView('admin.ticketing.export-pdf')</code> → download <code>tickets_{Y-m-d}.pdf</code>.</p>
     <p><strong>5. Data fetched:</strong> <code>Ticket</code> (per scope &amp; filter, latest).</p>
     <p><strong>6. Response:</strong> file download.</p>
@@ -1692,17 +1751,70 @@ selainnya (PKTI/PKTU dan program lain) → tgl_selesai +4 bulan</pre>
 
 <h3 id="c18-7">18.7 Endpoint — Master Data (Superadmin Only)</h3>
 <div class="ep">
-    <p><strong>1. URL/Route:</strong> prefix <code>/ticketing/master</code>, group <code>can:superadmin-only</code> (±508–526):<br>
+    <p><strong>1. URL/Route:</strong> prefix <code>/ticketing/master</code>, group <code>can:superadmin-only</code> (±518–536):<br>
     - <code>GET/POST/PUT/DELETE /master/layanan</code> — <code>ticketing.master.services(*)</code> (TicketService).<br>
     - <code>GET/POST/PUT/DELETE /master/kategori</code> — <code>ticketing.master.categories(*)</code> (TicketCategory).<br>
     - <code>GET/POST/PUT/DELETE /master/bidang</code> — <code>ticketing.master.bidang(*)</code> (TicketBidang, incl. <code>default_handler_user_id</code>).<br>
     - <code>GET/POST/DELETE /master/routing</code> — <code>ticketing.master.routing(*)</code> (TicketRoutingRule; <code>updateOrCreate</code> pada pair service+category).<br>
     - <code>GET/POST/DELETE /master/sla</code> — <code>ticketing.master.sla(*)</code> (TicketSla; store = update bila kombinasi 3-kolom sudah ada).</p>
-    <p><strong>2. Role/Auth:</strong> <code>superadmin</code> (gate <code>superadmin-only</code>) di dalam group <code>ticketing-access</code>.</p>
+    <p><strong>2. Role/Auth:</strong> <code>superadmin</code> (gate <code>superadmin-only</code>) di dalam group <code>ticketing-access</code>. Menu dirapikan di sidebar menjadi submenu <strong>Master Data</strong> (dalam menu Ticketing/Kelola Layanan).</p>
     <p><strong>3. Request (store/update):</strong> services/categories: <code>name</code> required, <code>slug</code> required+unique (hanya create); bidang: <code>name</code> required+unique, <code>default_handler_user_id</code>; routing: <code>service_id</code>/<code>category_id</code>/<code>bidang_id</code> required exists + <code>default_pic_user_id</code>/SLA nullable; sla: <code>respond_hours</code>/<code>resolve_hours</code> numeric ≥0 + <code>working_hours_start/end</code> required.</p>
     <p><strong>4. Alur:</strong> validasi; tolak hapus bila entitas masih dipakai routing rules (services/categories/bidang dengan <code>routingRules()-&gt;exists()</code>); log via flash message.</p>
     <p><strong>5. Data:</strong> <code>TicketService</code>, <code>TicketCategory</code>, <code>TicketBidang</code>, <code>TicketRoutingRule</code>, <code>TicketSla</code>, <code>User</code> (PIC).</p>
-    <p><strong>6. Response:</strong> view <code>admin.ticketing.master.*</code> (layanan/kategori memakai partial <code>_generic-master</code>) + redirect back + flash.</p>
+    <p><strong>6. Response:</strong> view <code>admin.ticketing.master.*</code> (layanan/kategori memakai partial <code>_generic-master</code>) + redirect back + flash. <em>Form tambah/edit ditampilkan memakai modal (bukan form inline) pada halaman routing/bidang/SLA.</em></p>
+</div>
+
+<h3 id="c18-8">18.8 Ketersediaan Admin Hotline (Online/Offline &amp; Jam Layanan)</h3>
+<p>Penambahan (v1.0.2+) untuk menampilkan indikator <strong>online/offline</strong> pada widget Hotline &amp; dashboard kelola tiket, serta pesan "di luar jam layanan". Disimpan pada tabel <code>hotline_availability_settings</code> (single row, model <code>HotlineAvailabilitySetting</code>).</p>
+<ul>
+    <li><strong>Mode:</strong> <code>auto</code> (mengikuti hari kerja &amp; jam layanan), <code>manual_online</code> (selalu online, pesan ambil dari <code>note</code> bila ada), <code>manual_offline</code> (selalu offline).</li>
+    <li><strong>Aturan auto:</strong> <code>isOnline()</code> = true bila hari sekarang termasuk <code>workdays</code> DAN waktu masuk rentang <code>opens_at</code>–<code>closes_at</code> (default Senin–Jumat 07:30–16:00; rentang lintas tengah malam ditangani bila <code>closes_at &lt;= opens_at</code>).</li>
+    <li><strong>Endpoint:</strong> <code>GET /hotline/availability</code> (publik, JSON <code>statusInfo()</code>); <code>POST /ticketing/availability</code> (superadmin, lihat 18.6.2).</li>
+    <li><strong>Tampilan:</strong> widget menampilkan titik indikator + label di kepala panel, pesan "Admin sedang online" / "Di luar jam layanan (Sen–Jum, 07.30–16.00)", dan banner bahwa aduan tetap diterima di luar jam kerja; dashboard admin menampilkan badge status + form pengaturan (superadmin).</li>
+</ul>
+
+<!-- ==================== 19. TTE INTEGRASI JCT ==================== -->
+<h2 class="page-break" id="c19">19. Modul TTE — Integrasi JCT (Sertifikat Eksternal &amp; Database Bridge)</h2>
+<p>Kategori <code>jct_certificates</code> pada antrean TTE untuk menandatangani <strong>sertifikat kegiatan JCT</strong> (di luar sertifikat pelatihan Integral). Alur mengadaptasi perilaku aplikasi legacy <em>ttdintec</em>: sertifikat diunduh dari API JCT ke server Integral, dimasukkan ke antrean TTE, lalu setelah ditandatangani PDF final <strong>di-upload kembali ke JCT</strong> dan statusnya disinkronkan ke <em>database bridge</em> JCT.</p>
+
+<h3>19.1 Komponen &amp; Konfigurasi</h3>
+<ul>
+    <li><strong>API JCT</strong> (<code>config('services.jct.url')</code> / env <code>JCT_API_URL</code>): klien <code>JctClient</code> — <code>templates()</code>, <code>downloadCertificate(activityId, userId)</code>, <code>uploadFinalCertificate(activityId, userId, path)</code>.</li>
+    <li><strong>Database bridge</strong> (<code>config('database.connections.jct')</code> / env <code>JCT_DB_HOST, JCT_DB_PORT, JCT_DB_DATABASE, JCT_DB_USERNAME, JCT_DB_PASSWORD</code>): koneksi DB MySQL kedua bernama <code>jct</code> (tabel <code>template</code> &amp; <code>ordering_num_template</code>), dipakai <code>JctSyncService</code>.</li>
+    <li><strong>Sinkronisasi:</strong> <code>JctSyncService</code> (290 baris) — membaca daftar peserta <code>ordering_num_template</code> (<code>LIKE %templateId%</code> pada <code>id</code>), menulis <code>signer</code>/<code>pemaraf</code>/<code>sign_mode</code> ke tabel <code>template</code>, menandai <code>versi_tandatangan</code>, <code>status_pemaraf</code> (status_tdt=1 per urutan pemaraf), dan <code>status_proses_ttde='true'</code> pada <code>ordering_num_template</code>.</li>
+    <li>Field bundel: <code>electronic_signature_requests.external_reference</code> (activity id) &amp; <code>external_template_id</code>; dokumen: <code>external_user_id</code>, <code>jct_sync_status</code> (pending/syncing/synced/failed), <code>jct_synced_at</code>, <code>jct_sync_error</code>, <code>jct_sync_attempts</code>.</li>
+</ul>
+
+<h3>19.2 Alur Sinkronisasi JCT</h3>
+<div class="ep">
+    <p><strong>1. Download sertifikat:</strong> superadmin/admin_bidang membuka kategori <strong>JCT</strong> (rute <code>electronic-signatures.jct</code>) → modal "Cek &amp; Download Sertifikat" (<code>POST jct-dropdown-info</code>) membaca daftar <code>ordering_num_template</code> per versi tanda tangan; tiap sertifikat diunduh (<code>POST jct-download</code>) ke <code>storage/app/private jct_certificate/{activity}/{user_id}.pdf</code> dan <code>versi_tandatangan</code> ditulisi ke JCT (<code>syncDownloaded</code>).</p>
+    <p><strong>2. Buat pengajuan (storeJct):</strong> pilih template JCT + <code>jct_user_ids</code> (1–500); divalidasi bahwa PDF tiap user sudah tersedia lokal; <code>signature_requests</code> dibuat <code>source_type=jct_certificates</code> dengan <code>external_reference</code>/<code>external_template_id</code>; tiap dokumen disimpan <code>external_user_id</code> + <code>jct_sync_status=pending</code>; lalu <code>syncJctOnStore()</code> menulis <code>template.signer/pemaraf/sign_mode</code> &amp; <code>versi_tandatangan</code> sesuai template terpilih.</p>
+    <p><strong>3. Sinkronisasi saat menandatangani:</strong> tiap aksi reviewer → <code>syncPemarafSigned()</code> (status_tdt=1 + tanggal, dicocokkan persona/urutan); aksi signer → <code>syncSignerSigned()</code> (<code>status_proses_ttde='true'</code>).</p>
+    <p><strong>4. Upload final:</strong> saat seluruh aksi selesai → <code>syncFinalJctDocument()</code>: <code>jct_sync_status=syncing</code>, <code>uploadFinalCertificate()</code> mengirim PDF final ke API JCT, perbarui <code>status_pemaraf</code> reviewer &amp; <code>status_proses_ttde</code> → <code>jct_sync_status=synced</code>. Gagal → <code>jct_sync_status=failed</code> + <code>jct_sync_error</code>; dapat dikirim ulang via <code>POST /tanda-tangan-elektronik/documents/{document}/retry-jct</code> (<code>electronic-signatures.jct.retry</code>, syarat status completed + PDF final tersedia).</p>
+    <p><strong>5. Panel diagnostik (index JCT):</strong> <code>jctOverview</code> menampilkan koneksi API (template_count, certificate_count), konfigurasi &amp; koneksi DB bridge (<code>diagnostics()</code>), serta hitungan dokumen lokal synced/failed/pending.</p>
+</div>
+<p>Perbedaan perilaku saat kegagalan: TTE lokal tetap tersimpan walaupun sinkronisasi JCT gagal (pesan sukses mencatat hal ini); pengelola dapat menekan retry dari detail dokumen.</p>
+
+<!-- ==================== 20. KARTU IDENTITAS PELATIHAN ==================== -->
+<h2 class="page-break" id="c20">20. Modul Kartu Identitas Pelatihan (ID Card Peserta)</h2>
+<p>Modul baru (v1.0.2+) untuk membuat <strong>ID card peserta</strong> berukuran cetak <code>9,2 × 12,4 cm</code> portrait per pelatihan. Pengelola mengatur desain (logo, latar, warna, teks), peserta menyiapkan/ memotong foto lalu mengunduh hasil <strong>PNG/JPG/PDF</strong>.</p>
+
+<h3>20.1 Pengelola — Desain &amp; Aktifasi</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> <code>GET/PUT /trainings/{training}/identity-card</code> — <code>training-id-cards.settings</code> / <code>training-id-cards.settings.update</code> (superadmin &amp; admin_bidang se-bidang).</p>
+    <p><strong>2. Alur:</strong> <code>TrainingIdentityCardController::settings()</code> memuat/membuat <code>TrainingIdentityCardSetting</code> (firstOrCreate per training) + contoh peserta pertama yang <code>approved</code> untuk preview; <code>updateSettings()</code> memvalidasi &amp; menyimpan <code>logo</code>/<code>background</code> (upload ke <code>identity-cards/{training}/</code>), <code>primary_color</code>/<code>accent_color</code>/<code>text_color</code> (hex), <code>background_opacity</code> (0–100), dan flag <code>enabled</code>; opsi hapus aset logo/latar; <code>updated_by = Auth::id()</code>.</p>
+    <p><strong>3. Akses menu:</strong> halaman kelola pelatihan (<code>trainings/manage.blade.php</code>) menampilkan kartu "Desain ID Card" berstatus Aktif/"Atur desain".</p>
+</div>
+
+<h3>20.2 Peserta — Foto &amp; Unduhan</h3>
+<div class="ep">
+    <p><strong>1. URL/Route:</strong> grup auth peserta (halaman detail pelatihan, tab <code>idcard</code>):<br>
+    - <code>GET /training/{training}/identity-card</code> — <code>participant.identity-card.edit</code> (editor/crop foto).<br>
+    - <code>PUT /training/{training}/identity-card/photo</code> — <code>participant.identity-card.photo</code> (ganti foto khusus ID card, rasio 3:4).<br>
+    - <code>GET /training/{training}/identity-card/image/{png|jpg}</code> — <code>participant.identity-card.image</code> (render GD).<br>
+    - <code>GET /training/{training}/identity-card/pdf</code> — <code>participant.identity-card.pdf</code> (render DomPDF).</p>
+    <p><strong>2. Alur:</strong> <code>participantContext()</code> mencari peserta <code>approved</code> milik user (by <code>user_id</code> atau <code>nip_nik</code>); <code>403</code> bila pengelola belum <code>enabled</code>. Kartu <code>ParticipantIdentityCard</code> dibuat firstOrCreate per participant; foto default dari <code>pasFotoFile</code>/profil utama, dapat ditimpa via <code>updatePhoto()</code> tanpa mengubah foto profil; <code>generated_at</code> diperbarui tiap unduhan/ubah foto.</p>
+    <p><strong>3. Render:</strong> PNG/JPG via ekstensi GD (<code>gd</code>) kanvas 920×1240 — latar warna, overlay background + opacity, tutup dengan aksen (#2), logo, teks judul/nama/jabatan/instansi, periode &amp; lokasi pelatihan; PDF via DomPDF ukuran kertas 260.787×351.496 pt. Nama file <code>IDCARD_{NIP}.{ext}</code>.</p>
 </div>
 
 <!-- @@REG_BX@@ -->
