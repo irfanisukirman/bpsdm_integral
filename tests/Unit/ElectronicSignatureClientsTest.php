@@ -59,6 +59,16 @@ class ElectronicSignatureClientsTest extends TestCase
         } finally {@unlink($path);}
     }
 
+    public function test_jct_client_accepts_nested_template_payload(): void
+    {
+        config()->set('services.jct', ['url'=>'https://jct.test','username'=>null,'password'=>null,'timeout'=>30]);
+        Http::fake([
+            'https://jct.test/getTemplateForIntegral'=>Http::response(['data'=>['data'=>[['id_template'=>'T-NESTED']]]]),
+        ]);
+
+        $this->assertSame('T-NESTED', app(JctClient::class)->templates()[0]['id_template']);
+    }
+
     public function test_jct_client_reads_templates_and_validates_downloaded_pdf(): void
     {
         config()->set('services.jct', ['url'=>'https://jct.test','username'=>null,'password'=>null,'timeout'=>30]);

@@ -64,6 +64,24 @@ return [
             ]) : [],
         ],
 
+        'jct' => [
+            'driver' => 'mysql',
+            'url' => env('JCT_DB_URL'),
+            'host' => env('JCT_DB_HOST', ''),
+            'port' => env('JCT_DB_PORT', '3308'),
+            'database' => env('JCT_DB_DATABASE', 'template'),
+            'username' => env('JCT_DB_USERNAME', ''),
+            'password' => env('JCT_DB_PASSWORD', ''),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

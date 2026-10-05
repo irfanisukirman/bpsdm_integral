@@ -384,7 +384,10 @@ class ParticipantController extends Controller
             ->where('participant_id', $participant->id)
             ->first();
 
-        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays', 'participantCertificate'));
+        $identityCardSetting = \App\Models\TrainingIdentityCardSetting::where('training_id', $training->id)->first();
+        $identityCard = \App\Models\ParticipantIdentityCard::where('participant_id', $participant->id)->first();
+
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays', 'participantCertificate', 'identityCardSetting', 'identityCard'));
     }
 
     public function myHistory(Request $request)

@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         $category = $request->query('category');
-        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'];
+        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan'];
 
         $stats = [
             'all' => User::count(),
@@ -65,8 +65,8 @@ class UserController extends Controller
             'nip_nik'  => 'nullable|string|max:50',
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengajar,participant,mitra,penandatangan',
-            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,pengajar,participant,mitra,penandatangan',
+            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
             'password' => 'required|min:6',
         ]);
 
@@ -85,7 +85,7 @@ class UserController extends Controller
             'username' => $request->username,
             'whatsapp' => $request->whatsapp,
             'role'     => $request->role,
-            'bidang'   => match ($request->role) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
+            'bidang'   => match ($request->role) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang', 'pengelola_keuangan' => $request->bidang, default => null },
             'password' => Hash::make($request->password),
         ]);
 
@@ -129,9 +129,9 @@ class UserController extends Controller
             // Update username ditambahkan, dengan validasi ignore ID agar tidak error "sudah dipakai" oleh dirinya sendiri
             'username' => 'required|string|unique:users,username,' . $user->id,
             'nip_nik'  => 'nullable|string|max:50',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengajar,participant,mitra,penandatangan',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,pengajar,participant,mitra,penandatangan',
             'whatsapp' => 'required|numeric',
-            'bidang'   => ['required_if:role,admin_bidang', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
+            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
         ]);
 
         $userType = match ($request->role) {
@@ -153,7 +153,7 @@ class UserController extends Controller
             'nip_nik'  => $request->nip_nik,
             'role'     => $effectiveRole,
             'whatsapp' => $request->whatsapp,
-            'bidang'   => match ($effectiveRole) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang' => $request->bidang, default => null },
+            'bidang'   => match ($effectiveRole) { 'admin_aset' => 'Pengelola Aset', 'admin_bidang', 'pengelola_keuangan' => $request->bidang, default => null },
         ]);
 
         return redirect()->back()->with('success', 'Data user ' . $user->name . ' berhasil diperbarui.');

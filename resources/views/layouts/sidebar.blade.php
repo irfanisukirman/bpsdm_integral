@@ -32,6 +32,9 @@
                 <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
             </li>
         @endif
+        @if(in_array(Auth::user()->role, ['superadmin', 'pengelola_keuangan'], true))
+            <li class="menu-item {{ request()->routeIs('finance.*') ? 'active' : '' }}"><a href="{{route('finance.index')}}" class="menu-link"><i class="menu-icon bx bx-wallet"></i><div class="fw-bold">Pengelolaan Keuangan</div></a></li>
+        @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
             <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
                 <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
@@ -45,6 +48,8 @@
             {{-- Menu Buku Tamu sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'pengelola_magang')
             {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'pengelola_keuangan')
+            {{-- Menu keuangan sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
             <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')
@@ -83,9 +88,12 @@
         @endif
 
         @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'))
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Sertifikasi SKPK</span></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Panel SKPK</span></li>
             <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
                 <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('cooperations.*') ? 'active' : '' }}">
+                <a href="{{ route('cooperations.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Kelola Kerja Sama</div></a>
             </li>
         @endif
 
