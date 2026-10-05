@@ -499,55 +499,31 @@
     {{-- INTEGRASI APLIKASI --}}
     <section id="integrasi-aplikasi" class="integration-section py-5">
         @php
-            $mainApplications = [
-                ['name' => 'Integral', 'description' => 'Aplikasi big data untuk manajemen pelatihan, dokumen, sertifikat, evaluasi, dan data kepegawaian.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/integral', 'color' => '#696cff', 'icon' => 'bx-grid-alt', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-integral.png'],
+            $applications = [
                 ['name' => 'Jabar Corpu Talent', 'description' => 'Platform pembelajaran digital dan ruang berbagi pengetahuan bagi ASN Jawa Barat.', 'url' => 'https://jabarcorputalent.jabarprov.go.id', 'color' => '#f4b740', 'icon' => 'bx-book-reader', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-jct.png'],
                 ['name' => 'Jabar Talent Connect', 'description' => 'Platform penyusunan kebutuhan dan kurikulum pengembangan kompetensi ASN.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/jtc', 'color' => '#03c3ec', 'icon' => 'bx-network-chart', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-talent.png'],
                 ['name' => 'Ajuan Rekomendasi', 'description' => 'Layanan pengajuan surat rekomendasi untuk kegiatan pendalaman tugas Anggota DPRD.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/aksi', 'color' => '#ff5b5c', 'icon' => 'bx-file-find', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-aksi.png'],
-            ];
-            $supportApplications = [
-                ['name' => 'Agenda & Aset', 'description' => 'Reservasi jadwal, aset, dan kalender kegiatan pendukung BPSDM.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/agenzet', 'color' => '#28c76f', 'icon' => 'bx-calendar-check', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-agenda.png'],
                 ['name' => 'L-mob', 'description' => 'Aplikasi laporan dan absensi mobile pegawai.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/lmob', 'color' => '#8b5cf6', 'icon' => 'bx-mobile-alt', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-lmob.png'],
-                ['name' => 'Layangan', 'description' => 'Pengelolaan magang, PKL, dan buku tamu secara terpadu.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/layangan', 'color' => '#20b486', 'icon' => 'bx-briefcase-alt-2', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-layangan.png'],
-                ['name' => 'Presensi Pelatihan', 'description' => 'Sistem presensi online untuk peserta kegiatan pelatihan.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/presensi-digital', 'color' => '#438cff', 'icon' => 'bx-user-check', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-presensi.png'],
-                ['name' => 'SimFile', 'description' => 'Sistem informasi manajemen file dan monitoring dokumen.', 'url' => 'https://s.id/monitoring_bpsdmjabar', 'color' => '#ffab00', 'icon' => 'bx-folder-open', 'logo' => 'https://res.cloudinary.com/dnwyqw6gn/image/upload/v1769667905/mon_lqdtec.png'],
             ];
         @endphp
         <div class="container py-5 position-relative" style="z-index:1">
             <div class="text-center mb-5">
                 <span class="section-tag">Satu Ekosistem Digital</span>
                 <h2 class="fw-bold text-dark h1">Integrasi Aplikasi BPSDM</h2>
-                <p class="text-muted mx-auto" style="max-width:680px">Akses layanan utama dan aplikasi pendukung BPSDM Provinsi Jawa Barat dalam satu halaman.</p>
+                <p class="text-muted mx-auto" style="max-width:680px">Akses aplikasi terintegrasi BPSDM Provinsi Jawa Barat.</p>
             </div>
 
-            <div class="integration-group-label"><i class="bx bx-category"></i>Aplikasi Utama</div>
-            <div class="row g-4 justify-content-center mb-5">
-                @foreach($mainApplications as $application)
+            <div class="row g-4 justify-content-center">
+                @foreach($applications as $application)
                     <div class="col-md-6 col-xl-3">
                         <article class="integration-card" style="--app-color:{{ $application['color'] }}">
                             <div class="integration-card__head">
                                 <div class="integration-card__logo">
                                     @if(isset($application['logo']))<img src="{{ $application['logo'] }}" alt="Logo {{ $application['name'] }}">@else<i class="bx {{ $application['icon'] }}"></i>@endif
                                 </div>
-                                <span class="integration-card__status">Terhubung</span>
                             </div>
                             <h3>{{ $application['name'] }}</h3>
                             <p>{{ $application['description'] }}</p>
-                            <a href="{{ $application['url'] }}" target="_blank" rel="noopener noreferrer" class="integration-card__link"><span>Buka Aplikasi</span><i class="bx bx-right-arrow-alt"></i></a>
-                        </article>
-                    </div>
-                @endforeach
-            </div>
-
-            <div class="integration-group-label"><i class="bx bx-extension"></i>Aplikasi Pendukung</div>
-            <div class="row g-4 justify-content-center">
-                @foreach($supportApplications as $application)
-                    <div class="col-md-6 col-lg-4 col-xl">
-                        <article class="integration-card is-compact" style="--app-color:{{ $application['color'] }}">
-                            <div class="integration-card__head"><div class="integration-card__logo">@if(isset($application['logo']))<img src="{{ $application['logo'] }}" alt="Logo {{ $application['name'] }}">@else<i class="bx {{ $application['icon'] }}"></i>@endif</div><span class="integration-card__status">Aktif</span></div>
-                            <h3>{{ $application['name'] }}</h3>
-                            <p>{{ $application['description'] }}</p>
-                            <a href="{{ $application['url'] }}" target="_blank" rel="noopener noreferrer" class="integration-card__link"><span>Buka Aplikasi</span><i class="bx bx-right-arrow-alt"></i></a>
                         </article>
                     </div>
                 @endforeach
