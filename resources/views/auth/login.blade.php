@@ -88,6 +88,11 @@
                     </a>
                 </div>
 
+                <div class="text-center mt-4">
+                    <span class="text-muted small">Belum punya akun? </span>
+                    <a href="{{ route('register') }}" class="small text-primary fw-semibold text-decoration-none">Daftar</a>
+                </div>
+
                 <div class="text-center mt-5">
                     <p class="mb-0 small text-muted">
                         BPSDM Provinsi Jawa Barat &copy; {{ date('Y') }}

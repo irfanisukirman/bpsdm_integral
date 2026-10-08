@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Training;
 use App\Models\Participant;
 use App\Models\User;
+use App\Http\Requests\CompleteProfileRequest;
+use App\Services\ProfileDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
@@ -149,76 +151,14 @@ class ParticipantController extends Controller
     /**
      * Simpan Pelengkapan Profil
      */
-    public function storeProfile(Request $request)
+    public function storeProfile(CompleteProfileRequest $request, ProfileDataService $profileData)
     {
-        $user = \App\Models\User::findOrFail(auth()->id());
+        $user = User::findOrFail(auth()->id());
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
-        $request->validate([
-            'user_type' => 'required|in:peserta,narasumber,mitra',
-            'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
-            'whatsapp' => 'required',
-            'gender' => 'required',
-            'birth_place' => 'required|string|max:255',
-            'birth_date' => 'required|date|before_or_equal:today',
-            'jabatan' => 'required',
-            'golongan' => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
-            'instansi' => 'required',
-            'provinsi' => 'required',
-            'kota' => 'required', // <--- Gunakan 'kota'
-            'kecamatan' => 'required',
-            'kelurahan' => 'required',
-            'address' => 'required|string|max:1000',
-            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'password' => [\Illuminate\Validation\Rule::requiredIf(fn () => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
-        ]);
+        $requestedType = $user->must_complete_profile ? 'peserta' : $request->input('user_type');
 
-        $requestedType = $user->must_complete_profile ? 'peserta' : $request->user_type;
-        $role = $requestedType === 'narasumber' ? 'pengajar' : 'participant';
-        $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
-        $user->update([
-            'user_type' => $requestedType,
-            'user_type_status' => $typeStatus,
-            // Narasumber langsung aktif, sedangkan akun administratif tetap tidak tersedia di form publik.
-            'role' => $role,
-            'bidang' => null,
-            'nip_nik' => $request->nip_nik,
-            'whatsapp' => $request->whatsapp,
-            'gender' => $request->gender,
-            'birth_place' => $request->birth_place,
-            'birth_date' => $request->birth_date,
-            'jabatan' => $request->jabatan,
-            'golongan' => $request->golongan,
-            'instansi' => $request->instansi,
-            'status_kepegawaian' => $request->status_kepegawaian,
-            'provinsi' => $request->provinsi,
-            'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
-            'kecamatan' => $request->kecamatan,
-            'kelurahan' => $request->kelurahan,
-            'address' => $request->address,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'must_complete_profile' => false,
-            'must_change_password' => false,
-            ...($request->filled('password') ? ['password' => Hash::make($request->password)] : []),
-        ]);
-
-        // Sinkronisasi ke tabel participants
-        \App\Models\Participant::where('nip_nik', $user->nip_nik)->update([
-            'user_id' => $user->id,
-            'name' => $user->name,
-            'phone' => $user->whatsapp,
-            'gender' => $user->gender,
-            'jabatan' => $user->jabatan,
-            'instansi' => $user->instansi,
-            'provinsi' => $user->provinsi,
-            'kota' => $user->kota,
-            'kecamatan' => $user->kecamatan,
-            'kelurahan' => $user->kelurahan,
-            'status_kepegawaian' => $user->status_kepegawaian,
-        ]);
+        $profileData->apply($user, $request->validated());
 
         if ($requestedType === 'narasumber') {
             return redirect()->route('pengajar.setup')
@@ -258,7 +198,7 @@ class ParticipantController extends Controller
                 'jabatan'            => $user->jabatan,
                 'instansi'           => $user->instansi,
                 'provinsi'           => $user->provinsi,
-                'kota'               => $user->kota,
+                'kabupaten_kota'     => $user->kota,
                 'kecamatan'          => $user->kecamatan,
                 'kelurahan'          => $user->kelurahan,
                 'status_kepegawaian' => $user->status_kepegawaian,

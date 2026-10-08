@@ -3,38 +3,21 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
+use App\Services\ProfileDataService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class RegisterController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
-    use RegistersUsers;
+    public function __construct(private readonly ProfileDataService $profileData) {}
 
     /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/dashboard';
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
+     * Middleware Laravel 11/12 style.
      */
     public static function middleware(): array
     {
@@ -44,30 +27,43 @@ class RegisterController extends Controller
     }
 
     /**
-     * Get a validator for an incoming registration request.
-     *
-     * @return \Illuminate\Contracts\Validation\Validator
+     * Halaman pendaftaran publik.
      */
-    protected function validator(array $data)
+    public function showRegistrationForm(): View
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        return view('auth.register', [
+            'user' => new User,
+            'golonganOptions' => \App\Http\Requests\ProfileDataRequest::GOLONGAN,
         ]);
     }
 
     /**
-     * Create a new user instance after a valid registration.
-     *
-     * @return User
+     * Simpan akun baru beserta data profil lengkapnya.
      */
-    protected function create(array $data)
+    public function register(RegisterRequest $request): RedirectResponse
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        $data = $request->validated();
+
+        $user = DB::transaction(function () use ($request, $data) {
+            $user = User::create($request->accountData());
+
+            return $this->profileData->apply($user, $data);
+        });
+
+        Auth::login($user, remember: true);
+        $request->session()->regenerate();
+
+        if ($user->user_type === 'narasumber') {
+            return redirect()->route('pengajar.setup')
+                ->with('success', 'Pendaftaran berhasil. Lengkapi data pengajar untuk melanjutkan.');
+        }
+
+        if ($user->user_type === 'mitra') {
+            return redirect()->route('participant.dashboard')
+                ->with('success', 'Pendaftaran berhasil. Pengajuan sebagai Mitra menunggu persetujuan admin.');
+        }
+
+        return redirect()->route('participant.dashboard')
+            ->with('success', 'Pendaftaran berhasil. Selamat datang di INTEGRAL.');
     }
 }

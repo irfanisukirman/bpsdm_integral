@@ -48,6 +48,10 @@ class AppServiceProvider extends ServiceProvider
             return in_array($user->role, ['superadmin', 'admin_bidang']);
         });
 
+        \Illuminate\Support\Facades\Gate::define('laporan-access', function ($user) {
+            return $user->canAccessLaporan();
+        });
+
         \Illuminate\Pagination\Paginator::useBootstrapFive(); 
     }
 }

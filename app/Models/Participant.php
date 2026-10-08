@@ -18,7 +18,7 @@ class Participant extends Model
         'jabatan',
         'instansi',
         'provinsi',
-        'kota',
+        'kabupaten_kota',
         'kecamatan',
         'kelurahan',
         'status_kepegawaian',
@@ -28,6 +28,14 @@ class Participant extends Model
         'sertifikat_file_id',
         'registration_status'
     ];
+
+    /**
+     * Filter peserta berstatus ASN P3K-PW (flag dari kolom yang sudah ada).
+     */
+    public function scopePppkPw($query)
+    {
+        return $query->where('status_kepegawaian', 'PPPK-PW');
+    }
 
     /**
      * Cek apakah peserta sudah dinilai oleh role tertentu

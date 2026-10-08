@@ -254,7 +254,7 @@
                                             $participantName = $listedParticipant->name ?: $listedParticipant->user?->name ?: 'Peserta';
                                             $participantPosition = $listedParticipant->jabatan ?: $listedParticipant->user?->jabatan;
                                             $participantInstitution = $listedParticipant->instansi ?: $listedParticipant->user?->instansi;
-                                            $participantCity = $listedParticipant->kota ?: $listedParticipant->user?->kota;
+                                            $participantCity = $listedParticipant->kabupaten_kota ?: $listedParticipant->user?->kota;
                                             $participantProvince = $listedParticipant->provinsi ?: $listedParticipant->user?->provinsi;
                                             $participantOrigin = collect([$participantCity, $participantProvince])->filter()->unique()->implode(', ');
                                             $searchText = strtolower(collect([$participantName, $participantPosition, $participantInstitution, $participantOrigin])->filter()->implode(' '));

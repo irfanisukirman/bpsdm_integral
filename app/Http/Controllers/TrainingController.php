@@ -187,7 +187,7 @@ class TrainingController extends Controller
             'jabatan' => $user->jabatan,
             'instansi' => $user->instansi,
             'provinsi' => $user->provinsi,
-            'kota' => $user->kota,
+            'kabupaten_kota' => $user->kota,
             'kecamatan' => $user->kecamatan,
             'kelurahan' => $user->kelurahan,
             'status_kepegawaian' => $user->status_kepegawaian,
@@ -254,7 +254,7 @@ class TrainingController extends Controller
             'jabatan' => $request->jabatan,
             'instansi' => $request->instansi,
             'provinsi' => $request->provinsi,
-            'kota' => $request->kota, // Disesuaikan
+            'kabupaten_kota' => $request->kota, // Disesuaikan
             'kecamatan' => $request->kecamatan, // Ditambahkan
             'kelurahan' => $request->kelurahan, // Ditambahkan
             'status_kepegawaian' => $request->status_kepegawaian,

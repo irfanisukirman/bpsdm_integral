@@ -90,6 +90,30 @@ class User extends Authenticatable
         return $this->isNarasumber();
     }
 
+    /**
+     * Status kepegawaian ASN P3K-PW (flag tanpa kolom baru).
+     */
+    public function isPppkPw(): bool
+    {
+        return strtoupper((string) $this->status_kepegawaian) === 'PPPK-PW';
+    }
+
+    /**
+     * Filter pengguna berstatus ASN P3K-PW.
+     */
+    public function scopePppkPw($query)
+    {
+        return $query->where('status_kepegawaian', 'PPPK-PW');
+    }
+
+    /**
+     * Akses menu Laporan di sidebar: P3K-PW, superadmin juga diperbolehkan.
+     */
+    public function canAccessLaporan(): bool
+    {
+        return $this->isPppkPw() || $this->role === 'superadmin';
+    }
+
     public function assignedTickets()
     {
         return $this->hasMany(Ticket::class, 'assigned_to');

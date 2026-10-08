@@ -59,7 +59,7 @@ class ParticipantExport implements FromArray, WithHeadings, ShouldAutoSize, With
                     $p->jabatan ?? '-',
                     $p->instansi ?? '-',
                     $p->provinsi ?? '-',
-                    $p->kota ?: ($p->user_kota ?: '-'), // Fallback ke profil user
+                    $p->kabupaten_kota ?: ($p->user_kota ?: '-'), // Fallback ke profil user
                     $p->kecamatan ?? '-', // Kolom Kecamatan
                     $p->kelurahan ?? '-'  // Kolom Kelurahan
                 ];

@@ -65,6 +65,17 @@
         @else
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard</div></a></li>
         @endif
+
+        @if(Auth::user()->canAccessLaporan())
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Pelaporan</span></li>
+            <li class="menu-item {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                <a href="{{ route('laporan.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-file"></i>
+                    <div class="fw-bold">Laporan</div>
+                </a>
+            </li>
+        @endif
+
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
                 <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('trainings')>99?'99+':$menuNoticeCount('trainings')}}</span>@endif</a>

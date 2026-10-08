@@ -142,7 +142,7 @@ class ProfileController extends Controller
             'jabatan'            => $user->jabatan,
             'instansi'           => $user->instansi,
             'provinsi'           => $user->provinsi,
-            'kota'               => $user->kota,
+            'kabupaten_kota'     => $user->kota,
             'kecamatan'          => $user->kecamatan,
             'kelurahan'          => $user->kelurahan,
             'status_kepegawaian' => $user->status_kepegawaian,
