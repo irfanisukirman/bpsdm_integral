@@ -6,5 +6,6 @@ class FinanceBudgetLine extends Model {
  public function parent(){return $this->belongsTo(self::class,'parent_id');}
  public function children(){return $this->hasMany(self::class,'parent_id');}
  public function transactions(){return $this->hasMany(FinanceTransaction::class);}
+ public function guAllocations(){return $this->hasMany(FinanceGuAllocation::class);}
  public function creator(){return $this->belongsTo(User::class,'created_by');}
 }

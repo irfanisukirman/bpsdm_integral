@@ -194,8 +194,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('keuangan/anggaran/{budget}', [FinanceController::class, 'updateBudget'])->name('finance.budget.update');
     Route::delete('keuangan/anggaran/{budget}', [FinanceController::class, 'destroyBudget'])->name('finance.budget.destroy');
     Route::post('keuangan/transaksi', [FinanceController::class, 'storeTransaction'])->name('finance.transactions.store');
+    Route::post('keuangan/gu', [FinanceController::class, 'storeGu'])->name('finance.gu.store');
+    Route::delete('keuangan/gu/{gu}', [FinanceController::class, 'destroyGu'])->name('finance.gu.destroy');
     Route::post('keuangan/pengajar/{schedule}', [FinanceController::class, 'storeTeacherPayment'])->name('finance.teacher.store');
     Route::delete('keuangan/transaksi/{transaction}', [FinanceController::class, 'destroyTransaction'])->name('finance.transactions.destroy');
+    Route::post('keuangan/realisasi-langsung', [FinanceController::class, 'storeDirectRealization'])->name('finance.realize.direct');
+    Route::put('keuangan/transaksi/{transaction}/realisasi', [FinanceController::class, 'realizeTransaction'])->name('finance.realize');
     Route::put('keuangan/transaksi/{transaction}/status', [FinanceController::class, 'updateStatus'])->name('finance.status');
     Route::get('keuangan/transaksi/{transaction}/bukti', [FinanceController::class, 'downloadEvidence'])->name('finance.evidence');
     Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
