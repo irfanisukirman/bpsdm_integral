@@ -32,6 +32,11 @@
                 <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
             </li>
         @endif
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'manajemen_mutu'], true))
+            <li class="menu-item {{ request()->routeIs('quality-management.*') ? 'active' : '' }}">
+                <a href="{{ route('quality-management.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div class="fw-bold">Manajemen Mutu</div></a>
+            </li>
+        @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'pengelola_keuangan'], true))
             <li class="menu-item {{ request()->routeIs('finance.*') ? 'active' : '' }}"><a href="{{route('finance.index')}}" class="menu-link"><i class="menu-icon bx bx-wallet"></i><div class="fw-bold">Pengelolaan Keuangan</div></a></li>
         @endif
@@ -50,6 +55,8 @@
             {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'pengelola_keuangan')
             {{-- Menu keuangan sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'manajemen_mutu')
+            {{-- Menu Manajemen Mutu sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
             <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')

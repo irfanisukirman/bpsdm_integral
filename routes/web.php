@@ -50,6 +50,7 @@ use App\Http\Controllers\PartnerSubmissionController;
 use App\Http\Controllers\ActivityAttendanceController;
 use App\Http\Controllers\PublicActivityAttendanceController;
 use App\Http\Controllers\GuestBookController;
+use App\Http\Controllers\QualityManagementController;
 use App\Http\Controllers\PublicGuestBookController;
 
 /*
@@ -188,6 +189,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('kerja-sama/{cooperation}', [CooperationRecordController::class, 'update'])->name('cooperations.update');
     Route::get('kerja-sama/{cooperation}/download', [CooperationRecordController::class, 'download'])->name('cooperations.download');
     Route::delete('kerja-sama/{cooperation}', [CooperationRecordController::class, 'destroy'])->name('cooperations.destroy');
+    Route::get('manajemen-mutu', [QualityManagementController::class, 'index'])->name('quality-management.index');
+    Route::get('manajemen-mutu/{training}', [QualityManagementController::class, 'show'])->name('quality-management.show');
+    Route::post('manajemen-mutu/{training}/dokumen/{key}', [QualityManagementController::class, 'upload'])->name('quality-management.upload');
+    Route::patch('manajemen-mutu/{training}/dokumen/{key}/status', [QualityManagementController::class, 'updateRequirement'])->name('quality-management.requirement');
+    Route::get('manajemen-mutu/{training}/dokumen/{record}/lihat', [QualityManagementController::class, 'view'])->name('quality-management.view');
+    Route::get('manajemen-mutu/{training}/dokumen/{record}/unduh', [QualityManagementController::class, 'download'])->name('quality-management.download');
     Route::get('keuangan', [FinanceController::class, 'index'])->name('finance.index');
     Route::get('keuangan/export', [FinanceController::class, 'export'])->name('finance.export');
     Route::post('keuangan/anggaran', [FinanceController::class, 'storeBudget'])->name('finance.budget.store');

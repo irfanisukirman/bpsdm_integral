@@ -130,5 +130,6 @@ class Training extends Model
     public function activityDocumentations() { return $this->hasMany(TrainingActivityDocumentation::class); }
     public function executionNotes() { return $this->hasMany(TrainingExecutionNote::class); }
     public function participantCertificates() { return $this->hasMany(ParticipantCertificate::class); }
+    public function qualityDocuments() { return $this->hasMany(QualityDocumentRecord::class); }
 
 }

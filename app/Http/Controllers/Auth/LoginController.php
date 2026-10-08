@@ -59,7 +59,7 @@ class LoginController extends Controller implements HasMiddleware
     protected function attemptLogin(Request $request)
     {
         $identity = trim((string) $request->input($this->username()));
-        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis'];
+        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu'];
 
         $user = User::where(function ($query) use ($identity, $administrativeRoles) {
                 $query->where(function ($admin) use ($identity, $administrativeRoles) {
@@ -93,6 +93,7 @@ class LoginController extends Controller implements HasMiddleware
         if ($user->role === 'intern') return redirect()->route('internships.dashboard');
         if ($user->role === 'resepsionis') return redirect()->route('guest-book.index');
         if ($user->role === 'pengelola_magang') return redirect()->route('internships.index');
+        if ($user->role === 'manajemen_mutu') return redirect()->route('quality-management.index');
     }
 
     /**
