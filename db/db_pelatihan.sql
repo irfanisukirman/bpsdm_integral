@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 09 Okt 2026 pada 10.33
+-- Waktu pembuatan: 09 Okt 2026 pada 15.49
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -68,7 +68,7 @@ CREATE TABLE `activity_attendance_forms` (
 --
 
 INSERT INTO `activity_attendance_forms` (`id`, `public_token`, `title`, `subtitle`, `bidang`, `status`, `opens_at`, `closes_at`, `location`, `confirmation_message`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, '9650538a-0da7-492b-9bce-1d4c198db37d', 'Rapat Persiapan SMM:ISO 2015', 'Semua akan baik baik saja dalam hal ini', 'bidang', 'open', '2026-09-12 11:43:00', '2026-09-14 11:43:00', 'Gedung Kelas Lantai 3', 'teriamkasih sudah mebgisi presensi ini yah ka :)', 2, '2026-09-12 11:43:48', '2026-09-13 11:52:11');
+(1, '9650538a-0da7-492b-9bce-1d4c198db37d', 'Rapat Persiapan SMM:ISO 2015', 'Semua akan baik baik saja dalam hal ini', 'bidang', 'open', '2026-09-12 11:43:00', '2026-10-10 11:43:00', 'Gedung Kelas Lantai 3', 'teriamkasih sudah mebgisi presensi ini yah ka :)', 2, '2026-09-12 11:43:48', '2026-10-09 12:11:09');
 
 -- --------------------------------------------------------
 
@@ -96,13 +96,13 @@ CREATE TABLE `activity_attendance_questions` (
 --
 
 INSERT INTO `activity_attendance_questions` (`id`, `activity_attendance_form_id`, `label`, `help_text`, `type`, `options`, `is_required`, `sort_order`, `max_file_size_kb`, `allowed_extensions`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Nama Kamu siapa', 'sdadas', 'short_text', NULL, 1, 2, 5120, NULL, '2026-09-12 11:44:39', '2026-09-13 11:51:48'),
-(2, 1, 'Mamah siapa', 'sdadas', 'dropdown', '[\"maman karubu\",\"susu budah\",\"asu asu\",\"palanglaraya\"]', 0, 3, 5120, NULL, '2026-09-12 11:45:20', '2026-09-13 11:51:48'),
-(3, 1, 'cob attd', 'kudu bener ngisina', 'signature', NULL, 1, 4, 5120, NULL, '2026-09-12 11:45:38', '2026-09-13 11:51:48'),
-(8, 1, 'ini paragrapft', NULL, 'long_text', NULL, 1, 5, 5120, NULL, '2026-09-12 12:55:46', '2026-09-13 11:51:48'),
-(9, 1, 'ini apa yahdasdas', NULL, 'radio', '[\"maksudnya gimanasdadasd\",\"dsdasdasfasfasfasfaf\",\"fasfasfasf\"]', 0, 7, 5120, NULL, '2026-09-12 12:56:39', '2026-09-13 11:51:48'),
-(11, 1, 'shadgajgdas dasjgd jasdainformasi', NULL, 'info', NULL, 0, 1, 5120, NULL, '2026-09-12 12:58:24', '2026-09-13 11:51:48'),
-(12, 1, 'apakah ini check', NULL, 'checkbox', '[\"weyuryarar\",\"fafhasfbas fasfas\",\"ffaksjfakj fasf\"]', 0, 6, 5120, NULL, '2026-09-13 11:41:46', '2026-09-13 11:51:48');
+(1, 1, 'Nama Kamu siapa', 'sdadas', 'short_text', NULL, 1, 2, 5120, NULL, '2026-09-12 11:44:39', '2026-10-09 12:10:26'),
+(2, 1, 'Mamah siapa', 'sdadas', 'dropdown', '[\"maman karubu\",\"susu budah\",\"asu asu\",\"palanglaraya\"]', 0, 3, 5120, NULL, '2026-09-12 11:45:20', '2026-10-09 12:10:26'),
+(3, 1, 'cob attd', 'kudu bener ngisina', 'signature', NULL, 1, 4, 5120, NULL, '2026-09-12 11:45:38', '2026-10-09 12:10:26'),
+(8, 1, 'ini paragrapft', NULL, 'long_text', NULL, 1, 6, 5120, NULL, '2026-09-12 12:55:46', '2026-10-09 12:10:26'),
+(9, 1, 'ini apa yahdasdas', NULL, 'radio', '[\"maksudnya gimanasdadasd\",\"dsdasdasfasfasfasfaf\",\"fasfasfasf\"]', 0, 7, 5120, NULL, '2026-09-12 12:56:39', '2026-10-09 12:10:26'),
+(11, 1, 'shadgajgdas dasjgd jasdainformasi', NULL, 'info', NULL, 0, 1, 5120, NULL, '2026-09-12 12:58:24', '2026-10-09 12:10:26'),
+(12, 1, 'apakah ini check', NULL, 'checkbox', '[\"weyuryarar\",\"fafhasfbas fasfas\",\"ffaksjfakj fasf\"]', 0, 5, 5120, NULL, '2026-09-13 11:41:46', '2026-10-09 12:10:26');
 
 -- --------------------------------------------------------
 
@@ -634,18 +634,33 @@ INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
 ('integral-cache-472b07b9fcf2c2451e8781e944bf5f77cd8457c8:timer', 'i:1789289055;', 1789289055),
 ('integral-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:2;', 1789210419),
 ('integral-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1789210419;', 1789210419),
+('integral-cache-7719a1c782a1ba91c031a682a0a2f8658209adbf', 'i:2;', 1791545359),
+('integral-cache-7719a1c782a1ba91c031a682a0a2f8658209adbf:timer', 'i:1791545359;', 1791545359),
 ('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940', 'i:1;', 1789210684),
 ('integral-cache-9e6a55b6b4563e652a23be9d623ca5055c356940:timer', 'i:1789210684;', 1789210684),
 ('integral-cache-admin@bpsdm.go.id|127.0.0.1', 'i:2;', 1791524895),
 ('integral-cache-admin@bpsdm.go.id|127.0.0.1:timer', 'i:1791524895;', 1791524895),
-('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0', 'i:1;', 1789303062),
-('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0:timer', 'i:1789303062;', 1789303062),
-('integral-cache-nominatim-profile-geocode-last', 'd:1791531536.501864;', 1791532136),
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0', 'i:2;', 1791547895),
+('integral-cache-da4b9237bacccdf19c0760cab7aec4a8359010b0:timer', 'i:1791547895;', 1791547895),
+('integral-cache-nominatim-profile-geocode-last', 'd:1791545306.532426;', 1791545906),
+('integral-cache-profile-geocode:048c03db6d70b81714833bf92bc6710b0b5c0ced', 'a:0:{}', 1791631666),
+('integral-cache-profile-geocode:39c92c45fb106e58bd951b17f71be9b68f03cfc4', 'a:0:{}', 1791631637),
 ('integral-cache-profile-geocode:3ebe70b599539f449da2ab3730c613ffd8ee505f', 'a:0:{}', 1791617905),
 ('integral-cache-profile-geocode:4e249487419effe7123e4dd5f4873f095a1267bf', 'a:0:{}', 1789375261),
+('integral-cache-profile-geocode:4e24b4ce2ca572ec28c88935966c3c11e048b266', 'a:0:{}', 1791631705),
+('integral-cache-profile-geocode:58e365f123744b9aed293d4bf71be0fbd8030cb3', 'a:0:{}', 1791631659),
 ('integral-cache-profile-geocode:7ad7cb39ff01d3637bd71d72281a1c29f9fcc863', 'a:0:{}', 1791617902),
+('integral-cache-profile-geocode:7c1a51676d71bf9fff87c966a3294ac61a153f79', 'a:0:{}', 1791631675),
 ('integral-cache-profile-geocode:831c085d90fb161acf64fd7f3ac2dc808262caa5', 'a:0:{}', 1789375235),
+('integral-cache-profile-geocode:88912fb431ea7a84348dbf75f725369e5212ce4c', 'a:0:{}', 1791631671),
+('integral-cache-profile-geocode:8adf51aa233bbba1180e828a58d19dc82c252285', 'a:0:{}', 1791631656),
 ('integral-cache-profile-geocode:8cea8b05fe19f5d47d2f1e11728872bb230471c1', 'a:1:{i:0;a:5:{s:4:\"name\";s:14:\"Jalan Ciwaruga\";s:12:\"display_name\";s:87:\"Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia\";s:3:\"lat\";d:-6.8192959;s:3:\"lon\";d:107.5866061;s:4:\"type\";s:8:\"tertiary\";}}', 1791617936),
+('integral-cache-profile-geocode:9103b34a0c5ed3e2f7914e0ac5dc102b91b852da', 'a:0:{}', 1791631586),
+('integral-cache-profile-geocode:a254aab97400f284040d3c831063a59be590deb1', 'a:0:{}', 1791631638),
+('integral-cache-profile-geocode:b541c56bc2d8e4d9cbf559c9504f371ca5b25cce', 'a:0:{}', 1791631647),
+('integral-cache-profile-geocode:ba8b685a69eefab484777686fc7162cb76134d44', 'a:0:{}', 1791631628),
+('integral-cache-profile-geocode:bcbdfeb4d58f279d8864bd5f465a499387a968ff', 'a:0:{}', 1791631673),
+('integral-cache-profile-geocode:e436ad5df09861535006aa91b39ff69b3d5eb354', 'a:0:{}', 1791631579),
 ('integral-cache-profile-geocode:f1ddaa5e1fb1f09f40405372c413256dc5775a54', 'a:0:{}', 1791617921);
 
 -- --------------------------------------------------------
@@ -803,7 +818,9 @@ CREATE TABLE `daily_reports` (
 
 INSERT INTO `daily_reports` (`id`, `assignment_id`, `report_date`, `status`, `employee_note`, `supervisor_note`, `submitted_at`, `reviewed_at`, `reviewed_by`, `created_at`, `updated_at`) VALUES
 (1, 1, '2026-09-01', 'saved', NULL, NULL, '2026-10-09 07:56:44', NULL, NULL, '2026-10-09 07:56:44', '2026-10-09 07:56:44'),
-(2, 1, '2026-09-02', 'saved', NULL, NULL, '2026-10-09 07:57:44', NULL, NULL, '2026-10-09 07:57:44', '2026-10-09 07:57:44');
+(2, 1, '2026-09-02', 'saved', NULL, NULL, '2026-10-09 07:57:44', NULL, NULL, '2026-10-09 07:57:44', '2026-10-09 07:57:44'),
+(3, 2, '2026-10-09', 'saved', NULL, NULL, '2026-10-09 11:32:38', NULL, NULL, '2026-10-09 11:32:38', '2026-10-09 11:32:38'),
+(4, 2, '2026-09-01', 'saved', NULL, NULL, '2026-10-09 11:34:54', NULL, NULL, '2026-10-09 11:34:54', '2026-10-09 11:34:54');
 
 -- --------------------------------------------------------
 
@@ -830,7 +847,8 @@ CREATE TABLE `daily_report_assignments` (
 --
 
 INSERT INTO `daily_report_assignments` (`id`, `user_id`, `employee_email`, `supervisor_user_id`, `institution_id`, `start_date`, `end_date`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 28, 'semsyamsidin.sem@gmail.com', 27, 1, '2026-01-01', '2026-12-31', 1, 2, '2026-10-09 07:32:34', '2026-10-09 07:32:57');
+(1, 28, 'semsyamsidin.sem@gmail.com', 27, 1, '2026-01-01', '2026-12-31', 1, 2, '2026-10-09 07:32:34', '2026-10-09 07:32:57'),
+(2, 29, 'simpanakuajaenam@gmail.com', 27, 1, '2026-01-01', '2026-12-31', 1, 2, '2026-10-09 11:24:00', '2026-10-09 11:25:27');
 
 -- --------------------------------------------------------
 
@@ -858,7 +876,9 @@ CREATE TABLE `daily_report_items` (
 
 INSERT INTO `daily_report_items` (`id`, `daily_report_id`, `start_time`, `end_time`, `activity`, `output`, `obstacle`, `follow_up`, `sort_order`, `created_at`, `updated_at`) VALUES
 (1, 1, '07:30:00', '16:00:00', 'hdagshdgahsd asfgajsfgjafgjasfg sfjga jsfg ajsfgasf', 'fahsfjsag fjasgfjasgfjasg fjasgf jasgf jasgf jaksgf ajksfgjkasfg ajsfg asjfag sf', NULL, NULL, 0, '2026-10-09 07:56:44', '2026-10-09 07:56:44'),
-(2, 2, '07:30:00', '16:00:00', 'ahdgasd gajsgd jasg fjasf', 'fm,,asfkjhasfj ahsfk haskfjh askjfh aksjfhakjsfh kajshf kajsfh kajshf aksfh sa', NULL, NULL, 0, '2026-10-09 07:57:44', '2026-10-09 07:57:44');
+(2, 2, '07:30:00', '16:00:00', 'ahdgasd gajsgd jasg fjasf', 'fm,,asfkjhasfj ahsfk haskfjh askjfh aksjfhakjsfh kajshf kajsfh kajshf aksfh sa', NULL, NULL, 0, '2026-10-09 07:57:44', '2026-10-09 07:57:44'),
+(3, 3, '07:30:00', '16:00:00', 'merupakan ini dan itu', 'adskjdha sdhkash dkashf kahsf kahf kashfaf', NULL, NULL, 0, '2026-10-09 11:32:38', '2026-10-09 11:32:38'),
+(4, 4, '07:30:00', '16:00:00', 'fasfasfasfasf', 'afsasfasf afkahsfh alsfha sfhlaks fhlasf lasf hlaksfh alks fhaksfh alsfasfashfaslf lasf', NULL, NULL, 0, '2026-10-09 11:34:54', '2026-10-09 11:34:54');
 
 -- --------------------------------------------------------
 
@@ -2274,7 +2294,8 @@ CREATE TABLE `guest_visits` (
 
 INSERT INTO `guest_visits` (`id`, `guest_book_location_id`, `visit_code`, `name`, `position`, `institution`, `purpose`, `target_bidang`, `whatsapp`, `checked_in_at`, `checked_out_at`, `ip_hash`, `created_at`, `updated_at`) VALUES
 (1, 1, 'BT-260913-LJJNKT', 'Samsidin', 'Pengelola', 'bpsdam', 'dmnasjdhasd hajdhajdhajkdads', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '08123456789', '2026-09-13 12:30:47', '2026-09-13 12:30:47', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-09-13 12:29:29', '2026-09-13 12:30:47'),
-(2, 1, 'BT-260913-SN7GQ5', 'SAMIDIN', 'Pengelola', 'Disdik', 'dkjasdadk adh askdah sdkah sd', 'Bidang Pengembangan Kompetensi Manajerial', '6281234567890', '2026-09-13 12:39:25', '2026-09-13 12:39:25', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-09-13 12:36:42', '2026-09-13 12:39:25');
+(2, 1, 'BT-260913-SN7GQ5', 'SAMIDIN', 'Pengelola', 'Disdik', 'dkjasdadk adh askdah sdkah sd', 'Bidang Pengembangan Kompetensi Manajerial', '6281234567890', '2026-09-13 12:39:25', '2026-09-13 12:39:25', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-09-13 12:36:42', '2026-09-13 12:39:25'),
+(3, 1, 'BT-261009-IVFQRJ', 'Sertifikat Pelatihan', 'Pengelola', 'Institut Teknology Bandung', 'fasfasfasf', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '08123456789', '2026-10-09 12:09:42', '2026-10-09 12:09:42', '12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0', '2026-10-09 12:09:17', '2026-10-09 12:09:42');
 
 -- --------------------------------------------------------
 
@@ -2374,6 +2395,13 @@ CREATE TABLE `internship_attendances` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `internship_attendances`
+--
+
+INSERT INTO `internship_attendances` (`id`, `internship_participant_id`, `attendance_date`, `status`, `check_in_at`, `check_out_at`, `late_minutes`, `check_in_photo_path`, `check_out_photo_path`, `note`, `evidence_path`, `review_status`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(5, 3, '2026-10-09', 'present', '2026-10-09 12:05:28', '2026-10-09 12:05:39', 695, 'internships/attendance/3/2026-10-09/hy89ECqsPBe8425Hmpx5xjmCwncOXmWF7ESza1lI.jpg', 'internships/attendance/3/2026-10-09/8zCtyIWmmegHSP9Pk3UbshcWvGFuSr18YoHQUXSZ.jpg', NULL, NULL, 'not_required', NULL, NULL, NULL, '2026-10-09 12:05:28', '2026-10-09 12:05:39');
+
 -- --------------------------------------------------------
 
 --
@@ -2409,6 +2437,13 @@ CREATE TABLE `internship_participants` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data untuk tabel `internship_participants`
+--
+
+INSERT INTO `internship_participants` (`id`, `internship_program_id`, `user_id`, `name`, `student_number`, `major`, `institution`, `placement_unit`, `start_date`, `end_date`, `email`, `status`, `recommended_grade`, `final_grade`, `certificate_number`, `certificate_generated_file_path`, `certificate_file_path`, `certificate_generated_at`, `certificate_sent_at`, `certificate_sent_by`, `certificate_downloaded_at`, `review_note`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(3, 1, 30, 'Samsidin Alafghani, A.Md.Kom.', '123456', 'Informatika', 'Institut Teknology Bandung', 'Bidang SKPK', '2026-09-01', '2026-10-08', 'sam@gmail.com', 'approved', 'Kurang', 'Kurang', '002.1/Bspdm.04.1/GHD', 'internships/certificates/1/direct/3.pdf', 'internships/certificates/1/direct/3.pdf', '2026-10-09 12:08:18', '2026-10-09 12:08:18', NULL, '2026-10-09 12:08:18', NULL, 2, '2026-10-09 12:04:29', '2026-10-09 12:03:51', '2026-10-09 12:08:18');
+
 -- --------------------------------------------------------
 
 --
@@ -2433,6 +2468,7 @@ CREATE TABLE `internship_programs` (
   `certificate_issued_at` date DEFAULT NULL,
   `certificate_signer_id` bigint(20) UNSIGNED DEFAULT NULL,
   `certificate_reviewer_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`certificate_reviewer_ids`)),
+  `certificate_delivery_mode` varchar(20) NOT NULL DEFAULT 'tte',
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
   `manager_id` bigint(20) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -2443,8 +2479,8 @@ CREATE TABLE `internship_programs` (
 -- Dumping data untuk tabel `internship_programs`
 --
 
-INSERT INTO `internship_programs` (`id`, `public_token`, `title`, `bidang`, `description`, `registration_opens_at`, `registration_closes_at`, `check_in_opens_at`, `late_after`, `check_out_opens_at`, `status`, `certificate_template_path`, `certificate_number_format`, `certificate_start_sequence`, `certificate_issued_at`, `certificate_signer_id`, `certificate_reviewer_ids`, `created_by`, `manager_id`, `created_at`, `updated_at`) VALUES
-(1, '6e729d43-0e4d-46d2-9f75-9afc72ec6c7f', 'MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Sekretariat', 'Magang ini ditujukan untuk daskdakjdhakd akdhaskdhaskd ashd kas', '2026-01-01', '2026-12-31', '06:00:00', '07:30:00', '16:00:00', 'open', 'internships/certificate-templates/NHGm2mQ6t1LuA90WgNhr2nqBsUSCV9uTWYGU8eep.docx', '002.{X}/Bspdm.04.1/GHD', 1, '2026-09-12', NULL, NULL, 2, NULL, '2026-09-12 15:02:24', '2026-09-13 11:53:02');
+INSERT INTO `internship_programs` (`id`, `public_token`, `title`, `bidang`, `description`, `registration_opens_at`, `registration_closes_at`, `check_in_opens_at`, `late_after`, `check_out_opens_at`, `status`, `certificate_template_path`, `certificate_number_format`, `certificate_start_sequence`, `certificate_issued_at`, `certificate_signer_id`, `certificate_reviewer_ids`, `certificate_delivery_mode`, `created_by`, `manager_id`, `created_at`, `updated_at`) VALUES
+(1, '6e729d43-0e4d-46d2-9f75-9afc72ec6c7f', 'MAGANG DAN PKL BPSDM JABAR TAHUN 2026', 'Sekretariat', 'Magang ini ditujukan untuk daskdakjdhakd akdhaskdhaskd ashd kas', '2026-01-01', '2026-12-31', '06:00:00', '07:30:00', '16:00:00', 'open', 'internships/certificate-templates/pilrO9AzhYPIRykkjNopdk7RTPfxXItauQJ3p17x.docx', '002.{X}/Bspdm.04.1/GHD', 1, '2026-09-12', NULL, NULL, 'direct', 2, NULL, '2026-09-12 15:02:24', '2026-10-09 12:07:06');
 
 -- --------------------------------------------------------
 
@@ -2651,7 +2687,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (128, '2026_10_08_150000_create_quality_management_module', 63),
 (129, '2026_10_08_160000_add_requirement_status_to_quality_documents', 64),
 (130, '2026_10_09_090000_create_pppk_pw_daily_reporting_module', 65),
-(131, '2026_10_09_091000_import_legacy_institutions', 66);
+(131, '2026_10_09_091000_import_legacy_institutions', 66),
+(132, '2026_10_09_120000_add_certificate_delivery_mode_to_internship_programs', 67);
 
 -- --------------------------------------------------------
 
@@ -2747,7 +2784,8 @@ INSERT INTO `notification_reads` (`id`, `user_id`, `notification_key`, `read_at`
 (26, 9, 'asset-rentals-payment-20260911225516', '2026-09-11 15:56:09', '2026-09-11 15:56:07', '2026-09-11 15:56:09'),
 (27, 9, 'asset-rentals-payment-20260911230256', '2026-09-11 16:03:02', '2026-09-11 16:03:02', '2026-09-11 16:03:02'),
 (28, 2, 'asset-loan-16-approved', '2026-09-16 13:14:03', '2026-09-16 13:14:03', '2026-09-16 13:14:03'),
-(29, 2, 'asset-usage-upcoming-2-2026-09-16', '2026-09-16 13:19:17', '2026-09-16 13:19:17', '2026-09-16 13:19:17');
+(29, 2, 'asset-usage-upcoming-2-2026-09-16', '2026-09-16 13:19:17', '2026-09-16 13:19:17', '2026-09-16 13:19:17'),
+(30, 2, 'asset-usage-upcoming-2-2026-10-09', '2026-10-09 11:36:46', '2026-10-09 11:36:46', '2026-10-09 11:36:46');
 
 -- --------------------------------------------------------
 
@@ -3214,7 +3252,8 @@ CREATE TABLE `training_forum_reads` (
 --
 
 INSERT INTO `training_forum_reads` (`id`, `training_id`, `user_id`, `last_read_message_id`, `created_at`, `updated_at`) VALUES
-(14, 13, 2, 15, '2026-09-16 13:17:54', '2026-09-16 13:26:25');
+(14, 13, 2, 15, '2026-09-16 13:17:54', '2026-09-16 13:26:25'),
+(17, 13, 5, 14, '2026-10-09 12:12:31', '2026-10-09 12:12:31');
 
 -- --------------------------------------------------------
 
@@ -3258,13 +3297,6 @@ CREATE TABLE `training_messages` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data untuk tabel `training_messages`
---
-
-INSERT INTO `training_messages` (`id`, `training_id`, `user_id`, `message`, `created_at`, `updated_at`) VALUES
-(14, 13, 2, 'halo', '2026-09-16 13:17:59', '2026-09-16 13:17:59');
 
 -- --------------------------------------------------------
 
@@ -3341,7 +3373,9 @@ INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`,
 (25, NULL, NULL, 'BPP Bidang SKPK', 'keuangan@bpsdm.go.id', NULL, '08123456789', NULL, 'pengelola_keuangan', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$1ygivG3sTQHsjwsaaD.yUezrKAN3M0d3Bmz3YdkQqHOoBQiiU0fdW', 0, 0, NULL, '2026-10-04 08:41:58', '2026-10-04 08:41:58', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (26, NULL, NULL, 'Penjamin Mutu', 'tpm@bpsdm.go.id', NULL, '08123456789', NULL, 'manajemen_mutu', NULL, 'approved', NULL, '$2y$12$Qa1L6v6/smYVM4t5uUUwjO21ZkrA9MWoJQ2MYf.Ho2Y7KFuEsKSmG', 0, 0, NULL, '2026-10-08 07:20:06', '2026-10-08 07:20:06', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (27, NULL, NULL, 'FIRMANSYAH', 'monitoring@bpsdm.go.id', NULL, '08123456789', NULL, 'kasubag_pppk_pw', NULL, 'approved', NULL, '$2y$12$Op99SIx8l7IytpU6gon9aOi6hs.NkBmJ4SBBvtaDWxaJTjfOJHO8K', 0, 0, NULL, '2026-10-09 07:21:54', '2026-10-09 07:21:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(28, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocKFCOlvjqGnD-pW1cQYgsfciLAQZCl7BeEbxKznAaIV26FlK8P1=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '199503032025211003', '6281234567890', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$fgdqRyc0ZaACEf4vF649Z.y1VaQ3HHhd/5KAFv4rRdVR6kgb8pJVW', 0, 0, NULL, '2026-10-09 07:32:57', '2026-10-09 07:39:01', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa Layanan Operasional', 'VII', 'Badan Pengembangan Sumber Daya Manusia (BPSDM)', 1, 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PPPK-PW', 4);
+(28, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocKFCOlvjqGnD-pW1cQYgsfciLAQZCl7BeEbxKznAaIV26FlK8P1=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '199503032025211003', '6281234567890', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$fgdqRyc0ZaACEf4vF649Z.y1VaQ3HHhd/5KAFv4rRdVR6kgb8pJVW', 0, 0, NULL, '2026-10-09 07:32:57', '2026-10-09 07:39:01', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa Layanan Operasional', 'VII', 'Badan Pengembangan Sumber Daya Manusia (BPSDM)', 1, 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PPPK-PW', 4),
+(29, '117918344361205538591', 'https://lh3.googleusercontent.com/a/ACg8ocL7HSK9iiFxOXKcrxJapyRX4AY-g37wIcx801FPfDd0ivomDg=s96-c', 'simpan aja aku 6', 'simpanakuajaenam@gmail.com', '3224235235239424', '084983424', NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$kHc.UDESEc7bDG8VyWVOR.UXyqRn9MhRcGLrmIuf/bjnsIOVsFmty', 0, 0, NULL, '2026-10-09 11:25:27', '2026-10-09 11:28:34', 'Laki-Laki', 'Bandung', '1994-04-04', 'pengelola', 'VI', 'Badan Pengembangan Sumber Daya Manusia (BPSDM)', 1, 'JAWA BARAT', 'KABUPATEN BANDUNG', 'PASIRJAMBU', 'MARGAMULYA', 'jalan ciwidey', -6.8335599, 107.5854942, 'PPPK-PW', 4),
+(30, NULL, NULL, 'Samsidin Alafghani, A.Md.Kom.', '123456', NULL, NULL, NULL, 'intern', 'internship', 'approved', 'Bidang SKPK', '$2y$12$qF7lzCueF3GPiRsp3NmX6eXTsjgkIHOnpMt.nfuCqtMof1no6BnPW', 0, 0, NULL, '2026-10-09 12:03:51', '2026-10-09 12:04:29', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -4189,19 +4223,19 @@ ALTER TABLE `cooperation_records`
 -- AUTO_INCREMENT untuk tabel `daily_reports`
 --
 ALTER TABLE `daily_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `daily_report_assignments`
 --
 ALTER TABLE `daily_report_assignments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `daily_report_items`
 --
 ALTER TABLE `daily_report_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `electronic_signature_actions`
@@ -4339,7 +4373,7 @@ ALTER TABLE `guest_book_locations`
 -- AUTO_INCREMENT untuk tabel `guest_visits`
 --
 ALTER TABLE `guest_visits`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `institutions`
@@ -4351,13 +4385,13 @@ ALTER TABLE `institutions`
 -- AUTO_INCREMENT untuk tabel `internship_attendances`
 --
 ALTER TABLE `internship_attendances`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `internship_participants`
 --
 ALTER TABLE `internship_participants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `internship_programs`
@@ -4381,7 +4415,7 @@ ALTER TABLE `login_help_settings`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=133;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -4399,7 +4433,7 @@ ALTER TABLE `monitoring_summaries`
 -- AUTO_INCREMENT untuk tabel `notification_reads`
 --
 ALTER TABLE `notification_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT untuk tabel `participants`
@@ -4513,7 +4547,7 @@ ALTER TABLE `training_execution_notes`
 -- AUTO_INCREMENT untuk tabel `training_forum_reads`
 --
 ALTER TABLE `training_forum_reads`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT untuk tabel `training_identity_card_settings`
@@ -4537,7 +4571,7 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
