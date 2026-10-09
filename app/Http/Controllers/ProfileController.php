@@ -20,7 +20,9 @@ class ProfileController extends Controller
         if ($user->role === 'pengajar') {
             $user->load('pengajar');
         }
-        return view('profile.edit', compact('user'));
+        $employmentStatuses = \App\Models\EmploymentStatus::where('is_active', true)->orderBy('sort_order')->get();
+        $institutions = \App\Models\Institution::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+        return view('profile.edit', compact('user', 'employmentStatuses', 'institutions'));
     }
 
     /**
@@ -38,11 +40,11 @@ class ProfileController extends Controller
             'gender'             => 'required',
             'birth_place'        => 'required|string|max:255',
             'birth_date'         => 'required|date|before_or_equal:today',
-            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
+            'employment_status_id' => 'required|exists:employment_statuses,id',
             'nip_nik'            => 'required|string|max:50',
             'jabatan'            => 'required|string|max:255',
             'golongan'           => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
-            'instansi'           => 'required|string|max:255',
+            'institution_id'     => 'required|exists:institutions,id',
             'provinsi'           => 'required|string',
             'kota'               => 'required|string',
             'kecamatan'          => 'required|string',
@@ -92,8 +94,12 @@ class ProfileController extends Controller
         $user->birth_date         = $request->birth_date;
         $user->jabatan            = $request->jabatan;
         $user->golongan           = $request->golongan;
-        $user->instansi           = $request->instansi;
-        $user->status_kepegawaian = $request->status_kepegawaian;
+        $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
+        $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
+        $user->institution_id     = $institution->id;
+        $user->instansi           = $institution->name;
+        $user->employment_status_id = $employmentStatus->id;
+        $user->status_kepegawaian = $employmentStatus->name;
         
         // BAGIAN PENTING: Simpan Data Wilayah
         $user->provinsi           = $request->provinsi;
@@ -124,7 +130,7 @@ class ProfileController extends Controller
             }
 
             $pengajar->pangkat_golongan   = $request->pangkat_golongan;
-            $pengajar->instansi           = $request->instansi;
+            $pengajar->instansi           = $institution->name;
             $pengajar->npwp               = $request->npwp;
             $pengajar->nama_bank          = $request->nama_bank;
             $pengajar->nomor_rekening     = $request->nomor_rekening;

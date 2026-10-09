@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -22,7 +25,7 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         $category = $request->query('category');
-        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu'];
+        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw'];
 
         $stats = [
             'all' => User::count(),
@@ -65,7 +68,7 @@ class UserController extends Controller
             'nip_nik'  => 'nullable|string|max:50',
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,pengajar,participant,mitra,penandatangan',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,kasubag_pppk_pw,pengajar,participant,mitra,penandatangan',
             'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
             'password' => 'required|min:6',
         ]);
@@ -97,8 +100,96 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
-        $user->delete();
-        return redirect()->back()->with('success', 'Akun berhasil dihapus.');
+        if ($user->role !== 'participant') {
+            return back()->with('error', 'Penghapusan menyeluruh hanya tersedia untuk akun peserta. Ubah atau pindahkan tanggung jawab akun administratif terlebih dahulu.');
+        }
+
+        $storagePaths = collect([$user->profile_photo])->filter();
+
+        DB::transaction(function () use ($user, &$storagePaths) {
+            $participantRows = DB::table('participants')->where('user_id', $user->id)->get();
+            $participantIds = $participantRows->pluck('id');
+            $participantFileIds = $participantRows->flatMap(fn ($row) => [
+                $row->biodata_file_id ?? null,
+                $row->surat_tugas_file_id ?? null,
+                $row->pas_foto_file_id ?? null,
+            ])->filter()->unique();
+
+            if ($participantIds->isNotEmpty() && Schema::hasTable('participant_certificates')) {
+                $storagePaths = $storagePaths->merge(
+                    DB::table('participant_certificates')->whereIn('participant_id', $participantIds)
+                        ->get(['generated_file_path', 'final_file_path'])
+                        ->flatMap(fn ($row) => [$row->generated_file_path, $row->final_file_path])->filter()
+                );
+            }
+
+            // Beberapa tabel lama memakai RESTRICT, bukan CASCADE. Bersihkan seluruh
+            // hasil evaluasi dan profil alumni sebelum relasi participants terhapus.
+            if ($participantIds->isNotEmpty()) {
+                foreach (['evaluation_results_l1', 'evaluation_results_l34', 'alumni_profiles'] as $participantTable) {
+                    if (Schema::hasTable($participantTable)) {
+                        DB::table($participantTable)->whereIn('participant_id', $participantIds)->delete();
+                    }
+                }
+            }
+
+            $ownedFiles = \App\Models\File::with('versions')
+                ->where('user_id', $user->id)
+                ->orWhereIn('id', $participantFileIds)
+                ->get();
+            foreach ($ownedFiles as $file) {
+                $storagePaths->push($file->file_path);
+                $storagePaths = $storagePaths->merge($file->versions->pluck('file_path'));
+                $file->delete();
+            }
+
+            $ownedFolders = \App\Models\Folder::where('user_id', $user->id)->get(['id', 'parent_id']);
+            if ($ownedFolders->isNotEmpty()) {
+                $ownedIds = $ownedFolders->pluck('id')->all();
+                $allFolderIds = $ownedIds;
+                $frontier = $ownedIds;
+                while ($frontier !== []) {
+                    $frontier = \App\Models\Folder::whereIn('parent_id', $frontier)->pluck('id')->all();
+                    $allFolderIds = array_values(array_unique(array_merge($allFolderIds, $frontier)));
+                }
+
+                $folderFiles = \App\Models\File::with('versions')->whereIn('folder_id', $allFolderIds)->get();
+                foreach ($folderFiles as $file) {
+                    $storagePaths->push($file->file_path);
+                    $storagePaths = $storagePaths->merge($file->versions->pluck('file_path'));
+                }
+
+                $topOwnedIds = $ownedFolders
+                    ->filter(fn ($folder) => ! in_array((int) $folder->parent_id, $ownedIds, true))
+                    ->pluck('id');
+                \App\Models\Folder::whereIn('id', $topOwnedIds)->delete();
+            }
+
+            if (Schema::hasTable('daily_report_assignments')) DB::table('daily_report_assignments')->where('user_id', $user->id)->delete();
+            if (Schema::hasTable('internship_participants')) {
+                $internships = DB::table('internship_participants')->where('user_id', $user->id)->get();
+                $storagePaths = $storagePaths->merge($internships->flatMap(fn ($row) => [
+                    $row->certificate_generated_file_path ?? null,
+                    $row->certificate_final_file_path ?? null,
+                ])->filter());
+                DB::table('internship_participants')->where('user_id', $user->id)->delete();
+            }
+            if (Schema::hasTable('asset_loan_requests')) {
+                $loans = DB::table('asset_loan_requests')->where('submitted_by', $user->id)->get();
+                $storagePaths = $storagePaths->merge($loans->pluck('document_path')->filter());
+                DB::table('asset_loan_requests')->where('submitted_by', $user->id)->delete();
+            }
+            if (Schema::hasTable('ai_generations')) DB::table('ai_generations')->where('user_id', $user->id)->delete();
+            if (Schema::hasTable('electronic_signature_attempts')) DB::table('electronic_signature_attempts')->where('user_id', $user->id)->delete();
+            if (Schema::hasTable('electronic_signature_actors')) DB::table('electronic_signature_actors')->where('user_id', $user->id)->delete();
+            if (Schema::hasTable('electronic_signature_requests')) DB::table('electronic_signature_requests')->where('created_by', $user->id)->delete();
+            if (Schema::hasTable('activity_logs')) DB::table('activity_logs')->where('user_id', $user->id)->delete();
+
+            $user->delete();
+        });
+
+        Storage::disk('public')->delete($storagePaths->filter()->unique()->values()->all());
+        return redirect()->back()->with('success', 'Akun peserta beserta seluruh aktivitas, dokumen, dan riwayat terkait berhasil dihapus.');
     }
 
     public function approveUserType(User $user)
@@ -129,7 +220,7 @@ class UserController extends Controller
             // Update username ditambahkan, dengan validasi ignore ID agar tidak error "sudah dipakai" oleh dirinya sendiri
             'username' => 'required|string|unique:users,username,' . $user->id,
             'nip_nik'  => 'nullable|string|max:50',
-            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,pengajar,participant,mitra,penandatangan',
+            'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,kasubag_pppk_pw,pengajar,participant,mitra,penandatangan',
             'whatsapp' => 'required|numeric',
             'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
         ]);

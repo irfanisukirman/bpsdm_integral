@@ -1,0 +1,15 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\DailyReport;
+use App\Models\DailyReportAssignment;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+class DailyReportController extends Controller {
+ private function assignment():DailyReportAssignment { $a=auth()->user()->activeDailyReportAssignment()->with(['supervisor','institution'])->first();abort_unless($a,403,'Anda tidak memiliki penugasan laporan harian PPPK-PW aktif.');return $a; }
+ public function index(Request $r){$a=$this->assignment();$month=$r->input('month',today()->format('Y-m'));if(!preg_match('/^\d{4}-\d{2}$/',$month))$month=today()->format('Y-m');$reports=$a->reports()->withCount('items')->whereYear('report_date',substr($month,0,4))->whereMonth('report_date',substr($month,5,2))->latest('report_date')->paginate(15)->withQueryString();return view('daily-reports.index',compact('a','reports','month'));}
+ public function edit(?DailyReport $report=null){$a=$this->assignment();if($report){abort_unless($report->assignment_id===$a->id,403);$report->load('items');}return view('daily-reports.form',compact('a','report'));}
+ public function store(Request $r){$a=$this->assignment();$d=$r->validate(['report_date'=>'required|date|before_or_equal:today','items'=>'required|array|min:1','items.*.start_time'=>'required|date_format:H:i','items.*.end_time'=>'required|date_format:H:i|after:items.*.start_time','items.*.activity'=>'required|string|max:3000','items.*.output'=>'required|string|max:3000']);abort_unless($d['report_date']>=$a->start_date->toDateString()&&(!$a->end_date||$d['report_date']<=$a->end_date->toDateString()),422,'Tanggal di luar periode penugasan.');DB::transaction(function()use($a,$d){$report=DailyReport::updateOrCreate(['assignment_id'=>$a->id,'report_date'=>$d['report_date']],['employee_note'=>null,'status'=>'saved','submitted_at'=>now(),'supervisor_note'=>null,'reviewed_at'=>null,'reviewed_by'=>null]);$report->items()->delete();foreach($d['items'] as $i=>$item)$report->items()->create($item+['obstacle'=>null,'follow_up'=>null,'sort_order'=>$i]);});return redirect()->route('daily-reports.index')->with('success','Laporan harian berhasil disimpan dan dapat dipantau oleh Kasubag.');}
+ public function show(DailyReport $report){$a=$this->assignment();abort_unless($report->assignment_id===$a->id,403);$report->load(['items','reviewer']);return view('daily-reports.show',compact('a','report'));}
+ public function monthlyPdf(Request $r){$a=$this->assignment();$d=$r->validate(['month'=>'required|date_format:Y-m']);$month=\Carbon\Carbon::createFromFormat('Y-m',$d['month'])->startOfMonth();$reports=$a->reports()->with('items')->whereYear('report_date',$month->year)->whereMonth('report_date',$month->month)->orderBy('report_date')->get();if($reports->isEmpty())return back()->with('error','Belum ada laporan pada bulan yang dipilih.');return Pdf::loadView('daily-reports.monthly-pdf',compact('a','reports','month'))->setPaper('a4','portrait')->download('Laporan-Bulanan-'.($a->user->nip_nik?:$a->user->id).'-'.$month->format('Y-m').'.pdf');}
+}

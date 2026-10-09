@@ -15,9 +15,9 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
-        'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 
+        'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 'institution_id',
         'provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude',
-        'status_kepegawaian', 'password', 'profile_photo', 'must_complete_profile', 'must_change_password'
+        'status_kepegawaian', 'employment_status_id', 'password', 'profile_photo', 'must_complete_profile', 'must_change_password'
     ];
 
     /**
@@ -76,6 +76,17 @@ class User extends Authenticatable
     public function electronicSignatureActors()
     {
         return $this->hasMany(ElectronicSignatureActor::class, 'user_id');
+    }
+
+    public function institution() { return $this->belongsTo(Institution::class); }
+    public function employmentStatus() { return $this->belongsTo(EmploymentStatus::class); }
+    public function dailyReportAssignment() { return $this->hasOne(DailyReportAssignment::class); }
+    public function activeDailyReportAssignment()
+    {
+        return $this->hasOne(DailyReportAssignment::class)
+            ->where('is_active', true)
+            ->whereDate('start_date', '<=', today())
+            ->where(fn($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', today()));
     }
 
     public function isNarasumber(): bool

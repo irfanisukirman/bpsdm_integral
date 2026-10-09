@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Okt 2026 pada 10.46
+-- Waktu pembuatan: 08 Okt 2026 pada 09.45
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1970,7 +1970,8 @@ INSERT INTO `files` (`id`, `folder_id`, `display_name`, `file_path`, `file_type`
 (197, 115, 'probis-lms-kms-disdik-jabar.md.pdf', 'documents/BIODATA_simpan_aku_dfd68574-d924-4a25-98d9-762971f56d85.pdf', 'pdf', 375676, 11, '2026-09-17 04:21:48', '2026-09-17 04:21:48'),
 (198, 115, 'probis-lms-kms-disdik-jabar.md.pdf', 'documents/SURAT_TUGAS_simpan_aku_579a06fb-e7b9-47c8-9ae8-16cd7a3917c7.pdf', 'pdf', 375676, 11, '2026-09-17 04:21:48', '2026-09-17 04:21:48'),
 (199, 115, 'qr-buku-tamu-bpsdm-provinsi-jawa-barat.png', 'documents/PAS_FOTO_simpan_aku_64a005ed-a2ce-4598-b76c-a6d7deafedfe.png', 'png', 1473152, 11, '2026-09-17 04:21:48', '2026-09-17 04:21:48'),
-(200, 117, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Contoh_Kedalam_Umum.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Contoh_Kedalam_Umum.docx', 'docx', 15088, 2, '2026-09-17 04:26:43', '2026-09-17 04:26:43');
+(200, 117, 'LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Contoh_Kedalam_Umum.docx', 'documents/LAPORAN_EVALUASI_LV1_LV2_Pelatihan_Contoh_Kedalam_Umum.docx', 'docx', 15088, 2, '2026-09-17 04:26:43', '2026-09-17 04:26:43'),
+(201, 118, '5.1. Panduan Latsar CPNS Angkatan 2 2024.pdf', 'documents/quality-management/13/81XbBKQBLCUhTyTOAWAcNoUlQeujtCdAuhAPXGSR.pdf', 'pdf', 1050625, 2, '2026-10-08 07:21:56', '2026-10-08 07:21:56');
 
 -- --------------------------------------------------------
 
@@ -2016,11 +2017,62 @@ CREATE TABLE `finance_budget_lines` (
 --
 
 INSERT INTO `finance_budget_lines` (`id`, `year`, `bidang`, `parent_id`, `level`, `account_code`, `description`, `allocated_amount`, `created_by`, `created_at`, `updated_at`) VALUES
-(5, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 'activity', '5.04.02.1.02.002', 'Pengelolaan Lembaga Sertifikasi Penyelenggara pemerintahan Dalam Negeri Provinsi', 0.00, 2, '2026-10-04 07:57:07', '2026-10-04 07:57:07'),
-(7, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 'activity', '5.04.02.1.02.0003', 'Pelaksanaan Sertifikasi kompetensi dilingkungan Pemerintah Provinsi dan Kabupaten/kota', 0.00, 2, '2026-10-04 07:58:25', '2026-10-04 07:58:25'),
-(9, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 5, 'subactivity', '5.1.02.04.001.00001', 'Belanja Perjalanan Dinas Biasa', 12400000.00, 2, '2026-10-04 08:00:05', '2026-10-04 08:00:05'),
-(10, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 7, 'subactivity', '5.1.02.01.001.00055', 'Belanja Makanan dan Minuman pada Fasilitas Pelayanan  Urusan Pendidikan', 34000000.00, 2, '2026-10-04 08:00:54', '2026-10-04 08:00:54'),
-(11, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 7, 'subactivity', '5.1.02.02.001.0003', 'Honorarium Narasumber atau Pembahas,Moderator,Pembawa Acara dan Panitia', 54000000.00, 2, '2026-10-04 08:01:45', '2026-10-04 08:01:45');
+(12, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 'activity', '00.004', 'Sertifikasi Kompetensi dan Pengelolaan Kelembagaan', 80000000.00, 25, '2026-10-08 04:48:50', '2026-10-08 04:48:50'),
+(13, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 12, 'subactivity', '00.004.01.0001', 'Belanja Perjalanan Dinas Biasa', 45000000.00, 25, '2026-10-08 04:52:04', '2026-10-08 05:07:37'),
+(14, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 12, 'subactivity', '5.04.02.1.02.002', 'Pelaksanaan Sertifikasi kompetensi dilingkungan Pemerintah Provinsi dan Kabupaten/kota', 35000000.00, 25, '2026-10-08 04:52:39', '2026-10-08 04:52:39'),
+(15, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', NULL, 'activity', '00.005', 'Sosialisasi Pemanfataan LSP', 40000000.00, 25, '2026-10-08 05:05:01', '2026-10-08 05:05:01'),
+(16, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 15, 'subactivity', '5.04.02.1.02.0003', 'Belanja Makanan dan Minuman pada Fasilitas Pelayanan  Urusan Pendidikan', 40000000.00, 25, '2026-10-08 05:05:38', '2026-10-08 05:05:38');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `finance_gu_allocations`
+--
+
+CREATE TABLE `finance_gu_allocations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `finance_gu_batch_id` bigint(20) UNSIGNED NOT NULL,
+  `finance_budget_line_id` bigint(20) UNSIGNED NOT NULL,
+  `amount` decimal(18,2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `finance_gu_allocations`
+--
+
+INSERT INTO `finance_gu_allocations` (`id`, `finance_gu_batch_id`, `finance_budget_line_id`, `amount`, `created_at`, `updated_at`) VALUES
+(1, 1, 13, 20000000.00, '2026-10-08 04:58:08', '2026-10-08 04:58:08'),
+(2, 1, 14, 20000000.00, '2026-10-08 04:58:08', '2026-10-08 04:58:08'),
+(5, 3, 16, 30000000.00, '2026-10-08 05:06:28', '2026-10-08 05:06:28');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `finance_gu_batches`
+--
+
+CREATE TABLE `finance_gu_batches` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `year` smallint(5) UNSIGNED NOT NULL,
+  `bidang` varchar(255) NOT NULL,
+  `gu_date` date NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `amount` decimal(18,2) NOT NULL,
+  `note` text DEFAULT NULL,
+  `created_by` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `finance_gu_batches`
+--
+
+INSERT INTO `finance_gu_batches` (`id`, `year`, `bidang`, `gu_date`, `description`, `amount`, `note`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '2026-10-08', 'GU 1', 40000000.00, NULL, 25, '2026-10-08 04:58:08', '2026-10-08 04:58:08'),
+(3, 2026, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '2026-10-08', 'GU 2', 30000000.00, NULL, 25, '2026-10-08 05:06:28', '2026-10-08 05:06:28');
 
 -- --------------------------------------------------------
 
@@ -2042,6 +2094,8 @@ CREATE TABLE `finance_transactions` (
   `gross_amount` decimal(18,2) NOT NULL,
   `tax_amount` decimal(18,2) NOT NULL DEFAULT 0.00,
   `net_amount` decimal(18,2) NOT NULL,
+  `realized_amount` decimal(18,2) DEFAULT NULL,
+  `realized_at` date DEFAULT NULL,
   `reference_number` varchar(255) DEFAULT NULL,
   `evidence_path` varchar(255) DEFAULT NULL,
   `evidence_name` varchar(255) DEFAULT NULL,
@@ -2053,6 +2107,14 @@ CREATE TABLE `finance_transactions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `finance_transactions`
+--
+
+INSERT INTO `finance_transactions` (`id`, `finance_budget_line_id`, `schedule_id`, `bidang`, `year`, `type`, `status`, `transaction_date`, `payee`, `description`, `gross_amount`, `tax_amount`, `net_amount`, `realized_amount`, `realized_at`, `reference_number`, `evidence_path`, `evidence_name`, `note`, `created_by`, `reviewed_by`, `reviewed_at`, `paid_at`, `created_at`, `updated_at`) VALUES
+(3, 13, NULL, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 2026, 'other', 'submitted', '2026-10-08', 'Pengeluaran Bidang', 'jakarta', 15000000.00, 0.00, 15000000.00, 12000000.00, '2026-10-08', NULL, NULL, NULL, NULL, 25, NULL, NULL, NULL, '2026-10-08 05:08:57', '2026-10-08 05:09:25'),
+(4, 16, NULL, 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', 2026, 'other', 'submitted', '2026-10-08', 'Pengeluaran Bidang', 'jakarta', 20000000.00, 0.00, 20000000.00, 20000000.00, '2026-10-08', NULL, NULL, NULL, NULL, 25, NULL, NULL, NULL, '2026-10-08 05:16:59', '2026-10-08 05:20:59');
 
 -- --------------------------------------------------------
 
@@ -2091,7 +2153,8 @@ INSERT INTO `folders` (`id`, `training_id`, `document_year`, `is_archived`, `arc
 (114, 13, NULL, 0, NULL, NULL, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', 113, 21, 1, 'nSOh2T3u6reDFqXk9XZdcHOTOJKvZYhFR3oJAsoY', '2026-09-16 13:23:51', '2026-09-17 04:24:39'),
 (115, 13, NULL, 0, NULL, NULL, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', 113, 11, 0, NULL, '2026-09-17 02:13:38', '2026-09-17 04:24:39'),
 (116, 13, NULL, 0, NULL, NULL, 'Pelatihan Contoh Kedalam Umum - Angkatan 3', 'Bidang Pengembangan Kompetensi Teknis Umum', 112, 2, 0, NULL, '2026-09-17 02:54:53', '2026-09-17 04:24:39'),
-(117, 13, NULL, 0, NULL, NULL, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 112, 2, 0, NULL, '2026-09-17 04:26:43', '2026-09-17 04:26:43');
+(117, 13, NULL, 0, NULL, NULL, 'LAPORAN EVALUASI LEVEL 1 DAN 2', 'Bidang Pengembangan Kompetensi Teknis Umum', 112, 2, 0, NULL, '2026-09-17 04:26:43', '2026-09-17 04:26:43'),
+(118, NULL, NULL, 0, NULL, NULL, 'Manajemen Mutu', 'Bidang Pengembangan Kompetensi Teknis Umum', 112, 5, 0, NULL, '2026-10-08 07:21:55', '2026-10-08 07:21:55');
 
 -- --------------------------------------------------------
 
@@ -2485,7 +2548,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (123, '2026_09_21_100000_create_training_identity_card_tables', 58),
 (124, '2026_09_24_090000_add_jct_sync_tracking_to_electronic_signature_documents', 59),
 (125, '2026_10_04_000000_create_cooperation_records_table', 60),
-(126, '2026_10_04_100000_create_finance_management_module', 61);
+(126, '2026_10_04_100000_create_finance_management_module', 61),
+(127, '2026_10_08_100000_add_gu_and_realization_to_finance', 62),
+(128, '2026_10_08_150000_create_quality_management_module', 63),
+(129, '2026_10_08_160000_add_requirement_status_to_quality_documents', 64);
 
 -- --------------------------------------------------------
 
@@ -2807,6 +2873,34 @@ CREATE TABLE `personal_access_tokens` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `quality_document_records`
+--
+
+CREATE TABLE `quality_document_records` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `training_id` bigint(20) UNSIGNED NOT NULL,
+  `requirement_key` varchar(120) NOT NULL,
+  `is_required` tinyint(1) NOT NULL DEFAULT 1,
+  `file_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `source` varchar(20) NOT NULL DEFAULT 'uploaded',
+  `uploaded_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `requirement_updated_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `requirement_updated_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data untuk tabel `quality_document_records`
+--
+
+INSERT INTO `quality_document_records` (`id`, `training_id`, `requirement_key`, `is_required`, `file_id`, `source`, `uploaded_by`, `requirement_updated_by`, `requirement_updated_at`, `created_at`, `updated_at`) VALUES
+(1, 13, 'panduan-kak', 1, 201, 'uploaded', 2, NULL, NULL, '2026-10-08 07:21:56', '2026-10-08 07:21:56'),
+(2, 13, 'surat-penetapan-peserta', 0, NULL, 'uploaded', NULL, 26, '2026-10-08 07:40:34', '2026-10-08 07:40:34', '2026-10-08 07:40:34');
 
 -- --------------------------------------------------------
 
@@ -3133,7 +3227,7 @@ CREATE TABLE `users` (
   `nip_nik` varchar(255) DEFAULT NULL,
   `whatsapp` varchar(255) DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
-  `role` enum('superadmin','admin_bidang','participant','pengajar','admin_aset','mitra','penandatangan','intern','pengelola_magang','resepsionis','pengelola_keuangan') NOT NULL,
+  `role` enum('superadmin','admin_bidang','participant','pengajar','admin_aset','mitra','penandatangan','intern','pengelola_magang','resepsionis','pengelola_keuangan','manajemen_mutu') NOT NULL,
   `user_type` varchar(30) DEFAULT NULL,
   `user_type_status` varchar(20) NOT NULL DEFAULT 'approved',
   `bidang` varchar(255) DEFAULT NULL,
@@ -3181,7 +3275,8 @@ INSERT INTO `users` (`id`, `google_id`, `avatar`, `name`, `username`, `nip_nik`,
 (21, '115482024455871232654', 'https://lh3.googleusercontent.com/a/ACg8ocJv9FWX3pw175ExmRwBHW53DHh-_9dp64IljqBNAxRCsDFYdPo=s96-c', 'Sem Syamsidin', 'semsyamsidin.sem@gmail.com', '3202450303950002', '08123456789', 'avatars/xVoz8awUprSWke6KK1keo7B1JUGvl0VCKdleWtzv.png', 'participant', 'peserta', 'approved', NULL, '$2y$12$cmNRY0vYnL1bkr4P0g4Se.4WgQhpKdkt.kk7WE0L1aI.3eaGSJb2W', 0, 0, NULL, '2026-09-13 08:07:43', '2026-09-16 13:23:24', 'Laki-Laki', 'Sukabumi', '1995-03-03', 'Pengelolaa', 'III/a', 'Badan Pengembangan Sumber Daya Manusia', 'JAWA BARAT', 'KABUPATEN BANDUNG BARAT', 'PARONGPONG', 'CIGUGUR GIRANG', 'Jalan Ciwaruga, Panyairanjompo, Parongpong, Bandung Barat, Jawa Barat, 40559, Indonesia', -6.8192959, 107.5866061, 'PNS'),
 (23, NULL, NULL, 'Contoh Nama Peserta', '199503032024011001', '199503032024011001', NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$5N4jzdq84PinjF4lkIL3xuPbs9FWkwoDzN1onn49IAbUHH3wbck..', 1, 1, NULL, '2026-09-14 04:48:17', '2026-09-14 04:48:17', NULL, NULL, NULL, NULL, NULL, 'BPSDM Provinsi Jawa Barat', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (24, NULL, NULL, 'Contoh Nama Peserta', '199503032024011044', '199503032024011044', NULL, NULL, 'participant', 'peserta', 'approved', NULL, '$2y$12$1f5fCZr.Jw41WpV.1P.GH.vHqC2okPNulC8rTxn5eQMaVPZOhBNcW', 1, 1, NULL, '2026-09-16 13:02:49', '2026-09-16 13:02:49', NULL, NULL, NULL, NULL, NULL, 'BPSDM Provinsi Jawa Barat', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(25, NULL, NULL, 'BPP Bidang SKPK', 'keuangan@bpsdm.go.id', NULL, '08123456789', NULL, 'pengelola_keuangan', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$1ygivG3sTQHsjwsaaD.yUezrKAN3M0d3Bmz3YdkQqHOoBQiiU0fdW', 0, 0, NULL, '2026-10-04 08:41:58', '2026-10-04 08:41:58', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+(25, NULL, NULL, 'BPP Bidang SKPK', 'keuangan@bpsdm.go.id', NULL, '08123456789', NULL, 'pengelola_keuangan', NULL, 'approved', 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan', '$2y$12$1ygivG3sTQHsjwsaaD.yUezrKAN3M0d3Bmz3YdkQqHOoBQiiU0fdW', 0, 0, NULL, '2026-10-04 08:41:58', '2026-10-04 08:41:58', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(26, NULL, NULL, 'Penjamin Mutu', 'tpm@bpsdm.go.id', NULL, '08123456789', NULL, 'manajemen_mutu', NULL, 'approved', NULL, '$2y$12$Qa1L6v6/smYVM4t5uUUwjO21ZkrA9MWoJQ2MYf.Ho2Y7KFuEsKSmG', 0, 0, NULL, '2026-10-08 07:20:06', '2026-10-08 07:20:06', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -3507,6 +3602,23 @@ ALTER TABLE `finance_budget_lines`
   ADD KEY `finance_budget_lines_bidang_index` (`bidang`);
 
 --
+-- Indeks untuk tabel `finance_gu_allocations`
+--
+ALTER TABLE `finance_gu_allocations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `finance_gu_line_unique` (`finance_gu_batch_id`,`finance_budget_line_id`),
+  ADD KEY `finance_gu_allocations_finance_budget_line_id_foreign` (`finance_budget_line_id`);
+
+--
+-- Indeks untuk tabel `finance_gu_batches`
+--
+ALTER TABLE `finance_gu_batches`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `finance_gu_batches_created_by_foreign` (`created_by`),
+  ADD KEY `finance_gu_batches_year_index` (`year`),
+  ADD KEY `finance_gu_batches_bidang_index` (`bidang`);
+
+--
 -- Indeks untuk tabel `finance_transactions`
 --
 ALTER TABLE `finance_transactions`
@@ -3716,6 +3828,17 @@ ALTER TABLE `personal_access_tokens`
   ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
   ADD KEY `personal_access_tokens_expires_at_index` (`expires_at`);
+
+--
+-- Indeks untuk tabel `quality_document_records`
+--
+ALTER TABLE `quality_document_records`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `quality_training_requirement_unique` (`training_id`,`requirement_key`),
+  ADD KEY `quality_document_records_file_id_foreign` (`file_id`),
+  ADD KEY `quality_document_records_uploaded_by_foreign` (`uploaded_by`),
+  ADD KEY `quality_document_records_requirement_updated_by_foreign` (`requirement_updated_by`),
+  ADD KEY `quality_document_records_is_required_index` (`is_required`);
 
 --
 -- Indeks untuk tabel `questions`
@@ -4023,7 +4146,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT untuk tabel `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=201;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=202;
 
 --
 -- AUTO_INCREMENT untuk tabel `file_versions`
@@ -4035,19 +4158,31 @@ ALTER TABLE `file_versions`
 -- AUTO_INCREMENT untuk tabel `finance_budget_lines`
 --
 ALTER TABLE `finance_budget_lines`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT untuk tabel `finance_gu_allocations`
+--
+ALTER TABLE `finance_gu_allocations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT untuk tabel `finance_gu_batches`
+--
+ALTER TABLE `finance_gu_batches`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `finance_transactions`
 --
 ALTER TABLE `finance_transactions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
 
 --
 -- AUTO_INCREMENT untuk tabel `folder_user_permissions`
@@ -4101,7 +4236,7 @@ ALTER TABLE `login_help_settings`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=127;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT untuk tabel `monitoring_results`
@@ -4174,6 +4309,12 @@ ALTER TABLE `pengajar_schedule_documents`
 --
 ALTER TABLE `personal_access_tokens`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `quality_document_records`
+--
+ALTER TABLE `quality_document_records`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `questions`
@@ -4251,7 +4392,7 @@ ALTER TABLE `training_stages`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -4484,6 +4625,19 @@ ALTER TABLE `finance_budget_lines`
   ADD CONSTRAINT `finance_budget_lines_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `finance_budget_lines` (`id`) ON DELETE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `finance_gu_allocations`
+--
+ALTER TABLE `finance_gu_allocations`
+  ADD CONSTRAINT `finance_gu_allocations_finance_budget_line_id_foreign` FOREIGN KEY (`finance_budget_line_id`) REFERENCES `finance_budget_lines` (`id`),
+  ADD CONSTRAINT `finance_gu_allocations_finance_gu_batch_id_foreign` FOREIGN KEY (`finance_gu_batch_id`) REFERENCES `finance_gu_batches` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `finance_gu_batches`
+--
+ALTER TABLE `finance_gu_batches`
+  ADD CONSTRAINT `finance_gu_batches_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
+
+--
 -- Ketidakleluasaan untuk tabel `finance_transactions`
 --
 ALTER TABLE `finance_transactions`
@@ -4628,6 +4782,15 @@ ALTER TABLE `pengajars`
 ALTER TABLE `pengajar_schedule_documents`
   ADD CONSTRAINT `pengajar_schedule_documents_schedule_id_foreign` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `pengajar_schedule_documents_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `quality_document_records`
+--
+ALTER TABLE `quality_document_records`
+  ADD CONSTRAINT `quality_document_records_file_id_foreign` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `quality_document_records_requirement_updated_by_foreign` FOREIGN KEY (`requirement_updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `quality_document_records_training_id_foreign` FOREIGN KEY (`training_id`) REFERENCES `trainings` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `quality_document_records_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Ketidakleluasaan untuk tabel `schedules`

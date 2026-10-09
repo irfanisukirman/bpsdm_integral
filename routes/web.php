@@ -51,6 +51,9 @@ use App\Http\Controllers\ActivityAttendanceController;
 use App\Http\Controllers\PublicActivityAttendanceController;
 use App\Http\Controllers\GuestBookController;
 use App\Http\Controllers\QualityManagementController;
+use App\Http\Controllers\WorkforceMasterController;
+use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\DailyReportManagementController;
 use App\Http\Controllers\PublicGuestBookController;
 
 /*
@@ -144,6 +147,26 @@ Route::get('verifikasi-tte/{token}', [ElectronicSignatureController::class, 'ver
     ->middleware('throttle:30,1')->name('electronic-signatures.verify');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('laporan-harian', [DailyReportController::class, 'index'])->name('daily-reports.index');
+    Route::get('laporan-harian/buat', [DailyReportController::class, 'edit'])->name('daily-reports.create');
+    Route::get('laporan-harian/pdf-bulanan', [DailyReportController::class, 'monthlyPdf'])->name('daily-reports.monthly-pdf');
+    Route::get('laporan-harian/{report}/edit', [DailyReportController::class, 'edit'])->name('daily-reports.edit');
+    Route::post('laporan-harian', [DailyReportController::class, 'store'])->name('daily-reports.store');
+    Route::get('laporan-harian/{report}', [DailyReportController::class, 'show'])->name('daily-reports.show');
+    Route::get('monitoring-laporan-harian', [DailyReportManagementController::class, 'reports'])->name('daily-report-management.reports');
+    Route::get('kelola-pppk-pw', [DailyReportManagementController::class, 'index'])->name('daily-report-management.index');
+    Route::post('kelola-pppk-pw', [DailyReportManagementController::class, 'storeAssignment'])->name('daily-report-management.store');
+    Route::get('kelola-pppk-pw/template', [DailyReportManagementController::class, 'template'])->name('daily-report-management.template');
+    Route::post('kelola-pppk-pw/import', [DailyReportManagementController::class, 'import'])->name('daily-report-management.import');
+    Route::get('pengaturan/master-kepegawaian', [WorkforceMasterController::class, 'index'])->name('workforce-masters.index');
+    Route::post('pengaturan/instansi', [WorkforceMasterController::class, 'storeInstitution'])->name('workforce-masters.institutions.store');
+    Route::get('pengaturan/instansi-template', [WorkforceMasterController::class, 'institutionTemplate'])->name('workforce-masters.institutions.template');
+    Route::post('pengaturan/instansi-import', [WorkforceMasterController::class, 'importInstitutions'])->name('workforce-masters.institutions.import');
+    Route::put('pengaturan/instansi/{institution}', [WorkforceMasterController::class, 'updateInstitution'])->name('workforce-masters.institutions.update');
+    Route::delete('pengaturan/instansi/{institution}', [WorkforceMasterController::class, 'destroyInstitution'])->name('workforce-masters.institutions.destroy');
+    Route::post('pengaturan/status-kepegawaian', [WorkforceMasterController::class, 'storeStatus'])->name('workforce-masters.statuses.store');
+    Route::put('pengaturan/status-kepegawaian/{status}', [WorkforceMasterController::class, 'updateStatus'])->name('workforce-masters.statuses.update');
+    Route::delete('pengaturan/status-kepegawaian/{status}', [WorkforceMasterController::class, 'destroyStatus'])->name('workforce-masters.statuses.destroy');
     Route::get('tanda-tangan-elektronik', [ElectronicSignatureController::class, 'index'])->name('electronic-signatures.index');
     Route::get('tanda-tangan-elektronik/akun', [ElectronicSignatureController::class, 'accounts'])->name('electronic-signatures.accounts');
     Route::post('tanda-tangan-elektronik/akun', [ElectronicSignatureController::class, 'storeAccount'])->name('electronic-signatures.accounts.store');

@@ -59,7 +59,7 @@ class LoginController extends Controller implements HasMiddleware
     protected function attemptLogin(Request $request)
     {
         $identity = trim((string) $request->input($this->username()));
-        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu'];
+        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw'];
 
         $user = User::where(function ($query) use ($identity, $administrativeRoles) {
                 $query->where(function ($admin) use ($identity, $administrativeRoles) {
@@ -94,6 +94,7 @@ class LoginController extends Controller implements HasMiddleware
         if ($user->role === 'resepsionis') return redirect()->route('guest-book.index');
         if ($user->role === 'pengelola_magang') return redirect()->route('internships.index');
         if ($user->role === 'manajemen_mutu') return redirect()->route('quality-management.index');
+        if ($user->role === 'kasubag_pppk_pw') return redirect()->route('daily-report-management.reports');
     }
 
     /**
@@ -140,10 +141,21 @@ class LoginController extends Controller implements HasMiddleware
                 Auth::login($newUser);
             }
 
+            $assignment = \App\Models\DailyReportAssignment::whereRaw('LOWER(employee_email) = ?', [strtolower((string) $user->email)])->first();
+            if ($assignment && ! $assignment->user_id) {
+                $internal = $assignment->institution;
+                $status = \App\Models\EmploymentStatus::where('code', 'PPPK-PW')->first();
+                Auth::user()->update(['institution_id'=>$internal->id,'instansi'=>$internal->name,'employment_status_id'=>$status?->id,'status_kepegawaian'=>$status?->name ?: 'PPPK-PW']);
+                $assignment->update(['user_id' => Auth::id()]);
+            }
+
             // LOGIKA PROBIS: Cek jika NIP atau Gender masih kosong
             // Jika kosong, wajib ke halaman lengkapi profil sebelum ke dashboard
-            if (empty(Auth::user()->nip_nik) || empty(Auth::user()->gender)) {
+            if (Auth::user()->role === 'participant' && (empty(Auth::user()->nip_nik) || empty(Auth::user()->gender))) {
                 return redirect()->route('participant.profile.complete');
+            }
+            if (Auth::user()->role === 'kasubag_pppk_pw') {
+                return redirect()->route('daily-report-management.reports');
             }
             return redirect()->intended($this->redirectTo);
 

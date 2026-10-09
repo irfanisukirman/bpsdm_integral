@@ -37,6 +37,12 @@
                 <a href="{{ route('quality-management.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div class="fw-bold">Manajemen Mutu</div></a>
             </li>
         @endif
+        @if(Auth::user()->role === 'participant' && Auth::user()->activeDailyReportAssignment()->exists())
+            <li class="menu-item {{ request()->routeIs('daily-reports.*') ? 'active' : '' }}"><a href="{{route('daily-reports.index')}}" class="menu-link"><i class="menu-icon bx bx-notepad"></i><div class="fw-bold">Laporan Harian</div></a></li>
+        @endif
+        @if(Auth::user()->role === 'kasubag_pppk_pw')
+            <li class="menu-item {{ request()->routeIs('daily-report-management.reports') ? 'active' : '' }}"><a href="{{route('daily-report-management.reports')}}" class="menu-link"><i class="menu-icon bx bx-bar-chart-square"></i><div class="fw-bold">Monitoring Laporan</div></a></li>
+        @endif
         @if(in_array(Auth::user()->role, ['superadmin', 'pengelola_keuangan'], true))
             <li class="menu-item {{ request()->routeIs('finance.*') ? 'active' : '' }}"><a href="{{route('finance.index')}}" class="menu-link"><i class="menu-icon bx bx-wallet"></i><div class="fw-bold">Pengelolaan Keuangan</div></a></li>
         @endif
@@ -57,6 +63,8 @@
             {{-- Menu keuangan sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'manajemen_mutu')
             {{-- Menu Manajemen Mutu sudah ditampilkan di atas. --}}
+        @elseif(Auth::user()->role === 'kasubag_pppk_pw')
+            {{-- Menu monitoring laporan sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
             <li class="menu-item {{ request()->routeIs('internships.dashboard') ? 'active' : '' }}"><a href="{{ route('internships.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-briefcase-alt-2"></i><div class="fw-bold">Dashboard Magang</div></a></li>
         @elseif(Auth::user()->role === 'participant')
@@ -227,6 +235,8 @@
                     <div>Kelola User PIC</div>
                 </a>
             </li>
+            <li class="menu-item {{ request()->routeIs('workforce-masters.*') ? 'active' : '' }}"><a href="{{route('workforce-masters.index')}}" class="menu-link"><i class="menu-icon bx bx-list-ul"></i><div>Master Kepegawaian</div></a></li>
+            <li class="menu-item {{ request()->routeIs('daily-report-management.*') ? 'active' : '' }}"><a href="{{route('daily-report-management.index')}}" class="menu-link"><i class="menu-icon bx bx-group"></i><div>Kelola PPPK-PW</div></a></li>
             @endif
         @endif
 
