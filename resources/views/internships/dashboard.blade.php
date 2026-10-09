@@ -21,7 +21,7 @@
   <h3 class="fw-bold">Terima kasih, {{$participant->name}}</h3>
   <p class="text-muted mx-auto" style="max-width:620px">Periode magang Anda telah berakhir pada {{$participant->end_date->translatedFormat('d F Y')}}. Menu presensi sudah ditutup dan digantikan dengan layanan sertifikat.</p>
   @if($certificateAvailable)
-   <div class="border rounded-3 p-3 mx-auto mb-3 text-start" style="max-width:520px"><small class="text-muted d-block">Nomor sertifikat</small><strong>{{$participant->certificate_number}}</strong><hr class="my-2"><small class="text-muted d-block">Predikat akhir</small><strong class="text-success">{{$participant->final_grade}}</strong></div>
+   <div class="border rounded-3 p-3 mx-auto mb-3 text-start" style="max-width:520px"><small class="text-muted d-block">Nomor sertifikat</small><strong>{{$participant->certificate_number?:($directMode?'Dibuat otomatis saat diunduh':'-')}}</strong><hr class="my-2"><small class="text-muted d-block">Predikat akhir</small><strong class="text-success">{{$participant->final_grade?:($directMode?'Dihitung otomatis saat diunduh':'-')}}</strong></div>
    <a href="{{route('internships.certificate.download')}}" class="btn btn-success btn-lg"><i class="bx bx-download me-1"></i>Download Sertifikat PDF</a>
   @else
    <div class="alert alert-warning mx-auto mb-0" style="max-width:620px"><i class="bx bx-time-five me-1"></i>Sertifikat sedang disiapkan oleh pengelola. Tombol download akan muncul setelah sertifikat diterbitkan.</div>

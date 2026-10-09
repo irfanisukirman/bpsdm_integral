@@ -71,7 +71,7 @@ $publicAgendas = $publicSchedules->pluck('agenda')->filter()->unique('id');
         $publicCalendarItems = $agendaCalendarItems->concat($trainingCalendarItems)->sortBy('starts_at')->take(60)->values();
         $publicAssets = \App\Models\Asset::with('images')
             ->where('is_active', true)->where('is_public', true)
-            ->latest()->limit(12)->get();
+            ->orderBy('name')->get();
 
         return view('welcome', compact('trainingsToday', 'stats', 'publicSchedules', 'publicAgendas', 'publicCalendarItems', 'publicAssets'));
     }

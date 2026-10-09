@@ -80,6 +80,47 @@
             color: var(--integral-primary);
         }
 
+        .hero-brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border: 1px solid rgba(105, 108, 255, .2);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .82);
+            color: #4b52bf;
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            box-shadow: 0 8px 25px rgba(55, 65, 145, .08);
+        }
+
+        .hero-brand-mark img { width: 26px; height: 26px; object-fit: contain; }
+        .hero-integral-title { font-size: clamp(3rem, 5vw, 4.6rem); letter-spacing: -.04em; margin: 18px 0 0; }
+        .hero-integral-title span { background: linear-gradient(120deg, #4f52db, #2797e6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero-system-name { font-size: clamp(1.15rem, 2vw, 1.55rem); font-weight: 700; color: #263750; letter-spacing: .02em; margin-bottom: 18px; }
+        .hero-description { max-width: 720px; line-height: 1.75; font-size: 1.04rem; color: #697a8d; }
+        .hero-illustration-wrap { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
+        .hero-illustration-wrap::before { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(105,108,255,.16) 0%, rgba(105,108,255,0) 68%); }
+        .hero-illustration-wrap .hero-img { position: relative; z-index: 1; width: 104%; max-width: 640px; }
+        .hero-copy-minimal { position: relative; z-index: 2; }
+        .hero-copy-minimal::before { content: ""; position: absolute; left: -28px; top: 22px; width: 5px; height: 116px; border-radius: 8px; background: linear-gradient(180deg, #696cff, #29a0e2); }
+        .hero-actions { flex-wrap: nowrap !important; align-items: center; }
+        .hero-actions .btn { padding: 11px 20px; font-size: .92rem; white-space: nowrap; }
+        .hero-capabilities { display: flex; flex-wrap: wrap; gap: 9px; margin: 24px 0 30px; }
+        .hero-capabilities span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border-radius: 10px; background: #fff; border: 1px solid #e6e9f3; color: #506078; font-size: .78rem; font-weight: 600; box-shadow: 0 5px 16px rgba(39, 54, 93, .05); }
+        .hero-capabilities i { color: var(--integral-primary); font-size: 1rem; }
+        .integral-showcase { position: relative; max-width: 480px; margin-left: auto; padding: 28px; border-radius: 30px; color: #fff; background: linear-gradient(145deg, #283b79 0%, #5368df 52%, #2aa4df 100%); box-shadow: 0 30px 65px rgba(43, 67, 145, .3); overflow: hidden; }
+        .integral-showcase::before,.integral-showcase::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.09)}
+        .integral-showcase::before{width:220px;height:220px;right:-80px;top:-90px}.integral-showcase::after{width:150px;height:150px;left:-65px;bottom:-75px}
+        .showcase-logo { position: relative; z-index: 1; width: 86px; height: 86px; padding: 10px; object-fit: contain; border-radius: 22px; background: rgba(255,255,255,.14); backdrop-filter: blur(8px); }
+        .showcase-title { position: relative; z-index: 1; font-size: 2.1rem; font-weight: 800; letter-spacing: .08em; margin: 18px 0 2px; }
+        .showcase-subtitle { position: relative; z-index: 1; color: rgba(255,255,255,.72); font-size: .82rem; }
+        .showcase-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 26px; }
+        .showcase-item { min-height: 92px; padding: 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.1); backdrop-filter: blur(7px); }
+        .showcase-item i { font-size: 23px; color: #fff; }.showcase-item strong,.showcase-item small{display:block}.showcase-item strong{margin-top:8px;font-size:.82rem}.showcase-item small{color:rgba(255,255,255,.62);font-size:.68rem;margin-top:3px}
+
         /* Floating Animation untuk Ilustrator Baru */
         .hero-img {
             max-width: 100%;
@@ -168,6 +209,16 @@
             .hero-title { font-size: 2.5rem; text-align: center; }
             .hero-subtitle { text-align: center; }
             .hero-btns { justify-content: center; }
+            .hero-copy { text-align: center; }
+            .hero-brand-mark { margin-inline: auto; }
+            .hero-description { margin-inline: auto; }
+            .hero-capabilities { justify-content: center; }
+            .integral-showcase { margin-inline: auto; }
+            .hero-copy-minimal::before { display: none; }
+            .hero-illustration-wrap { min-height: 360px; margin-top: 20px; }
+            .hero-illustration-wrap .hero-img { width: 94%; }
+            .hero-actions { justify-content: center; gap: 8px !important; }
+            .hero-actions .btn { padding: 10px 12px; font-size: .78rem; }
         }
         /* Animasi Titik Merah Live */
         .live-pulse-red {
@@ -438,7 +489,7 @@
                     <li class="nav-item">
                         <a class="nav-link fw-semibold px-3" href="#top">Beranda</a>
                     </li>
-                    <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#integrasi-aplikasi">Integrasi</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold px-3" href="#integrasi-aplikasi">Aplikasi Utama</a></li>
 
                     <li class="nav-item">
                         <a class="nav-link fw-semibold px-3" href="#features">Fitur</a>
@@ -472,22 +523,20 @@
     <!-- HERO SECTION -->
     <section class="hero-section" id="top">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 animate__animated animate__fadeInLeft">
-                    <span class="section-tag">Integral Technology</span>
-                    <h1 class="hero-title">BPSDM<span> Provinsi</span> Jawa Barat</h1>
-                    <p class="fs-5 mb-5 text-muted" style="line-height: 1.6;">
-                        Sistem pengelolaan pelatihan terintegrasi. Solusi cerdas untuk Jadwal Pelatihan, Monitoring, Presensi,Kelola Alumni dan Evaluasi Dampak Kirkpatrick 360°.
-                    </p>
-                    <div class="d-flex gap-3 hero-btns">
-                        <a href="{{ route('login') }}" class="btn btn-integral btn-primary-gradient btn-lg shadow">Mulai Sekarang</a>
-                        <a href="#features" class="btn btn-outline-secondary btn-lg btn-integral">Pelajari Fitur <i class="bx bx-down-arrow-alt ms-1"></i></a>
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6 hero-copy hero-copy-minimal animate__animated animate__fadeInLeft">
+                    <h1 class="hero-title hero-integral-title"><span>Integral</span></h1>
+                    <div class="hero-system-name">Integrated Training Management System</div>
+                    <p class="hero-description mb-0">Satu platform untuk mengelola pelatihan, peserta, presensi, evaluasi, dokumen, sertifikat, monitoring, dan pelaporan secara terpadu.</p>
+                    <div class="d-flex gap-3 hero-btns hero-actions mt-4">
+                        <a href="{{ route('login') }}" class="btn btn-integral btn-primary-gradient btn-lg shadow"><i class="bx bx-log-in-circle me-1"></i> Masuk Integral</a>
+                        <a href="#features" class="btn btn-outline-secondary btn-lg btn-integral">Jelajahi Ekosistem <i class="bx bx-down-arrow-alt ms-1"></i></a>
                     </div>
                 </div>
-                <div class="col-lg-6 text-center mt-5 mt-lg-0 animate__animated animate__fadeInRight">
-                    <!-- ILUSTRATOR BARU -->
-                    <img src="https://res.cloudinary.com/dnwyqw6gn/image/upload/v1786891751/pngegg_aolaux.png" 
-                         alt="Integral Technology" class="hero-img img-fluid">
+                <div class="col-lg-6 animate__animated animate__fadeInRight">
+                    <div class="hero-illustration-wrap">
+                        <img src="{{ asset('assets/img/illustrations/integrated.png') }}" alt="Integrated Training Management System" class="hero-img img-fluid">
+                    </div>
                 </div>
             </div>
         </div>
@@ -497,30 +546,22 @@
     <section id="integrasi-aplikasi" class="integration-section py-5">
         @php
             $mainApplications = [
-                ['name' => 'Integral', 'description' => 'Aplikasi big data untuk manajemen pelatihan, dokumen, sertifikat, evaluasi, dan data kepegawaian.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/integral', 'color' => '#696cff', 'icon' => 'bx-grid-alt', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-integral.png'],
                 ['name' => 'Jabar Corpu Talent', 'description' => 'Platform pembelajaran digital dan ruang berbagi pengetahuan bagi ASN Jawa Barat.', 'url' => 'https://jabarcorputalent.jabarprov.go.id', 'color' => '#f4b740', 'icon' => 'bx-book-reader', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-jct.png'],
                 ['name' => 'Jabar Talent Connect', 'description' => 'Platform penyusunan kebutuhan dan kurikulum pengembangan kompetensi ASN.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/jtc', 'color' => '#03c3ec', 'icon' => 'bx-network-chart', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-talent.png'],
                 ['name' => 'Ajuan Rekomendasi', 'description' => 'Layanan pengajuan surat rekomendasi untuk kegiatan pendalaman tugas Anggota DPRD.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/aksi', 'color' => '#ff5b5c', 'icon' => 'bx-file-find', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-aksi.png'],
             ];
-            $supportApplications = [
-                ['name' => 'Agenda & Aset', 'description' => 'Reservasi jadwal, aset, dan kalender kegiatan pendukung BPSDM.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/agenzet', 'color' => '#28c76f', 'icon' => 'bx-calendar-check', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-agenda.png'],
-                ['name' => 'L-mob', 'description' => 'Aplikasi laporan dan absensi mobile pegawai.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/lmob', 'color' => '#8b5cf6', 'icon' => 'bx-mobile-alt', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-lmob.png'],
-                ['name' => 'Layangan', 'description' => 'Pengelolaan magang, PKL, dan buku tamu secara terpadu.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/layangan', 'color' => '#20b486', 'icon' => 'bx-briefcase-alt-2', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-layangan.png'],
-                ['name' => 'Presensi Pelatihan', 'description' => 'Sistem presensi online untuk peserta kegiatan pelatihan.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/presensi-digital', 'color' => '#438cff', 'icon' => 'bx-user-check', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-presensi.png'],
-                ['name' => 'SimFile', 'description' => 'Sistem informasi manajemen file dan monitoring dokumen.', 'url' => 'https://s.id/monitoring_bpsdmjabar', 'color' => '#ffab00', 'icon' => 'bx-folder-open', 'logo' => 'https://res.cloudinary.com/dnwyqw6gn/image/upload/v1769667905/mon_lqdtec.png'],
-            ];
         @endphp
         <div class="container py-5 position-relative" style="z-index:1">
             <div class="text-center mb-5">
-                <span class="section-tag">Satu Ekosistem Digital</span>
-                <h2 class="fw-bold text-dark h1">Integrasi Aplikasi BPSDM</h2>
-                <p class="text-muted mx-auto" style="max-width:680px">Akses layanan utama dan aplikasi pendukung BPSDM Provinsi Jawa Barat dalam satu halaman.</p>
+                <span class="section-tag">Layanan Digital BPSDM Jawa Barat</span>
+                <h2 class="fw-bold text-dark h1">Aplikasi Utama BPSDM Jabar</h2>
+                <p class="text-muted mx-auto" style="max-width:680px">Akses aplikasi utama BPSDM Provinsi Jawa Barat untuk mendukung pengembangan kompetensi dan layanan kediklatan.</p>
             </div>
 
-            <div class="integration-group-label"><i class="bx bx-category"></i>Aplikasi Utama</div>
-            <div class="row g-4 justify-content-center mb-5">
+            <div class="integration-group-label"><i class="bx bx-category"></i>Daftar Aplikasi Utama</div>
+            <div class="row g-4 justify-content-center">
                 @foreach($mainApplications as $application)
-                    <div class="col-md-6 col-xl-3">
+                    <div class="col-md-6 col-lg-4">
                         <article class="integration-card" style="--app-color:{{ $application['color'] }}">
                             <div class="integration-card__head">
                                 <div class="integration-card__logo">
@@ -536,19 +577,6 @@
                 @endforeach
             </div>
 
-            <div class="integration-group-label"><i class="bx bx-extension"></i>Aplikasi Pendukung</div>
-            <div class="row g-4 justify-content-center">
-                @foreach($supportApplications as $application)
-                    <div class="col-md-6 col-lg-4 col-xl">
-                        <article class="integration-card is-compact" style="--app-color:{{ $application['color'] }}">
-                            <div class="integration-card__head"><div class="integration-card__logo">@if(isset($application['logo']))<img src="{{ $application['logo'] }}" alt="Logo {{ $application['name'] }}">@else<i class="bx {{ $application['icon'] }}"></i>@endif</div><span class="integration-card__status">Aktif</span></div>
-                            <h3>{{ $application['name'] }}</h3>
-                            <p>{{ $application['description'] }}</p>
-                            <a href="{{ $application['url'] }}" target="_blank" rel="noopener noreferrer" class="integration-card__link"><span>Buka Aplikasi</span><i class="bx bx-right-arrow-alt"></i></a>
-                        </article>
-                    </div>
-                @endforeach
-            </div>
         </div>
     </section>
 
@@ -558,7 +586,7 @@
             <div class="text-center mb-5">
                 <span class="section-tag">Kecanggihan Sistem</span>
                 <h2 class="fw-extrabold text-dark h1">Ekosistem Terintegrasi</h2>
-                <p class="text-muted mx-auto" style="max-width: 600px;">Kami menyatukan seluruh rangkaian pengembangan kompetensi dalam satu dasbor kendali yang efisien.</p>
+                <p class="text-muted mx-auto" style="max-width: 720px;">Satu sistem untuk mengelola pelatihan, evaluasi, dokumen, layanan internal, dan pelaporan organisasi secara terpadu.</p>
             </div>
             @include('partials.public-features')
             <div class="row g-4 mt-2 d-none" aria-hidden="true">
@@ -746,10 +774,18 @@
 
     <section id="aset-publik" class="py-5 bg-light">
         <div class="container py-5"><div class="text-center mb-5"><span class="section-tag">Fasilitas</span><h2 class="fw-bold">Aset & Ruangan</h2><p class="text-muted">Fasilitas yang tersedia di lingkungan BPSDM Jawa Barat.</p></div>
-            <div class="row g-4">@forelse($publicAssets as $assetItem)<div class="col-md-6 col-lg-4"><div class="card h-100 border-0 shadow-sm overflow-hidden">
+            <div class="row g-4" id="publicAssetGrid">@forelse($publicAssets as $assetItem)<div class="col-md-6 col-lg-4 public-asset-item {{ $loop->iteration > 6 ? 'd-none asset-extra' : '' }}"><div class="card h-100 border-0 shadow-sm overflow-hidden">
                 @if($assetItem->images->isNotEmpty())<div id="publicAsset{{ $assetItem->id }}" class="carousel slide"><div class="carousel-inner">@foreach($assetItem->images as $image)<div class="carousel-item {{ $loop->first ? 'active' : '' }}"><img src="{{ asset('storage/'.$image->path) }}" class="d-block w-100" style="height:220px;object-fit:cover" alt="{{ $assetItem->name }}"></div>@endforeach</div>@if($assetItem->images->count()>1)<button class="carousel-control-prev" data-bs-target="#publicAsset{{ $assetItem->id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" data-bs-target="#publicAsset{{ $assetItem->id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>@endif</div>@endif
                 <div class="card-body"><span class="badge bg-label-success">{{ ucfirst($assetItem->type) }}</span><h5 class="fw-bold mt-2">{{ $assetItem->name }}</h5><p class="small text-muted"><i class="bx bx-map"></i> {{ $assetItem->location }} · <i class="bx bx-group"></i> {{ $assetItem->capacity ?: '-' }} orang</p><p class="mb-0">{{ $assetItem->facilities }}</p></div>
             </div></div>@empty<div class="col-12 text-center text-muted py-5">Belum ada aset yang dipublikasikan.</div>@endforelse</div>
+            @if($publicAssets->count() > 6)
+                <div class="text-center mt-5">
+                    <button type="button" id="togglePublicAssets" class="btn btn-outline-primary btn-lg rounded-pill px-4" data-more-count="{{ $publicAssets->count() - 6 }}">
+                        <i class="bx bx-chevron-down me-1"></i>
+                        <span>Lihat {{ $publicAssets->count() - 6 }} Aset Lainnya</span>
+                    </button>
+                </div>
+            @endif
         </div>
     </section>
 
@@ -848,6 +884,33 @@
         }, { threshold: 0.5 });
 
         observer.observe(statsSection);
+
+        const assetToggle = document.getElementById('togglePublicAssets');
+        if (assetToggle) {
+            assetToggle.addEventListener('click', function () {
+                const extras = document.querySelectorAll('.public-asset-item.asset-extra');
+                const isExpanded = this.classList.toggle('is-expanded');
+
+                extras.forEach((item, index) => {
+                    item.classList.toggle('d-none', !isExpanded);
+                    if (isExpanded) {
+                        item.classList.add('animate__animated', 'animate__fadeInUp');
+                        item.style.animationDelay = `${Math.min(index * 0.05, 0.3)}s`;
+                    }
+                });
+
+                this.querySelector('span').textContent = isExpanded
+                    ? 'Tampilkan Lebih Sedikit'
+                    : `Lihat ${this.dataset.moreCount} Aset Lainnya`;
+                this.querySelector('i').className = isExpanded
+                    ? 'bx bx-chevron-up me-1'
+                    : 'bx bx-chevron-down me-1';
+
+                if (!isExpanded) {
+                    document.getElementById('aset-publik').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
     </script>
 </body>
 </html>

@@ -64,6 +64,13 @@ class InternshipCertificateService
         return match(true){$score>=90=>'Sangat Baik',$score>=80=>'Baik',$score>=70=>'Cukup',default=>'Kurang'};
     }
 
+    public function certificateNumber(InternshipProgram $program, InternshipParticipant $participant): string
+    {
+        $position = $program->participants()->where('status', 'approved')->where('id', '<=', $participant->id)->count();
+        $sequence = (int) $program->certificate_start_sequence + max(0, $position - 1);
+        return str_replace('{X}', (string) $sequence, (string) $program->certificate_number_format);
+    }
+
     public function createSampleTemplate(string $path): void
     {
         $word=new \PhpOffice\PhpWord\PhpWord();$section=$word->addSection(['orientation'=>'landscape','pageSizeW'=>16838,'pageSizeH'=>11906,'marginTop'=>800,'marginBottom'=>800,'marginLeft'=>1000,'marginRight'=>1000]);

@@ -154,6 +154,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('laporan-harian', [DailyReportController::class, 'store'])->name('daily-reports.store');
     Route::get('laporan-harian/{report}', [DailyReportController::class, 'show'])->name('daily-reports.show');
     Route::get('monitoring-laporan-harian', [DailyReportManagementController::class, 'reports'])->name('daily-report-management.reports');
+    Route::get('monitoring-laporan-harian/{month}/zip', [DailyReportManagementController::class, 'monthlyZip'])->where('month', '\\d{4}-\\d{2}')->name('daily-report-management.monthly-zip');
+    Route::get('monitoring-laporan-harian/{month}', [DailyReportManagementController::class, 'month'])->where('month', '\\d{4}-\\d{2}')->name('daily-report-management.month');
     Route::get('kelola-pppk-pw', [DailyReportManagementController::class, 'index'])->name('daily-report-management.index');
     Route::post('kelola-pppk-pw', [DailyReportManagementController::class, 'storeAssignment'])->name('daily-report-management.store');
     Route::get('kelola-pppk-pw/template', [DailyReportManagementController::class, 'template'])->name('daily-report-management.template');
