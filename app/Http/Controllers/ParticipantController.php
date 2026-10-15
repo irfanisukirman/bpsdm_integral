@@ -143,7 +143,9 @@ class ParticipantController extends Controller
     {
         $user = Auth::user();
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
-        return view('participant.complete_profile', compact('user'));
+        $employmentStatuses = \App\Models\EmploymentStatus::where('is_active', true)->orderBy('sort_order')->get();
+        $institutions = \App\Models\Institution::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+        return view('participant.complete_profile', compact('user', 'employmentStatuses', 'institutions'));
     }
 
     /**
@@ -163,18 +165,20 @@ class ParticipantController extends Controller
             'birth_date' => 'required|date|before_or_equal:today',
             'jabatan' => 'required',
             'golongan' => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
-            'instansi' => 'required',
+            'institution_id' => 'required|exists:institutions,id',
             'provinsi' => 'required',
             'kota' => 'required', // <--- Gunakan 'kota'
             'kecamatan' => 'required',
             'kelurahan' => 'required',
             'address' => 'required|string|max:1000',
-            'status_kepegawaian' => 'required|in:PNS,PPPK,PPPK-PW',
+            'employment_status_id' => 'required|exists:employment_statuses,id',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'password' => [\Illuminate\Validation\Rule::requiredIf(fn () => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
+        $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
+        $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
         $requestedType = $user->must_complete_profile ? 'peserta' : $request->user_type;
         $role = $requestedType === 'narasumber' ? 'pengajar' : 'participant';
         $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
@@ -191,8 +195,10 @@ class ParticipantController extends Controller
             'birth_date' => $request->birth_date,
             'jabatan' => $request->jabatan,
             'golongan' => $request->golongan,
-            'instansi' => $request->instansi,
-            'status_kepegawaian' => $request->status_kepegawaian,
+            'institution_id' => $institution->id,
+            'instansi' => $institution->name,
+            'employment_status_id' => $employmentStatus->id,
+            'status_kepegawaian' => $employmentStatus->name,
             'provinsi' => $request->provinsi,
             'kota' => $request->kota, // <--- Simpan ke kolom 'kota'
             'kecamatan' => $request->kecamatan,

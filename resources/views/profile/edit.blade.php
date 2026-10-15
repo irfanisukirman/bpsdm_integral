@@ -112,10 +112,11 @@
                             </div>
                             <div class="mb-3 col-md-6">
                                 <label class="form-label fw-bold">Status Kepegawaian</label>
-                                <select name="status_kepegawaian" class="form-select">
-                                    <option value="PNS" {{ $user->status_kepegawaian == 'PNS' ? 'selected' : '' }}>PNS</option>
-                                    <option value="PPPK" {{ $user->status_kepegawaian == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                    <option value="PPPK-PW" {{ $user->status_kepegawaian == 'PPPK-PW' ? 'selected' : '' }}>PPPK-PW</option>
+                                <select name="employment_status_id" class="form-select" required>
+                                    <option value="">-- Pilih Status --</option>
+                                    @foreach($employmentStatuses as $status)
+                                        <option value="{{$status->id}}" @selected((string)old('employment_status_id',$user->employment_status_id)===(string)$status->id)>{{$status->name}}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="mb-3 col-md-6">
@@ -148,7 +149,7 @@
                             </div>
                             <div class="mb-3 col-12">
                                 <label class="form-label fw-bold">Instansi / Unit Kerja</label>
-                                <input class="form-control" type="text" name="instansi" value="{{ old('instansi', $user->instansi) }}" placeholder="Contoh: BPSDM Provinsi Jawa Barat" required />
+                                <select class="form-select" name="institution_id" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string)old('institution_id',$user->institution_id)===(string)$institution->id>{{$institution->name}}</option>@endforeach</select>
                             </div>
                         </div>
 

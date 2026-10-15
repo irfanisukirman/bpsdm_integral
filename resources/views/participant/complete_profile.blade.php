@@ -87,11 +87,9 @@
                 <!-- Status Kepegawaian -->
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Status Kepegawaian <span class="required-star">*</span></label>
-                    <select name="status_kepegawaian" class="form-select" required>
+                    <select name="employment_status_id" class="form-select" required>
                         <option value="">-- Pilih Status --</option>
-                        <option value="PNS" {{ old('status_kepegawaian') == 'PNS' ? 'selected' : '' }}>PNS</option>
-                        <option value="PPPK" {{ old('status_kepegawaian') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                        <option value="PPPK-PW" {{ old('status_kepegawaian') == 'PPPK-PW' ? 'selected' : '' }}>PPPK-PW</option>
+                        @foreach($employmentStatuses as $status)<option value="{{$status->id}}" @selected((string) old('employment_status_id', $user->employment_status_id) === (string) $status->id)>{{$status->name}}</option>@endforeach
                     </select>
                 </div>
             </div>
@@ -133,7 +131,7 @@
                 <!-- Instansi -->
                 <div class="col-12 mb-3">
                     <label class="form-label">Instansi / Unit Kerja <span class="required-star">*</span></label>
-                    <input type="text" name="instansi" class="form-control" placeholder="Contoh: BPSDM Provinsi Jawa Barat" value="{{old('instansi',$user->instansi)}}" required>
+                    <select name="institution_id" class="form-select" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string) old('institution_id', $user->institution_id) === (string) $institution->id)>{{$institution->name}}</option>@endforeach</select>
                 </div>
             </div>
 

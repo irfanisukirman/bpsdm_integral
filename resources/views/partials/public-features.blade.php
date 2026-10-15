@@ -1,59 +1,19 @@
 @php
     $features = [
-        [
-            'title' => 'Kelola Pelatihan',
-            'description' => 'Mengelola pelatihan, peserta, jadwal, metode pembelajaran, tahapan kegiatan, dan penanggung jawab bidang dalam satu alur.',
-            'icon' => 'bx-book-open',
-            'tag' => 'Pelatihan',
-        ],
-        [
-            'title' => 'Presensi Digital',
-            'description' => 'Presensi harian peserta berdasarkan jadwal, pemantauan status kehadiran, serta rekap daftar hadir yang dapat diunduh.',
-            'icon' => 'bx-check-square',
-            'tag' => 'Kehadiran',
-        ],
-        [
-            'title' => 'Evaluasi Kirkpatrick',
-            'description' => 'Evaluasi Level 1 sampai Level 4 untuk mengukur kepuasan, pembelajaran, perubahan perilaku, dan dampak pelatihan.',
-            'icon' => 'bx-analyse',
-            'tag' => 'Evaluasi L1–L4',
-        ],
-        [
-            'title' => 'Monitoring & Tindak Lanjut',
-            'description' => 'Instrumen monitoring, rekomendasi perbaikan kepada bidang terkait, status penyelesaian, dan laporan tindak lanjut.',
-            'icon' => 'bx-shield-quarter',
-            'tag' => 'Monitoring',
-        ],
-        [
-            'title' => 'Manajemen Dokumen',
-            'description' => 'Dokumen peserta, pengajar, dan keluaran pelatihan tersusun otomatis di dalam folder setiap kegiatan.',
-            'icon' => 'bx-folder-open',
-            'tag' => 'Dokumen',
-        ],
-        [
-            'title' => 'Ruang Kerja Pengajar',
-            'description' => 'Pengajar dapat melihat jadwal dan JP mengajar, melengkapi profil, serta mengunggah materi dan bukti mengajar per sesi.',
-            'icon' => 'bx-chalkboard',
-            'tag' => 'Pengajar',
-        ],
-        [
-            'title' => 'Forum & Notifikasi',
-            'description' => 'Forum percakapan setiap pelatihan serta notifikasi untuk pesan, presensi, evaluasi, dokumen, dan rekomendasi yang belum selesai.',
-            'icon' => 'bx-message-rounded-dots',
-            'tag' => 'Kolaborasi',
-        ],
-        [
-            'title' => 'Data Alumni & Peta Sebaran',
-            'description' => 'Riwayat alumni dan visualisasi sebaran peserta hingga wilayah desa atau kelurahan untuk mendukung analisis pemerataan.',
-            'icon' => 'bx-map-alt',
-            'tag' => 'Alumni',
-        ],
-        [
-            'title' => 'Aset, Ruangan & Agenda',
-            'description' => 'Kelola fasilitas dan foto aset, cek benturan pemakaian ruangan, susun agenda bidang atau pimpinan, dan tampilkan agenda publik.',
-            'icon' => 'bx-building-house',
-            'tag' => 'Fasilitas',
-        ],
+        ['title' => 'Kelola Pelatihan', 'description' => 'Mengelola peserta, jadwal JP/OJ, pengajar, kelengkapan, forum, ID card, sertifikat, dan laporan kegiatan dalam satu pusat kendali.', 'icon' => 'bx-book-open', 'tag' => 'Pelatihan'],
+        ['title' => 'Evaluasi & Analitik Dampak', 'description' => 'Evaluasi Level 1 sampai Level 4, dashboard grafik, laporan 360 derajat, dan rangkuman berbantuan AI untuk pengambilan keputusan.', 'icon' => 'bx-analyse', 'tag' => 'L1–L4'],
+        ['title' => 'Presensi Terpadu', 'description' => 'Presensi peserta pelatihan dan formulir kegiatan publik dengan statistik respons, ekspor data, tanda tangan, dan lampiran digital.', 'icon' => 'bx-check-square', 'tag' => 'Presensi'],
+        ['title' => 'Monitoring & Tindak Lanjut', 'description' => 'Instrumen monitoring, rekomendasi perbaikan, status penyelesaian, dashboard pengajar, serta jadwal harian lintas bidang.', 'icon' => 'bx-shield-quarter', 'tag' => 'Monitoring'],
+        ['title' => 'Dokumen & Manajemen Mutu', 'description' => 'Arsip dokumen per tahun, kelengkapan penyelenggaraan, progres dokumen mutu, dan laporan kegiatan otomatis dari data pelatihan.', 'icon' => 'bx-folder-open', 'tag' => 'Mutu'],
+        ['title' => 'Sertifikat & Tanda Tangan Elektronik', 'description' => 'Generate sertifikat dari template, alur TTE BSrE, QR verifikasi, bundel ZIP, dan distribusi sertifikat ke akun peserta.', 'icon' => 'bx-certification', 'tag' => 'TTE'],
+        ['title' => 'Ruang Kerja Pengajar', 'description' => 'Pengajar melihat jadwal dan beban JP/OJ, melengkapi profil, mengunggah materi, serta memantau seluruh agenda mengajar.', 'icon' => 'bx-chalkboard', 'tag' => 'Pengajar'],
+        ['title' => 'Alumni & Peta Sebaran', 'description' => 'Riwayat alumni, frekuensi mengikuti pelatihan, dan visualisasi sebaran peserta hingga wilayah desa atau kelurahan.', 'icon' => 'bx-map-alt', 'tag' => 'Alumni'],
+        ['title' => 'Aset, Reservasi & Agenda', 'description' => 'Persetujuan pemakaian aset internal, reservasi fasilitas publik bertarif, monitoring jadwal, dan agenda organisasi.', 'icon' => 'bx-building-house', 'tag' => 'Fasilitas'],
+        ['title' => 'Magang, PKL & Buku Tamu', 'description' => 'Pendaftaran dan presensi magang berbasis selfie, sertifikat peserta, serta buku tamu publik dengan QR dan monitoring kunjungan.', 'icon' => 'bx-id-card', 'tag' => 'Layanan Publik'],
+        ['title' => 'Keuangan Bidang', 'description' => 'Pengelolaan struktur anggaran, kodering, GU, prognosis, realisasi, sisa anggaran, dan persentase penyerapan setiap bidang.', 'icon' => 'bx-wallet', 'tag' => 'Keuangan'],
+        ['title' => 'Kerja Sama & Sertifikasi', 'description' => 'Rekap dokumen kerja sama, kegiatan sertifikasi, biodata narasumber, evaluasi peserta, dan pengumpulan sertifikat publik.', 'icon' => 'bx-handshake', 'tag' => 'Kelembagaan'],
+        ['title' => 'Laporan Harian PPPK-PW', 'description' => 'Pencatatan kegiatan harian, monitoring Kasubag, dan rekap PDF bulanan dengan identitas serta tanda tangan pegawai dan atasan.', 'icon' => 'bx-notepad', 'tag' => 'Pelaporan'],
+        ['title' => 'Asisten AI INTEGRAL', 'description' => 'Pencarian informasi dan penyusunan rangkuman evaluasi untuk membantu pengelola membaca data dengan lebih cepat.', 'icon' => 'bx-bot', 'tag' => 'AI'],
     ];
 @endphp
 
