@@ -103,7 +103,8 @@
                 <form action="@yield('form_action')" 
                       method="@yield('form_method_raw', 'POST')" 
                       enctype="@yield('form_enctype', 'application/x-www-form-urlencoded')" 
-                      id="reusableForm">
+                      id="reusableForm"
+                      novalidate>
                     @csrf
                     @yield('form_method')
 
@@ -119,10 +120,10 @@
                             </small>
                             <div class="d-flex gap-2">
                                 @section('form_buttons')
-                                    <button type="reset" class="btn btn-outline-secondary">
+                                    <button type="reset" class="btn btn-outline-secondary d-inline-flex align-items-center">
                                         <i class="bx bx-refresh me-1"></i> Reset
                                     </button>
-                                    <button type="submit" class="btn btn-primary shadow" id="btnSubmitForm">
+                                    <button type="submit" class="btn btn-primary shadow d-inline-flex align-items-center" id="btnSubmitForm">
                                         <i class="bx bx-save me-1"></i> @yield('submit_text', 'Simpan Data')
                                     </button>
                                 @show

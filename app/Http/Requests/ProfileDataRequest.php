@@ -16,16 +16,41 @@ use Illuminate\Validation\Rule;
 abstract class ProfileDataRequest extends FormRequest
 {
     /**
-     * Daftar golongan yang sah sesuai data kepegawaian.
+     * Golongan untuk pegawai berstatus PNS: I/a sampai IV/e.
      */
-    public const GOLONGAN = [
-        'I/a', 'II/a', 'II/b', 'II/c', 'II/d',
+    public const GOLONGAN_PNS = [
+        'I/a', 'I/b', 'I/c', 'I/d',
+        'II/a', 'II/b', 'II/c', 'II/d',
         'III/a', 'III/b', 'III/c', 'III/d',
-        'IV/a', 'IV/b', 'IV/c',
+        'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
+    ];
+
+    /**
+     * Golongan untuk pegawai berstatus PPPK/PPPK-PW: V sampai XIV.
+     */
+    public const GOLONGAN_PPPK = [
         'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV',
     ];
 
+    /**
+     * Gabungan seluruh golongan yang sah (PNS + PPPK).
+     */
+    public const GOLONGAN = [
+        ...self::GOLONGAN_PNS,
+        ...self::GOLONGAN_PPPK,
+    ];
+
     public const USER_TYPES = ['peserta', 'narasumber', 'mitra'];
+
+    /**
+     * Daftar golongan yang berlaku untuk status kepegawaian tertentu.
+     *
+     * @return array<int, string>
+     */
+    public static function golonganUntuk(?string $statusKepegawaian): array
+    {
+        return $statusKepegawaian === 'PNS' ? self::GOLONGAN_PNS : self::GOLONGAN_PPPK;
+    }
 
     public function authorize(): bool
     {
@@ -58,7 +83,7 @@ abstract class ProfileDataRequest extends FormRequest
             'birth_place' => ['required', 'string', 'max:255'],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'jabatan' => ['required', 'string', 'max:255'],
-            'golongan' => ['nullable', Rule::in(self::GOLONGAN)],
+            'golongan' => ['nullable', Rule::in(self::golonganUntuk($this->input('status_kepegawaian')))],
             'instansi' => ['required', 'string', 'max:255'],
             'provinsi' => ['required', 'string', 'max:255'],
             'kota' => ['required', 'string', 'max:255'],
@@ -92,7 +117,7 @@ abstract class ProfileDataRequest extends FormRequest
             'birth_date.before_or_equal' => 'Tanggal lahir tidak boleh melewati hari ini.',
             'jabatan.required' => 'Jabatan wajib diisi.',
             'jabatan.max' => 'Jabatan maksimal 255 karakter.',
-            'golongan.in' => 'Golongan yang dipilih tidak sesuai daftar yang berlaku.',
+            'golongan.in' => 'Golongan yang dipilih tidak sesuai dengan status kepegawaian.',
             'instansi.required' => 'Instansi wajib diisi.',
             'instansi.max' => 'Instansi maksimal 255 karakter.',
             'provinsi.required' => 'Provinsi wajib diisi.',

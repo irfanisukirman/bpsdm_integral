@@ -5,20 +5,20 @@
 @section('page_title', 'Pendaftaran Akun')
 @section('page_description', 'Lengkapi setiap section. Lingkaran hijau menandakan section yang sudah terisi.')
 @section('form_action', route('register'))
-@section('submit_text', 'Daftar & Buat Akun')
+@section('submit_text', 'Daftar')
 @section('back_url', route('login'))
 
 @section('form_content')
 
     @php
         $steps = [
-            ['key' => 'account', 'label' => 'Akun', 'fields' => ['name', 'email', 'email_confirmation', 'password', 'password_confirmation']],
+            ['key' => 'account', 'label' => 'Akun', 'fields' => ['name', 'email', 'email_confirmation', 'password', 'password_confirmation'], 'error_fields' => ['name', 'email', 'email_confirmation', 'username', 'password']],
             ['key' => 'personal', 'label' => 'Personal', 'fields' => ['user_type', 'nip_nik', 'whatsapp', 'gender', 'birth_place', 'birth_date']],
             ['key' => 'instansi', 'label' => 'Instansi (ASN)', 'fields' => ['instansi']],
-            ['key' => 'pekerjaan', 'label' => 'Pekerjaan (ASN)', 'fields' => ['jabatan', 'status_kepegawaian']],
+            ['key' => 'pekerjaan', 'label' => 'Pekerjaan (ASN)', 'fields' => ['jabatan', 'status_kepegawaian'], 'error_fields' => ['jabatan', 'status_kepegawaian', 'golongan']],
             ['key' => 'detail', 'label' => 'Detail', 'fields' => ['provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude']],
         ];
-        $activeStep = \App\Support\FormStepper::initialStep($steps);
+        $activeStep = \App\Support\FormStepper::initialStep($steps, $errors);
         $errorCounts = \App\Support\FormStepper::errorCountsPerStep($errors, $steps);
 
         // Layout menerima $errors sebagai data eksplisit, jadi harus ditugaskan
@@ -42,7 +42,6 @@
             <div class="mb-3">
                 <label class="form-label">Nama Lengkap <span class="required-star">*</span></label>
                 <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Nama sesuai identitas resmi" autocomplete="name" required>
-                <div class="form-text">Nama ini tampil pada sertifikat dan daftar peserta.</div>
             </div>
 
             <div class="row">
@@ -52,7 +51,6 @@
                         <span class="input-group-text"><i class="bx bx-envelope"></i></span>
                         <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="nama@domain.go.id" autocomplete="email" required>
                     </div>
-                    <div class="form-text">Dipakai untuk pemberitahuan sistem.</div>
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -101,7 +99,6 @@
 
     @include('partials.profile.section-pekerjaan', [
         'profile' => $user,
-        'golonganOptions' => $golonganOptions,
         'hidden' => $activeStep !== 3,
     ])
 
@@ -124,7 +121,6 @@
     'profile' => $user,
     'addressSearchUrl' => route('register.address-search'),
 ])
-@endpush
 
 <script>
 $(document).ready(function() {
@@ -147,3 +143,4 @@ $(document).ready(function() {
     [password, passwordConfirmation].forEach(el => el && el.addEventListener('input', validatePasswordConfirmation));
 });
 </script>
+@endpush

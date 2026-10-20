@@ -149,7 +149,7 @@
                             </div>
                             <div class="mb-3 col-12">
                                 <label class="form-label fw-bold">Instansi / Unit Kerja</label>
-                                <select class="form-select" name="institution_id" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string)old('institution_id',$user->institution_id)===(string)$institution->id>{{$institution->name}}</option>@endforeach</select>
+                                <select class="form-select" name="institution_id" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string)old('institution_id',$user->institution_id)===(string)$institution->id)>{{$institution->name}}</option>@endforeach</select>
                             </div>
                         </div>
 

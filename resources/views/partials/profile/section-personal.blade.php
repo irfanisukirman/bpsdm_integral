@@ -25,7 +25,6 @@
                 <option value="mitra" @selected(old('user_type', $profile->user_type) === 'mitra')>Mitra Kerja Sama</option>
             </select>
             <div id="userTypeExplanation" class="alert alert-danger py-2 mt-3 mb-0 small d-none" role="alert"></div>
-            <div class="form-text mt-2"><i class="bx bx-shield-quarter me-1"></i>Akun admin dan superadmin tidak dapat dibuat melalui registrasi publik.</div>
         </div>
 
         <div class="row">

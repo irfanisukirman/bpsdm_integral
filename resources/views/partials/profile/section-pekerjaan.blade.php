@@ -33,15 +33,61 @@
 
         <div class="row">
             <div class="col-md-6 mb-3">
+                @php
+                    $golonganPns = \App\Http\Requests\ProfileDataRequest::GOLONGAN_PNS;
+                    $golonganPppk = \App\Http\Requests\ProfileDataRequest::GOLONGAN_PPPK;
+                    $statusKepegawaian = old('status_kepegawaian', $profile->status_kepegawaian);
+                    $golonganTerpilih = old('golongan', $profile->golongan);
+                    // Golongan PPPK/PPPK-PW, selain itu (termasuk belum dipilih) memakai daftar PNS.
+                    $golonganAktif = in_array($statusKepegawaian, ['PPPK', 'PPPK-PW'], true) ? $golonganPppk : $golonganPns;
+                @endphp
                 <label class="form-label">Golongan <span class="text-muted small">(opsional)</span></label>
-                <select name="golongan" class="form-select">
+                <select name="golongan"
+                        id="registerGolongan"
+                        class="form-select"
+                        data-pns='@json($golonganPns)'
+                        data-pppk='@json($golonganPppk)'>
                     <option value="">-- Tidak memiliki golongan --</option>
-                    @foreach($golonganOptions ?? \App\Http\Requests\ProfileDataRequest::GOLONGAN as $item)
-                        <option value="{{ $item }}" @selected(old('golongan', $profile->golongan) === $item)>{{ $item }}</option>
+                    @foreach($golonganAktif as $item)
+                        <option value="{{ $item }}" @selected($golonganTerpilih === $item)>{{ $item }}</option>
                     @endforeach
                 </select>
-                <div class="form-text">Pilih golongan saat ini sesuai data kepegawaian.</div>
+                <div class="form-text">Pilih golongan sesuai status kepegawaian.</div>
             </div>
         </div>
+
+        <script>
+        (function () {
+            const status = document.querySelector('select[name="status_kepegawaian"]');
+            const golongan = document.getElementById('registerGolongan');
+            if (!status || !golongan) return;
+
+            let groups;
+            try {
+                groups = {
+                    PNS: JSON.parse(golongan.dataset.pns || '[]'),
+                    PPPK: JSON.parse(golongan.dataset.pppk || '[]'),
+                };
+            } catch (e) {
+                return;
+            }
+
+            function render(keepValue) {
+                const current = keepValue ? golongan.value : '';
+                const list = (status.value === 'PPPK' || status.value === 'PPPK-PW') ? groups.PPPK : groups.PNS;
+                golongan.innerHTML = '<option value="">-- Tidak memiliki golongan --</option>';
+                list.forEach(function (item) {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+                    if (item === current) option.selected = true;
+                    golongan.appendChild(option);
+                });
+            }
+
+            status.addEventListener('change', function () { render(false); });
+            render(true);
+        })();
+        </script>
     </div>
 </div>

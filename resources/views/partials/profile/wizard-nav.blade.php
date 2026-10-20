@@ -9,13 +9,13 @@
     oleh script stepper pada step terakhir.
 --}}
 <div id="wizardNav" class="card-footer wizard-nav d-none">
-    <button type="button" id="wizardPrev" class="btn btn-outline-secondary d-none">
+    <button type="button" id="wizardPrev" class="btn btn-outline-secondary d-none d-inline-flex align-items-center">
         <i class="bx bx-left-arrow-alt me-1"></i> Sebelumnya
     </button>
 
     <small id="wizardHint" class="wizard-nav__hint text-muted flex-grow-1 text-center"></small>
 
-    <button type="button" id="wizardNext" class="btn btn-primary shadow-sm">
+    <button type="button" id="wizardNext" class="btn btn-primary shadow-sm d-inline-flex align-items-center">
         Berikutnya <i class="bx bx-right-arrow-alt ms-1"></i>
     </button>
 </div>

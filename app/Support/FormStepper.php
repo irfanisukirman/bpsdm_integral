@@ -23,12 +23,27 @@ class FormStepper
     /**
      * Langkah pertama yang belum terisi, atau langkah terakhir bila semua lengkap.
      *
+     * Bila ada validator error, langkah yang memuat error pertama diprioritaskan
+     * agar pengguna langsung melihat isian yang perlu diperbaiki setelah submit.
+     *
      * @param  array<int, array{key: string, label: string, fields: array<int, string>}>  $steps
      */
-    public static function initialStep(array $steps): int
+    public static function initialStep(array $steps, ?ViewErrorBag $errors = null): int
     {
         if ($steps === []) {
             return 0;
+        }
+
+        if ($errors !== null) {
+            $messages = $errors->getMessages();
+
+            foreach ($steps as $index => $step) {
+                foreach (self::errorFields($step) as $field) {
+                    if (isset($messages[$field])) {
+                        return $index;
+                    }
+                }
+            }
         }
 
         foreach ($steps as $index => $step) {
@@ -38,6 +53,19 @@ class FormStepper
         }
 
         return count($steps) - 1;
+    }
+
+    /**
+     * Field yang error-nya ditampilkan pada langkah ini. Berbeda dengan
+     * "fields" (penentu kelengkapan), daftar ini boleh memuat field opsional
+     * seperti golongan atau username yang tetap bisa menghasilkan error.
+     *
+     * @param  array{key?: string, label?: string, fields?: array<int, string>, error_fields?: array<int, string>}  $step
+     * @return array<int, string>
+     */
+    private static function errorFields(array $step): array
+    {
+        return $step['error_fields'] ?? $step['fields'] ?? [];
     }
 
     /**
@@ -84,7 +112,7 @@ class FormStepper
         $keep = [];
 
         foreach (array_slice($steps, 0, $activeStep + 1) as $step) {
-            foreach ($step['fields'] ?? [] as $field) {
+            foreach (self::errorFields($step) as $field) {
                 if (isset($messages[$field])) {
                     $keep[$field] = $messages[$field];
                 }
@@ -114,7 +142,7 @@ class FormStepper
         foreach ($steps as $index => $step) {
             $count = 0;
 
-            foreach ($step['fields'] ?? [] as $field) {
+            foreach (self::errorFields($step) as $field) {
                 $count += count($messages[$field] ?? []);
             }
 

@@ -26,7 +26,6 @@
             <h6 class="fw-bold text-dark mb-0">
                 <i class="bx bx-list-check me-1"></i> Kelengkapan Data
             </h6>
-            <span class="badge bg-label-success" id="stepperSummary">0 dari {{ count($stepperSteps) }} section lengkap</span>
         </div>
 
         <ol class="profile-stepper" id="profileStepper">
@@ -187,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('reusableForm');
     if (!stepper || !form) return;
 
-    const summary = document.getElementById('stepperSummary');
     const hint = document.getElementById('wizardHint');
     const nav = document.getElementById('wizardNav');
     const prevButton = document.getElementById('wizardPrev');
@@ -204,6 +202,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!sections.length) return;
 
     let current = 0;
+
+    const serverStep = sections.findIndex(step => !step.panel.classList.contains('d-none'));
+    if (serverStep >= 0) {
+        current = serverStep;
+    }
 
     const controlOf = name => form.querySelector('[name="' + name + '"]');
 
@@ -259,11 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
             sections[current].panel.appendChild(nav);
         }
         if (nav) nav.classList.remove('d-none');
-
-        const done = sections.filter(isComplete).length;
-        if (summary) {
-            summary.textContent = done + ' dari ' + sections.length + ' section lengkap';
-        }
     };
 
     const goTo = index => {
@@ -290,7 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (hint) {
-            hint.textContent = 'Lengkapi bagian yang masih kosong sebelum melanjutkan.';
+            let message = 'Lengkapi bagian yang masih kosong sebelum melanjutkan.';
+            if (control) {
+                const value = String(control.value ?? '').trim();
+                if (value !== '' && control.validationMessage) {
+                    message = control.validationMessage;
+                }
+            }
+            hint.textContent = message;
             hint.classList.add('text-danger', 'fw-semibold');
             setTimeout(() => hint.classList.remove('text-danger', 'fw-semibold'), 2200);
         }

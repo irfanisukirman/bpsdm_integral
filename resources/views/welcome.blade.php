@@ -172,6 +172,12 @@
             font-weight: 600;
             transition: all 0.3s;
             letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .navbar-custom .btn-integral {
+            padding: 10px 16px;
+            display: inline-flex;
+            align-items: center;
         }
 
         .btn-primary-gradient {
@@ -262,6 +268,7 @@
         position: relative;
         color: var(--integral-dark) !important;
         transition: all 0.3s ease;
+        white-space: nowrap;
     }
 
     /* Efek Hover Warna Teks */
@@ -292,6 +299,7 @@
     /* Interaksi Tombol Utama (Button) */
     .btn-integral-primary {
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        white-space: nowrap;
     }
 
     .btn-integral-primary:hover {

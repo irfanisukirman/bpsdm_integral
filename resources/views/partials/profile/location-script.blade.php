@@ -157,32 +157,52 @@ $(document).ready(function() {
     initSelect2($kecSelect, 'Pilih Kabupaten Terlebih Dahulu');
     initSelect2($kelSelect, 'Pilih Kecamatan Terlebih Dahulu');
 
-    // 1. Load Semua Provinsi
-    $provSelect.html('<option value="">Memuat data provinsi...</option>').prop('disabled', true).trigger('change.select2');
-    fetch(`${wilayahBaseUrl}/provinces.json`)
-    .then(r => {
-        if (!r.ok) throw new Error('Gagal mengambil data provinsi.');
-        return r.json();
-    })
-    .then(data => {
-        provSelect.innerHTML = '<option value="">-- Pilih / Cari Provinsi --</option>';
-        data.forEach(item => {
-            let opt = document.createElement('option');
-            opt.value = item.name;
-            opt.dataset.id = item.id;
-            opt.textContent = item.name;
-            opt.selected = savedProvince === item.name;
-            provSelect.appendChild(opt);
-        });
-        $provSelect.prop('disabled', false).trigger('change.select2');
-        if (savedProvince) $provSelect.trigger('change');
-    })
-    .catch(error => {
-        console.error(error);
-        $provSelect.html('<option value="">Data provinsi gagal dimuat</option>').prop('disabled', true).trigger('change.select2');
+    // 1. Load Semua Provinsi (dengan tombol Muat Ulang jika gagal)
+    function showWilayahError() {
         $('#wilayahLoadError').remove();
-        $provSelect.closest('.card-body').prepend('<div id="wilayahLoadError" class="alert alert-danger py-2"><i class="bx bx-error-circle me-1"></i>Data wilayah gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.</div>');
-    });
+        $provSelect.closest('.card-body').prepend(
+            '<div id="wilayahLoadError" class="alert alert-danger py-2 d-flex align-items-center gap-2 mb-3">' +
+                '<i class="bx bx-error-circle fs-5"></i>' +
+                '<span class="flex-grow-1">Data wilayah gagal dimuat. Periksa koneksi internet Anda.</span>' +
+                '<button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center" id="retryWilayah">' +
+                    '<i class="bx bx-refresh me-1"></i>Muat Ulang' +
+                '</button>' +
+            '</div>'
+        );
+        $('#retryWilayah').on('click', function() {
+            $('#wilayahLoadError').remove();
+            loadProvinces();
+        });
+    }
+
+    function loadProvinces() {
+        $provSelect.html('<option value="">Memuat data provinsi...</option>').prop('disabled', true).trigger('change.select2');
+        fetch(`${wilayahBaseUrl}/provinces.json`)
+        .then(r => {
+            if (!r.ok) throw new Error('Gagal mengambil data provinsi.');
+            return r.json();
+        })
+        .then(data => {
+            provSelect.innerHTML = '<option value="">-- Pilih / Cari Provinsi --</option>';
+            data.forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item.name;
+                opt.dataset.id = item.id;
+                opt.textContent = item.name;
+                opt.selected = savedProvince === item.name;
+                provSelect.appendChild(opt);
+            });
+            $provSelect.prop('disabled', false).trigger('change.select2');
+            if (savedProvince) $provSelect.trigger('change');
+        })
+        .catch(error => {
+            console.error(error);
+            $provSelect.html('<option value="">Data provinsi gagal dimuat</option>').prop('disabled', true).trigger('change.select2');
+            showWilayahError();
+        });
+    }
+
+    loadProvinces();
 
     // 2. Load Kota saat Provinsi Berubah
     $provSelect.on('change', function() {
