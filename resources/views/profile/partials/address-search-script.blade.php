@@ -1,7 +1,14 @@
+    {{--
+    Pencarian alamat untuk form profil. Endpoint-nya bisa dioverride lewat
+    variabel $addressSearchUrl supaya form publik (belum login) memakai rute publik.
+--}}
+@php
+    $addressSearchUrl = $addressSearchUrl ?? route('profile.address-search');
+@endphp
     const addressInput = document.getElementById('addressSearch');
     const addressButton = document.getElementById('searchAddressButton');
     const addressResults = document.getElementById('addressSearchResults');
-    const addressSearchUrl = @json(route('profile.address-search'));
+    const addressSearchUrl = @json($addressSearchUrl);
     const selectedAddressArea = id => document.getElementById(id)?.value || '';
 
     async function searchProfileAddress() {

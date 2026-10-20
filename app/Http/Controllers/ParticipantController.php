@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Training;
 use App\Models\Participant;
 use App\Models\User;
+use App\Http\Requests\CompleteProfileRequest;
+use App\Services\ProfileDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Folder;
@@ -49,16 +51,20 @@ class ParticipantController extends Controller
             ->where('user_id', $user->id)
             ->where('registration_status', 'approved')
             ->get()
-            ->filter(fn ($participant) =>
+            ->filter(
+                fn($participant) =>
                 $participant->is_core_training_complete
-                && $participant->is_post_evaluation_due
-                && !$participant->hasFilledL34Mandiri()
+                    && $participant->is_post_evaluation_due
+                    && !$participant->hasFilledL34Mandiri()
             )
-            ->sortBy(fn ($participant) => $participant->training?->tgl_sebar_l34)
+            ->sortBy(fn($participant) => $participant->training?->tgl_sebar_l34)
             ->values();
 
         return view('participant.dashboard', compact(
-            'user', 'totalFollowed', 'myJpThisYear', 'postEvaluationTrainings'
+            'user',
+            'totalFollowed',
+            'myJpThisYear',
+            'postEvaluationTrainings'
         ));
     }
 
@@ -79,17 +85,17 @@ class ParticipantController extends Controller
         $myTrainings = \App\Models\Training::with([
             'participants',
             'stages',
-            'schedules' => fn ($query) => $query
+            'schedules' => fn($query) => $query
                 ->with(['pengajar', 'bookings.asset'])
                 ->orderBy('date')
                 ->orderBy('start_time'),
         ])
-            ->whereHas('participants', function($q) use ($user) {
+            ->whereHas('participants', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
             ->orderByDesc('tgl_mulai')
             ->get()
-            ->filter(function($t) use ($user) {
+            ->filter(function ($t) use ($user) {
                 $participant = $t->participants->where('user_id', $user->id)->first();
                 $needsPostEvaluation = $participant->is_post_evaluation_due && !$participant->hasFilledL34Mandiri();
                 return !$participant->is_core_training_complete || $needsPostEvaluation;
@@ -117,7 +123,7 @@ class ParticipantController extends Controller
         if (!$this->canJoinNewTraining($enrollments)) {
             return redirect()->back()->with('error', 'Selesaikan pelatihan yang sedang diikuti, lengkapi tiga berkas, dan isi seluruh Evaluasi Level 1 sebelum mengikuti pelatihan baru.');
         }
-        
+
         // Cari pelatihan berdasarkan kode
         $training = \App\Models\Training::where('invitation_code', strtoupper($request->invitation_code))->first();
 
@@ -131,7 +137,8 @@ class ParticipantController extends Controller
 
     private function canJoinNewTraining($enrollments): bool
     {
-        return $enrollments->isEmpty() || $enrollments->every(fn ($participant) =>
+        return $enrollments->isEmpty() || $enrollments->every(
+            fn($participant) =>
             $participant->registration_status === 'rejected' || $participant->is_core_training_complete
         );
     }
@@ -151,9 +158,9 @@ class ParticipantController extends Controller
     /**
      * Simpan Pelengkapan Profil
      */
-    public function storeProfile(Request $request)
+    public function storeProfile(CompleteProfileRequest $request, ProfileDataService $profileData)
     {
-        $user = \App\Models\User::findOrFail(auth()->id());
+        $user = User::findOrFail(auth()->id());
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
         $request->validate([
@@ -174,7 +181,7 @@ class ParticipantController extends Controller
             'employment_status_id' => 'required|exists:employment_statuses,id',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'password' => [\Illuminate\Validation\Rule::requiredIf(fn () => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
+            'password' => [\Illuminate\Validation\Rule::requiredIf(fn() => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
         $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
@@ -254,25 +261,29 @@ class ParticipantController extends Controller
         try {
             DB::transaction(function () use ($request, $training, $user, $id, &$storedPaths) {
                 $participant = Participant::updateOrCreate([
-                'training_id' => $id,
-                'nip_nik' => $user->nip_nik,
+                    'training_id' => $id,
+                    'nip_nik' => $user->nip_nik,
                 ], [
-                'user_id'            => $user->id,
-                'registration_status' => 'pending',
-                'name'               => $user->name,
-                'gender'             => $user->gender,
-                'jabatan'            => $user->jabatan,
-                'instansi'           => $user->instansi,
-                'provinsi'           => $user->provinsi,
-                'kota'               => $user->kota,
-                'kecamatan'          => $user->kecamatan,
-                'kelurahan'          => $user->kelurahan,
-                'status_kepegawaian' => $user->status_kepegawaian,
+                    'user_id'            => $user->id,
+                    'registration_status' => 'pending',
+                    'name'               => $user->name,
+                    'gender'             => $user->gender,
+                    'jabatan'            => $user->jabatan,
+                    'instansi'           => $user->instansi,
+                    'provinsi'           => $user->provinsi,
+                    'kabupaten_kota'     => $user->kota,
+                    'kecamatan'          => $user->kecamatan,
+                    'kelurahan'          => $user->kelurahan,
+                    'status_kepegawaian' => $user->status_kepegawaian,
                 ]);
 
                 foreach (['biodata', 'surat_tugas', 'pas_foto'] as $type) {
                     $storedPaths[] = $this->storeRequirementFile(
-                        $request->file($type), $type, $training, $participant, $user
+                        $request->file($type),
+                        $type,
+                        $training,
+                        $participant,
+                        $user
                     );
                 }
             });
@@ -334,11 +345,11 @@ class ParticipantController extends Controller
     {
         $training = Training::with([
             'stages',
-            'schedules' => fn ($query) => $query
+            'schedules' => fn($query) => $query
                 ->with('pengajar')
                 ->orderBy('date')
                 ->orderBy('start_time'),
-            'participants' => fn ($query) => $query
+            'participants' => fn($query) => $query
                 ->with('user')
                 ->where('registration_status', 'approved')
                 ->orderBy('name'),
@@ -347,9 +358,9 @@ class ParticipantController extends Controller
 
         // Cari data peserta yang sinkron dengan User Login
         $participant = Participant::where('training_id', $id)
-            ->where(function($q) use ($user) {
+            ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                ->orWhere('nip_nik', $user->nip_nik);
+                    ->orWhere('nip_nik', $user->nip_nik);
             })->first();
 
         // 1. Jika data peserta tidak ditemukan sama sekali
@@ -368,14 +379,14 @@ class ParticipantController extends Controller
         }
 
         // Ambil form evaluasi
-        $formsL1 = \App\Models\EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->get();
+        $formsL1 = \App\Models\EvaluationFormL1::with(['training', 'schedule.pengajar'])->where('training_id', $id)->get();
         $participantAttendances = Attendance::with('schedule')
             ->where('participant_id', $participant->id)
-            ->whereHas('schedule', fn ($query) => $query->where('training_id', $training->id))
+            ->whereHas('schedule', fn($query) => $query->where('training_id', $training->id))
             ->get()
-            ->keyBy(fn ($attendance) => (string) $attendance->schedule->date);
+            ->keyBy(fn($attendance) => (string) $attendance->schedule->date);
         $attendanceDays = $training->schedules
-            ->groupBy(fn ($schedule) => (string) $schedule->date)
+            ->groupBy(fn($schedule) => (string) $schedule->date)
             ->map(function ($schedules, $date) use ($participantAttendances) {
                 return [
                     'date' => $date,
@@ -410,15 +421,15 @@ class ParticipantController extends Controller
             })
             ->when($search !== '', function ($query) use ($search) {
                 $query->whereHas('training', function ($training) use ($search) {
-                    $training->where('nama_pelatihan', 'like', '%'.$search.'%')
-                        ->orWhere('bidang', 'like', '%'.$search.'%')
-                        ->orWhere('model', 'like', '%'.$search.'%')
+                    $training->where('nama_pelatihan', 'like', '%' . $search . '%')
+                        ->orWhere('bidang', 'like', '%' . $search . '%')
+                        ->orWhere('model', 'like', '%' . $search . '%')
                         ->orWhereYear('tgl_mulai', is_numeric($search) ? (int) $search : 0);
                 });
             })
             ->get()
-            ->filter(fn ($participant) => $participant->is_core_training_complete)
-            ->sortByDesc(fn ($participant) => $participant->training?->tgl_selesai)
+            ->filter(fn($participant) => $participant->is_core_training_complete)
+            ->sortByDesc(fn($participant) => $participant->training?->tgl_selesai)
             ->values();
 
         $page = max(1, (int) $request->query('page', 1));
@@ -432,7 +443,7 @@ class ParticipantController extends Controller
         );
         $summary = [
             'trainings' => $historyItems->count(),
-            'certificates' => $historyItems->filter(fn ($participant) => filled($participant->certificate?->final_file_path) && filled($participant->certificate?->sent_at))->count(),
+            'certificates' => $historyItems->filter(fn($participant) => filled($participant->certificate?->final_file_path) && filled($participant->certificate?->sent_at))->count(),
             'latest_year' => $historyItems->first()?->training?->tgl_selesai
                 ? \Carbon\Carbon::parse($historyItems->first()->training->tgl_selesai)->year
                 : null,

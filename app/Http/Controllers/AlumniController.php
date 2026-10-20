@@ -46,7 +46,7 @@ class AlumniController extends Controller
         $list3T = $wilayah3T->flatten()->unique()->values()->all();
         $wilayahRows = $alumni->map(function ($participant) use ($normalizeWilayah, $wilayah3T) {
             $provinsi = $participant->provinsi ?: $participant->user?->provinsi;
-            $kota = $participant->kota ?: $participant->user?->kota;
+            $kota = $participant->kabupaten_kota ?: $participant->user?->kota;
             $kecamatan = $participant->kecamatan ?: $participant->user?->kecamatan;
             $kelurahan = $participant->kelurahan ?: $participant->user?->kelurahan;
             $normalizedKota = $normalizeWilayah($kota);

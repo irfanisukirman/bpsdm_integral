@@ -570,7 +570,6 @@
                                 <div class="integration-card__logo">
                                     @if(isset($application['logo']))<img src="{{ $application['logo'] }}" alt="Logo {{ $application['name'] }}">@else<i class="bx {{ $application['icon'] }}"></i>@endif
                                 </div>
-                                <span class="integration-card__status">Terhubung</span>
                             </div>
                             <h3>{{ $application['name'] }}</h3>
                             <p>{{ $application['description'] }}</p>

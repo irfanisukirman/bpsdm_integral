@@ -56,6 +56,7 @@ use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\DailyReportManagementController;
 use App\Http\Controllers\PublicGuestBookController;
 use App\Http\Controllers\HotlineController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Admin\TicketingController;
 use App\Http\Controllers\Admin\TicketingMasterController;
 
@@ -133,7 +134,9 @@ Route::post('evaluasi-dampak/store/{training_id}/{role}', [EvaluationLevel34Cont
 Route::get('magang/daftar/{token}', [PublicInternshipController::class, 'register'])->name('internships.public.register');
 Route::post('magang/daftar/{token}', [PublicInternshipController::class, 'store'])->middleware('throttle:10,1')->name('internships.public.store');
 
-Auth::routes(['register' => false]);
+Auth::routes();
+// Pencarian alamat untuk form pendaftaran publik (belum login).
+Route::get('pendaftaran/pencarian-alamat', [ProfileController::class, 'searchAddress'])->middleware('throttle:10,1')->name('register.address-search');
 Route::get('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'index'])->name('certifications.public');
 Route::post('sertifikasi/biodata/{token}', [PublicCertificationBiodataController::class, 'verify'])->name('certifications.public.verify');
 Route::get('sertifikasi/biodata/{token}/{participantToken}', [PublicCertificationBiodataController::class, 'form'])->name('certifications.public.form');

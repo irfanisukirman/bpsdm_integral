@@ -942,7 +942,7 @@ class EvaluationLevel34Controller extends Controller
                 $templateProcessor->setValue("res_nama#$currRow", $p->name . " | " . $p->nip_nik);
                 $templateProcessor->setValue("res_jabatan#$currRow", $p->jabatan);
                 $templateProcessor->setValue("res_instansi#$currRow", $p->instansi ?: '-');
-                $templateProcessor->setValue("res_lingkup#$currRow", collect([$p->kota, $p->provinsi])->filter()->implode(', ') ?: '-');
+                $templateProcessor->setValue("res_lingkup#$currRow", collect([$p->kabupaten_kota, $p->provinsi])->filter()->implode(', ') ?: '-');
                 $templateProcessor->setValue("res_status#$currRow", $p->status_kepegawaian ?: $p->user?->status_kepegawaian ?: '-');
                 
                 $statusRoles = $results->where('participant_id', $p->id)->pluck('evaluator_role')->unique()->all();
