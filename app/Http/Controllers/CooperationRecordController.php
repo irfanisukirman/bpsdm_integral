@@ -143,6 +143,6 @@ class CooperationRecordController extends Controller
     private function authorizeManager(): void
     {
         $user = Auth::user();
-        abort_unless($user && ($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === self::BIDANG)), 403);
+        abort_unless($user && ($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === \App\Models\Bidang::resolve(self::BIDANG))), 403);
     }
 }

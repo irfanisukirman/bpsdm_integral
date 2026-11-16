@@ -59,11 +59,13 @@ class LoginController extends Controller implements HasMiddleware
     protected function attemptLogin(Request $request)
     {
         $identity = trim((string) $request->input($this->username()));
-        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw'];
+        $administrativeRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw', 'evaluator'];
 
         $user = User::where(function ($query) use ($identity, $administrativeRoles) {
                 $query->where(function ($admin) use ($identity, $administrativeRoles) {
                     $admin->whereIn('role', $administrativeRoles)->where('username', $identity);
+                })->orWhere(function ($assigned) use ($identity, $administrativeRoles) {
+                    $assigned->whereHas('roleAssignments', fn ($roles) => $roles->whereIn('role', $administrativeRoles))->where('username', $identity);
                 })->orWhere(function ($public) use ($identity, $administrativeRoles) {
                     $public->whereNotIn('role', $administrativeRoles)->where('nip_nik', $identity);
                 })->orWhere(function ($legacy) use ($identity, $administrativeRoles) {
@@ -80,6 +82,7 @@ class LoginController extends Controller implements HasMiddleware
     }
     protected function authenticated(Request $request, $user)
     {
+        if ($user->role === 'evaluator') return redirect()->route('post-evaluation.index');
         if ($user->role === 'intern' && $user->user_type_status !== 'approved') {
             Auth::logout();
             $request->session()->invalidate();

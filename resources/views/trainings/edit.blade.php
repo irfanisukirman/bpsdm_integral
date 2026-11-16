@@ -27,12 +27,7 @@
                         @else
                         <select name="bidang" class="form-select" required>
                             @php
-                                $bidangs = [
-                                    'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan',
-                                    'Bidang Pengembangan Kompetensi Teknis Inti',
-                                    'Bidang Pengembangan Kompetensi Teknis Umum',
-                                    'Bidang Pengembangan Kompetensi Manajerial'
-                                ];
+                                $bidangs = \App\Models\Bidang::names();
                             @endphp
                             @foreach($bidangs as $b)
                                 <option value="{{ $b }}" {{ $training->bidang == $b ? 'selected' : '' }}>{{ $b }}</option>

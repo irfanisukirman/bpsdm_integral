@@ -34,6 +34,7 @@
                         $result = $p->evaluationResultsL34->first(fn($item) =>
                             $item->evaluator_role === $role &&
                             $item->question?->question_text === $q->question_text &&
+                            ($item->question?->source_occurrence ?? 1) === ($q->source_occurrence ?? 1) &&
                             $item->question?->sub_category === $q->sub_category
                         );
                         $answer = '-';

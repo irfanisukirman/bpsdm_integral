@@ -123,7 +123,7 @@ public function create(Request $request, JctClient $jct, ?string $source = null)
     {
         $this->authorizeManager();
         $user = Auth::user();
-        $users = User::where('role', 'penandatangan')->whereNotNull('nip_nik')->where('nip_nik', '!=', '')
+        $users = User::withRoles(['penandatangan'])->whereNotNull('nip_nik')->where('nip_nik', '!=', '')
             ->orderBy('name')->get(['id', 'name', 'nip_nik', 'jabatan', 'bidang']);
         $trainings = Training::query()
             ->when($user->role === 'admin_bidang', fn ($query) => $query->where('bidang', $user->bidang))
@@ -710,7 +710,7 @@ return $signatureRequest;
     public function accounts(Request $request)
     {
         abort_unless(Auth::user()->role === 'superadmin', 403); $search = trim((string) $request->query('q'));
-        $accounts = User::where('role', 'penandatangan')->when($search, fn ($query) => $query->where(fn ($scope) => $scope->where('name', 'like', '%'.$search.'%')->orWhere('nip_nik', 'like', '%'.$search.'%')->orWhere('jabatan', 'like', '%'.$search.'%')))
+        $accounts = User::withRoles(['penandatangan'])->when($search, fn ($query) => $query->where(fn ($scope) => $scope->where('name', 'like', '%'.$search.'%')->orWhere('nip_nik', 'like', '%'.$search.'%')->orWhere('jabatan', 'like', '%'.$search.'%')))
             ->withCount('electronicSignatureActors')->orderBy('name')->paginate(15)->withQueryString();
         return view('electronic-signatures.accounts', compact('accounts', 'search'));
     }
@@ -726,7 +726,7 @@ return $signatureRequest;
 
     public function updateAccountPassword(Request $request, User $user)
     {
-        abort_unless(Auth::user()->role === 'superadmin' && $user->role === 'penandatangan', 403);
+        abort_unless(Auth::user()->role === 'superadmin' && $user->hasAssignedRole('penandatangan'), 403);
         $data = $request->validate(['password' => 'required|string|min:8|confirmed']); $user->update(['password' => Hash::make($data['password'])]);
         return back()->with('success', 'Password login '.$user->name.' berhasil diperbarui.');
     }
@@ -735,6 +735,7 @@ return $signatureRequest;
     {
         abort_unless(Auth::user()->role === 'superadmin' && $user->role === 'penandatangan', 403);
         if ($user->electronicSignatureActors()->exists()) return back()->with('error', 'Akun sudah memiliki riwayat tanda tangan dan tidak dapat dihapus.');
+        abort_if($user->roleAssignments()->exists(), 422, 'Akun memiliki peran tambahan. Kelola perannya melalui menu Users.');
         $user->delete(); return back()->with('success', 'Akun penandatangan berhasil dihapus.');
     }
 

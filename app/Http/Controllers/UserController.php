@@ -25,17 +25,17 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         $category = $request->query('category');
-        $adminRoles = ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw'];
+        $adminRoles = \App\Support\UserRoles::ADMINISTRATIVE;
 
         $stats = [
             'all' => User::count(),
-            'admin' => User::whereIn('role', $adminRoles)->count(),
+            'admin' => User::withRoles($adminRoles)->count(),
             'peserta' => User::where('user_type', 'peserta')->count(),
             'narasumber' => User::where('user_type', 'narasumber')->count(),
             'mitra' => User::where('user_type', 'mitra')->count(),
         ];
 
-        $users = User::latest()
+        $users = User::with('roleAssignments')->latest()
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%")
@@ -43,18 +43,19 @@ class UserController extends Controller
                         ->orWhere('nip_nik', 'LIKE', "%$search%")
                         ->orWhere('bidang', 'LIKE', "%$search%")
                         ->orWhere('role', 'LIKE', "%$search%")
+                        ->orWhereHas('roleAssignments', fn ($roles) => $roles->where('role', 'LIKE', "%$search%")->orWhere('bidang', 'LIKE', "%$search%"))
                         ->orWhere('user_type', 'LIKE', "%$search%")
                         ->orWhere('instansi', 'LIKE', "%$search%")
                         ->orWhere('jabatan', 'LIKE', "%$search%");
                 });
             })
-            ->when($category === 'admin', fn ($query) => $query->whereIn('role', $adminRoles))
+            ->when($category === 'admin', fn ($query) => $query->withRoles($adminRoles))
             ->when(in_array($category, ['peserta', 'narasumber', 'mitra'], true),
                 fn ($query) => $query->where('user_type', $category))
             ->paginate(15)
             ->withQueryString();
 
-        $listBidang = self::$listBidang;
+        $listBidang = \App\Models\Bidang::names();
 
         return view('users.index', compact('users', 'listBidang', 'search', 'category', 'stats'));
     }
@@ -69,7 +70,7 @@ class UserController extends Controller
             'username' => 'required|string|unique:users,username',
             'whatsapp' => 'required|numeric',
             'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,kasubag_pppk_pw,pengajar,participant,mitra,penandatangan',
-            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
+            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(\App\Models\Bidang::names(), ['Pengelola Aset']))],
             'password' => 'required|min:6',
         ]);
 
@@ -100,7 +101,7 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
-        if ($user->role !== 'participant') {
+        if ($user->primaryRole() !== 'participant' || $user->roleAssignments()->exists()) {
             return back()->with('error', 'Penghapusan menyeluruh hanya tersedia untuk akun peserta. Ubah atau pindahkan tanggung jawab akun administratif terlebih dahulu.');
         }
 
@@ -222,7 +223,7 @@ class UserController extends Controller
             'nip_nik'  => 'nullable|string|max:50',
             'role'     => 'required|in:superadmin,admin_bidang,admin_aset,pengelola_magang,resepsionis,pengelola_keuangan,manajemen_mutu,kasubag_pppk_pw,pengajar,participant,mitra,penandatangan',
             'whatsapp' => 'required|numeric',
-            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(self::$listBidang, ['Pengelola Aset']))],
+            'bidang'   => ['required_if:role,admin_bidang,pengelola_keuangan', 'nullable', Rule::in(array_merge(\App\Models\Bidang::names(), ['Pengelola Aset']))],
         ]);
 
         $userType = match ($request->role) {

@@ -33,10 +33,7 @@ class DocumentController extends Controller
         // Jika Superadmin baru masuk menu (belum pilih bidang & belum masuk folder)
         if ($user->role === 'superadmin' && !$targetBidang && !$parentId) {
             // Ambil daftar bidang unik dari user yang terdaftar
-            $listBidang = User::where('role', 'admin_bidang')
-                ->select('bidang')
-                ->distinct()
-                ->get();
+            $listBidang = collect(\App\Models\Bidang::names())->map(fn ($name) => (object) ['bidang' => $name]);
 
             // Ambil Folder Global (yang dibuat superadmin di halaman depan)
             $globalFolders = Folder::with(['user'])->withCount(['files', 'children'])->where('bidang', 'Semua Bidang')

@@ -3,22 +3,15 @@
 @section('title', 'Statistik Alumni')
 
 @section('content')
-    <div class="container-xxl flex-grow-1 container-p-y">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold py-3 mb-0">
-                <span class="text-muted fw-light">INTEGRAL /</span> Analitik Data Alumni
-            </h4>
-            <div class="d-flex gap-2">
-                <a href="{{ route('alumni.export', ['year' => $year, 'institution' => $institutionFilter, 'minimum_frequency' => $minimumFrequency]) }}" class="btn btn-success shadow-sm">
-                    <i class="bx bxs-file-export me-1"></i> Export Statistik Excel
-                </a>
-                <span class="badge bg-primary"><br>Total: {{ $totalAlumni }} Alumni</span>
-            </div>
-        </div>
+    <div class="container-xxl flex-grow-1 container-p-y alumni-page">
+        <header class="alumni-hero mb-4">
+            <div><span class="alumni-eyebrow">INTEGRAL / ANALITIK ALUMNI</span><h3 class="fw-bold text-white mt-2 mb-2">Profil alumni, dalam satu pandangan.</h3><p class="mb-3">Pantau komposisi alumni dan telusuri sebarannya hingga kelurahan.</p><span class="alumni-scope"><i class="bx bx-buildings me-1" aria-hidden="true"></i>{{ Auth::user()->role==='superadmin'?'Semua bidang':Auth::user()->bidang }}</span></div>
+            <a href="{{ route('alumni.export', ['year' => $year, 'institution' => $institutionFilter, 'minimum_frequency' => $minimumFrequency]) }}" class="btn btn-light alumni-export"><i class="bx bx-download me-2" aria-hidden="true"></i>Export Statistik Excel</a>
+        </header>
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-2">
-                <ul class="nav nav-pills flex-column flex-md-row gap-2">
+                <ul class="nav nav-pills alumni-tabs gap-2" aria-label="Analisis alumni">
                     <li class="nav-item"><a class="nav-link {{ $analysisTab === 'overview' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'overview']) }}"><i class="bx bx-bar-chart-alt-2 me-1"></i>Data Alumni</a></li>
                     <li class="nav-item"><a class="nav-link {{ $analysisTab === 'repeat' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'repeat', 'year' => $year]) }}"><i class="bx bx-repeat me-1"></i>Peserta Berulang</a></li>
                     <li class="nav-item"><a class="nav-link {{ $analysisTab === 'institution' ? 'active' : '' }}" href="{{ route('alumni.index', ['analysis_tab' => 'institution', 'year' => $year]) }}"><i class="bx bx-buildings me-1"></i>Pemerataan Instansi</a></li>
@@ -27,128 +20,7 @@
         </div>
 
         @if($analysisTab === 'overview')
-        <div class="row">
-            <!-- 1. GENDER & 3T (Pie & Donut) -->
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title m-0">Komposisi Gender</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="chartGender" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title m-0">Wilayah 3T vs Non-3T</h5>
-                        <small class="text-muted">Berdasarkan kabupaten/kota</small>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="chart3T" height="250"></canvas>
-                        <div class="mt-3 text-center small text-muted">
-                            Kategori Tertinggal, Terdepan, dan Terluar mengikuti daftar pada konfigurasi wilayah.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. STATUS KEPEGAWAIAN -->
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title m-0">Status Kepegawaian</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="chartStatus" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. SEBARAN WILAYAH (PROVINSI) -->
-            <div class="col-md-12 col-lg-8 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-label-primary py-3">
-                        <h5 class="card-title mb-0">Sebaran Alumni Seluruh Indonesia</h5>
-                    </div>
-                    <div class="card-body mt-3">
-                        <div class="row g-3 align-items-end mb-3">
-                            <div class="col-md-6 col-xl-3">
-                                <label for="filterProvinsi" class="form-label">Pilih Provinsi</label>
-                                <select id="filterProvinsi" class="form-select">
-                                    <option value="">-- Semua Provinsi --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 col-xl-3">
-                                <label for="filterKota" class="form-label">Kabupaten/Kota</label>
-                                <select id="filterKota" class="form-select" disabled>
-                                    <option value="">-- Semua Kabupaten/Kota --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 col-xl-3">
-                                <label for="filterKecamatan" class="form-label">Kecamatan</label>
-                                <select id="filterKecamatan" class="form-select" disabled>
-                                    <option value="">-- Semua Kecamatan --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 col-xl-3">
-                                <label for="filterKelurahan" class="form-label">Kelurahan/Desa</label>
-                                <select id="filterKelurahan" class="form-select" disabled>
-                                    <option value="">-- Semua Kelurahan/Desa --</option>
-                                </select>
-                            </div>
-                            <div class="col-12 d-flex justify-content-between align-items-center">
-                                <small id="wilayahSummary" class="text-muted"></small>
-                                <div class="d-flex align-items-center gap-3">
-                                    <button type="button" id="resetWilayah" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bx bx-reset me-1"></i> Reset Filter
-                                    </button>
-                                    <div class="form-check form-switch mb-0" title="Ganti tema peta">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="btnTema"
-                                        style="cursor: pointer;">
-                                    <label class="form-check-label" for="btnTema" id="labelTema"><i
-                                            class="bx bx-moon"></i></label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Peta Sebaran Alumni -->
-                        <div id="mapAlumni" style="height: 400px; width: 100%; border-radius: 8px;"></div>
-
-                        <div class="table-responsive mt-4 wilayah-table-wrapper">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Peserta</th>
-                                        <th>Provinsi</th>
-                                        <th>Kabupaten/Kota</th>
-                                        <th>Kecamatan</th>
-                                        <th>Kelurahan/Desa</th>
-                                        <th>Status 3T</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="wilayahTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. DATA PENDIDIKAN (BAR) -->
-            <div class="col-md-12 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title m-0">Tingkat Pendidikan Terakhir</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="chartEdu" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+            @include('alumni.overview')
         @else
             <div class="alert alert-info border-0 shadow-sm d-flex gap-2 align-items-start">
                 <i class="bx bx-info-circle fs-4 flex-shrink-0"></i>
@@ -207,6 +79,16 @@
     @push('css')
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
+            .alumni-page{--alumni-indigo:#6366f1;--alumni-teal:#14b8a6;--alumni-amber:#f4b740;--alumni-rose:#ec7897;--alumni-ink:#233752}
+            .alumni-page .alumni-hero{display:flex;align-items:center;justify-content:space-between;gap:28px;position:relative;overflow:hidden;padding:32px;border-radius:18px;background:radial-gradient(ellipse at 95% 10%,rgba(75,156,244,.45),transparent 50%),linear-gradient(120deg,#172e55,#39488f);box-shadow:0 12px 30px rgba(37,57,109,.12)}
+            .alumni-page .alumni-hero h3{font-size:clamp(1.35rem,2.4vw,1.9rem);letter-spacing:-.035em}.alumni-page .alumni-hero p{color:#d3ddf3;font-size:.9rem}.alumni-page .alumni-eyebrow{color:#b2c9f1;font-size:.68rem;font-weight:700;letter-spacing:.12em}.alumni-page .alumni-scope{display:inline-flex;align-items:center;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.1);color:#edf2ff;font-size:.75rem}.alumni-page .alumni-export{flex-shrink:0;min-height:42px;border:0;color:#2e4275;font-weight:600;box-shadow:0 4px 15px rgba(0,0,0,.06)}
+            .alumni-page .alumni-tabs{flex-wrap:nowrap;overflow-x:auto;padding:3px}.alumni-page .alumni-tabs .nav-link{white-space:nowrap;border-radius:8px;padding:11px 18px;color:#617089;font-weight:600;font-size:.85rem}.alumni-page .alumni-tabs .nav-link.active{background:#6366f1;color:#fff;box-shadow:0 4px 12px rgba(99,102,241,.16)}
+            .alumni-page .alumni-stat{background:#fff;border:1px solid #e8edf4;border-radius:13px;padding:20px;box-shadow:0 3px 10px rgba(35,55,82,.025)}.alumni-page .alumni-stat small{font-size:.8rem;color:#6c7b90}.alumni-page .alumni-stat>strong{display:block;font-size:2rem;color:#233752;line-height:1.2;letter-spacing:-.04em;margin:10px 0 6px}.alumni-page .alumni-stat p{font-size:.72rem;color:#8290a3;margin:0;line-height:1.5}.alumni-page .alumni-stat-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;font-size:1.25rem}.alumni-page .alumni-stat-icon.is-indigo{color:#6366f1;background:#eeeefe}.alumni-page .alumni-stat-icon.is-teal{color:#0f9c8b;background:#e5f7f2}.alumni-page .alumni-stat-icon.is-amber{color:#bc8616;background:#fff5db}.alumni-page .alumni-stat-icon.is-blue{color:#4587ce;background:#eaf3ff}
+            .alumni-page .alumni-panel{border:1px solid #e8edf4;border-radius:14px;box-shadow:0 3px 12px rgba(35,55,82,.025);overflow:hidden}.alumni-page .alumni-panel .card-header{padding:24px;border:0;background:#fff}.alumni-page .alumni-panel h5{color:#233752;font-size:1rem}.alumni-page .alumni-panel-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}.alumni-page .alumni-section-kicker{font-size:.66rem;font-weight:700;letter-spacing:.1em;color:#8190a7}.alumni-page .alumni-soft-badge{display:inline-flex;align-items:center;white-space:nowrap;padding:7px 11px;border-radius:8px;background:#f0f1ff;color:#6267c4;font-size:.75rem}.alumni-page .alumni-map-filters{background:#f8fafe;border:1px solid #eaf0f6;border-radius:10px;padding:18px}.alumni-page .alumni-map-filters .form-select{background-color:#fff;font-size:.8rem;min-height:42px}.alumni-page .alumni-map-frame{border-radius:12px;overflow:hidden;border:1px solid #e7ecf4}.alumni-page #mapAlumni{width:100%;height:440px;z-index:0;background:#edf2f8}.alumni-page .alumni-map-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:.73rem;color:#73829a}.alumni-page .alumni-map-caption .form-check-label{font-size:.75rem}.alumni-page .alumni-legend-dot{display:inline-block;flex-shrink:0;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle}.alumni-page .alumni-legend-dot.is-indigo{background:#6366f1}.alumni-page .alumni-legend-dot.is-teal{background:#14b8a6}.alumni-page .alumni-legend-dot.is-amber{background:#f4b740}.alumni-page .alumni-legend-dot.is-rose{background:#ff3e1d}
+            .alumni-page .alumni-search{position:relative;width:280px;max-width:100%}.alumni-page .alumni-search>.bx{position:absolute;top:12px;left:12px;color:#8190a7}.alumni-page .alumni-search .form-control{padding-left:36px;font-size:.8rem;min-height:40px}.alumni-page .alumni-region-table{min-width:900px;font-size:.8rem}.alumni-page .alumni-region-table th{background:#f7f9fc!important;font-size:.67rem;letter-spacing:.035em;white-space:nowrap;color:#75839a}.alumni-page .alumni-region-table td,.alumni-page .alumni-region-table th{padding:14px 18px;vertical-align:middle}.alumni-page .alumni-region-table td{white-space:normal;overflow-wrap:anywhere;max-width:220px}.alumni-page .alumni-region-table .badge{white-space:normal;line-height:1.45}.alumni-page .alumni-table-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:16px 24px;border-top:1px solid #edf0f5}.alumni-page .alumni-table-footer .btn{min-height:36px}.alumni-page .alumni-section-line{height:1px;background:#e0e7f0;flex:1}
+            .alumni-page .alumni-donut-layout{display:flex;align-items:center;justify-content:center;gap:28px;min-height:220px;flex-wrap:wrap}.alumni-page .alumni-donut{position:relative;width:190px;height:190px;flex-shrink:0}.alumni-page .alumni-donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none}.alumni-page .alumni-donut-center strong{font-size:1.6rem;letter-spacing:-.04em;color:#233752}.alumni-page .alumni-donut-center small{font-size:.7rem;color:#8290a4}.alumni-page .alumni-chart-legend{flex:1;min-width:150px}.alumni-page .alumni-chart-legend>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #edf1f6;font-size:.8rem}.alumni-page .alumni-chart-legend strong{color:#233752}.alumni-page .alumni-chart-details summary{cursor:pointer;padding:8px 0}.alumni-page .alumni-chart-details .alumni-chart-legend>div{padding:8px 0}.alumni-page .alumni-bar-chart{position:relative;height:270px;width:100%}
+            @media(max-width:767px){.alumni-page .alumni-hero{padding:24px;align-items:flex-start;flex-direction:column;gap:18px}.alumni-page .alumni-export{width:100%;justify-content:center}.alumni-page .alumni-stat{padding:14px}.alumni-page .alumni-stat>strong{font-size:1.7rem}.alumni-page .alumni-stat-icon{width:30px;height:30px;font-size:1.1rem}.alumni-page .alumni-stat small{font-size:.72rem}.alumni-page .alumni-panel .card-header{padding:18px}.alumni-page .alumni-panel .card-body{padding:18px}.alumni-page .alumni-map-filters{padding:14px}.alumni-page #mapAlumni{height:340px}.alumni-page .alumni-search{width:100%}.alumni-page .alumni-table-footer{padding:14px 18px}.alumni-page .alumni-donut-layout{gap:16px}.alumni-page .alumni-tabs .nav-link{padding:10px 12px;font-size:.78rem}}
+
             /* Label jumlah alumni di tengah zona */
             .label-kabupaten {
                 background: transparent;
@@ -250,60 +132,29 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
-            // Konfigurasi Warna
-            const colors = ['#696cff', '#03c3ec', '#71dd37', '#ffab00', '#ff3e1d', '#233446'];
-
-            // 1. Chart Gender
-            new Chart(document.getElementById('chartGender'), {
-                type: 'pie',
-                data: {
-                    labels: {!! json_encode(array_keys($genderStats)) !!},
-                    datasets: [{
-                        data: {!! json_encode(array_values($genderStats)) !!},
-                        backgroundColor: ['#696cff', '#ff3e1d']
-                    }]
+            const colors = ['#6366f1', '#14b8a6', '#f4b740', '#4b9cf4', '#ec7897', '#8b82d8'];
+            const numberLabel = value => Number(value || 0).toLocaleString('id-ID');
+            const chartFont = { family: "'Public Sans', sans-serif", size: 12 };
+            if (typeof Chart !== 'undefined') {
+                function donutChart(id, labels, values, palette) {
+                    new Chart(document.getElementById(id), {
+                        type: 'doughnut',
+                        data: { labels, datasets: [{ data: values, backgroundColor: palette, borderWidth: 3, borderColor: '#ffffff', hoverOffset: 5 }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '76%', plugins: { legend: { display: false }, tooltip: { padding: 12, backgroundColor: '#172b4d', callbacks: { label: context => context.label + ': ' + numberLabel(context.parsed) } } } }
+                    });
                 }
-            });
-
-            // 2. Chart 3T
-            new Chart(document.getElementById('chart3T'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode(array_keys($stats3T)) !!},
-                    datasets: [{
-                        data: {!! json_encode(array_values($stats3T)) !!},
-                        backgroundColor: ['#ffab00', '#71dd37']
-                    }]
-                },
-                options: {
-                    cutout: '70%'
+                function barChart(id, labels, values, color) {
+                    new Chart(document.getElementById(id), {
+                        type: 'bar',
+                        data: { labels, datasets: [{ label: 'Data alumni', data: values, backgroundColor: color, borderRadius: 5, borderSkipped: false, maxBarThickness: 22 }] },
+                        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', layout: { padding: { right: 16 } }, plugins: { legend: { display: false }, tooltip: { padding: 12, backgroundColor: '#172b4d', callbacks: { label: context => numberLabel(context.parsed.x) + ' data' } } }, scales: { x: { beginAtZero: true, border: { display: false }, grid: { color: '#edf1f7' }, ticks: { precision: 0, color: '#8290a4', font: chartFont } }, y: { border: { display: false }, grid: { display: false }, ticks: { color: '#52627a', font: chartFont, callback: function(value) { const label = this.getLabelForValue(value); return label.length > 32 ? label.slice(0, 30) + '?' : label; } } } } }
+                    });
                 }
-            });
-
-            // 3. Chart Pendidikan
-            new Chart(document.getElementById('chartEdu'), {
-                type: 'polarArea',
-                data: {
-                    labels: {!! json_encode($eduStats->pluck('edu_current')) !!},
-                    datasets: [{
-                        data: {!! json_encode($eduStats->pluck('total')) !!},
-                        backgroundColor: colors
-                    }]
-                }
-            });
-
-            // 4. Chart Status
-            new Chart(document.getElementById('chartStatus'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($statusStats->keys()) !!},
-                    datasets: [{
-                        label: 'Peserta',
-                        data: {!! json_encode($statusStats->values()) !!},
-                        backgroundColor: '#696cff'
-                    }]
-                }
-            });
+                donutChart('chartGender', {!! json_encode(array_keys($genderStats)) !!}, {!! json_encode(array_values($genderStats)) !!}, ['#6366f1', '#14b8a6']);
+                donutChart('chart3T', {!! json_encode(array_keys($stats3T)) !!}, {!! json_encode(array_values($stats3T)) !!}, ['#f4b740', '#14b8a6']);
+                barChart('chartEdu', {!! json_encode($eduStats->pluck('edu_current')->map(fn($label)=>filled($label)?$label:'Belum diisi')) !!}, {!! json_encode($eduStats->pluck('total')) !!}, '#14b8a6');
+                barChart('chartStatus', {!! json_encode($statusStats->keys()->map(fn($label)=>filled($label)?$label:'Belum diisi')) !!}, {!! json_encode($statusStats->values()) !!}, '#6366f1');
+            }
 
             // =========================================================
             // PETA SEBARAN ALUMNI
@@ -329,6 +180,13 @@
             const kelurahanDropdown = document.getElementById('filterKelurahan');
             const wilayahTableBody = document.getElementById('wilayahTableBody');
             const wilayahSummary = document.getElementById('wilayahSummary');
+            const alumniSearch = document.getElementById('searchAlumniWilayah');
+            const wilayahPrevious = document.getElementById('wilayahPrevious');
+            const wilayahNext = document.getElementById('wilayahNext');
+            const wilayahPageInfo = document.getElementById('wilayahPageInfo');
+            let wilayahPage = 1;
+            const wilayahPageSize = 10;
+
 
             function uniqueValues(rows, key) {
                 return [...new Set(rows.map(row => row[key]).filter(Boolean))]
@@ -352,15 +210,22 @@
                     (!dropdown.value || row.provinsi === dropdown.value) &&
                     (!kotaDropdown.value || row.kota === kotaDropdown.value) &&
                     (!kecamatanDropdown.value || row.kecamatan === kecamatanDropdown.value) &&
-                    (!kelurahanDropdown.value || row.kelurahan === kelurahanDropdown.value)
+                    (!kelurahanDropdown.value || row.kelurahan === kelurahanDropdown.value) &&
+                    (!alumniSearch.value.trim() || (row.nama + ' ' + (row.nip_nik || '')).toLocaleLowerCase('id-ID').includes(alumniSearch.value.trim().toLocaleLowerCase('id-ID')))
                 );
             }
 
-            function renderWilayahTable() {
+            function renderWilayahTable(resetPage = true) {
+                if (resetPage) wilayahPage = 1;
                 const rows = filteredWilayahRows();
                 const total3T = rows.filter(row => row.is_3t).length;
                 const totalBertitik = rows.filter(hasExactCoordinate).length;
-                wilayahSummary.textContent = `${rows.length} alumni ditemukan · ${totalBertitik} memiliki titik lokasi${total3T ? ` · ${total3T} dari wilayah 3T` : ''}`;
+                wilayahSummary.textContent = `${numberLabel(rows.length)} data alumni / ${numberLabel(totalBertitik)} memiliki koordinat / ${numberLabel(total3T)} wilayah 3T`;
+                const pages = Math.max(1, Math.ceil(rows.length / wilayahPageSize));
+                wilayahPage = Math.min(wilayahPage, pages);
+                wilayahPrevious.disabled = wilayahPage <= 1;
+                wilayahNext.disabled = wilayahPage >= pages;
+                wilayahPageInfo.textContent = rows.length ? `${(wilayahPage-1)*wilayahPageSize+1}-${Math.min(wilayahPage*wilayahPageSize,rows.length)} dari ${numberLabel(rows.length)} data / Halaman ${wilayahPage} dari ${pages}` : 'Tidak ada data untuk ditampilkan';
                 renderDetailMarkers(rows);
 
                 if (!rows.length) {
@@ -368,7 +233,7 @@
                     return;
                 }
 
-                wilayahTableBody.innerHTML = rows.map(row => {
+                wilayahTableBody.innerHTML = rows.slice((wilayahPage-1)*wilayahPageSize, wilayahPage*wilayahPageSize).map(row => {
                     const status3T = row.is_3t
                         ? row.kategori_3t.map(item => `<span class="badge bg-label-danger me-1">${escapeHtml(item)}</span>`).join('')
                         : '<span class="badge bg-label-success">Non-3T</span>';
@@ -412,11 +277,15 @@
                         radius: Math.min(7 + count, 15),
                         color: '#ffffff',
                         weight: 2,
-                        fillColor: '#03c3ec',
+                        fillColor: '#14b8a6',
                         fillOpacity: 0.9
                     }).bindTooltip(content, { direction: 'top' }).bindPopup(content).addTo(detailMarkerLayer);
                 });
             }
+
+            alumniSearch.addEventListener('input', () => { renderWilayahTable(); updateProvinsiTooltip(); });
+            wilayahPrevious.addEventListener('click', () => { wilayahPage--; renderWilayahTable(false); });
+            wilayahNext.addEventListener('click', () => { wilayahPage++; renderWilayahTable(false); });
 
             fillSelect(dropdown, uniqueValues(wilayahData, 'provinsi'), '-- Semua Provinsi --');
             renderWilayahTable();
@@ -458,6 +327,7 @@
 
             document.getElementById('resetWilayah').addEventListener('click', function() {
                 dropdown.value = '';
+                alumniSearch.value = '';
                 dropdown.dispatchEvent(new Event('change'));
             });
 
@@ -602,7 +472,7 @@
 
                 const jumlah = kabupatenStats[nama];
                 const is3T = list3T.includes(nama.toUpperCase());
-                const warna = is3T ? '#ff3e1d' : '#696cff'; // merah = 3T, biru = non-3T
+                const warna = is3T ? '#ff3e1d' : '#6366f1'; // merah = 3T, biru = non-3T
 
                 const zona = L.circle(koordinat, {
                         radius: 8000, // 8 km
@@ -612,7 +482,7 @@
                         fillOpacity: 0.35
                     }).addTo(map)
                     .bindPopup(
-                        '<b>' + nama + '</b><br>' +
+                        '<b>' + escapeHtml(nama) + '</b><br>' +
                         'Jumlah Alumni: ' + jumlah + '<br>' +
                         (is3T ? '<span style="color:#ff3e1d;">Wilayah 3T</span>' : 'Non-3T')
                     )
@@ -654,10 +524,10 @@
             document.getElementById('btnTema').addEventListener('change', function() {
                 if (this.checked) {
                     tileLight.addTo(map); // tampilkan terang (menutup gelap)
-                    labelTema.innerHTML = '<i class="bx bx-sun"></i>';
+                    labelTema.innerHTML = '<i class="bx bx-sun me-1" aria-hidden="true"></i>Peta terang';
                 } else {
                     map.removeLayer(tileLight); // lepas terang -> gelap muncul lagi
-                    labelTema.innerHTML = '<i class="bx bx-moon"></i>';
+                    labelTema.innerHTML = '<i class="bx bx-moon me-1" aria-hidden="true"></i>Peta gelap';
                 }
             });
         </script>

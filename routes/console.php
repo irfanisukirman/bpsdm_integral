@@ -38,3 +38,18 @@ Artisan::command('internships:purge-photos', function () {
     ->dailyAt('01:15')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
+
+
+Artisan::command('questions:sync-managerial-excel {--apply : Terapkan perubahan setelah memeriksa pratinjau}', function () {
+    $result=app(\App\Services\ManagerialQuestionBankSyncService::class)->sync((bool)$this->option('apply'));
+    $this->table(['Program','Soal aktif','Baru','Diperbarui','Tetap','Diarsipkan','Arsip berjawaban'],collect($result['stats'])->map(fn($row,$program)=>array_merge([$program],array_values($row)))->values()->all());
+    if($result['backup'])$this->info('Cadangan privat: '.$result['backup']);
+    $this->info($result['applied']?'Bank soal aktif diperbarui. Seluruh jawaban lama tetap tersimpan.':'Pratinjau saja. Gunakan --apply untuk menerapkan katalog soal Excel.');
+});
+
+Artisan::command('questions:sync-technical-excel {--apply : Terapkan katalog Teknis}', function () {
+    $result = app(\App\Services\TechnicalQuestionBankSyncService::class)->sync((bool) $this->option('apply'));
+    $this->table(['Program', 'Aktif', 'Baru', 'Diperbarui', 'Tetap', 'Diarsipkan', 'Arsip berjawaban'], collect($result['stats'])->map(fn ($row, $program) => array_merge([$program], array_values($row)))->values()->all());
+    if ($result['backup']) $this->info('Cadangan privat: '.$result['backup']);
+    $this->info($result['applied'] ? 'Bank soal Teknis diperbarui; jawaban lama tetap tersimpan.' : 'Pratinjau saja; gunakan --apply untuk menerapkan.');
+});

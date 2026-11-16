@@ -30,7 +30,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = User::findOrFail(Auth::id());
+        $user = Auth::user();
 
         // 1. Aturan validasi dasar (Ditambahkan field wilayah & kepegawaian)
         $rules = [
@@ -221,7 +221,7 @@ class ProfileController extends Controller
             'new_password.confirmed' => 'Konfirmasi password tidak cocok.'
         ]);
 
-        $user = User::findOrFail(Auth::id());
+        $user = Auth::user();
         $user->password = Hash::make($request->new_password);
         $user->save();
 

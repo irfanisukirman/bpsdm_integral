@@ -35,6 +35,14 @@
                             <span class="note-card__icon"><i class="bx bx-message-square-detail"></i></span>
                             <div class="flex-grow-1 min-w-0"><h5 class="fw-bold mb-1 text-break">{{ $executionNote->title }}</h5><div class="note-meta"><span><i class="bx bx-user"></i>{{ $executionNote->author?->name ?: 'Pengguna tidak tersedia' }}</span><span><i class="bx bx-calendar"></i>{{ $executionNote->created_at->translatedFormat('d F Y, H:i') }} WIB</span></div></div>
                         </div>
+                        <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                            <a href="{{ route('trainings.execution-notes.index', [$training, 'edit' => $executionNote->id, 'page' => $notes->currentPage()]) }}#noteForm" class="btn btn-sm btn-outline-primary"><i class="bx bx-edit me-1"></i>Edit</a>
+                            <form action="{{ route('trainings.execution-notes.destroy', [$training, $executionNote->id]) }}" method="POST" onsubmit="return confirm('Hapus catatan ini? Catatan yang dihapus tidak dapat dikembalikan.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash me-1"></i>Hapus</button>
+                            </form>
+                        </div>
                         <div class="note-content">{!! nl2br(e($executionNote->note)) !!}</div>
                     </article>
                 @empty
@@ -48,15 +56,19 @@
         </div>
 
         <div class="col-xl-4 order-1 order-xl-2">
-            <div class="card border-0 shadow-sm sticky-note-form">
-                <div class="card-header bg-transparent border-bottom p-4"><h5 class="fw-bold mb-1"><i class="bx bx-edit text-primary me-2"></i>Catatan Baru</h5><p class="text-muted small mb-0">Tuliskan hasil pengamatan kelas secara ringkas dan jelas.</p></div>
-                <form action="{{ route('trainings.execution-notes.store', $training) }}" method="POST">
+            <div class="card border-0 shadow-sm sticky-note-form" id="noteForm">
+                <div class="card-header bg-transparent border-bottom p-4"><h5 class="fw-bold mb-1"><i class="bx bx-edit text-primary me-2"></i>{{ $editingNote ? 'Edit Catatan' : 'Catatan Baru' }}</h5><p class="text-muted small mb-0">Tuliskan hasil pengamatan kelas secara ringkas dan jelas.</p></div>
+                <form action="{{ $editingNote ? route('trainings.execution-notes.update', [$training, $editingNote->id]) : route('trainings.execution-notes.store', $training) }}" method="POST">
                     @csrf
+                    @if($editingNote)
+                        @method('PUT')
+                    @endif
                     <div class="card-body p-4">
-                        <div class="mb-3"><label class="form-label fw-semibold" for="note_title">Judul catatan <span class="text-danger">*</span></label><input id="note_title" name="note_title" value="{{ old('note_title') }}" maxlength="200" class="form-control @error('note_title') is-invalid @enderror" placeholder="Contoh: Pengamatan kelas hari pertama" required>@error('note_title')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                        <div><label class="form-label fw-semibold" for="note_content">Isi catatan <span class="text-danger">*</span></label><textarea id="note_content" name="note_content" rows="9" maxlength="10000" class="form-control @error('note_content') is-invalid @enderror" placeholder="Tuliskan kondisi kelas, kejadian penting, atau hal yang perlu diingat..." required>{{ old('note_content') }}</textarea>@error('note_content')<div class="invalid-feedback">{{ $message }}</div>@enderror<div class="form-text">Hanya menjadi arsip internal pelatihan dan tidak memengaruhi evaluasi.</div></div>
+                        <div class="mb-3"><label class="form-label fw-semibold" for="note_title">Judul catatan <span class="text-danger">*</span></label><input id="note_title" name="note_title" value="{{ old('note_title', $editingNote?->title) }}" maxlength="200" class="form-control @error('note_title') is-invalid @enderror" placeholder="Contoh: Pengamatan kelas hari pertama" required>@error('note_title')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                        <div><label class="form-label fw-semibold" for="note_content">Isi catatan <span class="text-danger">*</span></label><textarea id="note_content" name="note_content" rows="9" maxlength="10000" class="form-control @error('note_content') is-invalid @enderror" placeholder="Tuliskan kondisi kelas, kejadian penting, atau hal yang perlu diingat..." required>{{ old('note_content', $editingNote?->note) }}</textarea>@error('note_content')<div class="invalid-feedback">{{ $message }}</div>@enderror<div class="form-text">Hanya menjadi arsip internal pelatihan dan tidak memengaruhi evaluasi.</div></div>
                     </div>
-                    <div class="card-footer bg-transparent border-top p-4 d-grid gap-2"><button class="btn btn-primary"><i class="bx bx-save me-1"></i>Simpan Catatan</button><a href="{{ route('trainings.manage', $training) }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pusat Kendali</a></div>
+                    <div class="card-footer bg-transparent border-top p-4 d-grid gap-2"><button class="btn btn-primary"><i class="bx bx-save me-1"></i>{{ $editingNote ? 'Simpan Perubahan' : 'Simpan Catatan' }}</button>
+                        @if($editingNote)<a href="{{ route('trainings.execution-notes.index', $training) }}" class="btn btn-outline-secondary">Batal Edit</a>@endif<a href="{{ route('trainings.manage', $training) }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pusat Kendali</a></div>
                 </form>
             </div>
         </div>

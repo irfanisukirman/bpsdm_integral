@@ -1,38 +1,53 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Ekspose Evaluasi Pasca - {{ $summary['training'] }}</title><style>
-
-@page{margin:18px}*{box-sizing:border-box}body{font-family:DejaVu Sans,sans-serif;font-size:13px;color:#25344b;background:#e9edf5;margin:0}h1{font-size:30px;color:#303a89}h2{font-size:22px;color:#303a89}h3{font-size:17px}.slide{background:white;padding:32px;max-width:1100px;min-height:560px;margin:25px auto;page-break-after:always;overflow-wrap:anywhere}.slide:last-child{page-break-after:auto}.tag{color:#535cb1;font-weight:bold}.muted{color:#68788f}.stat{display:inline-block;border:1px solid #dce2eb;padding:16px;margin:5px;min-width:160px}.stat b{display:block;font-size:26px}.chart{width:100%;border-collapse:collapse;margin:12px 0}.chart td,.chart th{padding:6px;border-bottom:1px solid #e4e8f1;text-align:left}.bar-track{background:#edf0f8;width:100%;height:12px}.bar{height:12px;background:#5f63ce}.second{background:#d69b33}.foot{color:#748096;font-size:10px;margin-top:18px}.controls{position:sticky;top:0;background:#25344b;color:white;padding:12px;text-align:center;z-index:2}.controls button,.controls a{display:inline-block;background:white;color:#26334b;padding:8px 14px;margin:3px;border:0;border-radius:7px;text-decoration:none;cursor:pointer}.presentation-mode .slide{display:none}.presentation-mode .slide.active{display:block}li{margin:12px 0;line-height:1.6}
-
-@media(max-width:700px){.slide{margin:12px;padding:20px;min-height:400px}h1{font-size:23px}.chart td{font-size:11px}}
-
-@media print{body{background:white}.controls{display:none}.slide,.presentation-mode .slide{display:block!important;margin:0;max-width:none;min-height:0;padding:20px}}
-
-@if($pdf)
-.slide{min-height:0;margin:0;padding:18px}.slide h2{font-size:20px}.chart{margin:8px 0}.chart td{padding:4px}
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Paparan · {{$summary['training']}}</title><style>
+@page{margin:0}body{margin:0;font-family:DejaVu Sans,sans-serif;color:#111}.slide{width:960pt;height:540pt;position:relative;page-break-after:always;overflow:hidden;background:#fff}.slide:last-child{page-break-after:auto}.heading{position:absolute;left:46pt;top:12pt;width:725pt;text-align:center;font-size:18pt;line-height:1.24;font-weight:bold;margin:0}.subtitle{font-size:16pt}.brand{position:absolute;top:10pt;right:16pt;width:136pt;height:auto}.chart-panel{position:absolute;left:50pt;top:92pt;width:500pt;height:394pt;padding:9pt}.chart-title{text-align:center;font-size:12pt;color:#555;line-height:1.35;height:44pt;margin:0 15pt}.chart{display:block;width:500pt;height:303.6pt;margin:0 auto}.coverage{text-align:center;font-size:7.3pt;color:#555;line-height:1.45;margin:7pt 2pt 0}.discussion{position:absolute;left:612pt;top:92pt;width:274pt;height:394pt;background:#dbe2f3;padding:10pt 12pt}.discussion h2,.conclusion h2{font-size:15pt;font-weight:normal;text-align:center;margin:0 0 16pt}.discussion ul,.conclusion ul{padding-left:16pt;margin:0}.discussion li{font-size:11.4pt;line-height:1.46;margin:0 0 12pt;padding-left:1pt}.footer{position:absolute;left:50pt;right:50pt;bottom:9pt;color:#687080;font-size:7pt;line-height:1.3}.page{float:right}.conclusion{position:absolute;top:63pt;height:435pt;padding:12pt 14pt}.conclusion.left{left:50pt;width:410pt;background:#fae5d5}.conclusion.right{left:502pt;width:416pt;background:#e1efd8}.conclusion p{font-size:11.6pt;line-height:1.48;margin:0 0 12pt;text-align:justify}.conclusion.right p,.conclusion li{font-size:10.5pt;line-height:1.42;margin-bottom:12pt}.activity{font-weight:bold}.draft{color:#a14b10}.cover-art{position:absolute;left:0;top:0;width:960pt;height:540pt}.cover-title{position:absolute;left:180pt;top:190pt;width:600pt;height:135pt;text-align:center;font-size:24pt;line-height:1.3;font-weight:bold}.cover-location{position:absolute;left:180pt;top:335pt;width:600pt;text-align:center;font-size:16pt}.cover-organizer{position:absolute;left:260pt;top:393pt;width:420pt;padding:7pt 10pt;text-align:center;background:#218d59;color:white;border-radius:18pt;font-weight:bold;font-size:12pt}.objective{position:absolute;left:128pt;width:746pt;height:59pt;padding:10pt 20pt 10pt 52pt;color:#fff;font-size:23pt;line-height:1.3}.objective-number{position:absolute;left:76pt;width:98pt;height:98pt;border-radius:50pt;background:white;text-align:center;line-height:96pt;font-size:34pt;border:1pt solid #eeae00}.agenda-heading{position:absolute;top:76pt;width:380pt;padding:13pt 12pt;border:1.5pt solid #78ae4f;border-radius:17pt;text-align:center;font-size:16pt;line-height:1.4}.agenda-heading.right{border-color:#5b9cdb}.agenda-body{position:absolute;top:166pt;width:374pt;padding:14pt 18pt;border-radius:18pt;font-size:14pt;line-height:1.5}.agenda-body ul{padding-left:18pt;margin:0}.agenda-body li{margin-bottom:14pt}.agenda-heading.left,.agenda-body.left{left:41pt}.agenda-heading.right,.agenda-body.right{left:513pt}.agenda-body.left{background:#c8e0b4}.agenda-body.right{background:#bcd6ee}.agenda-note{position:absolute;left:50pt;top:481pt;width:850pt;font-size:9pt;color:#65736a}
+.ai-note{position:absolute;left:50pt;bottom:25pt;font-size:7pt;color:#687080}.discussion li{font-size:10.8pt;line-height:1.42;margin-bottom:10pt}.conclusion p{font-size:10.8pt;line-height:1.45}.conclusion li{font-size:10.3pt;line-height:1.42}</style></head><body>
+@if(!$pdf)
+@include('post-evaluation.presentation-controls')
 @endif
-</style></head><body>
-
-@if(!$pdf)<nav class="controls" aria-label="Kontrol presentasi"><button id="toggleSlides" type="button">Mode Presentasi</button><button id="previousSlide" type="button">&larr; Sebelumnya</button><span id="slidePosition" aria-live="polite"></span><button id="nextSlide" type="button">Berikutnya &rarr;</button><button onclick="window.print()" type="button">Cetak</button><a href="{{ $public ? route('post-evaluation.public.pdf',request()->route('token')) : route('post-evaluation.pdf',request()->route('training')) }}">Unduh PDF</a></nav>
-@endif
-<section class="slide active"><p class="tag">INTEGRAL - EVALUASI PASCA PELATIHAN</p><h1>{{ $summary['training'] }}</h1><h2>Ekspose Evaluasi Level 3 &amp; 4</h2><p>Program {{ $summary['program'] }}</p><p class="muted">Hasil survei dan wawancara, kesimpulan dan tindak lanjut.</p><p class="foot">{{ $public ? 'Ringkasan publik - salinan hasil yang diterbitkan pengelola' : 'Hasil internal - data terkini yang dapat Anda akses' }}<br>Data per {{ \Carbon\Carbon::parse($summary['generated_at'])->translatedFormat('d M Y H:i') }}</p></section>
-<section class="slide"><h2>Cakupan dan kelengkapan hasil</h2><div class="stat">Alumni<b>{{ $summary['total'] }}</b></div><div class="stat">Wawancara selesai<b>{{ $summary['completed'] }}</b></div><div class="stat">Survei parsial / kosong<b>{{ $summary['partial'] }}</b></div><table class="chart"><thead><tr><th>Penilai</th><th>Alumni merespons</th></tr></thead><tbody>
-@foreach($summary['roles'] as $role)<tr><td>{{ $role['label'] }}</td><td>{{ $role['filled'] }} / {{ $summary['total'] }}</td></tr>
-@endforeach</tbody></table><p>Data kosong tetap kosong. Rerata menggunakan indikator terisi; hasil parsial perlu dilengkapi. Nilai survei tidak menggantikan wawancara.</p></section>
-
-@foreach($summary['slides'] as $slide)<section class="slide"><h2>{{ $slide['title'] }}</h2>
-
-@foreach($slide['series'] as $series)<h3>{{ $series['label'] }} - Rerata {{ $series['data']['average'] === null ? 'belum tersedia' : number_format($series['data']['average'],1) }}</h3><table class="chart"><tbody>
-@foreach($summary['categories'] as $i=>$category)<tr><td style="width:210px">{{ $category }}</td><td><div class="bar-track"><div class="bar {{ $loop->parent->first ? '' : 'second' }}" style="width:{{ $summary['total'] ? $series['data']['counts'][$i]/$summary['total']*100 : 0 }}%"></div></div></td><td style="width:45px">{{ $series['data']['counts'][$i] }}</td></tr>
-@endforeach</tbody></table><p class="muted">{{ $series['data']['valid'] }} alumni dengan nilai - {{ $series['data']['missing'] }} belum memiliki nilai</p>
+@php
+$logo='data:image/png;base64,'.base64_encode(file_get_contents(public_path('assets/post-evaluation/report-jabar.png')));
+$cover='data:image/svg+xml;base64,'.base64_encode(file_get_contents(public_path('assets/post-evaluation/report-cover.svg')));
+$objectives='data:image/svg+xml;base64,'.base64_encode(file_get_contents(public_path('assets/post-evaluation/report-objectives.svg')));
+@endphp
+<section class="slide">
+    <img class="cover-art" src="{{$cover}}" alt="">
+    <div class="cover-title" @if(mb_strlen($summary['meta']['name'])>120) style="font-size:18pt" @endif>{{$summary['meta']['name']}}</div>
+    <div class="cover-location">{{$summary['meta']['location']}}, {{$summary['meta']['date']}}</div>
+    <div class="cover-organizer">{{$summary['meta']['organizer']}}</div>
+    @include('post-evaluation.report-footer',['page'=>1])
+</section>
+<section class="slide">
+    <h1 class="heading" style="top:39pt;font-size:27pt">Tujuan Evaluasi Pasca</h1><img class="brand" src="{{$logo}}" alt="Pemerintah Provinsi Jawa Barat">
+    <img class="cover-art" src="{{$objectives}}" alt="Tiga tujuan evaluasi pasca pelatihan">
+    @include('post-evaluation.report-footer',['page'=>2])
+</section>
+<section class="slide">
+    <h1 class="heading" style="width:850pt;font-size:24pt">Mekanisme Konfirmasi Jawaban dan Ekspose</h1>
+    <div class="agenda-heading left">Konfirmasi Jawaban dan Evidence dari Alumni<br><strong><em>Tahap konfirmasi / wawancara</em></strong></div>
+    <div class="agenda-heading right">Ekspose Hasil oleh Tim Evaluator<br><strong><em>Tahap paparan dan tindak lanjut</em></strong></div>
+    <div class="agenda-body left"><ul><li>Peserta: {{$summary['total']}} alumni. @if($summary['team_count']) Tim wawancara: {{$summary['team_count']}} tim. @else Pembagian tim belum ditetapkan. @endif</li><li>Alumni memaparkan aksi perubahan, target jangka menengah/panjang, dan bukti capaian.</li><li>Evaluator mengonfirmasi target, tujuan, manfaat, serta komunikasi berdasarkan rubrik penilaian.</li><li>Hasil konfirmasi dan wawancara dihimpun sebagai dasar analisis kegiatan.</li></ul></div>
+    <div class="agenda-body right"><ul><li>Audiens: alumni, evaluator, dan penyelenggara kegiatan.</li><li>Paparan menggabungkan hasil {{$summary['total']}} peserta dari seluruh tim.</li><li>Pembahasan perbandingan survei dan wawancara, kesimpulan, serta rekomendasi.</li><li>Penetapan tindak lanjut berdasarkan bukti dan kesepakatan penyelenggara.</li></ul></div>
+    <div class="agenda-note">Rincian waktu dan agenda pelaksanaan mengikuti jadwal yang ditetapkan penyelenggara.</div>
+    @include('post-evaluation.report-footer',['page'=>3])
+</section>
+@foreach($summary['slides'] as $slide)
+<section class="slide">
+    <h1 class="heading">{{$slide['title']}}@if($loop->first)<br><span class="subtitle">(Hasil wawancara)</span>@endif</h1>
+    <img class="brand" src="{{$logo}}" alt="Pemerintah Provinsi Jawa Barat">
+    <div class="chart-panel">
+        <p class="chart-title">{{$slide['title']}}@if($loop->first) (Hasil wawancara)@endif</p>
+        <img class="chart" src="{{$presenter->chart($slide,$summary)}}" alt="Grafik distribusi seluruh peserta kegiatan">
+        <p class="coverage">@foreach($slide['series'] as $series){{$series['label']}}: {{$series['data']['valid']}}/{{$summary['total']}} terisi; {{$series['data']['missing']}} belum dinilai @if(!$loop->last) · @endif @endforeach<br>@if($loop->last)Hasil survei parsial/kosong: {{$summary['partial']}} alumni. Rerata tiga indikator terisi; bukan nilai berbobot lima kriteria.@else Rentang ekspose: 0, >0-25, >25-50, >50-75, >75-100 · angka pada batang adalah jumlah peserta @endif</p>
+    </div>
+    <aside class="discussion"><h2>Pembahasan</h2><ul>@foreach($slide['discussion'] as $text)<li>{{$text}}</li>@endforeach</ul></aside>
+    @include('post-evaluation.report-footer',['page'=>$loop->iteration+3])
+</section>
 @endforeach
-<p class="foot">Skala 0-100. Perbandingan deskriptif; belum membuktikan perubahan dampak dari waktu ke waktu.</p></section>
-@endforeach
-<section class="slide"><h2>Kesimpulan</h2><ul>
-@foreach($summary['conclusions'] as $text)<li>{{ $text }}</li>
-@endforeach</ul><p class="muted">Rerata keseluruhan memakai tiga indikator terisi: jangka panjang, tujuan, manfaat. Nilai berbobot lima kriteria adalah metrik terpisah.</p></section>
-<section class="slide"><h2>Rekomendasi dan tindak lanjut</h2><ol>
-@foreach($summary['recommendations'] as $text)<li>{{ $text }}</li>
-@endforeach</ol><p class="foot">{{ $public ? 'Identitas alumni, jawaban individu, dokumen dan catatan wawancara tidak disertakan.' : 'Bahas temuan dengan penyelenggara dan unit kerja sebelum menetapkan keputusan.' }}</p></section>
-
-@if(!$pdf)<script>(()=>{const slides=[...document.querySelectorAll('.slide')];let current=0;const render=()=>{slides.forEach((s,i)=>s.classList.toggle('active',i===current));document.getElementById('slidePosition').textContent=`${current+1} / ${slides.length}`;};const move=step=>{current=Math.min(slides.length-1,Math.max(0,current+step));render();if(document.body.classList.contains('presentation-mode'))window.scrollTo(0,0);else slides[current].scrollIntoView({behavior:'smooth'});};document.getElementById('toggleSlides').onclick=()=>{document.body.classList.toggle('presentation-mode');render();window.scrollTo(0,0);};document.getElementById('previousSlide').onclick=()=>move(-1);document.getElementById('nextSlide').onclick=()=>move(1);document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);});render();})();</script>
-@endif
+<section class="slide">
+    <h1 class="heading">Kesimpulan dan Rekomendasi</h1><img class="brand" src="{{$logo}}" alt="Pemerintah Provinsi Jawa Barat">
+    <div class="conclusion left"><h2>Pembahasan Keseluruhan</h2>@foreach($summary['conclusions'] as $text)<p>{{$text}}</p>@endforeach</div>
+    <div class="conclusion right"><h2>Rekomendasi</h2><p>Tindak lanjut berdasarkan angka hasil evaluasi dan kebutuhan konfirmasi evidence.</p><ul>@foreach($summary['recommendations'] as $item)<li>{{$item}}</li>@endforeach</ul></div>
+    @include('post-evaluation.report-footer',['page'=>9])
+</section>
 </body></html>

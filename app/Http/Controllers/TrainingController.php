@@ -166,7 +166,7 @@ class TrainingController extends Controller
     public function storeParticipant(Request $request, $id)
     {
         $data = $request->validate(['user_id' => 'required|exists:users,id']);
-        $user = User::where('role', 'participant')->findOrFail($data['user_id']);
+        $user = User::withRoles(['participant'])->findOrFail($data['user_id']);
 
         $alreadyRegistered = Participant::where('training_id', $id)
             ->where(function ($query) use ($user) {
@@ -216,7 +216,7 @@ class TrainingController extends Controller
 
         $registeredUserIds = Participant::where('training_id', $id)->whereNotNull('user_id')->pluck('user_id');
         $registeredNips = Participant::where('training_id', $id)->whereNotNull('nip_nik')->pluck('nip_nik');
-        $availableUsers = User::where('role', 'participant')
+        $availableUsers = User::withRoles(['participant'])
             ->whereNotNull('nip_nik')->where('nip_nik', '!=', '')
             ->whereNotIn('id', $registeredUserIds)
             ->whereNotIn('nip_nik', $registeredNips)
@@ -328,9 +328,7 @@ class TrainingController extends Controller
             ->get();
 
         // Hanya akun Narasumber yang telah disetujui dan memiliki akses Pengajar.
-        $pengajars = User::where('role', 'pengajar')
-            ->where('user_type', 'narasumber')
-            ->where('user_type_status', 'approved')
+        $pengajars = User::eligibleTeachers()
             ->orderBy('name', 'asc')
             ->get();
         $assets = Asset::where('is_active', true)->orderBy('name')->get();
@@ -436,10 +434,7 @@ class TrainingController extends Controller
             'pic' => 'nullable|required_if:schedule_type,learning|string|max:255',
             'pengajar_id' => [
                 'nullable',
-                Rule::exists('users', 'id')->where(fn ($query) => $query
-                    ->where('role', 'pengajar')
-                    ->where('user_type', 'narasumber')
-                    ->where('user_type_status', 'approved')),
+                \App\Support\UserRoles::existsRule('pengajar'),
             ],
             'venue_type' => 'nullable|required_if:schedule_type,learning|in:internal,external',
             'external_place' => 'nullable|string|max:255',
@@ -548,10 +543,7 @@ class TrainingController extends Controller
             'pic' => 'nullable|required_if:schedule_type,learning|string|max:255',
             'pengajar_id' => [
                 'nullable',
-                Rule::exists('users', 'id')->where(fn ($query) => $query
-                    ->where('role', 'pengajar')
-                    ->where('user_type', 'narasumber')
-                    ->where('user_type_status', 'approved')),
+                \App\Support\UserRoles::existsRule('pengajar'),
             ],
             'venue_type' => 'nullable|required_if:schedule_type,learning|in:internal,external',
             'external_place' => 'nullable|string|max:255',
@@ -979,7 +971,7 @@ class TrainingController extends Controller
         ));
     }
 
-    public function executionNotes($id)
+    public function executionNotes(Request $request, $id)
     {
         $training = Training::findOrFail($id);
         $user = Auth::user();
@@ -991,7 +983,9 @@ class TrainingController extends Controller
 
         $notes = $training->executionNotes()->with('author')->latest()->paginate(10);
 
-        return view('trainings.execution-notes.index', compact('training', 'notes'));
+        $editingNote = $request->filled('edit') ? $training->executionNotes()->findOrFail($request->query('edit')) : null;
+
+        return view('trainings.execution-notes.index', compact('training', 'notes', 'editingNote'));
     }
 
     public function storeExecutionNote(Request $request, $id)
@@ -1021,6 +1015,36 @@ class TrainingController extends Controller
         return redirect()->route('trainings.execution-notes.index', $training)
             ->with('success', 'Catatan pelaksanaan berhasil disimpan.');
     }
+    public function updateExecutionNote(Request $request, $id, $noteId)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+        $executionNote = $training->executionNotes()->findOrFail($noteId);
+        $data = $request->validate([
+            'note_title' => ['required', 'string', 'max:200'],
+            'note_content' => ['required', 'string', 'max:10000'],
+        ], [
+            'note_title.required' => 'Judul catatan wajib diisi.',
+            'note_content.required' => 'Isi catatan pelaksanaan wajib diisi.',
+        ]);
+        $executionNote->update(['title' => $data['note_title'], 'note' => $data['note_content']]);
+
+        return redirect()->route('trainings.execution-notes.index', $training)
+            ->with('success', 'Catatan pelaksanaan berhasil diperbarui.');
+    }
+
+    public function deleteExecutionNote($id, $noteId)
+    {
+        $training = Training::findOrFail($id);
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
+        $training->executionNotes()->findOrFail($noteId)->delete();
+
+        return redirect()->route('trainings.execution-notes.index', $training)
+            ->with('success', 'Catatan pelaksanaan berhasil dihapus.');
+    }
+
     public function uploadOrganizerDocument(Request $request, $id)
     {
         $training = Training::findOrFail($id);

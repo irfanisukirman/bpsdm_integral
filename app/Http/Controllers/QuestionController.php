@@ -432,6 +432,7 @@ class QuestionController extends Controller
     private function evaluationQuestions()
     {
         return Question::query()
+            ->where('is_active', true)
             ->where('category', 'not like', '%monitoring%')
             ->where('category', 'not like', '%l2%')
             ->where('type', '!=', 'ya_tidak')
@@ -457,14 +458,8 @@ class QuestionController extends Controller
 
     private function bidangOptions(): array
     {
-        return collect([
-            'Semua Bidang',
-            'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan',
-            'Bidang Pengembangan Kompetensi Teknis Inti',
-            'Bidang Pengembangan Kompetensi Teknis Umum',
-            'Bidang Pengembangan Kompetensi Manajerial',
-        ])->merge(\App\Models\Training::whereNotNull('bidang')->pluck('bidang'))
-            ->merge(\App\Models\User::where('role', 'admin_bidang')->whereNotNull('bidang')->pluck('bidang'))
+        return collect(array_merge(['Semua Bidang'], \App\Models\Bidang::names()))->merge(\App\Models\Training::whereNotNull('bidang')->pluck('bidang'))
+            ->merge(\App\Models\User::withRoles(['admin_bidang'])->whereNotNull('bidang')->pluck('bidang'))
             ->filter()
             ->unique()
             ->sort()

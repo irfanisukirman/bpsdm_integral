@@ -147,6 +147,7 @@ Route::get('verifikasi-tte/{token}', [ElectronicSignatureController::class, 'ver
     ->middleware('throttle:30,1')->name('electronic-signatures.verify');
 
 Route::middleware(['auth'])->group(function () {
+    Route::post('akses-peran', [\App\Http\Controllers\UserRoleController::class, 'switch'])->name('roles.switch');
     Route::get('laporan-harian', [DailyReportController::class, 'index'])->name('daily-reports.index');
     Route::get('laporan-harian/buat', [DailyReportController::class, 'edit'])->name('daily-reports.create');
     Route::get('laporan-harian/pdf-bulanan', [DailyReportController::class, 'monthlyPdf'])->name('daily-reports.monthly-pdf');
@@ -340,9 +341,13 @@ Route::middleware(['auth'])->group(function () {
      
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
+        Route::put('users/{user}/roles', [\App\Http\Controllers\UserRoleController::class, 'update'])->name('users.roles.update');
         Route::resource('users', UserController::class);
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::put('users/{user}/approve-type', [UserController::class, 'approveUserType'])->name('users.approve-type');
+        Route::get('pengaturan/bidang', [\App\Http\Controllers\BidangSettingController::class, 'index'])->name('settings.bidang.index');
+        Route::put('pengaturan/bidang/{bidang}', [\App\Http\Controllers\BidangSettingController::class, 'update'])->name('settings.bidang.update');
+        Route::delete('pengaturan/bidang/{bidang}', [\App\Http\Controllers\BidangSettingController::class, 'destroy'])->name('settings.bidang.destroy');
         Route::get('pengaturan/bantuan-login', [LoginHelpSettingController::class, 'edit'])->name('settings.login-help.edit');
         Route::put('pengaturan/bantuan-login', [LoginHelpSettingController::class, 'update'])->name('settings.login-help.update');
     });
@@ -446,6 +451,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('trainings/{training}/identity-card', [TrainingIdentityCardController::class, 'updateSettings'])->name('training-id-cards.settings.update');
     Route::get('trainings/{id}/execution-notes', [TrainingController::class, 'executionNotes'])->name('trainings.execution-notes.index');
     Route::post('trainings/{id}/execution-notes', [TrainingController::class, 'storeExecutionNote'])->name('trainings.execution-notes.store');
+    Route::put('trainings/{id}/execution-notes/{noteId}', [TrainingController::class, 'updateExecutionNote'])->name('trainings.execution-notes.update');
+    Route::delete('trainings/{id}/execution-notes/{noteId}', [TrainingController::class, 'deleteExecutionNote'])->name('trainings.execution-notes.destroy');
     Route::post('trainings/{id}/organizer-documents', [TrainingController::class, 'uploadOrganizerDocument'])->name('trainings.organizer-documents.store');
     Route::post('trainings/{id}/participants/import', [TrainingController::class, 'importParticipants'])->name('participants.import');
     Route::get('trainings/{id}/participants/import-result', [TrainingController::class, 'downloadParticipantImportResult'])->name('participants.import-result');
@@ -572,27 +579,29 @@ Route::middleware(['auth'])->group(function () {
 
 // Hasil pasca: survei langsung dari Integral, wawancara dan publikasi agregat.
 Route::controller(\App\Http\Controllers\PostEvaluationController::class)->group(function () {
-    Route::get('isi-proper/{training}', 'properForm')->name('post-evaluation.proper.public');
-    Route::post('isi-proper/{training}/verifikasi', 'verifyProper')->middleware('throttle:30,1')->name('post-evaluation.proper.verify');
-    Route::post('isi-proper/{training}', 'submitProper')->middleware('throttle:10,1')->name('post-evaluation.proper.store');
+    Route::get('isi-proper/{training:proper_uid}', 'properForm')->whereUuid('training')->name('post-evaluation.proper.public');
+    Route::post('isi-proper/{training:proper_uid}/verifikasi', 'verifyProper')->whereUuid('training')->middleware('throttle:30,1')->name('post-evaluation.proper.verify');
+    Route::post('isi-proper/{training:proper_uid}', 'submitProper')->whereUuid('training')->middleware('throttle:10,1')->name('post-evaluation.proper.store');
     Route::get('hasil-pasca/{token}', 'publicResult')->name('post-evaluation.public');
     Route::get('hasil-pasca/{token}/ekspose', 'publicResult')->name('post-evaluation.public.expose');
     Route::get('hasil-pasca/{token}/pdf', 'publicResult')->name('post-evaluation.public.pdf');
-    Route::get('bukti-pasca/{token}', 'publicUpload')->name('post-evaluation.upload.public');
-    Route::post('bukti-pasca/{token}', 'upload')->middleware('throttle:10,1')->name('post-evaluation.upload.store');
     Route::middleware('auth')->prefix('hasil-evaluasi-pasca')->name('post-evaluation.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('{training}', 'show')->name('show');
-        Route::post('{training}/pengaturan', 'settings')->name('settings');
+        Route::post('{training}/import/pratinjau', [\App\Http\Controllers\PostEvaluationImportController::class, 'preview'])->middleware('throttle:10,1')->name('import.preview');
+        Route::post('{training}/import/{import}', [\App\Http\Controllers\PostEvaluationImportController::class, 'store'])->whereUuid('import')->name('import.store');
         Route::post('{training}/tim', 'team')->name('team');
+        Route::post('{training}/evaluator', 'createEvaluator')->name('evaluator.store');
+        Route::post('{training}/tim-evaluator', 'addEvaluators')->name('evaluator.add');
+        Route::post('{training}/pindah-evaluator', 'moveEvaluator')->name('evaluator.move');
         Route::delete('{training}/tim/{team}', 'deleteTeam')->name('teams.delete');
         Route::post('{training}/pembagian', 'assign')->name('assign');
+        Route::post('{training}/pembagian-otomatis', 'autoAssign')->name('assign.auto');
         Route::get('{training}/wawancara/{participant}', 'edit')->name('interview');
         Route::put('{training}/wawancara/{participant}', 'save')->name('interview.save');
-        Route::post('{training}/wawancara/{participant}/link-bukti', 'uploadLink')->name('upload-link');
-        Route::post('{training}/wawancara/{participant}/bukti', 'internalUpload')->name('evidence.upload');
         Route::get('{training}/bukti/{evidence}', 'evidence')->name('evidence');
         Route::post('{training}/publikasi', 'publish')->name('publish');
+        Route::post('{training}/ekspose/ai', 'generateExposeAi')->middleware('throttle:3,1')->name('ai.generate');
         Route::get('{training}/ekspose', 'expose')->name('expose');
         Route::get('{training}/laporan', 'expose')->name('pdf');
     });

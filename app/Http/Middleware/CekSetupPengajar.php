@@ -14,7 +14,7 @@ class CekSetupPengajar
             // Jika data di tabel pengajars belum ada, arahkan ke halaman setup
             if (!Auth::user()->pengajar) {
                 // Cegah redirect loop (jangan redirect jika sedang di halaman setup atau logout)
-                if (!$request->is('pengajar/setup-profil') && !$request->is('logout')) {
+                if (!$request->is('pengajar/setup-profil') && !$request->is('logout') && !$request->routeIs('roles.switch')) {
                     return redirect()->route('pengajar.setup')->with('warning', 'Selamat datang! Lengkapi data administrasi narasumber untuk melanjutkan.');
                 }
             }

@@ -153,7 +153,7 @@ class ParticipantController extends Controller
      */
     public function storeProfile(Request $request)
     {
-        $user = \App\Models\User::findOrFail(auth()->id());
+        $user = Auth::user();
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
         $request->validate([
@@ -179,15 +179,16 @@ class ParticipantController extends Controller
 
         $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
         $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
-        $requestedType = $user->must_complete_profile ? 'peserta' : $request->user_type;
-        $role = $requestedType === 'narasumber' ? 'pengajar' : 'participant';
+        $publicPrimary = $user->primaryRole() === 'participant';
+        $requestedType = !$publicPrimary && filled($user->user_type) ? $user->user_type : ($user->must_complete_profile ? 'peserta' : $request->user_type);
+        $role = $user->primaryRole() === 'participant' ? ($requestedType === 'narasumber' ? 'pengajar' : 'participant') : $user->primaryRole();
         $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
         $user->update([
             'user_type' => $requestedType,
             'user_type_status' => $typeStatus,
             // Narasumber langsung aktif, sedangkan akun administratif tetap tidak tersedia di form publik.
             'role' => $role,
-            'bidang' => null,
+            'bidang' => $user->primaryRole() === 'participant' ? null : $user->getRawOriginal('bidang'),
             'nip_nik' => $request->nip_nik,
             'whatsapp' => $request->whatsapp,
             'gender' => $request->gender,
@@ -226,7 +227,7 @@ class ParticipantController extends Controller
             'status_kepegawaian' => $user->status_kepegawaian,
         ]);
 
-        if ($requestedType === 'narasumber') {
+        if ($publicPrimary && $requestedType === 'narasumber') {
             return redirect()->route('pengajar.setup')
                 ->with('success', 'Akun Narasumber berhasil diaktifkan. Lengkapi data pengajar untuk melanjutkan.');
         }

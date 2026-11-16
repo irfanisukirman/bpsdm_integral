@@ -1,0 +1,18 @@
+<style>
+@media screen{body{background:#e9eff3}.controls{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid #d7e1e8;padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;font-family:Arial,sans-serif}.controls button,.controls a,.controls select{padding:10px;border:1px solid #cbdbe4;border-radius:8px;background:#f4f9fc;color:#225268;text-decoration:none;font:13px Arial,sans-serif;cursor:pointer}.slide-frame{position:relative;margin:22px auto;box-shadow:0 8px 32px #1632451a;scroll-margin-top:90px;overflow:hidden;background:white}.slide-frame .slide{position:absolute;left:0;top:0;transform-origin:top left;margin:0}.controls small{color:#68788f}}
+@media print{.controls{display:none}.slide-frame{width:960pt!important;height:540pt!important;margin:0!important;box-shadow:none;overflow:visible!important;page-break-after:always}.slide-frame:last-child{page-break-after:auto}.slide-frame .slide{transform:none!important;position:relative!important}body{background:white}}
+</style>
+<nav class="controls" aria-label="Kontrol ekspose"><button id="previousSlide" type="button">&larr; Sebelumnya</button><select id="slideSelect" aria-label="Pilih halaman"></select><button id="nextSlide" type="button">Berikutnya &rarr;</button><button id="fullscreenSlide" type="button">Layar penuh</button><button type="button" onclick="window.print()">Cetak</button><a href="{{ $public ? route('post-evaluation.public.pdf',request()->route('token')) : route('post-evaluation.pdf',request()->route('training')) }}">Unduh PDF</a><small>{{ ($summary['ai_status'] ?? 'none')==='current' ? 'Pembahasan dibuat AI dari data agregat' : 'Pembahasan dasar; AI belum tersedia untuk angka ini' }}</small></nav>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const slides=[...document.querySelectorAll('.slide')],select=document.getElementById('slideSelect');let current=0;
+ const frames=slides.map((slide,i)=>{const frame=document.createElement('div');frame.className='slide-frame';slide.before(frame);frame.appendChild(slide);const option=document.createElement('option');option.value=i;option.textContent=`Halaman ${i+1} / ${slides.length}`;select.appendChild(option);return frame;});
+ const resize=()=>{const width=Math.min(1280,Math.max(1,document.documentElement.clientWidth-24));frames.forEach(frame=>{frame.style.width=width+'px';frame.style.height=width*9/16+'px';frame.firstElementChild.style.transform=`scale(${width/1280})`;});};
+ const go=i=>{current=Math.max(0,Math.min(slides.length-1,i));select.value=current;frames[current].scrollIntoView({behavior:'instant',block:'start'});};
+ document.getElementById('previousSlide').onclick=()=>go(current-1);document.getElementById('nextSlide').onclick=()=>go(current+1);select.onchange=()=>go(Number(select.value));
+ document.getElementById('fullscreenSlide').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>{});};
+ window.addEventListener('resize',resize);document.addEventListener('fullscreenchange',()=>{resize();go(current);});
+ document.addEventListener('keydown',event=>{if(event.target.closest('input,select,textarea'))return;if(event.key==='ArrowRight'){event.preventDefault();go(current+1);}if(event.key==='ArrowLeft'){event.preventDefault();go(current-1);}});
+ window.addEventListener('scroll',()=>{const top=document.querySelector('.controls').getBoundingClientRect().bottom+30;frames.forEach((frame,i)=>{if(frame.getBoundingClientRect().top<=top)current=i;});select.value=current;},{passive:true});resize();
+});
+</script>

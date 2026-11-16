@@ -1,167 +1,51 @@
 @extends('layouts.master')
-
-@section('title', 'Dashboard Evaluasi Level 3 & 4')
-
+@section('title','Dashboard Evaluasi Level 3 & 4')
 @section('content')
 @php
-    $coverageColor = $overallCoverage >= 90 ? 'success' : ($overallCoverage >= 75 ? 'warning' : 'danger');
-    $fmt = fn ($value) => $value === null ? '-' : number_format($value, 1, ',', '.');
-    $quantitativeSections = $dashboardSections->whereNotNull('average');
+    $fmt=fn($value)=>$value===null?'-':number_format($value,1,',','.');
+    $tones=['mandiri'=>'primary','atasan'=>'info','rekan'=>'warning'];
 @endphp
-<div class="container-xxl flex-grow-1 container-p-y l34-dashboard">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 no-print">
-        <div>
-            <a href="{{ route('trainings.manage', $training->id) }}" class="small text-muted text-decoration-none"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pengelolaan</a>
-            <h4 class="fw-bold mt-2 mb-1">Dashboard Evaluasi Level 3 &amp; 4</h4>
-            <p class="text-muted mb-0">Ringkasan seluruh bagian evaluasi pascapelatihan dan kelengkapan penilaian 360&deg;.</p>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <button onclick="window.print()" class="btn btn-outline-primary"><i class="bx bx-printer me-1"></i>Cetak Dashboard</button>
-            <a href="{{ route('evall34.export_word', $training->id) }}" class="btn btn-primary"><i class="bx bxs-file-doc me-1"></i>Laporan Word</a>
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm overflow-hidden mb-4">
-        <div class="card-body dashboard-hero p-4 p-md-5 text-white">
-            <div class="row align-items-center g-4">
-                <div class="col-lg-8">
-                    <small class="text-white-50 text-uppercase fw-bold">Evaluasi Pascapelatihan {{ $training->program_evaluasi ?: $training->bidang }}</small>
-                    <h3 class="text-white fw-bold mt-2">{{ $training->nama_pelatihan }}</h3>
-                    <p class="text-white-50">Angkatan {{ $training->angkatan }} &middot; Bidang {{ $training->bidang }} &middot; {{ $activeRoles->count() }} perspektif berlaku</p>
-                    <p class="mb-0">{{ $executiveNarrative }}</p>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <span class="badge bg-white text-primary px-3 py-2">Diperbarui {{ now()->translatedFormat('d M Y, H:i') }}</span>
-                    <small class="d-block text-white-50 mt-2">Instrumen otomatis mengikuti bidang dan program pelatihan</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @include('evaluasi.partials.ai_dashboard_analysis', [
-        'analysis' => $aiAnalysis,
-        'aiError' => session('l34_ai_analysis_error'),
-        'aiRoute' => route('evall34.dashboard.ai', $training->id),
-    ])
+<div class="container-xxl container-p-y l34-dashboard">
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center mb-3 no-print"><a href="{{ route('trainings.manage',$training) }}" class="small text-muted"><i class="bx bx-arrow-back me-1" aria-hidden="true"></i>Kembali ke Pengelolaan</a><div class="d-flex flex-wrap gap-2"><a href="{{ route('evall34.index',$training) }}" class="btn btn-sm btn-outline-secondary">Monitoring Respons</a><button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bx bx-printer me-1"></i>Cetak</button><a href="{{ route('evall34.export',$training) }}" class="btn btn-sm btn-outline-success">Excel</a><a href="{{ route('evall34.export_word',$training) }}" class="btn btn-sm btn-primary">Laporan Word</a></div></div>
+    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    <header class="dashboard-hero mb-4" style="background-color:#eef3ff;color:#233752"><div class="dashboard-hero-copy"><span class="dashboard-kicker">EVALUASI PASCAPELATIHAN / LEVEL 3 &amp; 4</span><h3 class="fw-bold mt-2 mb-2" style="color:#233752">{{ $training->nama_pelatihan }}</h3><div class="d-flex flex-wrap gap-2 mb-3"><span>{{ $training->program_evaluasi }}</span><span>Angkatan {{ $training->angkatan }}</span><span>{{ $activeRoles->count() }} peran penilai</span></div><p class="mb-0">{{ $executiveNarrative }}</p></div><div class="dashboard-hero-meta"><small>Respons terakhir</small><strong>{{ $latestAnswerAt?$latestAnswerAt->translatedFormat('d M Y, H:i'):'Belum ada respons' }}</strong><small class="mt-2">{{ $training->bidang }}</small></div></header>
+    <nav class="dashboard-jump mb-4 no-print" aria-label="Bagian dashboard"><a href="#progresPenilaian">Progres pengisian</a><a href="#hasilEvaluasi">Hasil evaluasi</a><a href="#detailIndikator">Indikator</a><a href="#tindakLanjut">Tindak lanjut</a><a href="#analisisAi">Analisis AI</a></nav>
     <div class="row g-3 mb-4">
-        @foreach([
-            ['icon'=>'bx-radar','color'=>$coverageColor,'label'=>'Cakupan Penilaian 360°','value'=>number_format($overallCoverage,1,',','.').' %','detail'=>$fullyAssessed.' dari '.$participantTotal.' alumni lengkap'],
-            ['icon'=>'bx-transfer-alt','color'=>'primary','label'=>'Indeks Level 3','value'=>$fmt($l3Average),'detail'=>$scoreCategory($l3Average).' · perubahan perilaku'],
-            ['icon'=>'bx-line-chart','color'=>'info','label'=>'Indeks Level 4','value'=>$fmt($l4Average),'detail'=>$scoreCategory($l4Average).' · dampak pelatihan'],
-            ['icon'=>'bx-group','color'=>'success','label'=>'Alumni Dinilai Lengkap','value'=>$fullyAssessed,'detail'=>'dari '.$participantTotal.' peserta terdaftar'],
-        ] as $stat)
-            <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body p-3 p-md-4">
-                <span class="avatar-initial rounded bg-label-{{ $stat['color'] }} p-2 d-inline-flex mb-3"><i class="bx {{ $stat['icon'] }} fs-4"></i></span>
-                <small class="text-muted d-block">{{ $stat['label'] }}</small><h3 class="fw-bold mb-1">{{ $stat['value'] }}</h3>
-                <small class="text-muted">{{ $stat['detail'] }}</small>
-            </div></div></div>
-        @endforeach
+    @foreach([
+        ['label'=>'Alumni sasaran','value'=>number_format($participantTotal,0,',','.'),'detail'=>'Peserta berstatus disetujui','tone'=>'primary','icon'=>'bx-group'],
+        ['label'=>'Lengkap seluruh peran','value'=>$fullyAssessed.' / '.$participantTotal,'detail'=>'Seluruh jawaban skala terisi','tone'=>'success','icon'=>'bx-check-shield'],
+        ['label'=>'Indeks Level 3','value'=>$fmt($l3Average),'detail'=>$scoreCategory($l3Average).' / Perubahan perilaku','tone'=>'primary','icon'=>'bx-transfer-alt'],
+        ['label'=>'Indeks Level 4','value'=>$fmt($l4Average),'detail'=>$scoreCategory($l4Average).' / Dampak pelatihan','tone'=>'info','icon'=>'bx-line-chart'],
+    ] as $stat)
+    <div class="col-6 col-xl-3"><div class="dashboard-stat"><div class="d-flex justify-content-between gap-2"><small>{{ $stat['label'] }}</small><span class="bg-label-{{ $stat['tone'] }}"><i class="bx {{ $stat['icon'] }}" aria-hidden="true"></i></span></div><strong>{{ $stat['value'] }}</strong><small class="d-block">{{ $stat['detail'] }}</small></div></div>
+    @endforeach
     </div>
-
-    @if($overallCoverage < 75)
-        <div class="alert alert-warning border-0 shadow-sm mb-4"><i class="bx bx-error-circle me-2"></i><strong>Data belum representatif.</strong> Cakupan penilaian masih di bawah 75%; kesimpulan perlu dibaca sebagai gambaran sementara.</div>
-    @endif
-
-    <div class="row g-4 mb-4">
-        <div class="col-xl-5"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Kelengkapan Perspektif</h5><small class="text-muted">Persentase alumni yang telah dinilai oleh setiap peran.</small></div>
-            <div class="card-body"><div class="chart-box"><canvas id="coverageChart"></canvas></div></div>
-        </div></div>
-        <div class="col-xl-7"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Perbandingan Antar-Perspektif</h5><small class="text-muted">Perbandingan skor setiap bagian evaluasi pada seluruh perspektif dalam skala 0-100.</small></div>
-            <div class="card-body"><div class="chart-box"><canvas id="roleChart"></canvas></div></div>
-        </div></div>
+    @if(!$participantTotal)<div class="alert alert-info">Belum ada peserta disetujui sebagai sasaran evaluasi pelatihan ini.</div>@endif
+    @if($excludedParticipants)<p class="small text-muted mb-4">{{ $excludedParticipants }} peserta yang belum disetujui/ditolak tidak masuk perhitungan dashboard.</p>@endif
+    @if($participantTotal && $completionCoverage<100)<div class="dashboard-note mb-4"><i class="bx bx-info-circle" aria-hidden="true"></i><div><strong>Cakupan penilaian belum lengkap.</strong><small class="d-block">{{ $fmt($overallCoverage) }}% pasangan alumni-penilai sudah memiliki respons; {{ $fmt($completionCoverage) }}% sudah melengkapi seluruh pertanyaan skala. Baca skor bersama kelengkapan data.</small></div></div>@endif
+    <section id="progresPenilaian" class="mb-4 dashboard-section"><div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3"><div><span class="dashboard-section-label">CAKUPAN DATA</span><h5 class="fw-bold mt-1 mb-0">Progres pengisian per penilai</h5></div><small class="text-muted">Lengkap = seluruh pertanyaan skala aktif terjawab valid</small></div><div class="row g-3">
+    @foreach($progress as $role=>$p)
+    <div class="col-lg-{{ $activeRoles->count()===3?'4':'6' }}"><article class="card dashboard-panel h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start gap-2 mb-3"><div><h6 class="fw-bold mb-1">{{ $p['label'] }}</h6><small class="text-muted">{{ $p['expected_questions'] }} pertanyaan skala per alumni</small></div><span class="badge bg-label-{{ $p['instrument_ready']?($tones[$role]??'primary'):'warning' }}">{{ $p['instrument_ready']?$fmt($p['coverage']).'% mulai':'Instrumen belum siap' }}</span></div><div class="dashboard-progress" role="img" aria-label="{{ $p['completed'] }} lengkap, {{ $p['partial'] }} parsial, {{ $p['not_started'] }} belum mulai"><span class="bg-success" style="width:{{ $participantTotal?$p['completed']/$participantTotal*100:0 }}%"></span><span class="bg-warning" style="width:{{ $participantTotal?$p['partial']/$participantTotal*100:0 }}%"></span></div><div class="dashboard-progress-counts"><div><strong class="text-success">{{ $p['completed'] }}</strong><small>Lengkap</small></div><div><strong class="text-warning">{{ $p['partial'] }}</strong><small>Parsial</small></div><div><strong>{{ $p['not_started'] }}</strong><small>Belum mulai</small></div></div><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 border-top pt-3 mt-3"><small class="text-muted">{{ number_format($p['answered_questions'],0,',','.') }} jawaban skala valid</small><a class="btn btn-sm btn-outline-primary no-print" href="{{ route('public.l34.form',[$training->id,$role]) }}" target="_blank" rel="noopener">Link pengisian<i class="bx bx-link-external ms-1" aria-hidden="true"></i></a></div></div></article></div>
+    @endforeach
+    </div></section>
+    <section id="hasilEvaluasi" class="dashboard-section mb-4"><div class="row g-4">
+        <div class="col-xl-8"><div class="card dashboard-panel h-100"><div class="card-header"><h5 class="fw-bold mb-1">Perbandingan antar-penilai</h5><small class="text-muted">Rerata indikator pada setiap bagian, skala 0-100. Nilai yang belum tersedia ditampilkan sebagai kosong.</small></div><div class="card-body pt-0"><div class="dashboard-chart" style="height:{{ max(290,$chartSections->count()*72) }}px"><div id="roleChart" role="img" aria-label="Perbandingan hasil antar-penilai"></div></div>@if(!$l3Indicators->whereNotNull('average')->count()&&!$l4Indicators->whereNotNull('average')->count())<p class="small text-muted mt-2 mb-0">Nilai Level 3 dan Level 4 belum tersedia.</p>@endif</div></div></div>
+        <div class="col-xl-4"><div class="card dashboard-panel h-100"><div class="card-header"><h5 class="fw-bold mb-1">Sebaran dampak per alumni</h5><small class="text-muted">Rerata jawaban Level 4 yang tersedia, termasuk respons parsial.</small></div><div class="card-body pt-0"><div class="dashboard-donut"><div id="impactChart" role="img" aria-label="Sebaran kategori dampak per alumni"></div></div><div class="dashboard-distribution mt-3">@foreach($impactDistribution as $label=>$count)<div><span><i style="background:{{ ['Sangat Baik'=>'#22a380','Baik'=>'#16a9bb','Cukup'=>'#e5aa3c','Kurang'=>'#e87575','Belum dinilai'=>'#c5cedb'][$label] }}"></i>{{ $label }}</span><strong>{{ $count }}</strong></div>@endforeach</div></div></div></div>
+    </div></section>
+    <section class="card dashboard-panel mb-4"><div class="card-header"><h5 class="fw-bold mb-1">Ringkasan seluruh bagian evaluasi</h5><small class="text-muted">Indeks Level 3/4 hanya menghitung bagian perilaku dan dampak. Dukungan, hambatan, dan Policy Brief disajikan sebagai konteks terpisah.</small></div><div class="table-responsive"><table class="table dashboard-summary-table mb-0"><thead><tr><th>Bagian evaluasi</th><th>Rerata /100</th><th>Jawaban skala</th><th>Jawaban teks</th><th>Interpretasi</th></tr></thead><tbody>@forelse($dashboardSections as $section)<tr><td class="fw-semibold">{{ $section['name'] }}<small class="d-block text-muted fw-normal">{{ $section['indicators'] }} indikator skala / {{ $section['respondents'] }} alumni memiliki respons</small></td><td><strong>{{ $fmt($section['average']) }}</strong></td><td>{{ number_format($section['responses'],0,',','.') }}</td><td>{{ $section['qualitative'] }}</td><td><small class="text-muted">{{ $section['is_barrier']?'Nilai tinggi berarti hambatan lebih kuat':($section['is_qualitative']?'Isian kualitatif, tidak membentuk indeks':($section['average']===null?'Belum ada nilai valid':$scoreCategory($section['average']))) }}</small></td></tr>@empty<tr><td colspan="5" class="text-center text-muted py-4">Belum ada bagian evaluasi pada bank soal program ini.</td></tr>@endforelse</tbody></table></div></section>
+    <section id="detailIndikator" class="dashboard-section mb-4"><div class="mb-3"><span class="dashboard-section-label">PENDALAMAN HASIL</span><h5 class="fw-bold mt-1 mb-0">Indikator Level 3 dan Level 4</h5></div><div class="row g-4">
+    @foreach([['id'=>'l3Chart','title'=>'Level 3 / Perubahan perilaku','items'=>$l3Indicators,'value'=>$l3Average,'color'=>'primary'],['id'=>'l4Chart','title'=>'Level 4 / Dampak pelatihan','items'=>$l4Indicators,'value'=>$l4Average,'color'=>'info']] as $chart)
+    <div class="col-xl-6"><div class="card dashboard-panel h-100"><div class="card-header d-flex justify-content-between gap-3"><div><h5 class="fw-bold mb-1">{{ $chart['title'] }}</h5><small class="text-muted">Maksimal 6 indikator dengan skor terendah.</small></div><span class="badge bg-label-{{ $chart['color'] }} align-self-start">{{ $fmt($chart['value']) }}/100</span></div><div class="card-body pt-0">@if($chart['items']->whereNotNull('average')->isNotEmpty())<div class="dashboard-chart chart-indicator"><div id="{{ $chart['id'] }}" role="img" aria-label="Indikator {{ $chart['title'] }}"></div></div>@else<div class="dashboard-empty"><i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i><p>Belum ada nilai indikator yang dapat dihitung.</p></div>@endif</div></div></div>
+    @endforeach
     </div>
-
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header border-bottom d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
-            <div><h5 class="fw-bold mb-1">Ringkasan Seluruh Bagian Evaluasi</h5><small class="text-muted">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'Teknis' }} dan bank pertanyaan yang berlaku.</small></div>
-            <span class="badge bg-label-primary">{{ $dashboardSections->count() }} bagian aktif</span>
-        </div>
-        <div class="card-body">
-            @if($dashboardSections->isNotEmpty())
-                <div class="section-summary-grid">
-                    @foreach($dashboardSections as $section)
-                        @php $tone = $section['average'] === null ? 'secondary' : ($section['average'] >= 80 ? 'success' : ($section['average'] >= 70 ? 'warning' : 'danger')); @endphp
-                        <div class="section-summary-item">
-                            <span class="section-summary-item__icon bg-label-{{ $tone }}"><i class="bx {{ str_contains($section['name'], 'Pendukung') ? 'bx-like' : (str_contains($section['name'], 'Penghambat') ? 'bx-error-circle' : 'bx-bar-chart-alt-2') }}"></i></span>
-                            <div class="min-w-0 flex-grow-1"><strong class="d-block text-break">{{ $section['name'] }}</strong><small class="text-muted">{{ $section['respondents'] }} alumni &middot; {{ $section['responses'] }} jawaban</small></div>
-                            <div class="text-end flex-shrink-0">@if($section['average'] !== null)<strong class="text-{{ $tone }}">{{ $fmt($section['average']) }}</strong><small class="d-block text-muted">skor</small>@else<span class="badge bg-label-secondary">Kualitatif</span>@endif</div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <p class="text-center text-muted mb-0 py-4">Belum tersedia bagian evaluasi untuk program pelatihan ini.</p>
-            @endif
-        </div>
-    </div>
-    <div class="row g-4 mb-4">
-        @foreach([['id'=>'l3Chart','title'=>'Indikator Level 3: '.$l3Category,'items'=>$l3Indicators,'lowest'=>$lowestL3], ['id'=>'l4Chart','title'=>'Indikator Level 4: '.$l4Category,'items'=>$l4Indicators,'lowest'=>$lowestL4]] as $chart)
-            <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
-                <div class="card-header border-bottom d-flex justify-content-between align-items-start gap-2">
-                    <div><h5 class="fw-bold mb-1">{{ $chart['title'] }}</h5><small class="text-muted">Target acuan minimal 80.</small></div>
-                    @if($chart['lowest'])<span class="badge bg-label-warning">Terendah {{ $fmt($chart['lowest']['average']) }}</span>@endif
-                </div>
-                <div class="card-body"><div class="chart-box chart-tall"><canvas id="{{ $chart['id'] }}"></canvas></div>
-                    @if($chart['items']->isEmpty())<p class="text-center text-muted mt-3">Belum tersedia indikator yang berlaku.</p>@endif
-                </div>
-            </div></div>
-        @endforeach
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-xl-5"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Sebaran Dampak per Alumni</h5><small class="text-muted">Kategori rata-rata jawaban Level 4 masing-masing alumni.</small></div>
-            <div class="card-body"><div class="chart-box"><canvas id="impactChart"></canvas></div></div>
-        </div></div>
-        <div class="col-xl-7"><div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-bottom"><h5 class="fw-bold mb-1">Rekomendasi Tindak Lanjut</h5><small class="text-muted">Prioritas otomatis berdasarkan kelengkapan dan indikator hasil.</small></div>
-            <div class="card-body">
-                @foreach($recommendations as $item)
-                    <div class="d-flex gap-3 {{ !$loop->last ? 'border-bottom pb-3 mb-3' : '' }}">
-                        <span class="avatar-initial rounded bg-label-{{ $item['color'] }} p-2 align-self-start"><i class="bx {{ $item['icon'] }} fs-4"></i></span>
-                        <div><h6 class="fw-bold mb-1">{{ $item['title'] }}</h6><p class="text-muted mb-0">{{ $item['detail'] }}</p></div>
-                    </div>
-                @endforeach
-            </div>
-        </div></div>
-    </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-            <h6 class="fw-bold"><i class="bx bx-info-circle me-2 text-primary"></i>Catatan Interpretasi</h6>
-            <p class="text-muted mb-0">Hasil bersifat deskriptif-persepsional berdasarkan jawaban yang tersedia. Indeks Level 4 menggambarkan persepsi dampak terhadap pekerjaan atau unit kerja dan bukan perhitungan dampak finansial/ROTI. Gunakan bersama bukti kinerja dan konteks pelaksanaan bidang terkait.</p>
-        </div>
-    </div>
+    @include('evaluasi.partials.l34_dashboard_indicators')
+    </section>
+    <section id="tindakLanjut" class="dashboard-section mb-4"><div class="row g-4"><div class="col-xl-5"><div class="card dashboard-panel h-100"><div class="card-header"><h5 class="fw-bold mb-1">Indikator untuk ditinjau</h5><small class="text-muted">Lima skor terendah dari Level 3 dan Level 4. Acuan pemantauan: 80/100.</small></div><div class="card-body pt-0">@forelse($priorities as $item)<div class="dashboard-priority"><span class="dashboard-rank">{{ $loop->iteration }}</span><div><small class="text-muted">{{ $item['section'] }}</small><p class="mb-1">{{ $item['label'] }}</p><small class="text-muted">{{ $item['responses'] }} jawaban valid</small></div><strong class="{{ $item['average']<80?'text-warning':'text-primary' }}">{{ $fmt($item['average']) }}</strong></div>@empty<p class="text-muted small mb-0">Prioritas indikator akan muncul setelah ada jawaban skala valid.</p>@endforelse</div></div></div><div class="col-xl-7"><div class="card dashboard-panel h-100"><div class="card-header"><h5 class="fw-bold mb-1">Rekomendasi tindak lanjut</h5><small class="text-muted">Berdasarkan kelengkapan jawaban dan nilai yang tersedia.</small></div><div class="card-body pt-0">@foreach($recommendations as $item)<div class="dashboard-recommendation"><span class="bg-label-{{ $item['color'] }}"><i class="bx {{ $item['icon'] }}" aria-hidden="true"></i></span><div><h6 class="fw-bold mb-1">{{ $item['title'] }}</h6><p class="small text-muted mb-0">{{ $item['detail'] }}</p></div></div>@endforeach</div></div></div></div></section>
+    @include('evaluasi.partials.l34_dashboard_progress')
+    <details class="card dashboard-panel mb-4 dashboard-method"><summary class="card-body"><strong>Bagaimana angka dihitung?</strong><i class="bx bx-chevron-down" aria-hidden="true"></i></summary><div class="card-body pt-0 small text-muted"><ul><li>Hanya peserta disetujui dan instrumen aktif yang sesuai program/peran pelatihan yang dihitung. Versi jawaban ganda memakai jawaban terakhir.</li><li>Skala kesesuaian: Tidak Sesuai=25, Kurang Sesuai=50, Sesuai=75, Sangat Sesuai=100. Slider memakai nilai 0-100. Teks dan pilihan Ya/Tidak tidak dikonversi menjadi nilai skala.</li><li>Rerata indikator dihitung dari jawaban valid yang tersedia. Indeks Level 3/4 adalah rata-rata indikator terisi pada bagian terkait. Nilai kosong tidak dianggap nol.</li><li>Lengkap berarti seluruh pertanyaan skala aktif per peran terjawab valid; status ini tidak memeriksa isian teks opsional.</li><li>Kategori: Kurang &le;60; Cukup &gt;60 sampai 79; Baik &gt;79 sampai 89; Sangat Baik &gt;89 sampai 100. Acuan 80 adalah referensi pemantauan, bukan ketentuan kelulusan.</li></ul><p class="mb-0">Hasil menggambarkan persepsi responden, bukan bukti sebab-akibat atau perhitungan dampak finansial. Gunakan bersama bukti kinerja dan konteks pelaksanaan.</p></div></details>
+    <section id="analisisAi" class="dashboard-section">@if($aiStale)<div class="alert alert-info small">Analisis AI sebelumnya memakai data yang berbeda. Buat ulang analisis untuk memakai perhitungan terkini.</div>@endif
+    @include('evaluasi.partials.ai_dashboard_analysis',['analysis'=>$aiAnalysis,'aiError'=>session('l34_ai_analysis_error'),'aiRoute'=>route('evall34.dashboard.ai',$training)])
+    </section>
 </div>
 @endsection
-
-@push('styles')
-<style>
-.dashboard-hero{background:linear-gradient(135deg,#253b80 0%,#5668d8 55%,#20a6b7 100%)}.section-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.section-summary-item{display:flex;align-items:center;gap:.75rem;min-width:0;padding:.9rem;border:1px solid #e8e8ef;border-radius:.75rem;background:#fff}.section-summary-item__icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:10px;font-size:1.2rem}.section-summary-item>div:last-child>strong{font-size:1.15rem}.chart-box{position:relative;height:310px}.chart-tall{height:370px}
-@media(max-width:767.98px){.section-summary-grid{grid-template-columns:1fr}}@media print{.no-print,.layout-navbar,.layout-menu,.content-footer{display:none!important}.layout-page{padding:0!important}.card{box-shadow:none!important;break-inside:avoid}.l34-dashboard{padding:0!important}.chart-box{height:250px}}
-</style>
-@endpush
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const roles = @json($activeRoles->values());
-    const colors = ['#5668d8','#20a6b7','#71c68b'];
-    const base = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}};
-    new Chart(document.getElementById('coverageChart'), {type:'bar',data:{labels:roles,datasets:[{label:'Cakupan (%)',data:@json($coverageByRole->values()),backgroundColor:colors,borderRadius:8}]},options:{...base,scales:{y:{beginAtZero:true,max:100}}}});
-    const sectionLabels = @json($evaluationSections->values());
-    const roleSeries = @json($roleChartSeries);
-
-    new Chart(document.getElementById('roleChart'), {type:'bar',data:{labels:sectionLabels,datasets:roleSeries.map((series,index)=>({...series,backgroundColor:colors[index % colors.length],borderRadius:6}))},options:{...base,scales:{y:{beginAtZero:true,max:100}}}});
-    function indicatorChart(id, items, color) {
-        const el=document.getElementById(id); if(!el || !items.length) return;
-        new Chart(el,{type:'bar',data:{labels:items.map(x=>x.label),datasets:[{label:'Skor',data:items.map(x=>x.average),backgroundColor:color,borderRadius:6}]},options:{...base,indexAxis:'y',scales:{x:{beginAtZero:true,max:100}},plugins:{...base.plugins,legend:{display:false}}}});
-    }
-    indicatorChart('l3Chart', @json($l3Indicators->values()), '#5668d8');
-    indicatorChart('l4Chart', @json($l4Indicators->values()), '#20a6b7');
-    new Chart(document.getElementById('impactChart'),{type:'doughnut',data:{labels:@json($impactDistribution->keys()),datasets:[{data:@json($impactDistribution->values()),backgroundColor:['#71c68b','#20a6b7','#ffbc5b','#ff8b5b','#e65b65']}]},options:{...base,cutout:'62%'}});
-});
-</script>
-@endpush
+@include('evaluasi.partials.l34_dashboard_assets')

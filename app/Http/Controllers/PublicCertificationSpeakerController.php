@@ -96,7 +96,7 @@ class PublicCertificationSpeakerController extends Controller
             $folder = Folder::firstOrCreate([
                 'name' => 'Biodata Narasumber',
                 'parent_id' => $event->folder_id,
-                'bidang' => self::BIDANG,
+                'bidang' => \App\Models\Bidang::resolve(self::BIDANG),
             ], [
                 'user_id' => $event->created_by,
                 'is_public' => false,

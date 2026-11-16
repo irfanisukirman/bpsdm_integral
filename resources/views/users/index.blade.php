@@ -9,7 +9,7 @@
 
         <div class="d-flex flex-wrap gap-2">
             <!-- FORM PENCARIAN USER -->
-            <form action="{{ route('users.index') }}" method="GET" class="d-flex gap-2 flex-grow-1" style="min-width: 300px;">
+            <form action="{{ route('users.index') }}" method="GET" class="d-flex gap-2 flex-grow-1" style="min-width: 0;">
                 <select name="category" class="form-select shadow-sm" style="max-width: 230px;" onchange="this.form.submit()" aria-label="Filter kategori akun">
                     <option value="">Semua kategori</option>
                     <option value="admin" @selected(($category ?? '') === 'admin')>Admin & Superadmin</option>
@@ -84,15 +84,15 @@
         @endforeach
     </div>
     <div class="card shadow-sm border-0">
-        <div class="table-responsive text-nowrap">
-            <table class="table table-hover">
+        <div class="table-responsive users-table-scroll">
+            <table class="table table-hover users-table mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Nama & Role</th>
                         <th>Kategori & Bidang</th>
                         <th>Username / NIP</th>
                         <th>WhatsApp</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-end users-actions-cell">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,10 +107,9 @@
                                 </div>
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold text-dark">{{ $user->name }}</span>
+                                    <div class="d-flex flex-wrap gap-1 my-1">@foreach($user->roleAssignments as $assignment)<span class="badge bg-label-primary" title="{{ $assignment->bidang }}">{{ \App\Support\UserRoles::LABELS[$assignment->role] ?? $assignment->role }}@if($assignment->bidang) &middot; {{ $assignment->bidang }}@endif</span>@endforeach</div>
                                     <small class="text-muted" style="font-size: 10px;">
-                                        {{ in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset', 'pengelola_magang', 'resepsionis', 'pengelola_keuangan', 'manajemen_mutu', 'kasubag_pppk_pw'], true)
-                                            ? strtoupper(str_replace('_', ' ', $user->role))
-                                            : strtoupper(match($user->user_type) { 'narasumber' => 'Narasumber', 'mitra' => 'Mitra', default => 'Peserta' }) }}
+                                        {{ \App\Support\UserRoles::LABELS[$user->role] ?? $user->role }}
                                     </small>
                                 </div>
                             </div>
@@ -146,30 +145,11 @@
                                 <i class="bx bxl-whatsapp text-success me-1"></i>{{ $user->whatsapp }}
                             </a>
                         </td>
-                        <td class="text-center">
-                            <div class="dropdown">
-                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="javascript:void(0);" onclick="editUser({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalEditUser">
-                                        <i class="bx bx-edit-alt me-1"></i> Edit User
-                                    </a>                                    @if($user->user_type_status === 'pending' && in_array($user->user_type, ['narasumber', 'mitra'], true))
-                                        <form action="{{ route('users.approve-type', $user) }}" method="POST" onsubmit="return confirm('Setujui {{ $user->name }} sebagai {{ ucfirst($user->user_type) }}?')">
-                                            @csrf @method('PUT')
-                                            <button class="dropdown-item text-success"><i class="bx bx-user-check me-1"></i> Setujui sebagai {{ ucfirst($user->user_type) }}</button>
-                                        </form>
-                                    @endif
-                                    <form action="{{ route('users.reset-password', $user->id) }}" method="POST">
-                                        @csrf @method('PUT')
-                                        <button class="dropdown-item" onclick="return confirm('Reset password menjadi password123?')"><i class="bx bx-refresh me-1"></i> Reset Password</button>
-                                    </form>
-                                    <div class="dropdown-divider"></div>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini beserta seluruh datanya?')">
-                                        @csrf @method('DELETE')
-                                        <button class="dropdown-item text-danger"><i class="bx bx-trash me-1"></i> Hapus</button>
-                                    </form>
-                                </div>
+                        <td class="users-actions-cell">
+                            <div class="users-row-actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="manageUserRoles({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalUserRoles"><i class="bx bx-shield-quarter me-1" aria-hidden="true"></i>Kelola Peran</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary users-icon-action" onclick="editUser({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalEditUser" title="Edit data {{ $user->name }}" aria-label="Edit data {{ $user->name }}"><i class="bx bx-edit-alt" aria-hidden="true"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary users-icon-action" onclick="openUserActions({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalUserActions" title="Aksi lain untuk {{ $user->name }}" aria-label="Aksi lain untuk {{ $user->name }}"><i class="bx bx-dots-vertical-rounded" aria-hidden="true"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -189,7 +169,7 @@
     @if($users->hasPages())
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mt-3">
             <small class="text-muted">
-                Menampilkan {{ $users->firstItem() }}â€“{{ $users->lastItem() }} dari {{ $users->total() }} pengguna
+                Menampilkan {{ $users->firstItem() }} - {{ $users->lastItem() }} dari {{ $users->total() }} pengguna
             </small>
             {{ $users->onEachSide(1)->links() }}
         </div>
@@ -398,6 +378,8 @@
         </form>
     </div>
 </div>
+@include('users.roles')
+@include('users.account-actions')
 @endsection
 
 @push('js')
@@ -459,4 +441,10 @@
         }
     }
 </script>
+@endpush
+
+@push('css')
+<style>
+.users-table{min-width:1000px;table-layout:fixed}.users-table th,.users-table td{vertical-align:middle;padding:1rem}.users-table th:nth-child(1){width:28%}.users-table th:nth-child(2){width:24%}.users-table th:nth-child(3){width:19%}.users-table th:nth-child(4){width:17%}.users-table th.users-actions-cell{width:230px}.users-table td:not(.users-actions-cell){white-space:normal;overflow-wrap:anywhere}.users-table .avatar{flex-shrink:0}.users-table .d-flex.flex-column{min-width:0}.users-table .badge{white-space:normal;text-align:left;line-height:1.45;overflow-wrap:anywhere}.users-actions-cell{position:sticky;right:0;background:var(--bs-body-bg,#fff);box-shadow:-5px 0 10px -8px rgba(67,89,113,.45)}.users-table thead .users-actions-cell{background:#f5f5f9}.users-row-actions{display:flex;justify-content:flex-end;align-items:center;gap:.4rem;white-space:nowrap}.users-row-actions .btn{min-height:36px;flex-shrink:0}.users-icon-action{width:36px;padding:0;display:inline-flex;align-items:center;justify-content:center}.users-icon-action .bx{font-size:1.1rem}@media(max-width:575px){.users-table th,.users-table td{padding:.75rem}.users-table th.users-actions-cell{width:220px}}
+</style>
 @endpush

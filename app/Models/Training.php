@@ -138,6 +138,7 @@ class Training extends Model
     protected static function boot() {
         parent::boot();
         static::creating(function ($model) {
+            $model->proper_uid = (string) \Illuminate\Support\Str::uuid();
             $model->invitation_code = strtoupper(\Illuminate\Support\Str::random(6));
         });
     }

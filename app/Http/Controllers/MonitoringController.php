@@ -43,10 +43,9 @@ class MonitoringController extends Controller
         // Eager Load relasi agar data jawaban dan kesimpulan terbawa
         $training = Training::with(['stages', 'monitoringResults'])->findOrFail($id);
         $this->authorizeTraining($training);
-        $organizers = \App\Models\User::where('role', 'admin_bidang')
-            ->whereNotNull('bidang')
+        $organizers = \App\Models\User::withRoles(['admin_bidang'])->with('roleAssignments')
             ->orderBy('bidang')
-            ->get()
+            ->get()->each(fn ($organizer) => $organizer->useRoleContext('admin_bidang'))->filter(fn ($organizer) => filled($organizer->bidang))
             ->unique('bidang')
             ->values();
         $monitoringDate = null;
@@ -125,7 +124,7 @@ class MonitoringController extends Controller
                 if (!in_array($request->input("priority.$qId"), ['rendah', 'sedang', 'tinggi', 'kritis'], true)) {
                     throw ValidationException::withMessages(["priority.$qId" => 'Prioritas tindak lanjut tidak valid.']);
                 }
-                if (!User::where('role', 'admin_bidang')->where('bidang', $request->input("target.$qId"))->exists()) {
+                if (!User::withRoleInBidang('admin_bidang', $request->input("target.$qId"))->exists()) {
                     throw ValidationException::withMessages(["target.$qId" => 'Bidang tujuan tidak memiliki akun admin bidang yang valid.']);
                 }
             }

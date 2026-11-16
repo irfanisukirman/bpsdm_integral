@@ -1,0 +1,13 @@
+# Bank soal sesuai workbook PKP, PKA, PKN dan LATSAR
+
+Katalog `database/data/managerial_questions_2026_11_15.json` disalin dari judul kolom sheet Jawaban pada empat workbook pengguna. Katalog hanya berisi pertanyaan, tipe, pilihan, urutan dan metadata sumber; tidak memuat jawaban atau identitas peserta. Penomoran awalan dibuang karena form publik sudah memiliki penomoran, markup diubah menjadi deskripsi teks, dan isi kalimat tetap mengikuti sumber. Nama alumni tujuan penilaian menggunakan pemilih peserta yang sudah tersedia.
+
+Jumlah soal aktif termasuk profil dan dua sumber penilai: PKP 101 (49 mandiri, 52 atasan), PKA 99 (48 mandiri, 51 atasan), PKN 84 (47 mandiri, 37 atasan), LATSAR 105 (51 mandiri, 54 atasan). Seluruh program hanya menggunakan mandiri dan atasan; Teknis, Level 1 dan instrumen monitoring tidak diganti.
+
+LATSAR memakai Aktualisasi, PKN memakai Proyek Perubahan dan bagian Policy Brief khusus mandiri, PKP/PKA memakai Aksi Perubahan. Pertanyaan terbuka tetap teks; skala kesesuaian memakai empat pilihan Tidak Sesuai, Kurang Sesuai, Sesuai, Sangat Sesuai. Metode memiliki Klasikal dan Blended Learning dengan deskripsi dari Excel. Pertanyaan PKN yang eksplisit menanyakan Ya/Tidak menggunakan dropdown Ya/Tidak. Tiga indikator pembanding pasca mengikuti judul program masing-masing; indikator LATSAR ketiga disebut Realisasi Aktualisasi, bukan Manfaat Aksi Perubahan.
+
+Atas instruksi pengguna, duplikat LATSAR nomor 24/25 dijadikan satu pertanyaan per peran. Kolom AE/AF untuk mandiri dan CI/CJ untuk atasan pada workbook lama dapat diimpor sebagai satu jawaban jika nilainya sama atau hanya satu yang terisi. Bila dua nilai terisi berbeda, pratinjau menolak penyimpanan dan menunjukkan sel yang harus diperbaiki; nilai tidak dirata-ratakan atau dipilih otomatis.
+
+Gunakan `php artisan questions:sync-managerial-excel` untuk pratinjau dan tambahkan `--apply` untuk menerapkan katalog. Sinkronisasi mempertahankan ID soal yang isinya cocok, mengarsipkan soal di luar katalog, serta menyimpan cadangan privat di `storage/app/private/question-bank-backups`. Soal arsip tidak ditawarkan pada form publik atau daftar bank aktif. Jawaban lama tetap memiliki relasi ke soal dan tetap terbaca pada hasil pasca pelatihan terkait. Menjalankan ulang sinkronisasi dengan katalog sama tidak membuat soal ganda.
+
+Migrasi `2026_11_15_200000_add_workbook_metadata_to_evaluation_questions.php` menambah status aktif dan metadata urutan/kolom sumber. Penerapan awal pada sesi ini mempertahankan seluruh 2.499 jawaban evaluasi, diverifikasi melalui checksum seluruh data jawaban sebelum dan sesudah sinkronisasi. File hasil evaluasi peserta tidak ikut diimpor saat mengganti bank soal. Pratinjau import lama harus diperiksa ulang setelah bank soal berubah.

@@ -26,7 +26,7 @@ class TrainingCertificateController extends Controller
         $participants = Participant::with(['user','pasFotoFile'])
             ->where('training_id',$training->id)->where('registration_status','approved')->orderBy('name')->get();
         $certificates = ParticipantCertificate::with(['electronicSignatureDocuments.actions'])->where('training_id',$training->id)->get()->keyBy('participant_id');
-        $signers = User::where('role','penandatangan')->whereNotNull('nip_nik')->where('nip_nik','!=','')->orderBy('name')->get(['id','name','nip_nik','jabatan','profile_photo','avatar']);
+        $signers = User::withRoles(['penandatangan'])->whereNotNull('nip_nik')->where('nip_nik','!=','')->orderBy('name')->get(['id','name','nip_nik','jabatan','profile_photo','avatar']);
         $preview = $participants->take(5)->values()->map(fn($p,$i)=>$this->formatNumber($setting?->number_format ?: '222.{X}/KPG.03.01.03/BPSDM/{TAHUN}',($setting?->start_sequence ?: 1)+$i,$setting?->issued_at?->year ?: now()->year));
         $libreOfficeAvailable = $docxService->libreOfficeAvailable();
         return view('trainings.certificates.index',compact('training','setting','participants','certificates','preview','signers','libreOfficeAvailable'));
@@ -70,8 +70,8 @@ class TrainingCertificateController extends Controller
             'participant_ids' => 'nullable|array',
             'participant_ids.*' => 'integer|exists:participants,id',
             'reviewer_ids' => 'nullable|array|max:10',
-            'reviewer_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')->where('role', 'penandatangan')],
-            'signer_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'penandatangan'), Rule::notIn($request->input('reviewer_ids', []))],
+            'reviewer_ids.*' => ['integer', 'distinct', \App\Support\UserRoles::existsRule('penandatangan')],
+            'signer_id' => ['required', 'integer', \App\Support\UserRoles::existsRule('penandatangan'), Rule::notIn($request->input('reviewer_ids', []))],
         ], ['signer_id.required' => 'Pilih penandatangan akhir sebelum generate sertifikat.']);
 
         $setting = TrainingCertificateSetting::where('training_id', $training->id)->firstOrFail();

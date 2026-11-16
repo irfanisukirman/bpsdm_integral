@@ -29,7 +29,7 @@ class L34JawabanSheet implements FromView, WithTitle, ShouldAutoSize
 
         $questions = collect($this->training->evaluationRoles())
             ->flatMap(fn ($role) => Question::forTraining($this->training, 'l34_'.$role)->orderBy('id')->get())
-            ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text)
+            ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text.'|'.($question->source_occurrence ?? 1))
             ->sortBy(fn ($question) => $this->sectionOrder($question->sub_category).sprintf('%010d', $question->id))
             ->values();
 

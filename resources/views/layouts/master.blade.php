@@ -43,6 +43,7 @@
     </style>
 
     @stack('css')
+    @stack('styles')
 
     <!-- Helpers -->
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
@@ -112,6 +113,7 @@
     <script src="{{ asset('assets/js/main.js') }}"></script>
 
     @stack('js')
+    @stack('scripts')
 
     
     <script>

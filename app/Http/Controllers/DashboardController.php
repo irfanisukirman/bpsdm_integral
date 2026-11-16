@@ -36,6 +36,10 @@ class DashboardController extends Controller
             $user->refresh();
         }
 
+        if ($user->role === 'evaluator') {
+            return redirect()->route('post-evaluation.index');
+        }
+
         if ($user->role === 'intern') {
             return redirect()->route('internships.dashboard');
         }

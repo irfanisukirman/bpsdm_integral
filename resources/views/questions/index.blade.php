@@ -502,7 +502,7 @@
 
         const selected = preferredValue || field.value;
         const managerialPrograms = ['LATSAR', 'PKP', 'PKA', 'PKN'];
-        const isManagerial = (bidang?.value || '') === 'Bidang Pengembangan Kompetensi Manajerial';
+        const isManagerial = (bidang?.value || '') === @json(\App\Models\Bidang::resolve('Bidang Pengembangan Kompetensi Manajerial'));
         const useManagerialSections = managerialPrograms.includes(program.value);
         let sections = [...defaultL34Sections];
 

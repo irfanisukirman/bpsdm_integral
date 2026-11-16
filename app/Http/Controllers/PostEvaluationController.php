@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AiGeneration;
 use App\Models\Participant;
 use App\Models\PostEvaluationInterview;
 use App\Models\PostEvaluationSetting;
 use App\Models\Training;
 use App\Models\User;
+use App\Services\PostEvaluationAiService;
+use App\Services\PostEvaluationExposeService;
 use App\Services\PostEvaluationService;
+use App\Services\PostEvaluationSurveySummaryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -41,10 +45,11 @@ class PostEvaluationController extends Controller
         $service->authorize($request->user(), $training);
         $manager = $service->manages($request->user(), $training);
         $tab = $request->query('tab', 'ringkasan');
-        abort_unless(in_array($tab, ['ringkasan', 'jawaban', 'peserta', 'wawancara', 'pengaturan'], true), 404);
-        abort_if($tab === 'pengaturan' && ! $manager, 403);
+        abort_unless(in_array($tab, ['ringkasan', 'jawaban', 'peserta', 'wawancara', 'pengaturan', 'import'], true), 404);
+        abort_if(in_array($tab, ['pengaturan','import'], true) && ! $manager, 403);
         $people = $service->people($training, $request->user());
         $summary = $service->summary($training, $people);
+        $surveySummary = $tab === 'ringkasan' ? app(PostEvaluationSurveySummaryService::class)->build($training, $people) : null;
         $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
         $paginator = null;
         $answerRows = collect();
@@ -70,75 +75,102 @@ class PostEvaluationController extends Controller
                 $people = $paginator->items();
             }
         }
+        $importPreview = null;
+        $importHistory = collect();
+        if ($tab === 'import') {
+            if ($request->filled('preview')) {
+                $importPreview = DB::table('post_evaluation_imports')->where('id', $request->query('preview'))->where('training_id', $training->id)->where('created_by', $request->user()->id)->first();
+                abort_unless($importPreview, 404);
+                $importPreview->report = json_decode($importPreview->report, true, 512, JSON_THROW_ON_ERROR);
+            }
+            $importHistory = DB::table('post_evaluation_imports')->where('training_id',$training->id)->where('status','imported')->latest('imported_at')->limit(10)->get();
+        }
         $setting = $service->setting($training);
         $rubric = $service->rubric($training);
         $questions = $manager ? $service->questions($training) : collect();
         $teams = DB::table('post_evaluation_teams')->where('training_id', $training->id)->get();
-        $members = DB::table('post_evaluation_team_user')->join('users', 'users.id', '=', 'user_id')->whereIn('team_id', $teams->pluck('id'))->get(['team_id', 'users.name'])->groupBy('team_id');
-        $users = $manager ? User::orderBy('name')->get(['id', 'name', 'role']) : collect();
+        $members = DB::table('post_evaluation_team_user')->join('users', 'users.id', '=', 'user_id')->whereIn('team_id', $teams->pluck('id'))->get(['team_id', 'users.id as user_id', 'users.name'])->groupBy('team_id');
+        $users = $manager ? User::where('role', '!=', 'admin_bidang')->orderBy('name')->get(['id', 'name', 'username', 'role']) : collect();
         $evidence = DB::table('post_evaluation_evidence')->whereIn('interview_id', collect($people)->pluck('interview.id')->filter())->get()->groupBy('interview_id');
 
-        return response()->view('post-evaluation.show', compact('training', 'manager', 'tab', 'people', 'summary', 'setting', 'rubric', 'questions', 'teams', 'members', 'users', 'evidence', 'paginator', 'answerRows', 'search'))->header('Cache-Control', 'private, no-store');
-    }
-
-    public function settings(Request $request, Training $training, PostEvaluationService $service)
-    {
-        $service->authorize($request->user(), $training, true);
-        $data = $request->validate([
-            'mappings' => ['nullable', 'array', 'max:30'], 'mappings.*.indicator' => ['required', 'integer', 'between:0,2'],
-            'mappings.*.role' => ['required', Rule::in($training->evaluationRoles())],
-            'mappings.*.question_id' => ['nullable', 'integer'], 'mappings.*.scale' => ['required', Rule::in(['four', 'hundred'])],
-            'rubric' => ['required', 'array', 'size:5'], 'rubric.*.label' => ['required', 'string', 'max:200'],
-            'rubric.*.weight' => ['required', 'integer', 'between:0,100'],
-            'rubric.*.guides' => ['nullable', 'array', 'size:4'], 'rubric.*.guides.*' => ['required', 'string', 'max:1000'],
-        ]);
-        if (array_keys($data['rubric']) !== range(0, 4) || array_sum(array_column($data['rubric'], 'weight')) !== 100) {
-            throw ValidationException::withMessages(['rubric' => 'Lima bobot harus berjumlah 100%.']);
-        }
-        $questions = $service->questions($training)->keyBy('id');
-        $seen = [];
-        $mappings = [];
-        foreach ($data['mappings'] ?? [] as $mapping) {
-            if (empty($mapping['question_id'])) {
-                continue;
-            }
-            $q = $questions->get($mapping['question_id']);
-            if (! $q || $q->category !== 'l34_'.$mapping['role'] || ($mapping['scale'] === 'hundred' && $q->type !== 'slider') || ($mapping['scale'] === 'four' && $q->type !== 'dropdown')) {
-                throw ValidationException::withMessages(['mappings' => 'Pertanyaan harus sesuai peran, program dan skala: dropdown empat tingkat atau slider 0?100.']);
-            }
-            if ($mapping['scale'] === 'four') {
-                $valid = ['tidak sesuai', 'kurang sesuai', 'sesuai', 'sangat sesuai', '1', '2', '3', '4'];
-                $options = array_map(fn ($v) => mb_strtolower(trim($v)), $q->options ?? []);
-                if (count($options) !== 4 || count(array_unique(array_map(fn ($v) => ['tidak sesuai' => '1', 'kurang sesuai' => '2', 'sesuai' => '3', 'sangat sesuai' => '4'][$v] ?? $v, $options))) !== 4 || array_diff($options, $valid)) {
-                    throw ValidationException::withMessages(['mappings' => 'Skala empat hanya menerima empat pilihan Tidak Sesuai sampai Sangat Sesuai, atau angka 1?4.']);
-                }
-            }
-            $key = $mapping['indicator'].'|'.$mapping['role'];
-            if (isset($seen[$key])) {
-                throw ValidationException::withMessages(['mappings' => 'Pilih satu pertanyaan per indikator dan peran.']);
-            }
-            $seen[$key] = true;
-            $mapping['indicator'] = (int) $mapping['indicator'];
-            $mapping['question_id'] = (int) $mapping['question_id'];
-            $mappings[] = $mapping;
-        }
-        PostEvaluationSetting::updateOrCreate(['training_id' => $training->id], ['mappings' => $mappings, 'rubric' => array_values($data['rubric'])]);
-
-        return back()->with('success', 'Pemetaan indikator dan rubrik tersimpan. Publikasikan ulang jika hasil publik perlu diperbarui.');
+        return response()->view('post-evaluation.show', compact('training', 'manager', 'tab', 'people', 'summary', 'setting', 'rubric', 'questions', 'teams', 'members', 'users', 'evidence', 'paginator', 'answerRows', 'search', 'surveySummary', 'importPreview', 'importHistory'))->header('Cache-Control', 'private, no-store');
     }
 
     public function team(Request $request, Training $training, PostEvaluationService $service)
     {
         $service->authorize($request->user(), $training, true);
-        $data = $request->validate(['name' => 'required|string|max:150', 'users' => 'required|array|min:1', 'users.*' => 'required|integer|distinct|exists:users,id']);
+        $data = $request->validate(['name' => 'required|string|max:150', 'users' => 'sometimes|array|min:1', 'users.*' => ['required', 'integer', 'distinct', Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', '!=', 'admin_bidang'))]]);
         DB::transaction(function () use ($data, $training) {
             $id = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => $data['name'], 'created_at' => now(), 'updated_at' => now()]);
-            foreach ($data['users'] as $user) {
+            foreach ($data['users'] ?? [] as $user) {
                 DB::table('post_evaluation_team_user')->insert(['team_id' => $id, 'user_id' => $user]);
             }
         });
 
-        return back()->with('success', 'Tim wawancara ditambahkan menggunakan akun Integral.');
+        return back()->with('success', 'Nama tim berhasil dibuat. Selanjutnya tambahkan evaluator ke tim.');
+    }
+
+    public function addEvaluators(Request $request, Training $training, PostEvaluationService $service)
+    {
+        $service->authorize($request->user(), $training, true);
+        $data = $request->validate([
+            'team_id' => ['required', 'integer', Rule::exists('post_evaluation_teams', 'id')->where('training_id', $training->id)],
+            'users' => ['required', 'array', 'min:1'],
+            'users.*' => ['required', 'integer', 'distinct', Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', '!=', 'admin_bidang'))],
+        ]);
+        DB::transaction(function () use ($data, $training) {
+            DB::table('post_evaluation_teams')->where('training_id', $training->id)->where('id', $data['team_id'])->lockForUpdate()->firstOrFail();
+            foreach ($data['users'] as $user) {
+                DB::table('post_evaluation_team_user')->insertOrIgnore(['team_id' => $data['team_id'], 'user_id' => $user]);
+            }
+        });
+
+        return back()->with('success', 'Evaluator dari akun yang sudah ada berhasil ditambahkan ke tim.');
+    }
+
+    public function moveEvaluator(Request $request, Training $training, PostEvaluationService $service)
+    {
+        $service->authorize($request->user(), $training, true);
+        $data = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'from_team_id' => ['required', 'integer', Rule::exists('post_evaluation_teams', 'id')->where('training_id', $training->id)],
+            'to_team_id' => ['nullable', 'integer', 'different:from_team_id', Rule::exists('post_evaluation_teams', 'id')->where('training_id', $training->id)],
+        ]);
+        DB::transaction(function () use ($data, $training) {
+            Training::whereKey($training->id)->lockForUpdate()->firstOrFail();
+            $membership = DB::table('post_evaluation_team_user')->where('team_id', $data['from_team_id'])->where('user_id', $data['user_id'])->lockForUpdate()->first();
+            abort_unless($membership, 404);
+            if (! empty($data['to_team_id'])) {
+                abort_if(User::findOrFail($data['user_id'])->role === 'admin_bidang', 422, 'Admin bidang tidak dapat ditugaskan sebagai evaluator.');
+                DB::table('post_evaluation_team_user')->insertOrIgnore(['team_id' => $data['to_team_id'], 'user_id' => $data['user_id']]);
+            }
+            DB::table('post_evaluation_team_user')->where('id', $membership->id)->delete();
+        });
+
+        return back()->with('success', empty($data['to_team_id']) ? 'Evaluator dikeluarkan dari tim. Akun dan hasil wawancara tetap tersimpan.' : 'Evaluator berhasil dipindahkan ke tim tujuan. Peserta dan nilai wawancara tetap pada tim masing-masing.');
+    }
+
+    public function createEvaluator(Request $request, Training $training, PostEvaluationService $service)
+    {
+        $service->authorize($request->user(), $training, true);
+        $request->merge(['email' => mb_strtolower(trim((string) $request->input('email')))]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'username')],
+            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+            'team_id' => ['nullable', 'integer', Rule::exists('post_evaluation_teams', 'id')->where('training_id', $training->id)],
+        ]);
+        if (User::whereRaw('LOWER(username) = ?', [$data['email']])->exists()) {
+            throw ValidationException::withMessages(['email' => 'Email sudah dipakai akun lain. Pilih akun tersebut dari daftar evaluator yang tersedia.']);
+        }
+        DB::transaction(function () use ($data) {
+            $user = User::create(['name' => $data['name'], 'username' => $data['email'], 'password' => $data['password'], 'role' => 'evaluator', 'must_complete_profile' => false, 'must_change_password' => false]);
+            if (! empty($data['team_id'])) {
+                DB::table('post_evaluation_team_user')->insert(['team_id' => $data['team_id'], 'user_id' => $user->id]);
+            }
+        });
+
+        return back()->with('success', 'Akun evaluator berhasil dibuat. Evaluator dapat login menggunakan email dan password yang Anda tetapkan.');
     }
 
     public function deleteTeam(Request $request, Training $training, int $team, PostEvaluationService $service)
@@ -169,6 +201,47 @@ class PostEvaluationController extends Controller
         return back()->with('success', 'Pembagian peserta tersimpan.');
     }
 
+    public function autoAssign(Request $request, Training $training, PostEvaluationService $service)
+    {
+        $service->authorize($request->user(), $training, true);
+        $assigned = DB::transaction(function () use ($training) {
+            Training::whereKey($training->id)->lockForUpdate()->firstOrFail();
+            $teams = DB::table('post_evaluation_teams')->where('training_id', $training->id)
+                ->whereExists(function ($q) {
+                    $q->selectRaw('1')->from('post_evaluation_team_user')->join('users', 'users.id', '=', 'user_id')
+                        ->whereColumn('team_id', 'post_evaluation_teams.id')->where('users.role', '!=', 'admin_bidang');
+                })->orderBy('id')->lockForUpdate()->pluck('id');
+            if ($teams->isEmpty()) {
+                throw ValidationException::withMessages(['team' => 'Buat tim dan tambahkan evaluator terlebih dahulu sebelum membagi peserta otomatis.']);
+            }
+            $participants = Participant::where('training_id', $training->id)->where('registration_status', 'approved')->orderBy('id')->lockForUpdate()->get();
+            $interviews = PostEvaluationInterview::where('training_id', $training->id)->lockForUpdate()->get()->keyBy('participant_id');
+            $loads = array_fill_keys($teams->all(), 0);
+            foreach ($participants as $participant) {
+                $teamId = $interviews->get($participant->id)?->team_id;
+                if (isset($loads[$teamId])) {
+                    $loads[$teamId]++;
+                }
+            }
+            $count = 0;
+            foreach ($participants as $participant) {
+                $interview = $interviews->get($participant->id);
+                if ($interview?->team_id !== null) {
+                    continue;
+                }
+                $teamId = array_search(min($loads), $loads, true);
+                $interview ??= PostEvaluationInterview::firstOrCreate(['training_id' => $training->id, 'participant_id' => $participant->id]);
+                $interview->update(['team_id' => $teamId, 'revision' => $interview->revision + 1]);
+                $loads[$teamId]++;
+                $count++;
+            }
+
+            return $count;
+        });
+
+        return back()->with('success', $assigned ? $assigned.' peserta berhasil dibagi otomatis secara merata. Pembagian yang sudah ada tetap dipertahankan.' : 'Semua peserta yang disetujui sudah memiliki tim. Tidak ada pembagian yang diubah.');
+    }
+
     private function interviewAccess(Request $request, Training $training, Participant $participant, PostEvaluationService $service): PostEvaluationInterview
     {
         abort_unless($participant->training_id == $training->id && $participant->registration_status === 'approved', 404);
@@ -188,13 +261,15 @@ class PostEvaluationController extends Controller
         $rubric = $service->rubric($training);
         $evidence = DB::table('post_evaluation_evidence')->where('interview_id', $interview->id)->get();
 
-        return response()->view('post-evaluation.interview', compact('training', 'participant', 'interview', 'rubric', 'evidence'))->header('Cache-Control', 'private, no-store');
+        $surveyAnswers = $service->surveyAnswers($training, $participant);
+
+        return response()->view('post-evaluation.interview', compact('training', 'participant', 'interview', 'rubric', 'evidence', 'surveyAnswers'))->header('Cache-Control', 'private, no-store');
     }
 
     public function save(Request $request, Training $training, Participant $participant, PostEvaluationService $service)
     {
         $interview = $this->interviewAccess($request, $training, $participant, $service);
-        $data = $request->validate(['revision' => 'required|integer|min:0', 'scores' => 'required|array|size:5', 'scores.*' => 'nullable|numeric|between:0,100', 'notes' => 'required|array|size:5', 'notes.*' => 'nullable|string|max:10000', 'status' => ['required', Rule::in(['draft', 'completed'])], 'project' => 'nullable|string|max:2000', 'medium_milestone' => 'nullable|string|max:10000', 'long_milestone' => 'nullable|string|max:10000', 'current_condition' => 'nullable|string|max:10000']);
+        $data = $request->validate(['revision' => 'required|integer|min:0', 'scores' => 'required|array|size:5', 'scores.*' => 'nullable|numeric|between:0,100', 'notes' => 'required|array|size:5', 'notes.*' => 'nullable|string|max:10000', 'status' => ['required', Rule::in(['draft', 'completed'])]]);
         if (array_keys($data['scores']) !== range(0, 4) || array_keys($data['notes']) !== range(0, 4)) {
             throw ValidationException::withMessages(['scores' => 'Urutan lima kriteria tidak valid.']);
         }
@@ -217,14 +292,30 @@ class PostEvaluationController extends Controller
         return back()->with('success', 'Wawancara tersimpan.');
     }
 
-    public function uploadLink(Request $request, Training $training, Participant $participant, PostEvaluationService $service)
+    public function generateExposeAi(Request $request, Training $training, PostEvaluationService $service, PostEvaluationAiService $ai, PostEvaluationExposeService $expose)
     {
         $service->authorize($request->user(), $training, true);
-        $interview = $this->interviewAccess($request, $training, $participant, $service);
-        $request->validate(['action' => ['required', Rule::in(['rotate', 'revoke'])]]);
-        $interview->update(['upload_token' => $request->input('action') === 'rotate' ? Str::random(48) : null]);
+        $summary = $service->summary($training, $service->people($training));
+        if (! $ai->configured()) {
+            throw ValidationException::withMessages(['ai' => 'Layanan AI belum dikonfigurasi. Lengkapi pengaturan provider AI aplikasi terlebih dahulu.']);
+        }
+        if ($summary['survey']['valid'] === 0 && $summary['interview']['valid'] === 0) {
+            throw ValidationException::withMessages(['ai' => 'Belum ada nilai survei atau wawancara untuk dianalisis. Lengkapi data atau pemetaan indikator terlebih dahulu.']);
+        }
+        $generation = AiGeneration::create(['training_id' => $training->id, 'user_id' => $request->user()->id,
+            'feature' => PostEvaluationExposeService::FEATURE, 'model' => $ai->model(), 'source_hash' => $expose->fingerprint($summary),
+            'status' => 'processing', 'input_summary' => ['aggregate_only' => true, 'participant_identities_sent' => false, 'data' => $expose->payload($summary)]]);
+        try {
+            $content = $ai->generate($summary);
+            $generation->update(['status' => 'completed', 'generated_content' => $content, 'generated_at' => now()]);
+        } catch (\Throwable $error) {
+            report($error);
+            $generation->update(['status' => 'failed', 'error_message' => mb_substr($error->getMessage(), 0, 2000)]);
 
-        return back()->with('success', 'Tautan unggah bukti diperbarui.');
+            return back()->with('error', 'Narasi AI belum berhasil dibuat. Silakan coba kembali; hasil yang sudah tersimpan tidak dihapus.');
+        }
+
+        return back()->with('success', 'Pembahasan, kesimpulan dan rekomendasi AI tersimpan. Tinjau pada Ekspose; perbarui publikasi jika ingin menampilkan narasi ini pada link publik.');
     }
 
     public function publish(Request $request, Training $training, PostEvaluationService $service)
@@ -260,24 +351,24 @@ class PostEvaluationController extends Controller
 
     private function presentation(Request $request, array $summary, bool $public)
     {
+        $presenter = app(PostEvaluationExposeService::class);
+        $summary = $presenter->forView($summary);
         $pdf = $request->routeIs('post-evaluation.pdf', 'post-evaluation.public.pdf');
         if ($pdf) {
-            return Pdf::loadView('post-evaluation.presentation', compact('summary', 'public', 'pdf'))->setPaper('a4', 'landscape')->download('Ekspose-Pasca-L34.pdf');
+            return Pdf::loadView('post-evaluation.presentation', compact('summary', 'public', 'pdf', 'presenter'))->setPaper([0, 0, 960, 540])->download('Ekspose-Pasca-L34.pdf');
         }
 
-        return response()->view('post-evaluation.presentation', compact('summary', 'public', 'pdf'))->header('Cache-Control', $public ? 'no-store' : 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow');
+        return response()->view('post-evaluation.presentation', compact('summary', 'public', 'pdf', 'presenter'))->header('Cache-Control', $public ? 'no-store' : 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function properForm(Training $training)
     {
-        $token = null;
-
-        return $this->properResponse($training, $token);
+        return $this->properResponse($training);
     }
 
-    private function properResponse(Training $training, ?string $token)
+    private function properResponse(Training $training)
     {
-        return response()->view('post-evaluation.upload', compact('token', 'training'))
+        return response()->view('post-evaluation.upload', compact('training'))
             ->header('Cache-Control', 'no-store')->header('Referrer-Policy', 'no-referrer')->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
@@ -303,27 +394,12 @@ class PostEvaluationController extends Controller
             'document' => $document ? ['name' => $document->original_name, 'size' => $document->size, 'uploaded_at' => Carbon::parse($document->updated_at)->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i').' WIB'] : null])->header('Cache-Control', 'no-store');
     }
 
-    public function publicUpload(string $token)
-    {
-        $interview = PostEvaluationInterview::where('upload_token', $token)->firstOrFail();
-
-        return $this->properResponse(Training::findOrFail($interview->training_id), $token);
-    }
-
-    public function upload(Request $request, string $token)
-    {
-        $interview = PostEvaluationInterview::where('upload_token', $token)->firstOrFail();
-        $participant = Participant::where('training_id', $interview->training_id)->where('registration_status', 'approved')->findOrFail($interview->participant_id);
-
-        return $this->storeProper($request, $participant, $token);
-    }
-
     public function submitProper(Request $request, Training $training)
     {
         return $this->storeProper($request, $this->properParticipant($request, $training));
     }
 
-    private function storeProper(Request $request, Participant $participant, ?string $token = null)
+    private function storeProper(Request $request, Participant $participant)
     {
         $data = $request->validate([
             'proper_title' => 'required|string|max:2000',
@@ -357,13 +433,11 @@ class PostEvaluationController extends Controller
                 }
                 $newFiles[$kind] = ['path' => $path, 'original_name' => mb_substr($file->getClientOriginalName(), 0, 255), 'mime' => $file->getMimeType() ?: 'application/octet-stream', 'size' => $file->getSize()];
             }
-            DB::transaction(function () use ($participant, $data, $newFiles, $token, &$oldPaths) {
+            DB::transaction(function () use ($participant, $data, $newFiles, &$oldPaths) {
                 Participant::where('training_id', $participant->training_id)->where('registration_status', 'approved')->lockForUpdate()->findOrFail($participant->id);
                 $interview = PostEvaluationInterview::firstOrCreate(['training_id' => $participant->training_id, 'participant_id' => $participant->id]);
                 $interview = PostEvaluationInterview::lockForUpdate()->findOrFail($interview->id);
-                if ($token !== null) {
-                    abort_unless($interview->upload_token && hash_equals($interview->upload_token, $token), 404);
-                }
+
                 $interview->update(['project' => $data['proper_title'], 'medium_milestone' => $data['medium_milestone'], 'long_milestone' => $data['long_milestone'],
                     'medium_evidence_status' => $data['medium_evidence_status'], 'long_evidence_status' => $data['long_evidence_status'],
                     'current_condition' => $data['current_condition'], 'revision' => $interview->revision + 1]);
@@ -388,35 +462,6 @@ class PostEvaluationController extends Controller
         return back()->with('success', 'Data inovasi/Proper, target, kondisi terkini, dan dokumen berhasil disimpan.');
     }
 
-    public function internalUpload(Request $request, Training $training, Participant $participant, PostEvaluationService $service)
-    {
-        return $this->storeEvidence($request, $this->interviewAccess($request, $training, $participant, $service));
-    }
-
-    private function storeEvidence(Request $request, PostEvaluationInterview $interview)
-    {
-        $data = $request->validate(['kind' => ['required', Rule::in(['innovation', 'medium', 'long'])], 'file' => 'required|file|mimes:pdf|max:10240']);
-        $file = $request->file('file');
-        $path = $file->store('post-evaluation/'.$interview->id, 'local');
-        abort_unless($path, 500);
-        $old = null;
-        try {
-            DB::transaction(function () use ($interview, $data, $path, $file, &$old) {
-                PostEvaluationInterview::lockForUpdate()->findOrFail($interview->id);
-                $old = DB::table('post_evaluation_evidence')->where('interview_id', $interview->id)->where('kind', $data['kind'])->first();
-                DB::table('post_evaluation_evidence')->updateOrInsert(['interview_id' => $interview->id, 'kind' => $data['kind']], ['path' => $path, 'original_name' => mb_substr($file->getClientOriginalName(), 0, 255), 'mime' => 'application/pdf', 'size' => $file->getSize(), 'created_at' => $old?->created_at ?? now(), 'updated_at' => now()]);
-            });
-        } catch (\Throwable $e) {
-            Storage::disk('local')->delete($path);
-            throw $e;
-        }
-        if ($old) {
-            Storage::disk('local')->delete($old->path);
-        }
-
-        return back()->with('success', 'Dokumen bukti tersimpan.');
-    }
-
     public function evidence(Request $request, Training $training, int $evidence, PostEvaluationService $service)
     {
         $file = DB::table('post_evaluation_evidence')->find($evidence);
@@ -425,6 +470,10 @@ class PostEvaluationController extends Controller
         $this->interviewAccess($request, $training, Participant::findOrFail($interview->participant_id), $service);
         abort_unless(Storage::disk('local')->exists($file->path), 404);
 
-        return Storage::disk('local')->download($file->path,$file->original_name,['Content-Type' => $file->mime, 'Cache-Control' => 'private, no-store']);
+        if ($request->boolean('preview') && in_array($file->mime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true)) {
+            return Storage::disk('local')->response($file->path, $file->original_name, ['Content-Type' => $file->mime, 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'], 'inline');
+        }
+
+        return Storage::disk('local')->download($file->path, $file->original_name, ['Content-Type' => $file->mime, 'Cache-Control' => 'private, no-store']);
     }
 }

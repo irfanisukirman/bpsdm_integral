@@ -69,7 +69,10 @@ class ParticipantAccountImportTest extends TestCase
             ->assertRedirect(route('participant.profile.complete'));
         $this->assertAuthenticatedAs($user);
         $this->get(route('dashboard'))->assertRedirect(route('participant.profile.complete'));
+        $institution=\App\Models\Institution::firstOrCreate(['name'=>'BPSDM'],['is_active'=>true]);
+        $status=\App\Models\EmploymentStatus::where('code','PNS')->firstOrFail();
         $this->post(route('participant.profile.store'), [
+            'institution_id'=>$institution->id,'employment_status_id'=>$status->id,
             'user_type' => 'peserta', 'nip_nik' => '19880001', 'whatsapp' => '08123456789',
             'gender' => 'Laki-Laki', 'birth_place' => 'Bandung', 'birth_date' => '1990-01-01',
             'jabatan' => 'Analis', 'instansi' => 'BPSDM', 'status_kepegawaian' => 'PNS',

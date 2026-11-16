@@ -12,7 +12,10 @@ class ProfileIdentityFieldsTest extends TestCase
 
     private function payload(array $overrides=[]): array
     {
+        $institution=\App\Models\Institution::firstOrCreate(['name'=>'BPSDM Jawa Barat'],['is_active'=>true]);
+        $status=\App\Models\EmploymentStatus::where('code',$overrides['status_kepegawaian']??'PNS')->firstOrFail();
         return array_merge([
+            'institution_id'=>$institution->id,'employment_status_id'=>$status->id,
             'name'=>'Budi Profil','user_type'=>'peserta','nip_nik'=>'199001012020011001',
             'whatsapp'=>'628123456789','gender'=>'Laki-Laki','birth_place'=>'Bandung',
             'birth_date'=>'1990-01-01','jabatan'=>'Analis SDM','golongan'=>'III/a',

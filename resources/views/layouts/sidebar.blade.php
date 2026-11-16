@@ -20,7 +20,8 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-3">
-        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
+        @include('layouts.role-access')
+        @if(in_array(Auth::user()->role, ['superadmin', 'evaluator'], true) || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
             <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
         @endif
 
@@ -106,7 +107,7 @@
             </li>
         @endif
 
-        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === 'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'))
+        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === \App\Models\Bidang::resolve('Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan')))
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Panel SKPK</span></li>
             <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
                 <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
@@ -150,10 +151,10 @@
                 </a>
             </li>
             @if(Auth::user()->role === 'superadmin' || in_array(Auth::user()->bidang, [
-                'Bidang Pengembangan Kompetensi Teknis Inti',
-                'Bidang Pengembangan Kompetensi Teknis Umum',
-                'Bidang Pengembangan Kompetensi Manajerial',
-                'Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan'
+                \App\Models\Bidang::resolve('Bidang Pengembangan Kompetensi Teknis Inti'),
+                \App\Models\Bidang::resolve('Bidang Pengembangan Kompetensi Teknis Umum'),
+                \App\Models\Bidang::resolve('Bidang Pengembangan Kompetensi Manajerial'),
+                \App\Models\Bidang::resolve('Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan')
             ], true))
                 <li class="menu-header small text-uppercase"><span class="menu-header-text">Kemitraan</span></li>
                 <li class="menu-item {{ request()->routeIs('mitra.admin.*') || (request()->routeIs('mitra.submissions.show') && Auth::user()->role !== 'mitra') ? 'active' : '' }}">
@@ -230,6 +231,7 @@
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan Sistem</span>
             </li>
+            <li class="menu-item {{ request()->routeIs('settings.bidang.*') ? 'active' : '' }}"><a href="{{ route('settings.bidang.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-buildings"></i><div>Kelola Bidang</div></a></li>
             <li class="menu-item {{ request()->routeIs('settings.login-help.*') ? 'active' : '' }}">
                 <a href="{{ route('settings.login-help.edit') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-help-circle"></i>

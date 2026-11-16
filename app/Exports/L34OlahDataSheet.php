@@ -44,7 +44,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
             ->values();
         $sectionOrder = array_flip(Question::l34SubCategoryOptions());
         $this->questionsBySection = $allQuestions
-            ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text)
+            ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text.'|'.($question->source_occurrence ?? 1))
             ->groupBy(fn ($question) => $question->sub_category ?: 'Bagian Lainnya')
             ->sortKeysUsing(fn ($left, $right) => ($sectionOrder[$left] ?? 999) <=> ($sectionOrder[$right] ?? 999))
             ->map(fn ($items) => $items->values());

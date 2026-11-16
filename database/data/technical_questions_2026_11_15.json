@@ -1,0 +1,1249 @@
+{
+    "version": "2026-11-15",
+    "programs": {
+        "Teknis": {
+            "file": "Rekap Evaluasi Level TEKNIS.xlsx",
+            "sha256": "daea44263270c6b6544df663b5f8f43287cd07b62d288589edc8f6dbb0377860",
+            "merged_columns": {
+                "E": [
+                    "P"
+                ],
+                "F": [
+                    "Q"
+                ],
+                "I": [
+                    "R"
+                ],
+                "J": [
+                    "S"
+                ],
+                "K": [
+                    "T"
+                ],
+                "L": [
+                    "U"
+                ],
+                "M": [
+                    "V"
+                ],
+                "N": [
+                    "W"
+                ]
+            },
+            "questions": [
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Pendidikan terakhir (saat pelatihan)",
+                    "type": "dropdown",
+                    "options": [
+                        "SD/SMP",
+                        "SMA/K",
+                        "D3",
+                        "D4/S1",
+                        "S2/S3"
+                    ],
+                    "source_column": "E",
+                    "source_order": 1,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Pendidikan terakhir (saat ini)",
+                    "type": "dropdown",
+                    "options": [
+                        "SD/SMP",
+                        "SMA/K",
+                        "D3",
+                        "D4/S1",
+                        "S2/S3"
+                    ],
+                    "source_column": "F",
+                    "source_order": 2,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Pangkat golongan (saat pelatihan)",
+                    "type": "dropdown",
+                    "options": [
+                        "I/a",
+                        "I/b",
+                        "I/c",
+                        "I/d",
+                        "II/a",
+                        "II/b",
+                        "II/c",
+                        "II/d",
+                        "III/a",
+                        "III/b",
+                        "III/c",
+                        "III/d",
+                        "IV/a",
+                        "IV/b",
+                        "IV/c",
+                        "IV/d",
+                        "IV/e"
+                    ],
+                    "source_column": "G",
+                    "source_order": 3,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Pangkat golongan (saat ini)",
+                    "type": "dropdown",
+                    "options": [
+                        "I/a",
+                        "I/b",
+                        "I/c",
+                        "I/d",
+                        "II/a",
+                        "II/b",
+                        "II/c",
+                        "II/d",
+                        "III/a",
+                        "III/b",
+                        "III/c",
+                        "III/d",
+                        "IV/a",
+                        "IV/b",
+                        "IV/c",
+                        "IV/d",
+                        "IV/e"
+                    ],
+                    "source_column": "H",
+                    "source_order": 4,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Jabatan (saat pelatihan)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "I",
+                    "source_order": 5,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Jabatan (saat ini)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "J",
+                    "source_order": 6,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Unit kerja (saat pelatihan)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "K",
+                    "source_order": 7,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Unit kerja (saat ini)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "L",
+                    "source_order": 8,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Perangkat daerah (saat pelatihan)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "M",
+                    "source_order": 9,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Data Diri Alumni",
+                    "question_text": "Perangkat daerah (saat ini)",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "N",
+                    "source_order": 10,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah saat ini Anda sedang bertugas yang berkaitan dengan pelatihan?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "X",
+                    "source_order": 11,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Iya</strong>, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "Y",
+                    "source_order": 12,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pengetahuan yang diperoleh membantu Anda dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "Z",
+                    "source_order": 13,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pelatihan memiliki keterkaitan dengan bidang tugas Anda?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "AA",
+                    "source_order": 14,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah Anda sudah melakukan transfer learning hasil pelatihan pada rekan kerja di tempat kerja Anda?",
+                    "type": "dropdown",
+                    "options": [
+                        "Sudah",
+                        "Belum"
+                    ],
+                    "source_column": "AB",
+                    "source_order": 15,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila <strong>sudah</strong> transfer learning, bagaimana cara Anda melakukan transfer learning?",
+                    "type": "dropdown",
+                    "options": [
+                        "Diskusi informal",
+                        "Diskusi formal (und rapat, daftar hadir, dll)"
+                    ],
+                    "source_column": "AC",
+                    "source_order": 16,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Saya memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AD",
+                    "source_order": 17,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam menunjang pekerjaan saya",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AE",
+                    "source_order": 18,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam keberhasilan pelaksanaan pekerjaan saya",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AF",
+                    "source_order": 19,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Saya yakin bahwa materi pelatihan ini sangat bermanfaat dalam penyelesaian pekerjaan saya",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AG",
+                    "source_order": 20,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Saya berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AH",
+                    "source_order": 21,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah <strong>Cukup, Kurang, Sangat Kurang,</strong> maka alasannya adalah (bisa pilih lebih dari satu jawaban)",
+                    "type": "checkbox",
+                    "options": [
+                        "Saya tidak mempunyai pengetahuan dan keterampilan yang memadai",
+                        "Saya tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur",
+                        "Saya mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran",
+                        "Saya tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran",
+                        "Pembelajaran yang saya ikuti tidak memberikan nilai tambah bagi saya",
+                        "Saya merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan saya",
+                        "Saya merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja"
+                    ],
+                    "source_column": "AI",
+                    "source_order": 22,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap unit kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AJ",
+                    "source_order": 23,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap pengetahuan teoritis atau konsep Anda",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AK",
+                    "source_order": 24,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan produktivitas",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AL",
+                    "source_order": 25,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap perbaikan kualitas hasil kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AM",
+                    "source_order": 26,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan kepuasan pelanggan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AN",
+                    "source_order": 27,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_mandiri",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "AO",
+                    "source_order": 28,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Data Diri Atasan",
+                    "question_text": "Nama Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "AP",
+                    "source_order": 1,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Data Diri Atasan",
+                    "question_text": "NIP (ASN) / NIK (Non ASN) Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "AQ",
+                    "source_order": 2,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Data Diri Atasan",
+                    "question_text": "Jabatan Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "AR",
+                    "source_order": 3,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Data Diri Atasan",
+                    "question_text": "Unit Kerja Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "AS",
+                    "source_order": 4,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Data Diri Atasan",
+                    "question_text": "Perangkat Daerah Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "AT",
+                    "source_order": 5,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah saat ini Ybs sedang bertugas yang berkaitan dengan pelatihan?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "AV",
+                    "source_order": 6,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Iya</strong>, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "AW",
+                    "source_order": 7,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "AX",
+                    "source_order": 8,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pelatihan memiliki keterkaitan dengan bidang tugas Ybs?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "AY",
+                    "source_order": 9,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah Ybs sudah melakukan transfer learning hasil pelatihan pada rekan kerja?",
+                    "type": "dropdown",
+                    "options": [
+                        "Sudah",
+                        "Belum"
+                    ],
+                    "source_column": "AZ",
+                    "source_order": 10,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila <strong>sudah</strong> transfer learning, bagaimana cara Ybs melakukan transfer learning?",
+                    "type": "dropdown",
+                    "options": [
+                        "Diskusi informal",
+                        "Diskusi formal (und rapat, daftar hadir, dll)"
+                    ],
+                    "source_column": "BA",
+                    "source_order": 11,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Ybs memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BB",
+                    "source_order": 12,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Materi pelatihan sangat bermanfaat dalam menunjang pekerjaan Ybs",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BC",
+                    "source_order": 13,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Keberhasilan pelaksanaan pekerjaan Ybs meningkat setelah mengikuti pelatihan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BD",
+                    "source_order": 14,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Kualitas dan kecepatan penyelesaian pekerjaan Ybs meningkat setelah mengikuti pelatihan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BE",
+                    "source_order": 15,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Ybs berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BF",
+                    "source_order": 16,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah <strong>Cukup, Kurang, Sangat Kurang,</strong> maka alasannya adalah (bisa pilih lebih dari satu jawaban)",
+                    "type": "checkbox",
+                    "options": [
+                        "Ybs tidak mempunyai pengetahuan dan keterampilan yang memadai",
+                        "Ybs tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur",
+                        "Ybs mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran",
+                        "Ybs tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran",
+                        "Pembelajaran yang Ybs ikuti tidak memberikan nilai tambah bagi Ybs",
+                        "Ybs merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan Ybs",
+                        "Ybs merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja"
+                    ],
+                    "source_column": "BG",
+                    "source_order": 17,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap unit kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BH",
+                    "source_order": 18,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap pengetahuan teoritis atau konsep Ybs",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BI",
+                    "source_order": 19,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan produktivitas",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BJ",
+                    "source_order": 20,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap perbaikan kualitas hasil kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BK",
+                    "source_order": 21,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan kepuasan pelanggan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BL",
+                    "source_order": 22,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_atasan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BM",
+                    "source_order": 23,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Data Diri Rekan",
+                    "question_text": "Nama Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "BN",
+                    "source_order": 1,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Data Diri Rekan",
+                    "question_text": "NIP (ASN) / NIK (Non ASN) Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "BO",
+                    "source_order": 2,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Data Diri Rekan",
+                    "question_text": "Jabatan Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "BP",
+                    "source_order": 3,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Data Diri Rekan",
+                    "question_text": "Unit Kerja Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "BQ",
+                    "source_order": 4,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Data Diri Rekan",
+                    "question_text": "Perangkat Daerah Anda",
+                    "type": "text",
+                    "options": null,
+                    "source_column": "BR",
+                    "source_order": 5,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah saat ini Ybs sedang bertugas yang berkaitan dengan pelatihan?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "BT",
+                    "source_order": 6,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Iya</strong>, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "BU",
+                    "source_order": 7,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pengetahuan yang diperoleh membantu Ybs dalam menjalankan tugas?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "BV",
+                    "source_order": 8,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila jawaban nomor 1 adalah <strong>Tidak</strong>, apakah pelatihan memiliki keterkaitan dengan bidang tugas Ybs?",
+                    "type": "dropdown",
+                    "options": [
+                        "Ya",
+                        "Tidak"
+                    ],
+                    "source_column": "BW",
+                    "source_order": 9,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Apakah Ybs sudah melakukan transfer learning hasil pelatihan pada rekan kerja?",
+                    "type": "dropdown",
+                    "options": [
+                        "Sudah",
+                        "Belum"
+                    ],
+                    "source_column": "BX",
+                    "source_order": 10,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Penempatan Tugas dan Transfer Learning",
+                    "question_text": "Bila <strong>sudah</strong> transfer learning, bagaimana cara Ybs melakukan transfer learning?",
+                    "type": "dropdown",
+                    "options": [
+                        "Diskusi informal",
+                        "Diskusi formal (und rapat, daftar hadir, dll)"
+                    ],
+                    "source_column": "BY",
+                    "source_order": 11,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Ybs memahami bahwa sumber daya yang diperlukan untuk implementasi materi pembelajaran di lingkungan kerja tersedia secara memadai",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "BZ",
+                    "source_order": 12,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Materi pelatihan sangat bermanfaat dalam menunjang pekerjaan Ybs",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CA",
+                    "source_order": 13,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Keberhasilan pelaksanaan pekerjaan Ybs meningkat setelah mengikuti pelatihan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CB",
+                    "source_order": 14,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Kualitas dan kecepatan penyelesaian pekerjaan Ybs meningkat setelah mengikuti pelatihan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CC",
+                    "source_order": 15,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Ybs berkomitmen untuk implementasi materi pelatihan di lingkungan kerja saat ini",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CD",
+                    "source_order": 16,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Perubahan Perilaku",
+                    "question_text": "Bila sebagian besar jawaban Anda untuk pertanyaan nomor 1 sd 6 adalah <strong>Cukup, Kurang, Sangat Kurang,</strong> maka alasannya adalah (bisa pilih lebih dari satu jawaban)",
+                    "type": "checkbox",
+                    "options": [
+                        "Ybs tidak mempunyai pengetahuan dan keterampilan yang memadai",
+                        "Ybs tidak punya rencana implementasi materi pembelajaran secara jelas dan terukur",
+                        "Ybs mempunyai prioritas pekerjaan lain yang tidak sesuai dengan materi pembelajaran",
+                        "Ybs tidak mempunyai dukungan sumber daya yang memadai untuk implementasi materi pembelajaran",
+                        "Pembelajaran yang Ybs ikuti tidak memberikan nilai tambah bagi Ybs",
+                        "Ybs merasa bahwa materi pembelajaran tidak relevan dengan pekerjaan Ybs",
+                        "Ybs merasa tidak ada kebijakan yang mendukung proses implementasi materi pembelajaran di lingkungan kerja"
+                    ],
+                    "source_column": "CE",
+                    "source_order": 17,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap unit kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CF",
+                    "source_order": 18,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap pengetahuan teoritis atau konsep Ybs",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CG",
+                    "source_order": 19,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan produktivitas",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CH",
+                    "source_order": 20,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap perbaikan kualitas hasil kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CI",
+                    "source_order": 21,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap peningkatan kepuasan pelanggan",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CJ",
+                    "source_order": 22,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                },
+                {
+                    "category": "l34_rekan",
+                    "sub_category": "Dampak Pelatihan",
+                    "question_text": "Dampak pelatihan terhadap penguatan hubungan antara rekan-rekan kerja",
+                    "type": "dropdown",
+                    "options": [
+                        "Sangat Kurang",
+                        "Kurang",
+                        "Cukup",
+                        "Baik",
+                        "Sangat Baik"
+                    ],
+                    "source_column": "CK",
+                    "source_order": 23,
+                    "source_occurrence": 1,
+                    "bidang": "Semua Bidang",
+                    "training_type": "Semua Bidang"
+                }
+            ]
+        }
+    }
+}

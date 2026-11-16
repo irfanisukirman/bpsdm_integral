@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AlumniProfile;
 use App\Models\EvaluationResultL34;
 use App\Models\Participant;
 use App\Models\PostEvaluationInterview;
@@ -10,10 +11,13 @@ use App\Models\Question;
 use App\Models\Training;
 use App\Models\User;
 use App\Services\PostEvaluationService;
+use App\Services\PostEvaluationSurveySummaryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PostEvaluationTest extends TestCase
@@ -31,7 +35,7 @@ class PostEvaluationTest extends TestCase
 
     private function question(Training $t, string $role = 'mandiri', string $program = 'PKP'): Question
     {
-        return Question::create(['bidang' => $t->bidang, 'training_type' => $t->bidang, 'program_evaluasi' => $program, 'category' => 'l34_'.$role, 'sub_category' => 'Dampak Pelatihan', 'metode' => 'semua', 'type' => 'dropdown', 'question_text' => 'Indikator tujuan '.$role, 'options' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai']]);
+        return Question::create(['bidang' => $t->bidang, 'training_type' => $t->bidang, 'program_evaluasi' => $program, 'category' => 'l34_'.$role, 'sub_category' => 'Dampak Pelatihan', 'metode' => 'semua', 'type' => 'dropdown', 'question_text' => PostEvaluationService::SURVEY_QUESTIONS[0], 'options' => ['Tidak Sesuai', 'Kurang Sesuai', 'Sesuai', 'Sangat Sesuai']]);
     }
 
     private function answer(Training $t, Participant $p, Question $q, string $note = 'Sesuai'): void
@@ -46,16 +50,285 @@ class PostEvaluationTest extends TestCase
 
     public function test_field_admin_cannot_access_results_even_when_assigned_to_team(): void
     {
-        [$manager,$training,$participant]=$this->setupData();
-        $admin=User::factory()->create(['role'=>'admin_bidang','bidang'=>$training->bidang]);
-        $team=DB::table('post_evaluation_teams')->insertGetId(['training_id'=>$training->id,'name'=>'Tim Uji']);
-        DB::table('post_evaluation_team_user')->insert(['team_id'=>$team,'user_id'=>$admin->id]);
+        [$manager,$training,$participant] = $this->setupData();
+        $admin = User::factory()->create(['role' => 'admin_bidang', 'bidang' => $training->bidang]);
+        $team = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => 'Tim Uji']);
+        DB::table('post_evaluation_team_user')->insert(['team_id' => $team, 'user_id' => $admin->id]);
         $this->actingAs($admin)->get(route('post-evaluation.index'))->assertForbidden();
-        $this->get(route('post-evaluation.show',$training))->assertForbidden();
-        $this->get(route('post-evaluation.expose',$training))->assertForbidden();
-        $this->get(route('post-evaluation.pdf',$training))->assertForbidden();
-        $this->post(route('post-evaluation.publish',$training),['action'=>'publish'])->assertForbidden();
-        $this->assertStringNotContainsString('Hasil Evaluasi Pasca Level 3 &amp; 4',view('layouts.sidebar')->render());
+        $this->get(route('post-evaluation.show', $training))->assertForbidden();
+        $this->get(route('post-evaluation.expose', $training))->assertForbidden();
+        $this->get(route('post-evaluation.pdf', $training))->assertForbidden();
+        $this->post(route('post-evaluation.publish', $training), ['action' => 'publish'])->assertForbidden();
+        $this->assertStringNotContainsString('Hasil Evaluasi Pasca Level 3 &amp; 4', view('layouts.sidebar')->render());
+    }
+
+    public function test_settings_only_manages_teams_and_can_register_evaluator_with_email_login(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'pengaturan']))->assertOk()->assertSee('Tambah evaluator baru')->assertSee('Bagi Peserta Otomatis')->assertDontSee('Pemetaan indikator')->assertDontSee('Bobot (%)')->assertDontSee('Publikasi hasil');
+        $team = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => 'Tim Evaluasi']);
+        $password = 'EvaluatorUji123!';
+        $this->post(route('post-evaluation.evaluator.store', $training), ['name' => 'Evaluator Baru', 'email' => 'evaluator@example.test', 'password' => $password, 'password_confirmation' => $password, 'team_id' => $team])->assertSessionHasNoErrors()->assertRedirect();
+        $evaluator = User::where('username', 'evaluator@example.test')->firstOrFail();
+        $this->assertSame('evaluator', $evaluator->role);
+        $this->assertTrue(Hash::check($password, $evaluator->password));
+        $this->assertDatabaseHas('post_evaluation_team_user', ['team_id' => $team, 'user_id' => $evaluator->id]);
+        $this->post(route('post-evaluation.assign', $training), ['team_id' => $team, 'participant_ids' => [$participant->id]])->assertRedirect();
+        $this->post('/logout')->assertRedirect();
+        $this->post('/login', ['username' => 'evaluator@example.test', 'password' => $password])->assertRedirect(route('post-evaluation.index'));
+        $this->assertAuthenticatedAs($evaluator);
+        $this->get(route('dashboard'))->assertRedirect(route('post-evaluation.index'));
+        $this->get(route('post-evaluation.index'))->assertOk()->assertSee('Uji Pasca PKP');
+        $this->get(route('post-evaluation.interview', [$training, $participant]))->assertOk();
+        $this->post(route('post-evaluation.evaluator.store', $training), ['name' => 'Tidak boleh'])->assertForbidden();
+    }
+
+    public function test_existing_evaluators_are_reused_and_duplicate_email_is_rejected(): void
+    {
+        [$admin,$training] = $this->setupData();
+        $existing = User::factory()->create(['role' => 'evaluator', 'username' => 'existing@example.test']);
+        $before = $existing->password;
+        $this->actingAs($admin)->post(route('post-evaluation.team', $training), ['name' => 'Tim Lama', 'users' => [$existing->id]])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame($before, $existing->fresh()->password);
+        $count = User::count();
+        $this->post(route('post-evaluation.evaluator.store', $training), ['name' => 'Duplikat', 'email' => 'existing@example.test', 'password' => 'ContohPass123', 'password_confirmation' => 'ContohPass123'])->assertSessionHasErrors('email');
+        $this->assertSame($count, User::count());
+        $blocked = User::factory()->create(['role' => 'admin_bidang']);
+        $this->post(route('post-evaluation.team', $training), ['name' => 'Tim Tidak Valid', 'users' => [$blocked->id]])->assertSessionHasErrors('users.0');
+    }
+
+    public function test_interview_shows_original_survey_and_proper_evidence_in_each_criterion(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $mapping = [];
+        foreach (PostEvaluationService::SURVEY_QUESTIONS as $i => $label) {
+            $question = $this->question($training);
+            $question->update(['question_text' => $label]);
+            $this->answer($training, $participant, $question, (string) ($i === 0 ? 3 : 4));
+            $mapping[] = ['indicator' => $i, 'question_id' => $question->id, 'role' => 'mandiri', 'scale' => 'four'];
+        }
+        PostEvaluationSetting::create(['training_id' => $training->id, 'mappings' => $mapping]);
+        $iv = PostEvaluationInterview::create(['training_id' => $training->id, 'participant_id' => $participant->id, 'project' => 'Judul Proper dari alumni', 'current_condition' => 'Kondisi terkini dari alumni', 'medium_milestone' => 'Milestone menengah asli', 'long_milestone' => 'Milestone panjang asli', 'medium_evidence_status' => 'sudah', 'long_evidence_status' => 'belum']);
+        DB::table('post_evaluation_evidence')->insert(['interview_id' => $iv->id, 'kind' => 'medium', 'path' => 'private/foto.png', 'original_name' => 'foto-menengah.png', 'mime' => 'image/png', 'size' => 50, 'created_at' => now(), 'updated_at' => now()]);
+        $rows = app(PostEvaluationService::class)->surveyAnswers($training, $participant);
+        $this->assertEquals([3, 4, 4], array_column($rows, 'four'));
+        $this->assertEquals([75, 100, 100], array_column($rows, 'converted'));
+        $this->actingAs($admin)->get(route('post-evaluation.interview', [$training, $participant]))->assertOk()
+            ->assertSeeInOrder(['Informasi wawancara', 'Informasi Proper dari peserta', 'Kondisi terkini dari alumni', 'Jawaban survei', 'Target Aksi Perubahan dalam jangka panjang tercapai', '1. Target jangka menengah', 'Data Jangka Menengah dari peserta', 'Milestone menengah asli', 'Lihat foto evidence', '2. Target jangka panjang', 'Data Jangka Panjang dari peserta', 'Milestone panjang asli', 'Belum Dilaksanakan', '3. Ketercapaian tujuan'])
+            ->assertSee('>3</strong>', false)->assertSee('75')->assertDontSee('type="file"', false);
+    }
+
+    public function test_survey_original_view_handles_unmapped_answers_and_does_not_invent_four_point_slider_scores(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $question = $this->question($training);
+        $question->update(['question_text' => PostEvaluationService::SURVEY_QUESTIONS[0]]);
+        $this->answer($training, $participant, $question, 'Sangat Sesuai');
+        $service = app(PostEvaluationService::class);
+        $this->assertEquals(4, $service->surveyAnswers($training, $participant)[0]['four']);
+        $this->assertSame('Sangat Sesuai', $service->surveyAnswers($training, $participant)[0]['answer']);
+        $slider = $this->question($training);
+        $slider->update(['type' => 'slider']);
+        EvaluationResultL34::create(['training_id' => $training->id, 'participant_id' => $participant->id, 'question_id' => $slider->id, 'evaluator_role' => 'mandiri', 'evaluator_name' => 'Sendiri', 'score' => 80]);
+        PostEvaluationSetting::create(['training_id' => $training->id, 'mappings' => [['indicator' => 0, 'question_id' => $slider->id, 'role' => 'mandiri', 'scale' => 'hundred']]]);
+        $rows = $service->surveyAnswers($training, $participant);
+        $this->assertEquals(4, $rows[0]['four']);
+        $this->assertEquals(100, $rows[0]['converted']);
+    }
+
+    public function test_interview_scores_are_limited_to_one_hundred_on_server(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $this->actingAs($admin)->get(route('post-evaluation.interview', [$training, $participant]))->assertOk()->assertSee('interview-score-comment')->assertSee('interview-score-input');
+        $data = $this->interviewData();
+        $data['scores'][0] = 101;
+        $this->putJson(route('post-evaluation.interview.save', [$training, $participant]), $data)->assertUnprocessable()->assertJsonValidationErrors('scores.0');
+        $data['scores'][0] = -1;
+        $this->putJson(route('post-evaluation.interview.save', [$training, $participant]), $data)->assertUnprocessable()->assertJsonValidationErrors('scores.0');
+        $data['scores'][0] = 100;
+        $this->putJson(route('post-evaluation.interview.save', [$training, $participant]), $data)->assertOk();
+        $this->assertEquals(100, PostEvaluationInterview::where('participant_id', $participant->id)->firstOrFail()->scores[0]);
+    }
+
+    public function test_interview_survey_only_shows_three_indicators_and_excludes_other_questions(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $question = $this->question($training);
+        $question->update(['question_text' => PostEvaluationService::SURVEY_QUESTIONS[0]]);
+        $this->answer($training, $participant, $question, 'Sesuai');
+        $unrelated = $this->question($training);
+        $unrelated->update(['question_text' => 'Pertanyaan kepuasan lainnya']);
+        $this->answer($training, $participant, $unrelated, 'Sangat Sesuai');
+        $rows = app(PostEvaluationService::class)->surveyAnswers($training, $participant);
+        $this->assertCount(1, $rows);
+        $response = $this->actingAs($admin)->get(route('post-evaluation.interview', [$training, $participant]))->assertOk()->assertDontSee('Pertanyaan kepuasan lainnya');
+        foreach (PostEvaluationService::SURVEY_QUESTIONS as $label) {
+            $response->assertSee($label);
+        }
+        $this->assertSame(3, substr_count($response->getContent(), 'data-survey-indicator='));
+    }
+
+    public function test_four_point_conversion_is_only_for_four_managerial_programs(): void
+    {
+        [$admin,$training] = $this->setupData();
+        $service = app(PostEvaluationService::class);
+        foreach (['PKP', 'PKA', 'PKN', 'LATSAR'] as $program) {
+            $training->program_evaluasi = $program;
+            foreach (['Tidak Sesuai' => 25, 'Kurang Sesuai' => 50, 'Sesuai' => 75, 'Sangat Sesuai' => 100] as $label => $converted) {
+                $this->assertEquals($converted, $service->score((object) ['note' => $label, 'score' => null], ['scale' => 'four'], $training));
+            }
+        }
+        $training->program_evaluasi = 'Teknis';
+        $training->save();
+        $this->assertNull($service->score((object) ['note' => 'Sesuai', 'score' => null], ['scale' => 'four'], $training));
+        $this->assertSame(80.0, $service->score((object) ['note' => null, 'score' => 80], ['scale' => 'hundred'], $training));
+        $question = $this->question($training, 'mandiri', 'Teknis');
+        $this->assertSame([], $service->automaticSurveySources($training, $service->questions($training)));
+    }
+
+    public function test_team_is_created_first_then_existing_users_are_added_from_popup(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $evaluator = User::factory()->create(['role' => 'evaluator']);
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'pengaturan']))->assertOk()->assertSee('Buat Nama Tim')->assertSee('data-bs-target="#createTeamModal"', false)->assertSee('data-bs-target="#addEvaluatorModal"', false);
+        $this->post(route('post-evaluation.team', $training), ['name' => 'Tim Baru', '_settings_form' => 'create_team'])->assertSessionHasNoErrors()->assertRedirect();
+        $team = DB::table('post_evaluation_teams')->where('training_id', $training->id)->first();
+        $this->assertDatabaseMissing('post_evaluation_team_user', ['team_id' => $team->id]);
+        $payload = ['team_id' => $team->id, 'users' => [$evaluator->id], '_settings_form' => 'add_members'];
+        $this->post(route('post-evaluation.evaluator.add', $training), $payload)->assertSessionHasNoErrors()->assertRedirect();
+        $this->post(route('post-evaluation.evaluator.add', $training), $payload)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame(1, DB::table('post_evaluation_team_user')->where('team_id', $team->id)->where('user_id', $evaluator->id)->count());
+        $other = $this->setupData()[1];
+        $otherTeam = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $other->id, 'name' => 'Tim pelatihan lain']);
+        $this->post(route('post-evaluation.evaluator.add', $training), ['team_id' => $otherTeam, 'users' => [$evaluator->id]])->assertSessionHasErrors('team_id');
+        $url = route('post-evaluation.show', [$training, 'tab' => 'pengaturan']);
+        $this->from($url)->post(route('post-evaluation.evaluator.add', $training), ['team_id' => $team->id, '_settings_form' => 'add_members'])->assertSessionHasErrors('users');
+        $this->get($url)->assertOk()->assertSee('addEvaluatorModal');
+        $this->actingAs($evaluator)->post(route('post-evaluation.evaluator.add', $training), $payload)->assertForbidden();
+    }
+
+    public function test_automatic_assignment_balances_eligible_teams_without_changing_existing_results(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $evaluator = User::factory()->create(['role' => 'evaluator']);
+        $teams = [];
+        foreach (['Tim 1', 'Tim 2'] as $name) {
+            $id = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => $name]);
+            DB::table('post_evaluation_team_user')->insert(['team_id' => $id, 'user_id' => $evaluator->id]);
+            $teams[] = $id;
+        }
+        $emptyTeam = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => 'Tanpa evaluator']);
+        $existing = PostEvaluationInterview::create(['training_id' => $training->id, 'participant_id' => $participant->id, 'team_id' => $teams[0], 'scores' => [80, 90, 70, 60, 100], 'notes' => ['Tetap tersimpan', '', '', '', ''], 'project' => 'Proper tetap', 'status' => 'completed', 'revision' => 5]);
+        foreach (range(1, 6) as $i) {
+            Participant::create(['training_id' => $training->id, 'name' => 'Alumni '.$i, 'nip_nik' => 'UJI'.$i, 'instansi' => 'Unit', 'registration_status' => 'approved']);
+        }
+        $pending = Participant::create(['training_id' => $training->id, 'name' => 'Belum disetujui', 'nip_nik' => 'PENDING', 'registration_status' => 'pending']);
+        $this->actingAs($admin)->post(route('post-evaluation.assign.auto', $training))->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame(7, PostEvaluationInterview::where('training_id', $training->id)->count());
+        $counts = PostEvaluationInterview::whereIn('team_id', $teams)->selectRaw('team_id, COUNT(*) as total')->groupBy('team_id')->pluck('total')->all();
+        $this->assertLessThanOrEqual(1, max($counts) - min($counts));
+        $this->assertDatabaseMissing('post_evaluation_interviews', ['participant_id' => $pending->id]);
+        $this->assertDatabaseMissing('post_evaluation_interviews', ['team_id' => $emptyTeam]);
+        $this->assertSame([80, 90, 70, 60, 100], $existing->fresh()->scores);
+        $this->assertSame(5, $existing->fresh()->revision);
+        $this->assertSame('Proper tetap', $existing->fresh()->project);
+        $before = PostEvaluationInterview::where('training_id', $training->id)->get()->toArray();
+        $this->post(route('post-evaluation.assign.auto', $training))->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame($before, PostEvaluationInterview::where('training_id', $training->id)->get()->toArray());
+        $this->actingAs($evaluator)->post(route('post-evaluation.assign.auto', $training))->assertForbidden();
+    }
+
+    public function test_automatic_assignment_requires_team_with_evaluator(): void
+    {
+        [$admin,$training] = $this->setupData();
+        DB::table('post_evaluation_teams')->insert(['training_id' => $training->id, 'name' => 'Tim kosong']);
+        $this->actingAs($admin)->post(route('post-evaluation.assign.auto', $training))->assertSessionHasErrors('team');
+        $this->assertDatabaseCount('post_evaluation_interviews', 0);
+    }
+
+    public function test_evaluator_can_move_or_leave_team_without_moving_participants_or_scores(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $evaluator = User::factory()->create(['role' => 'evaluator']);
+        $ids = [];
+        foreach (['Tim Asal', 'Tim Tujuan'] as $name) {
+            $ids[] = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => $name]);
+        }
+        DB::table('post_evaluation_team_user')->insert(['team_id' => $ids[0], 'user_id' => $evaluator->id]);
+        $interview = PostEvaluationInterview::create(['training_id' => $training->id, 'participant_id' => $participant->id, 'team_id' => $ids[0], 'scores' => [80, 90, 70, 60, 100], 'notes' => ['Catatan tetap', '', '', '', ''], 'status' => 'completed']);
+        $other = Participant::create(['training_id' => $training->id, 'name' => 'Peserta tujuan', 'nip_nik' => 'TUJUAN', 'registration_status' => 'approved']);
+        PostEvaluationInterview::create(['training_id' => $training->id, 'participant_id' => $other->id, 'team_id' => $ids[1]]);
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'pengaturan']))->assertOk()->assertSee('Kelola Evaluator');
+        $payload = ['user_id' => $evaluator->id, 'from_team_id' => $ids[0], 'to_team_id' => $ids[1]];
+        $this->post(route('post-evaluation.evaluator.move', $training), $payload)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseMissing('post_evaluation_team_user', ['team_id' => $ids[0], 'user_id' => $evaluator->id]);
+        $this->assertDatabaseHas('post_evaluation_team_user', ['team_id' => $ids[1], 'user_id' => $evaluator->id]);
+        $this->assertSame($ids[0], $interview->fresh()->team_id);
+        $this->assertSame([80, 90, 70, 60, 100], $interview->fresh()->scores);
+        $this->actingAs($evaluator)->get(route('post-evaluation.interview', [$training, $participant]))->assertForbidden();
+        $this->get(route('post-evaluation.interview', [$training, $other]))->assertOk();
+        $this->post(route('post-evaluation.evaluator.move', $training), ['user_id' => $evaluator->id, 'from_team_id' => $ids[1]])->assertForbidden();
+        $this->actingAs($admin)->post(route('post-evaluation.evaluator.move', $training), ['user_id' => $evaluator->id, 'from_team_id' => $ids[1]])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertModelExists($evaluator);
+        $this->assertDatabaseMissing('post_evaluation_team_user', ['user_id' => $evaluator->id]);
+        $this->assertSame('Catatan tetap', $interview->fresh()->notes[0]);
+    }
+
+    public function test_evaluator_cannot_be_moved_to_another_training_team(): void
+    {
+        [$admin,$training] = $this->setupData();
+        $other = $this->setupData()[1];
+        $evaluator = User::factory()->create(['role' => 'evaluator']);
+        $source = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => 'Asal']);
+        $target = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $other->id, 'name' => 'Lain pelatihan']);
+        DB::table('post_evaluation_team_user')->insert(['team_id' => $source, 'user_id' => $evaluator->id]);
+        $this->actingAs($admin)->post(route('post-evaluation.evaluator.move', $training), ['user_id' => $evaluator->id, 'from_team_id' => $source, 'to_team_id' => $target])->assertSessionHasErrors('to_team_id');
+        $this->assertDatabaseHas('post_evaluation_team_user', ['team_id' => $source, 'user_id' => $evaluator->id]);
+    }
+
+    public function test_summary_matches_pasca_order_with_real_profiles_methods_and_separate_role_averages(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        AlumniProfile::create(['training_id' => $training->id, 'participant_id' => $participant->id, 'pos_during_training' => 'Analis', 'pos_current' => 'Kepala Seksi', 'edu_during_training' => 'S1', 'edu_current' => 'S1', 'rank_during_training' => 'III/a', 'rank_current' => 'III/a', 'unit_during_training' => 'Unit', 'unit_current' => 'Unit', 'dept_during_training' => 'Dinas', 'dept_current' => 'Dinas']);
+        $other = Participant::create(['training_id' => $training->id, 'name' => 'Alumni belum merespons', 'nip_nik' => 'SECOND', 'registration_status' => 'approved', 'instansi' => 'Instansi lain']);
+        $q = $this->question($training);
+        $atasan = $this->question($training, 'atasan');
+        $this->answer($training, $participant, $q, 'Sesuai');
+        $this->answer($training, $participant, $atasan, 'Sangat Sesuai');
+        $method = $this->question($training);
+        $method->update(['question_text' => 'Metode Pelaksanaan', 'sub_category' => 'Data Diri Alumni', 'options' => ['Klasikal', 'Blended Learning']]);
+        $this->answer($training, $participant, $method, 'Klasikal');
+        $supervisorMethod = $this->question($training, 'atasan');
+        $supervisorMethod->update(['question_text' => 'Metode Pelaksanaan', 'sub_category' => 'Data Diri Atasan', 'options' => ['Klasikal', 'Blended Learning']]);
+        $this->answer($training, $participant, $supervisorMethod, 'Blended Learning');
+        $service = app(PostEvaluationService::class);
+        $summary = app(PostEvaluationSurveySummaryService::class)->build($training, $service->people($training));
+        $this->assertSame(['Berubah' => 1, 'Tetap' => 0], $summary['job_changes']);
+        $this->assertSame(1, $summary['job_respondents']);
+        $this->assertSame(['Klasikal' => 1], $summary['methods']);
+        $this->assertSame(1, $summary['method_respondents']);
+        $this->assertSame(3.0, $summary['sections']['Dampak Pelatihan'][0]['roles']['mandiri']['average']);
+        $this->assertSame(4.0, $summary['sections']['Dampak Pelatihan'][0]['roles']['atasan']['average']);
+        $this->assertSame(1, $summary['sections']['Dampak Pelatihan'][0]['roles']['mandiri']['count']);
+        $this->assertSame(2, $summary['total']);
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'ringkasan']))->assertOk()->assertSeeInOrder(['Perubahan jabatan', 'Metode pelatihan', 'Perbandingan hasil alumni dan atasan', 'Sebaran asal instansi'])->assertDontSee('Pemetaan indikator survei')->assertSee('3,00')->assertSee('4,00');
+    }
+
+    public function test_automatic_three_indicator_scores_and_summary_do_not_double_count_question_versions(): void
+    {
+        [$admin,$training,$participant] = $this->setupData();
+        $first = $this->question($training);
+        $second = $this->question($training);
+        $this->answer($training, $participant, $first, 'Sangat Sesuai');
+        $this->answer($training, $participant, $second, 'Kurang Sesuai');
+        $service = app(PostEvaluationService::class);
+        $people = $service->people($training);
+        $this->assertSame(50.0, $people[0]['survey'][0]);
+        $this->assertCount(1, $service->surveyAnswers($training, $participant));
+        $summary = app(PostEvaluationSurveySummaryService::class)->build($training, $people);
+        $this->assertCount(1, $summary['sections']['Dampak Pelatihan']);
+        $this->assertSame(2.0, $summary['sections']['Dampak Pelatihan'][0]['roles']['mandiri']['average']);
+        $this->assertNull($summary['sections']['Dampak Pelatihan'][0]['roles']['atasan']['average']);
     }
 
     public function test_live_survey_preserves_missing_and_roles_without_duplicate_participants(): void
@@ -70,21 +343,24 @@ class PostEvaluationTest extends TestCase
         $this->assertCount(1, $people);
         $this->assertSame([75.0, null, null], $people[0]['survey']);
         $this->assertTrue($people[0]['partial']);
-        $this->assertSame(['expected' => 2, 'filled' => 1], $people[0]['coverage'][0]);
+        $this->assertSame(['expected' => 1, 'filled' => 1], $people[0]['coverage'][0]);
         $this->answer($t, $p, $other, 'Sangat Sesuai');
-        $this->assertSame(87.5, $service->people($t)[0]['survey'][0]);
+        $this->assertSame(75.0, $service->people($t)[0]['survey'][0]);
         $this->assertDatabaseCount('participants', 1);
     }
 
-    public function test_settings_reject_wrong_program_role_and_incompatible_scale(): void
+    public function test_survey_sources_are_automatic_and_ignore_manual_or_foreign_program_mappings(): void
     {
         [$admin,$t,$p] = $this->setupData();
-        $q = $this->question($t, 'mandiri', 'PKA');
-        $rubric = app(PostEvaluationService::class)->rubric($t);
-        $this->actingAs($admin)->post(route('post-evaluation.settings', $t), ['rubric' => $rubric, 'mappings' => [['indicator' => 0, 'question_id' => $q->id, 'role' => 'mandiri', 'scale' => 'four']]])->assertSessionHasErrors('mappings');
+        $foreign = $this->question($t, 'mandiri', 'PKA');
         $q = $this->question($t);
-        $this->post(route('post-evaluation.settings', $t), ['rubric' => $rubric, 'mappings' => [['indicator' => 0, 'question_id' => $q->id, 'role' => 'mandiri', 'scale' => 'hundred']]])->assertSessionHasErrors('mappings');
-        $this->post(route('post-evaluation.settings', $t), ['rubric' => $rubric, 'mappings' => [['indicator' => 0, 'question_id' => $q->id, 'role' => 'mandiri', 'scale' => 'four']]])->assertSessionHasNoErrors()->assertRedirect();
+        $this->answer($t, $p, $foreign, 'Sangat Sesuai');
+        $this->answer($t, $p, $q, 'Sesuai');
+        PostEvaluationSetting::create(['training_id' => $t->id, 'mappings' => [['indicator' => 0, 'question_id' => $foreign->id, 'role' => 'mandiri', 'scale' => 'four']]]);
+        $service = app(PostEvaluationService::class);
+        $this->assertSame(75.0, $service->people($t)[0]['survey'][0]);
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$t, 'tab' => 'ringkasan']))->assertOk()->assertDontSee('Pemetaan indikator survei')->assertDontSee('Atur pemetaan');
+        $this->post('/hasil-evaluasi-pasca/'.$t->id.'/pengaturan', [])->assertNotFound();
     }
 
     public function test_views_pdf_and_interview_calculation_match_pasca_pattern(): void
@@ -100,7 +376,7 @@ class PostEvaluationTest extends TestCase
         $person = app(PostEvaluationService::class)->people($t)[0];
         $this->assertSame(76.0, $person['weighted']);
         $this->assertSame(73.3333, $person['interview_average']);
-        $this->get(route('post-evaluation.expose', $t))->assertOk()->assertSee('Ekspose Evaluasi Level 3');
+        $this->get(route('post-evaluation.expose', $t))->assertOk()->assertSee('Mekanisme Konfirmasi Jawaban dan Ekspose');
         $this->get(route('post-evaluation.pdf', $t))->assertOk()->assertDownload();
     }
 
@@ -173,9 +449,10 @@ class PostEvaluationTest extends TestCase
 
     public function test_slider_zero_and_histogram_boundaries_are_not_missing(): void
     {
+        [$admin,$training] = $this->setupData();
         $service = app(PostEvaluationService::class);
-        $this->assertSame(0.0, $service->score((object) ['score' => 0, 'note' => null], ['scale' => 'hundred']));
-        $this->assertSame(25.0, $service->score((object) ['score' => null, 'note' => '1'], ['scale' => 'four']));
+        $this->assertSame(0.0, $service->score((object) ['score' => 0, 'note' => null], ['scale' => 'hundred'], $training));
+        $this->assertSame(25.0, $service->score((object) ['score' => null, 'note' => '1'], ['scale' => 'four'], $training));
         $this->assertSame([2, 2, 2, 2], $service->histogram([0, 60, 60.1, 79, 79.1, 89, 89.1, 100, null])['counts']);
         $this->assertSame(1, $service->histogram([null, 0])['missing']);
     }
@@ -211,23 +488,42 @@ class PostEvaluationTest extends TestCase
         $this->actingAs($admin)->get(route('post-evaluation.interview', [$t, $p]))->assertOk()->assertSee('Aksi Perubahan Uji')->assertSee('Target menengah');
     }
 
-    public function test_evidence_is_private_and_public_upload_link_can_be_revoked(): void
+    public function test_proper_uses_one_uid_link_and_old_upload_routes_are_unavailable(): void
     {
         Storage::fake('local');
         [$admin,$t,$p] = $this->setupData();
-        $this->actingAs($admin)->post(route('post-evaluation.upload-link', [$t, $p]), ['action' => 'rotate'])->assertRedirect();
-        $iv = PostEvaluationInterview::firstOrFail();
-        $token = $iv->upload_token;
-        $this->app['auth']->forgetGuards();
-        $this->get(route('post-evaluation.upload.public', $token))->assertOk()->assertDontSee('ALUMNI RAHASIA');
+        $this->assertTrue(Str::isUuid($t->proper_uid));
+        $uid = $t->proper_uid;
+        $t->update(['lokasi' => 'Lokasi baru']);
+        $this->assertSame($uid, $t->fresh()->proper_uid);
+        $this->get('/isi-proper/'.$t->id)->assertNotFound();
+        $this->post('/isi-proper/'.$t->id, [])->assertNotFound();
+        $this->postJson('/isi-proper/'.$t->id.'/verifikasi', [])->assertNotFound();
+        $this->get(route('post-evaluation.proper.public', $t->proper_uid))->assertOk()->assertSee('NIP/NIK peserta');
         $file = UploadedFile::fake()->create('bukti.pdf', 10, 'application/pdf');
-        $this->post(route('post-evaluation.upload.store', $token), ['proper_title' => 'Proper Uji', 'medium_milestone' => 'Target menengah', 'long_milestone' => 'Target panjang', 'medium_evidence_status' => 'belum', 'long_evidence_status' => 'belum', 'current_condition' => 'Sedang diterapkan', 'document' => $file])->assertSessionHasNoErrors()->assertRedirect();
+        $this->post(route('post-evaluation.proper.store', $t->proper_uid), ['participant_identity' => $p->nip_nik, 'proper_title' => 'Proper Uji', 'medium_milestone' => 'Target menengah', 'long_milestone' => 'Target panjang', 'medium_evidence_status' => 'belum', 'long_evidence_status' => 'belum', 'current_condition' => 'Berjalan', 'document' => $file])->assertSessionHasNoErrors()->assertRedirect();
         $evidence = DB::table('post_evaluation_evidence')->first();
         Storage::disk('local')->assertExists($evidence->path);
-        $this->actingAs($admin)->get(route('post-evaluation.evidence', [$t, $evidence->id]))->assertOk()->assertDownload();
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$t, 'tab' => 'wawancara']))->assertOk()->assertSee('/isi-proper/'.$uid)->assertDontSee('Buat Link Proper Alumni')->assertDontSee('link-bukti');
+        $this->get(route('post-evaluation.interview', [$t, $p]))->assertOk()->assertDontSee('type="file"', false)->assertSee('bukti.pdf');
+        $this->get(route('post-evaluation.evidence', [$t, $evidence->id]))->assertOk()->assertDownload();
+        $iv = PostEvaluationInterview::where('participant_id', $p->id)->firstOrFail();
+        $data = $this->interviewData($iv->revision);
+        $data['project'] = 'Tidak boleh menimpa Proper';
+        $this->put(route('post-evaluation.interview.save', [$t, $p]), $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('Proper Uji', $iv->fresh()->project);
+        $evaluator = User::factory()->create(['role' => 'pengajar']);
+        $this->post(route('post-evaluation.team', $t), ['name' => 'Tim Evaluator', 'users' => [$evaluator->id]])->assertRedirect();
+        $team = DB::table('post_evaluation_teams')->where('training_id', $t->id)->first();
+        $this->post(route('post-evaluation.assign', $t), ['team_id' => $team->id, 'participant_ids' => [$p->id]])->assertRedirect();
+        $this->actingAs($evaluator)->get(route('post-evaluation.interview', [$t, $p]))->assertOk()->assertSee('bukti.pdf')->assertSee('Lihat')->assertDontSee('type="file"', false);
+        $this->get(route('post-evaluation.evidence', [$t, $evidence->id, 'preview' => 1]))->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertHeader('Content-Disposition', 'inline; filename=bukti.pdf');
+        $this->actingAs($admin);
+
+        $this->post('/hasil-evaluasi-pasca/'.$t->id.'/wawancara/'.$p->id.'/link-bukti', [])->assertNotFound();
+        $this->post('/hasil-evaluasi-pasca/'.$t->id.'/wawancara/'.$p->id.'/bukti', [])->assertNotFound();
+        $this->get('/bukti-pasca/tautan-lama')->assertNotFound();
         $outsider = User::factory()->create(['role' => 'admin_bidang', 'bidang' => 'Bidang B']);
         $this->actingAs($outsider)->get(route('post-evaluation.evidence', [$t, $evidence->id]))->assertForbidden();
-        $this->actingAs($admin)->post(route('post-evaluation.upload-link', [$t, $p]), ['action' => 'revoke'])->assertRedirect();
-        $this->get(route('post-evaluation.upload.public',$token))->assertNotFound();
     }
 }
