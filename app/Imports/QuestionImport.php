@@ -43,16 +43,29 @@ class QuestionImport implements ToModel, WithHeadingRow
         }
 
         $options = null;
-        if (filled($row['pilihan_jawaban'] ?? null)) {
-            $options = array_values(array_filter(array_map('trim', explode(',', (string) $row['pilihan_jawaban']))));
+        if (in_array($type, ['dropdown', 'checkbox'], true)) {
+            $rawOptions = $row['pilihan_jawaban'] ?? null;
+            if (blank($rawOptions)) {
+                $rawOptions = $row['jawaban'] ?? '';
+            }
+            $options = array_values(array_filter(
+                array_map('trim', preg_split('/[|,;\r\n]+/u', (string) $rawOptions)),
+                fn ($option) => $option !== '' && $option !== '-'
+            ));
+            if ($options === []) {
+                throw new \InvalidArgumentException('Pertanyaan "'.mb_substr($questionText, 0, 80).'" bertipe '.$type.' wajib memiliki pilihan pada kolom pilihan_jawaban atau jawaban.');
+            }
         }
 
-        $programInput = strtoupper(trim((string) ($row['program_evaluasi'] ?? 'PKTI/PKTU')));
-        $program = $programInput === 'SEMUA' ? 'semua' : $programInput;
-        if (!in_array($program, ['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'], true)) {
-            throw new \InvalidArgumentException('Program evaluasi wajib semua, CPNS, PKP, PKA, PKN, atau PKTI/PKTU.');
+        $programInput = strtoupper(trim((string) ($row['program_evaluasi'] ?? 'Teknis')));
+        $program = \App\Support\EvaluationProgram::normalize($programInput);
+        if (!in_array($program, ['semua', 'LATSAR', 'PKP', 'PKA', 'PKN', 'Teknis'], true)) {
+            throw new \InvalidArgumentException('Program evaluasi wajib semua, LATSAR, PKP, PKA, PKN, atau Teknis.');
         }
 
+        if ($category === 'l34_rekan' && \App\Support\EvaluationProgram::isManagerial($program)) {
+            throw new \InvalidArgumentException('LATSAR, PKP, PKA, dan PKN hanya menggunakan penilaian mandiri dan atasan.');
+        }
         $metode = mb_strtolower(trim((string) ($row['metode'] ?? 'semua')));
         if (!$isLevel34 && !in_array($metode, ['semua', 'klasikal', 'full learning', 'blended'], true)) {
             throw new \InvalidArgumentException('Metode Level 1 wajib semua, klasikal, full learning, atau blended.');
@@ -77,7 +90,7 @@ class QuestionImport implements ToModel, WithHeadingRow
         return new Question([
             'training_type' => $this->defaultBidang,
             'bidang' => $this->defaultBidang,
-            'program_evaluasi' => $isLevel34 ? $program : 'PKTI/PKTU',
+            'program_evaluasi' => $program,
             'metode' => $metode,
             'category' => $category,
             'sub_category' => $subCategory,

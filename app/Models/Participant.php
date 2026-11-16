@@ -136,6 +136,8 @@ class Participant extends Model
                 ->where('training_id', $this->training_id)
                 ->get();
 
+        $results = $results->whereIn('evaluator_role', $this->training->evaluationRoles());
+
         $labelScores = [
             'sangat kurang' => 20,
             'kurang' => 40,

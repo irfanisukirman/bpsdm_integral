@@ -29,6 +29,9 @@
                 <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
+                <a href="{{ route('participants.export_data', $training->id) }}" class="btn btn-outline-success">
+                    <i class="bx bx-download me-1"></i> Data Peserta (Excel)
+                </a>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImportParticipants">
                     <i class="bx bx-spreadsheet me-1"></i> Import Peserta
                 </button>

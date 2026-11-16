@@ -20,6 +20,10 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-3">
+        @if(Auth::user()->role === 'superadmin' || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
+            <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
+        @endif
+
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
         @if(Auth::user()->role === 'resepsionis')
             <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>
@@ -164,6 +168,7 @@
                 </a>
             </li>
 
+            @if(Auth::user()->role === 'superadmin')
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Kelola Instrumen</span>
             </li>
@@ -186,6 +191,8 @@
                     </li>
                 </ul>
             </li>
+
+            @endif
 
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Kelola Dokumen</span>

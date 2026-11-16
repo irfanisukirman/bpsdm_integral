@@ -108,7 +108,7 @@ class TrainingController extends Controller
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang' => 'required',
-            'program_evaluasi' => 'required|in:CPNS,PKP,PKA,PKN,PKTI/PKTU',
+            'program_evaluasi' => 'required|in:LATSAR,PKP,PKA,PKN,Teknis',
             'model' => 'required',
             'lokasi' => 'required',
             'angkatan' => 'required',
@@ -755,7 +755,7 @@ class TrainingController extends Controller
         $rules = [
             'nama_pelatihan' => 'required',
             'bidang' => 'required',
-            'program_evaluasi' => 'required|in:CPNS,PKP,PKA,PKN,PKTI/PKTU',
+            'program_evaluasi' => 'required|in:LATSAR,PKP,PKA,PKN,Teknis',
             'lokasi' => 'required',
             'angkatan' => 'required',
             'jumlah_peserta' => 'required|numeric',

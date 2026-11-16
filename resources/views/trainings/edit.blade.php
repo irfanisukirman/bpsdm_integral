@@ -44,8 +44,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold text-primary">PROGRAM EVALUASI L3 & L4</label>
                         <select name="program_evaluasi" class="form-select border-primary" required>
-                            @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
-                                <option value="{{ $program }}" @selected(old('program_evaluasi', $training->program_evaluasi ?: 'PKTI/PKTU') === $program)>{{ $program }}</option>
+                            @if(old('program_evaluasi', $training->program_evaluasi) === 'Manajerial')
+                                <option value="" selected disabled>Pilih ulang program: LATSAR, PKP, PKA, atau PKN</option>
+                            @endif
+                            @foreach(['Teknis', 'LATSAR', 'PKP', 'PKA', 'PKN'] as $program)
+                                <option value="{{ $program }}" @selected(old('program_evaluasi', $training->program_evaluasi ?: 'Teknis') === $program)>{{ $program }}</option>
                             @endforeach
                         </select>
                         <div class="form-text">Pilih kelompok pertanyaan Evaluasi L3 & L4 yang sesuai. Pilihan tidak bergantung pada bidang penyelenggara.</div>

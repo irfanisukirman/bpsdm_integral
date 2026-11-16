@@ -1,5 +1,5 @@
 @php
-    $roles = ['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan Kerja'];
+    $roles = $training->evaluationRoleLabels();
     $labelScore = ['Sangat Kurang' => 20, 'Kurang' => 40, 'Cukup' => 60, 'Baik' => 80, 'Sangat Baik' => 100];
     $sections = $questionsBySection;
 @endphp
@@ -7,7 +7,7 @@
     <tr><th colspan="8" style="font-weight:bold;background-color:#2F5597;color:#FFFFFF;">OLAH DATA EVALUASI LEVEL 3 &amp; 4</th></tr>
     <tr><td>Pelatihan</td><td colspan="7">{{ $training->nama_pelatihan }}</td></tr>
     <tr><td>Bidang</td><td colspan="7">{{ $training->bidang }}</td></tr>
-    <tr><td>Responden</td><td>Mandiri: {{ $totalResponden['mandiri'] }}</td><td>Atasan: {{ $totalResponden['atasan'] }}</td><td>Rekan: {{ $totalResponden['rekan'] }}</td></tr>
+    <tr><td>Responden</td><td>Mandiri: {{ $totalResponden['mandiri'] }}</td><td>Atasan: {{ $totalResponden['atasan'] }}</td>@if(in_array('rekan', $training->evaluationRoles(), true))<td>Rekan: {{ $totalResponden['rekan'] }}</td>@endif</tr>
     <tr></tr>
 
     <tr><th colspan="8" style="font-weight:bold;background-color:#F4B183;">RINGKASAN PERUBAHAN DATA DIRI</th></tr>

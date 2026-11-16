@@ -37,9 +37,9 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
     {
         $id = $this->training->id;
         $profiles = AlumniProfile::where('training_id', $id)->get();
-        $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
+        $results = EvaluationResultL34::with('question')->where('training_id', $id)->whereIn('evaluator_role', $this->training->evaluationRoles())->get();
 
-        $allQuestions = collect(['mandiri', 'atasan', 'rekan'])
+        $allQuestions = collect($this->training->evaluationRoles())
             ->flatMap(fn ($role) => Question::forTraining($this->training, 'l34_'.$role)->orderBy('id')->get())
             ->values();
         $sectionOrder = array_flip(Question::l34SubCategoryOptions());
@@ -111,7 +111,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
         $summaryTitleRow = $currentRow + 1;
         $summaryHeaderRow = $summaryTitleRow + 1;
         $summaryDataStart = $summaryHeaderRow + 1;
-        $summaryDataEnd = $summaryDataStart + 2;
+        $summaryDataEnd = $summaryDataStart + count($this->training->evaluationRoles()) - 1;
         array_unshift($charts, $this->generateSummaryBarChart(
             $sheetName,
             $summaryHeaderRow,
@@ -145,7 +145,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
     ): Chart {
         $pointCount = $dataEnd - $dataStart + 1;
         $sheetRef = "'".$sheet."'!";
-        $seriesLabels = collect(['C', 'E', 'G'])->map(fn ($column) =>
+        $seriesLabels = collect(array_slice(['C', 'E', 'G'], 0, count($this->training->evaluationRoles())))->map(fn ($column) =>
             new DataSeriesValues(
                 DataSeriesValues::DATASERIES_TYPE_STRING,
                 $sheetRef.'$'.$column.'$'.$headerRow,
@@ -159,7 +159,7 @@ class L34OlahDataSheet implements FromView, WithTitle, WithCharts, ShouldAutoSiz
             null,
             $pointCount
         )];
-        $dataValues = collect(['C', 'E', 'G'])->map(fn ($column) =>
+        $dataValues = collect(array_slice(['C', 'E', 'G'], 0, count($this->training->evaluationRoles())))->map(fn ($column) =>
             new DataSeriesValues(
                 DataSeriesValues::DATASERIES_TYPE_NUMBER,
                 $sheetRef.'$'.$column.'$'.$dataStart.':$'.$column.'$'.$dataEnd,

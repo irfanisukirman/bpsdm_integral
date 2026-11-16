@@ -16,6 +16,7 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             <button type="button" onclick="window.print()" class="btn btn-outline-primary"><i class="bx bx-printer me-1"></i>Cetak Dashboard</button>
+            <a href="{{ route('trainings.export_evaluation', $training->id) }}" class="btn btn-success"><i class="bx bx-download me-1"></i>Rekap Evaluasi L1 &amp; L2 (Excel)</a>
             <a href="{{ route('evall12.export_word', $training->id) }}" class="btn btn-primary"><i class="bx bxs-file-doc me-1"></i>Laporan Word</a>
         </div>
     </div>

@@ -27,13 +27,13 @@ class L34JawabanSheet implements FromView, WithTitle, ShouldAutoSize
             ->orderBy('name')
             ->get();
 
-        $questions = collect(['mandiri', 'atasan', 'rekan'])
+        $questions = collect($this->training->evaluationRoles())
             ->flatMap(fn ($role) => Question::forTraining($this->training, 'l34_'.$role)->orderBy('id')->get())
             ->unique(fn ($question) => $question->sub_category.'|'.$question->question_text)
             ->sortBy(fn ($question) => $this->sectionOrder($question->sub_category).sprintf('%010d', $question->id))
             ->values();
 
-        return view('evaluasi.excel.l34_jawaban', compact('participants', 'questions'));
+        return view('evaluasi.excel.l34_jawaban', ['participants' => $participants, 'questions' => $questions, 'training' => $this->training]);
     }
 
     private function sectionOrder(?string $section): string

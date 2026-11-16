@@ -13,6 +13,7 @@ class L34WordChapterService
 {
     public function build(Training $training, $results, $profiles): Table
     {
+        $results = $results->whereIn('evaluator_role', $training->evaluationRoles());
         $table = new Table([
             'borderSize' => 6, 'borderColor' => 'B8C2CC', 'cellMargin' => 90,
             'width' => 100 * 50, 'unit' => TblWidth::PERCENT,
@@ -25,14 +26,14 @@ class L34WordChapterService
 
         $table->addRow();
         $table->addCell(null, ['gridSpan' => 6, 'bgColor' => '2F5597'])->addText(
-            'HASIL EVALUASI PASCA PELATIHAN - PROGRAM '.strtoupper((string) ($training->program_evaluasi ?: 'PKTI/PKTU')),
+            'HASIL EVALUASI PASCA PELATIHAN - PROGRAM '.strtoupper((string) ($training->program_evaluasi ?: 'Teknis')),
             $title, $center
         );
         $summary = [
             'Pelatihan' => $training->nama_pelatihan,
-            'Program Evaluasi' => $training->program_evaluasi ?: 'PKTI/PKTU',
+            'Program Evaluasi' => $training->program_evaluasi ?: 'Teknis',
             'Periode Pelatihan' => Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y').' s.d. '.Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y'),
-            'Cakupan Responden' => collect(['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan'])
+            'Cakupan Responden' => collect($training->evaluationRoleLabels())
                 ->map(fn ($label, $role) => $label.': '.$results->where('evaluator_role', $role)->unique('participant_id')->count())
                 ->implode('; '),
         ];
@@ -56,14 +57,14 @@ class L34WordChapterService
             $table->addCell(1800)->addText('Pendidikan: '.($profile?->edu_during_training ?: '-').' -> '.($profile?->edu_current ?: '-')."\nPangkat: ".($profile?->rank_during_training ?: '-').' -> '.($profile?->rank_current ?: '-'), $body);
             $table->addCell(1800)->addText(($profile?->pos_during_training ?: $participant->jabatan ?: '-').' -> '.($profile?->pos_current ?: '-'), $body);
             $table->addCell(1900)->addText(($profile?->unit_current ?: '-')."\n".($profile?->dept_current ?: $participant->instansi ?: '-'), $body);
-            $table->addCell(1500)->addText(collect(['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan'])->map(fn ($label, $role) => $label.': '.($roles->contains($role) ? 'Sudah' : 'Belum'))->implode("\n"), $body);
+            $table->addCell(1500)->addText(collect($training->evaluationRoleLabels())->map(fn ($label, $role) => $label.': '.($roles->contains($role) ? 'Sudah' : 'Belum'))->implode("\n"), $body);
         }
         if ($training->participants->isEmpty()) {
             $table->addRow();
             $table->addCell(null, ['gridSpan' => 6])->addText('Belum tersedia data alumni.', $body);
         }
 
-        $allQuestions = collect(['mandiri', 'atasan', 'rekan'])
+        $allQuestions = collect($training->evaluationRoles())
             ->flatMap(fn ($role) => Question::forTraining($training, 'l34_'.$role)->orderBy('id')->get())
             ->values();
         $order = array_flip(Question::l34SubCategoryOptions());
@@ -76,7 +77,7 @@ class L34WordChapterService
             $letter = chr(66 + min(24, (int) $sections->keys()->search($sectionName)));
             $this->addSectionTitle($table, $letter.'. '.strtoupper((string) $sectionName), $section);
             $table->addRow();
-            foreach (['No.', 'Pertanyaan', 'Tipe', 'Mandiri', 'Atasan', 'Rekan Kerja'] as $heading) {
+            foreach (array_merge(['No.', 'Pertanyaan', 'Tipe'], array_values($training->evaluationRoleLabels())) as $heading) {
                 $table->addCell(null, ['bgColor' => 'D9EAF7'])->addText($heading, $header, $center);
             }
             foreach ($questions->values() as $index => $question) {
@@ -84,7 +85,7 @@ class L34WordChapterService
                 $table->addCell(500)->addText((string) ($index + 1), $body, $center);
                 $table->addCell(3000)->addText($question->question_text, $body);
                 $table->addCell(900)->addText(ucfirst($question->type), $body, $center);
-                foreach (['mandiri', 'atasan', 'rekan'] as $role) {
+                foreach ($training->evaluationRoles() as $role) {
                     $table->addCell(1900)->addText($this->summarize($question, $role, $allQuestions, $results), $body);
                 }
             }

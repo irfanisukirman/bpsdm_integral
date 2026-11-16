@@ -75,7 +75,7 @@
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header border-bottom d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
-            <div><h5 class="fw-bold mb-1">Ringkasan Seluruh Bagian Evaluasi</h5><small class="text-muted">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'PKTI/PKTU' }} dan bank pertanyaan yang berlaku.</small></div>
+            <div><h5 class="fw-bold mb-1">Ringkasan Seluruh Bagian Evaluasi</h5><small class="text-muted">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'Teknis' }} dan bank pertanyaan yang berlaku.</small></div>
             <span class="badge bg-label-primary">{{ $dashboardSections->count() }} bagian aktif</span>
         </div>
         <div class="card-body">

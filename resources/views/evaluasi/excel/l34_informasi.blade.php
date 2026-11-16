@@ -9,7 +9,9 @@
     <tr><td>Responden</td><td>Sudah Isi</td><td>Belum Isi</td></tr>
     <tr><td>Peserta (Mandiri)</td><td>{{ $stats['mandiri'] }}</td><td>{{ $totalPeserta - $stats['mandiri'] }}</td></tr>
     <tr><td>Atasan</td><td>{{ $stats['atasan'] }}</td><td>{{ $totalPeserta - $stats['atasan'] }}</td></tr>
+    @if(in_array('rekan', $training->evaluationRoles(), true))
     <tr><td>Rekan</td><td>{{ $stats['rekan'] }}</td><td>{{ $totalPeserta - $stats['rekan'] }}</td></tr>
+    @endif
     <tr></tr>
     <tr><th style="background-color: #FFA500; font-weight: bold;">Asal Instansi Peserta</th><th style="background-color: #FFA500; font-weight: bold;">Jumlah</th></tr>
     @foreach($instansi as $ins)

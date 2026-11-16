@@ -24,7 +24,7 @@ class ConfigurationExportTest extends TestCase
             ->assertDownload();
     }
 
-    public function test_question_export_is_available_for_superadmin_and_field_admin(): void
+    public function test_question_export_is_only_available_for_superadmin(): void
     {
         $bidang = 'Bidang Pengembangan Kompetensi Manajerial';
         Question::create([
@@ -37,9 +37,12 @@ class ConfigurationExportTest extends TestCase
             User::factory()->create(['role' => 'superadmin']),
             User::factory()->create(['role' => 'admin_bidang', 'bidang' => $bidang]),
         ] as $user) {
-            $this->actingAs($user)->get(route('questions.export'))
-                ->assertOk()
-                ->assertDownload();
+            $response = $this->actingAs($user)->get(route('questions.export'));
+            if ($user->role === 'superadmin') {
+                $response->assertOk()->assertDownload();
+            } else {
+                $response->assertForbidden();
+            }
         }
     }
 }

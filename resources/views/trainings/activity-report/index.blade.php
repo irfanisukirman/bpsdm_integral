@@ -164,7 +164,7 @@
         <div class="tab-pane fade" id="evaluationSummary">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-bottom p-4">
-                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3"><div><h5 class="fw-bold mb-1">Ringkasan Evaluasi Level 3 dan 4</h5><p class="text-muted small mb-0">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'PKTI/PKTU' }}.</p></div><a href="{{ route('evall34.dashboard', $training) }}" class="btn btn-outline-primary"><i class="bx bx-line-chart me-1"></i>Buka Dashboard Lengkap</a></div>
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3"><div><h5 class="fw-bold mb-1">Ringkasan Evaluasi Level 3 dan 4</h5><p class="text-muted small mb-0">Bagian otomatis mengikuti Program Evaluasi {{ $training->program_evaluasi ?: 'Teknis' }}.</p></div><a href="{{ route('evall34.dashboard', $training) }}" class="btn btn-outline-primary"><i class="bx bx-line-chart me-1"></i>Buka Dashboard Lengkap</a></div>
                 </div>
                 <div class="card-body p-4">
                     <div class="evaluation-headline mb-4"><div><small>Level 3 · {{ $data['values']['bagian_evaluasi_l3'] }}</small><strong>{{ $data['values']['nilai_evaluasi_l3'] }}</strong></div><div><small>Level 4 · {{ $data['values']['bagian_evaluasi_l4'] }}</small><strong>{{ $data['values']['nilai_evaluasi_l4'] }}</strong></div></div>

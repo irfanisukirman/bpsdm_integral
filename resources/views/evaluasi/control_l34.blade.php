@@ -41,7 +41,7 @@
                     <tr>
                         <td>
                             <span class="fw-bold text-dark">{{ $t->nama_pelatihan }}</span><br>
-                            <small class="text-muted">Target: {{ in_array(strtoupper((string) $t->program_evaluasi), ['CPNS', 'PKP', 'PKA', 'PKN'], true) ? '1 Tahun' : '4 Bulan' }} pasca pelatihan</small>
+                            <small class="text-muted">Target: {{ \App\Support\EvaluationProgram::isManagerial($t->program_evaluasi) ? '1 Tahun' : '4 Bulan' }} pasca pelatihan</small>
                         </td>
                         <td>
                             <div class="d-flex flex-column">

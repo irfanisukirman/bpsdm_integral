@@ -67,6 +67,7 @@
     .question-head { display:flex; gap:13px; align-items:flex-start; }
     .question-number { flex:0 0 auto; display:grid; place-items:center; width:30px; height:30px; color:#5148cf; border-radius:9px; background:#eeecff; font-size:.75rem; font-weight:800; }
     .question-copy { min-width:0; }
+    .question-description { margin:0 0 12px; color:#667085; font-size:.85rem; font-weight:400; line-height:1.65; white-space:pre-line; overflow-wrap:anywhere; }
     .question-title { display:block; margin:2px 0 7px; color:#253044; font-size:.91rem; font-weight:700; line-height:1.55; }
     .answer-type { display:inline-flex; align-items:center; gap:5px; color:#7b8494; font-size:.7rem; }
     .question-answer { padding:17px 0 0 43px; }

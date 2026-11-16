@@ -415,6 +415,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('documents/file/{id}', [DocumentController::class, 'destroyFile'])->name('documents.file.destroy');
     Route::delete('documents/folder/{id}', [DocumentController::class, 'destroyFolder'])->name('documents.folder.destroy');
 
+    Route::middleware(\App\Http\Middleware\EnsureSuperadmin::class)->group(function () {
     // Kelola Pertanyaan
     Route::get('questions/export', [QuestionController::class, 'exportAll'])->name('questions.export');
     Route::get('questions/download-template', [QuestionController::class, 'downloadTemplate'])->name('questions.template');
@@ -429,6 +430,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
     Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
     
+    });
+
     // Sub-Modul: Import Peserta & Kelola Jadwal
     Route::get('trainings/{id}/export-participants-data', [TrainingController::class, 'exportParticipants'])->name('participants.export_data');
     Route::get('trainings/{id}/export-invitation-l34', [EvaluationLevel34Controller::class, 'exportInvitation'])->name('evall34.export_invitation');
@@ -487,6 +490,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('attendance/pdf/{schedule_id}', [AttendanceController::class, 'downloadPdf'])->name('attendance.pdf');
     Route::put('attendance/set-time/{schedule_id}', [AttendanceController::class, 'setTime'])->name('attendance.set-time');
     Route::put('attendance/set-time-date/{training_id}', [AttendanceController::class, 'setTimeByDate'])->name('attendance.set-time-date');
+    Route::middleware(\App\Http\Middleware\EnsureSuperadmin::class)->group(function () {
     Route::get('monitoring-indicators', [MonitoringIndicatorController::class, 'index'])->name('indicators.index');
     Route::get('monitoring-indicators/export', [MonitoringIndicatorController::class, 'export'])->name('indicators.export');
     Route::post('monitoring-indicators', [MonitoringIndicatorController::class, 'store'])->name('indicators.store');
@@ -494,6 +498,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('monitoring-indicators/{id}', [MonitoringIndicatorController::class, 'destroy'])->name('indicators.destroy');
     Route::post('monitoring-indicators/import', [MonitoringIndicatorController::class, 'import'])->name('indicators.import');
     Route::get('monitoring-indicators/template', [MonitoringIndicatorController::class, 'downloadTemplate'])->name('indicators.template');
+    });
     Route::post('monitoring/{id}/store-final', [MonitoringController::class, 'storeFinalSummary'])->name('monitoring.store_final');
     
     // --- 10. MONITORING PENYELENGGARAAN ---
@@ -563,4 +568,32 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/history', [ParticipantController::class, 'myHistory'])->name('participant.history');
     });
 
+});
+
+// Hasil pasca: survei langsung dari Integral, wawancara dan publikasi agregat.
+Route::controller(\App\Http\Controllers\PostEvaluationController::class)->group(function () {
+    Route::get('isi-proper/{training}', 'properForm')->name('post-evaluation.proper.public');
+    Route::post('isi-proper/{training}/verifikasi', 'verifyProper')->middleware('throttle:30,1')->name('post-evaluation.proper.verify');
+    Route::post('isi-proper/{training}', 'submitProper')->middleware('throttle:10,1')->name('post-evaluation.proper.store');
+    Route::get('hasil-pasca/{token}', 'publicResult')->name('post-evaluation.public');
+    Route::get('hasil-pasca/{token}/ekspose', 'publicResult')->name('post-evaluation.public.expose');
+    Route::get('hasil-pasca/{token}/pdf', 'publicResult')->name('post-evaluation.public.pdf');
+    Route::get('bukti-pasca/{token}', 'publicUpload')->name('post-evaluation.upload.public');
+    Route::post('bukti-pasca/{token}', 'upload')->middleware('throttle:10,1')->name('post-evaluation.upload.store');
+    Route::middleware('auth')->prefix('hasil-evaluasi-pasca')->name('post-evaluation.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('{training}', 'show')->name('show');
+        Route::post('{training}/pengaturan', 'settings')->name('settings');
+        Route::post('{training}/tim', 'team')->name('team');
+        Route::delete('{training}/tim/{team}', 'deleteTeam')->name('teams.delete');
+        Route::post('{training}/pembagian', 'assign')->name('assign');
+        Route::get('{training}/wawancara/{participant}', 'edit')->name('interview');
+        Route::put('{training}/wawancara/{participant}', 'save')->name('interview.save');
+        Route::post('{training}/wawancara/{participant}/link-bukti', 'uploadLink')->name('upload-link');
+        Route::post('{training}/wawancara/{participant}/bukti', 'internalUpload')->name('evidence.upload');
+        Route::get('{training}/bukti/{evidence}', 'evidence')->name('evidence');
+        Route::post('{training}/publikasi', 'publish')->name('publish');
+        Route::get('{training}/ekspose', 'expose')->name('expose');
+        Route::get('{training}/laporan', 'expose')->name('pdf');
+    });
 });

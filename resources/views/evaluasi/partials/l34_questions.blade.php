@@ -1,6 +1,9 @@
 @foreach($items as $index => $q)
     @php
         $savedValue = old('scores.'.$q->id);
+        $questionParts = preg_split('/\R\s*\R/u', trim($q->question_text), 2);
+        $questionTitle = $questionParts[0];
+        $questionDescription = $questionParts[1] ?? null;
         $answerType = match ($q->type) {
             'slider' => 'Skala 10–100',
             'dropdown' => 'Pilih satu',
@@ -12,7 +15,10 @@
         <div class="question-head">
             <span class="question-number">{{ $index + 1 }}</span>
             <div class="question-copy">
-                <label class="question-title" for="question-{{ $q->id }}">{{ $q->question_text }}</label>
+                <label class="question-title" for="question-{{ $q->id }}">{{ $questionTitle }}</label>
+                @if($questionDescription)
+                    <p class="question-description" id="question-description-{{ $q->id }}">{{ $questionDescription }}</p>
+                @endif
                 <span class="answer-type"><i class="bx bx-edit-alt"></i>{{ $answerType }}</span>
             </div>
         </div>

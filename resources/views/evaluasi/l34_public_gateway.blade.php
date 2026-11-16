@@ -336,7 +336,7 @@
                         <span class="empty-icon"><i class="bx bx-info-circle"></i></span>
                         @if($surveyIsOpen)
                             <h3>Jadwal evaluasi sudah dibuka, instrumen belum tersedia</h3>
-                            <p>Evaluasi dijadwalkan mulai {{ $surveyDate->translatedFormat('d F Y') }}, tetapi bank soal program {{ $training->program_evaluasi ?: 'PKTI/PKTU' }} belum diimpor oleh pengelola.</p>
+                            <p>Evaluasi dijadwalkan mulai {{ $surveyDate->translatedFormat('d F Y') }}, tetapi bank soal program {{ $training->program_evaluasi ?: 'Teknis' }} belum diimpor oleh pengelola.</p>
                         @else
                             <h3>Evaluasi belum dibuka</h3>
                             <p>Formulir dijadwalkan tersedia mulai {{ $surveyDate->translatedFormat('d F Y') }}.</p>

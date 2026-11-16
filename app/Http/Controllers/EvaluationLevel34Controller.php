@@ -52,7 +52,7 @@ class EvaluationLevel34Controller extends Controller
         $training = Training::with('participants')->findOrFail($id);
         abort_unless(Auth::user()->role === 'superadmin' || Auth::user()->bidang === $training->bidang, 403);
 
-        $roleLabels = collect(['mandiri' => 'Alumni / Mandiri', 'atasan' => 'Atasan Langsung', 'rekan' => 'Rekan Kerja']);
+        $roleLabels = collect($training->evaluationRoleLabels());
         $roleQuestions = $roleLabels->mapWithKeys(fn ($label, $role) => [
             $role => Question::forTraining($training, 'l34_'.$role)
                 ->orderBy('sub_category')->orderBy('id')->get(),
@@ -193,12 +193,12 @@ class EvaluationLevel34Controller extends Controller
     {
         $training = Training::withCount('participants')->findOrFail($id); $user = Auth::user();
         abort_unless($user->role === 'superadmin' || $user->bidang === $training->bidang, 403);
-        $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
+        $results = EvaluationResultL34::with('question')->where('training_id', $id)->whereIn('evaluator_role', $training->evaluationRoles())->get();
         $toScore = static fn ($result) => $result->score !== null && is_numeric($result->score) ? (float) $result->score : match (strtolower(trim((string) $result->note))) {
             'ya', 'sangat baik' => 100, 'baik' => 80, 'cukup' => 60, 'kurang' => 40, 'tidak', 'sangat kurang' => 20, default => null,
         };
         $pairs = $results->map(fn ($x) => $x->participant_id.'|'.$x->evaluator_role)->unique()->count();
-        $roles = $results->pluck('evaluator_role')->filter()->unique()->values();
+        $roles = collect($training->evaluationRoles());
         $sections = collect(Question::l34SubCategoryOptions())
             ->reject(fn ($name) => str_starts_with($name, 'Data Diri'))
             ->filter(fn ($name) => $results->contains(fn ($result) => $result->question?->sub_category === $name))
@@ -264,6 +264,7 @@ class EvaluationLevel34Controller extends Controller
     {
         abort_unless(in_array($role, ['mandiri', 'rekan', 'atasan'], true), 404);
         $training = Training::findOrFail($training_id);
+        abort_unless(in_array($role, $training->evaluationRoles(), true), 404);
         $categorySearch = 'l34_' . strtolower($role);
         abort_unless(
             Question::forTraining($training, $categorySearch)->exists(),
@@ -367,6 +368,8 @@ class EvaluationLevel34Controller extends Controller
     public function publicStore(Request $request, $training_id, $role)
     {
         abort_unless(in_array($role, ['mandiri', 'rekan', 'atasan'], true), 404);
+        $training = Training::findOrFail($training_id);
+        abort_unless(in_array($role, $training->evaluationRoles(), true), 404);
         $rules = [
             'participant_id' => 'required|exists:participants,id',
             'scores'         => 'required|array',
@@ -558,25 +561,27 @@ class EvaluationLevel34Controller extends Controller
             : 'belum ditentukan');
 
         // --- 2. STATISTIK RESPONDEN ---
-       $results = EvaluationResultL34::with('question')->where('training_id', $id)->get();
+       $results = EvaluationResultL34::with('question')->where('training_id', $id)->whereIn('evaluator_role', $training->evaluationRoles())->get();
         $respondenAlumni = $results->where('evaluator_role', 'mandiri')->unique('participant_id')->count();
         $respondenAtasan = $results->where('evaluator_role', 'atasan')->unique('participant_id')->count();
         $respondenRekan = $results->where('evaluator_role', 'rekan')->unique('participant_id')->count();
 
+        $hasPeer = in_array('rekan', $training->evaluationRoles(), true);
+        $responseSummary = $respondenAlumni.' alumni dan '.$respondenAtasan.' atasan alumni'.($hasPeer ? ', serta '.$respondenRekan.' rekan kerja' : '');
         $templateProcessor->setValue('jumlah_alumni', $respondenAlumni);
         $templateProcessor->setValue('jumlah_atasan', $respondenAtasan);
-        $templateProcessor->setValue('jumlah_rekan', $respondenRekan);
+        $templateProcessor->setValue('jumlah_rekan', $hasPeer ? $respondenRekan : 'Tidak berlaku');
         $targetResponden = max(1, $training->participants->count());
         $templateProcessor->setValue('response_rate_mandiri', round(($respondenAlumni / $targetResponden) * 100, 1) . '%');
         $templateProcessor->setValue('response_rate_atasan', round(($respondenAtasan / $targetResponden) * 100, 1) . '%');
-        $templateProcessor->setValue('response_rate_rekan', round(($respondenRekan / $targetResponden) * 100, 1) . '%');
+        $templateProcessor->setValue('response_rate_rekan', $hasPeer ? round(($respondenRekan / $targetResponden) * 100, 1) . '%' : 'Tidak berlaku');
         $templateProcessor->setValue('narasi_target_evaluasi',
             'Target kegiatan evaluasi pasca pelatihan adalah alumni '.$training->nama_pelatihan.' di lingkungan Pemerintah Provinsi Jawa Barat, yang pelatihannya telah dilaksanakan pada tanggal '.
             \Carbon\Carbon::parse($training->tgl_mulai)->translatedFormat('d F Y').' sampai dengan '.
             \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y').
-            ' dengan jumlah alumni pelatihan '.$training->participants->count().' orang. Sampai dengan tanggal terakhir pengisian kuesioner, sebanyak '.$respondenAlumni.' alumni, '.$respondenAtasan.' atasan alumni, dan '.$respondenRekan.' rekan kerja berpartisipasi.');
+            ' dengan jumlah alumni pelatihan '.$training->participants->count().' orang. Sampai dengan tanggal terakhir pengisian kuesioner, sebanyak '.$responseSummary.' berpartisipasi.');
         $templateProcessor->setValue('narasi_hasil_umum',
-            'Evaluasi pasca '.$training->nama_pelatihan.' di lingkungan Pemerintah Provinsi Jawa Barat dilaksanakan terhadap '.$training->participants->count().' alumni. Sampai waktu penyusunan laporan terdapat '.$respondenAlumni.' alumni, '.$respondenAtasan.' atasan alumni, dan '.$respondenRekan.' rekan kerja yang berpartisipasi mengisi survei.');
+            'Evaluasi pasca '.$training->nama_pelatihan.' di lingkungan Pemerintah Provinsi Jawa Barat dilaksanakan terhadap '.$training->participants->count().' alumni. Sampai waktu penyusunan laporan terdapat '.$responseSummary.' yang berpartisipasi mengisi survei.');
 
         // --- A. INFORMASI UMUM (PENDIDIKAN & GOLONGAN) ---
         $profiles = AlumniProfile::where('training_id', $id)->get();
@@ -657,7 +662,7 @@ class EvaluationLevel34Controller extends Controller
         }
 
         // --- C. PERUBAHAN PERILAKU & DAMPAK (BAGIAN 3 & 4) ---
-        $questions = Question::query()
+        $questions = Question::forTraining($training)
             ->whereIn('category', ['l34_mandiri', 'l34_atasan', 'l34_rekan'])
             ->where('bidang', $training->bidang)
             ->get();
@@ -720,7 +725,7 @@ class EvaluationLevel34Controller extends Controller
             ->orderBy('sub_category')
             ->orderBy('id')
             ->get();
-        $allRoleQuestions = Question::query()
+        $allRoleQuestions = Question::forTraining($training)
             ->whereIn('category', ['l34_mandiri', 'l34_atasan', 'l34_rekan'])
             ->where(function ($query) use ($training) {
                 $query->where('bidang', $training->bidang)->orWhere('bidang', 'Semua Bidang');
@@ -767,8 +772,8 @@ class EvaluationLevel34Controller extends Controller
         $l4Score = $l4Values->isNotEmpty() ? round($l4Values->avg(), 1) : 0;
 
         // Isi bagian hasil pada template standar berdasarkan butir pertanyaan yang berlaku.
-        $summarizeQuestionAnswers = function ($question) use ($allRoleQuestions, $results, $toScore): string {
-            $roleLabels = ['mandiri' => 'Mandiri', 'atasan' => 'Atasan', 'rekan' => 'Rekan kerja'];
+        $summarizeQuestionAnswers = function ($question) use ($allRoleQuestions, $results, $toScore, $training): string {
+            $roleLabels = $training->evaluationRoleLabels();
             return collect($roleLabels)->map(function ($label, $role) use ($question, $allRoleQuestions, $results, $toScore) {
                 $questionIds = $allRoleQuestions
                     ->where('category', 'l34_'.$role)
@@ -844,9 +849,9 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('kategori_l4', $l4Values->isNotEmpty() ? $categoryLabel($l4Score) : 'Belum dapat dinilai');
         $templateProcessor->setValue('jumlah_jawaban_l4', $l4Values->count());
 
-        $responseComplete = min($respondenAlumni, $respondenAtasan, $respondenRekan);
+        $responseComplete = min(array_intersect_key(['mandiri' => $respondenAlumni, 'atasan' => $respondenAtasan, 'rekan' => $respondenRekan], array_flip($training->evaluationRoles())));
         $templateProcessor->setValue('ringkasan_temuan',
-            "Terdapat {$respondenAlumni} respons mandiri, {$respondenAtasan} respons atasan, dan {$respondenRekan} respons rekan kerja. " .
+            ("Terdapat {$respondenAlumni} respons mandiri dan {$respondenAtasan} respons atasan" . (in_array('rekan', $training->evaluationRoles(), true) ? ", serta {$respondenRekan} respons rekan kerja. " : ". ")) .
             ($l3Values->isNotEmpty() ? "Indeks perubahan perilaku (Level 3) sebesar {$l3Score}/100 dengan kategori {$categoryLabel($l3Score)}. " : 'Indeks Level 3 belum dapat dihitung. ') .
             ($l4Values->isNotEmpty() ? "Indeks hasil/dampak (Level 4) sebesar {$l4Score}/100 dengan kategori {$categoryLabel($l4Score)}." : 'Indeks Level 4 belum dapat dihitung.')
         );
@@ -857,13 +862,13 @@ class EvaluationLevel34Controller extends Controller
             ? "Berdasarkan {$l4Values->count()} jawaban terukur, indeks gabungan Level 4 adalah {$l4Score}/100 ({$categoryLabel($l4Score)}). Nilai ini menunjukkan persepsi dampak dan bukan perhitungan Return on Training Investment (ROTI)."
             : 'Belum tersedia jawaban terukur yang memadai untuk menyimpulkan dampak pelatihan.');
         $templateProcessor->setValue('catatan_keterbatasan',
-            "Laporan menggunakan data kuesioner yang tersedia pada saat unduh. Tingkat respons lengkap tiga perspektif baru mencakup {$responseComplete} dari {$training->participants->count()} alumni. Hasil bersifat deskriptif-persepsional, tidak membuktikan hubungan sebab-akibat, dan belum menghitung dampak finansial/ROTI karena data biaya serta manfaat moneter tidak tersedia.");
+            "Laporan menggunakan data kuesioner yang tersedia pada saat unduh. Tingkat respons lengkap seluruh perspektif yang berlaku baru mencakup {$responseComplete} dari {$training->participants->count()} alumni. Hasil bersifat deskriptif-persepsional, tidak membuktikan hubungan sebab-akibat, dan belum menghitung dampak finansial/ROTI karena data biaya serta manfaat moneter tidak tersedia.");
         $followUpRows = [];
         $participantCount = $training->participants->count();
-        if ($participantCount > 0 && min($respondenAlumni, $respondenAtasan, $respondenRekan) < $participantCount) {
+        if ($participantCount > 0 && min(array_intersect_key(['mandiri' => $respondenAlumni, 'atasan' => $respondenAtasan, 'rekan' => $respondenRekan], array_flip($training->evaluationRoles()))) < $participantCount) {
             $followUpRows[] = [
-                'prioritas' => "Kelengkapan perspektif belum merata: mandiri {$respondenAlumni}, atasan {$respondenAtasan}, dan rekan kerja {$respondenRekan} dari {$participantCount} alumni.",
-                'tindakan' => 'Memverifikasi responden yang belum mengisi, mengirim pengingat kepada alumni/atasan/rekan kerja, dan mendokumentasikan alasan ketidakisian.',
+                'prioritas' => 'Kelengkapan perspektif belum merata: '.$responseSummary.' dari '.$participantCount.' alumni.',
+                'tindakan' => 'Memverifikasi responden yang belum mengisi, mengirim pengingat kepada seluruh penilai yang berlaku, dan mendokumentasikan alasan ketidakisian.',
                 'penanggung' => 'Admin bidang dan koordinator evaluasi',
                 'waktu' => 'Maksimal 7 hari setelah evaluasi',
                 'indikator' => 'Setiap alumni memiliki status tiga perspektif yang terverifikasi; target keterisian 100% atau tersedia alasan ketidakisian.',
@@ -908,7 +913,7 @@ class EvaluationLevel34Controller extends Controller
         if (empty($followUpRows)) {
             $followUpRows[] = [
                 'prioritas' => 'Data Level 3 dan Level 4 belum memadai untuk menetapkan tindak lanjut substantif.',
-                'tindakan' => 'Melengkapi jawaban mandiri, atasan, dan rekan kerja sebelum pembahasan hasil evaluasi.',
+                'tindakan' => 'Melengkapi jawaban dari seluruh penilai yang berlaku sebelum pembahasan hasil evaluasi.',
                 'penanggung' => 'Admin bidang dan koordinator evaluasi',
                 'waktu' => 'Sebelum laporan ditetapkan',
                 'indikator' => 'Data tiga perspektif tersedia dan indikator dapat dianalisis.',
@@ -949,7 +954,7 @@ class EvaluationLevel34Controller extends Controller
 
                 $templateProcessor->setValue("res_m#$currRow", in_array('mandiri', $statusRoles) ? 'Sudah Isi' : 'Belum Isi');
                 $templateProcessor->setValue("res_a#$currRow", in_array('atasan', $statusRoles) ? 'Sudah Isi' : 'Belum Isi');
-                $templateProcessor->setValue("res_r#$currRow", in_array('rekan', $statusRoles) ? 'Sudah Isi' : 'Belum Isi');
+                $templateProcessor->setValue("res_r#$currRow", $hasPeer ? (in_array('rekan', $statusRoles) ? 'Sudah Isi' : 'Belum Isi') : 'Tidak berlaku');
             }
         } else {
             $templateProcessor->setValue('res_nama', 'Belum tersedia peserta');
@@ -1084,7 +1089,7 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('link_gateway', route('public.l34.gateway', $training->id));
         $templateProcessor->setValue('link_mandiri', route('public.l34.form', [$training->id, 'mandiri']));
         $templateProcessor->setValue('link_atasan', route('public.l34.form', [$training->id, 'atasan']));
-        $templateProcessor->setValue('link_rekan', route('public.l34.form', [$training->id, 'rekan']));
+        $templateProcessor->setValue('link_rekan', in_array('rekan', $training->evaluationRoles(), true) ? route('public.l34.form', [$training->id, 'rekan']) : 'Tidak berlaku untuk Manajerial');
 
         // 2. Logika Tanggal Batas Waktu (1 Bulan Setelah Link Dibuka)
         // tgl_sebar_l34 adalah accessor yang kita buat sebelumnya (4 bln / 1 thn)

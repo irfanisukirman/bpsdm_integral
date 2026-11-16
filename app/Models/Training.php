@@ -7,6 +7,26 @@ use Carbon\Carbon;
 
 class Training extends Model
 {
+    public function getProgramEvaluasiAttribute($value): string
+    {
+        return \App\Support\EvaluationProgram::normalize($value);
+    }
+
+    public function setProgramEvaluasiAttribute($value): void
+    {
+        $this->attributes['program_evaluasi'] = \App\Support\EvaluationProgram::normalize($value);
+    }
+
+    public function evaluationRoles(): array
+    {
+        return \App\Support\EvaluationProgram::roles($this->program_evaluasi);
+    }
+
+    public function evaluationRoleLabels(): array
+    {
+        return array_intersect_key(['mandiri' => 'Mandiri', 'atasan' => 'Atasan Langsung', 'rekan' => 'Rekan Kerja'], array_flip($this->evaluationRoles()));
+    }
+
     protected $guarded = [];
 
     protected $fillable = [
@@ -95,8 +115,8 @@ class Training extends Model
 
         // Program manajerial dievaluasi satu tahun setelah pelatihan,
         // terlepas dari bidang yang menjadi penyelenggara.
-        $program = strtoupper(trim((string) ($this->program_evaluasi ?: 'PKTI/PKTU')));
-        if (in_array($program, ['CPNS', 'PKP', 'PKA', 'PKN'], true)) {
+        $program = strtoupper(trim((string) ($this->program_evaluasi ?: 'Teknis')));
+        if (\App\Support\EvaluationProgram::isManagerial($program)) {
             return $selesai->addYear();
         }
 

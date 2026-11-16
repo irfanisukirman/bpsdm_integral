@@ -7,14 +7,14 @@
             <th colspan="2">PENDIDIKAN</th>
             <th colspan="2">PANGKAT</th>
             @foreach($questions as $q)
-                <th colspan="3">{{ $q->sub_category }} - {{ $q->question_text }}</th>
+                <th colspan="{{ count($training->evaluationRoles()) }}">{{ $q->sub_category }} - {{ $q->question_text }}</th>
             @endforeach
         </tr>
         <tr>
             <th>DULU</th><th>SKRG</th>
             <th>DULU</th><th>SKRG</th>
             @foreach($questions as $q)
-                <th>Mandiri</th><th>Atasan</th><th>Rekan</th>
+                @foreach($training->evaluationRoleLabels() as $label)<th>{{ $label }}</th>@endforeach
             @endforeach
         </tr>
     </thead>
@@ -29,7 +29,7 @@
             <td>{{ $p->alumniProfile->rank_during_training ?? '-' }}</td>
             <td>{{ $p->alumniProfile->rank_current ?? '-' }}</td>
             @foreach($questions as $q)
-                @foreach(['mandiri', 'atasan', 'rekan'] as $role)
+                @foreach($training->evaluationRoles() as $role)
                     @php
                         $result = $p->evaluationResultsL34->first(fn($item) =>
                             $item->evaluator_role === $role &&

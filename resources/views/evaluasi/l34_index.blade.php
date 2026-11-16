@@ -4,14 +4,16 @@
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
         <h4 class="fw-bold py-3 mb-0">
             <span class="text-muted fw-light">Evaluasi /</span> Level 3 & 4: Perilaku & Dampak
         </h4>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
+            <a href="{{ route('evall34.export', $training->id) }}" class="btn btn-success"><i class="bx bx-download me-1"></i>Rekap Evaluasi L3 &amp; L4 (Excel)</a>
+            <a href="{{ route('evall34.export_invitation', $training->id) }}" class="btn btn-outline-primary"><i class="bx bx-envelope me-1"></i>Undangan Evaluasi 360&deg; (Word)</a>
             <div class="btn-group">
                 <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bx bx-share-alt me-1"></i> Bagikan Link Survei
@@ -26,7 +28,9 @@
                     <li class="dropdown-header small text-uppercase">Link Spesifik:</li>
                     <li><a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ route('public.l34.form', [$training->id, 'mandiri']) }}', this)">Link Alumni (Mandiri)</a></li>
                     <li><a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ route('public.l34.form', [$training->id, 'atasan']) }}', this)">Link Atasan</a></li>
+                    @if(in_array('rekan', $training->evaluationRoles(), true))
                     <li><a class="dropdown-item" href="javascript:void(0);" onclick="copyLink('{{ route('public.l34.form', [$training->id, 'rekan']) }}', this)">Link Rekan Kerja</a></li>
+                    @endif
                 </ul>
             </div>
         </div>
@@ -51,11 +55,11 @@
             <div class="card bg-label-info">
                 <div class="card-body d-flex align-items-center justify-content-between py-3">
                     <div class="w-100">
-                        <h6 class="mb-2 text-info">Progres Pengisian (Target 3 Penilai per Alumni)</h6>
+                        <h6 class="mb-2 text-info">Progres Pengisian (Target {{ count($training->evaluationRoles()) }} Penilai per Alumni)</h6>
                         <div class="progress" style="height: 12px;">
                             @php
-                                $totalTarget = count($participants) * 3;
-                                $currentTotal = \App\Models\EvaluationResultL34::where('training_id', $training->id)->distinct('participant_id', 'evaluator_role')->count();
+                                $totalTarget = count($participants) * count($training->evaluationRoles());
+                                $currentTotal = \App\Models\EvaluationResultL34::where('training_id', $training->id)->whereIn('evaluator_role', $training->evaluationRoles())->get(['participant_id', 'evaluator_role'])->unique(fn ($result) => $result->participant_id.'|'.$result->evaluator_role)->count();
                                 $totalPercent = $totalTarget > 0 ? ($currentTotal / $totalTarget) * 100 : 0;
                             @endphp
                             <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ $totalPercent }}%"></div>
@@ -79,7 +83,7 @@
                         <th>Alumni (Peserta)</th>
                         <th class="text-center">Mandiri (L3)</th>
                         <th class="text-center">Atasan (L3)</th>
-                        <th class="text-center">Rekan (L3)</th>
+                        @if(in_array('rekan', $training->evaluationRoles(), true))<th class="text-center">Rekan (L3)</th>@endif
                         <th width="200">Skor Dampak (L4)</th>
                     </tr>
                 </thead>
@@ -113,6 +117,7 @@
                                 <span class="badge bg-label-secondary text-muted">Belum</span>
                             @endif
                         </td>
+                        @if(in_array('rekan', $training->evaluationRoles(), true))
                         <td class="text-center">
                             @if($p->hasFilledL34('rekan'))
                                 <span class="badge bg-label-success"><i class="bx bx-check-circle me-1"></i> Selesai</span>
@@ -120,6 +125,7 @@
                                 <span class="badge bg-label-secondary text-muted">Belum</span>
                             @endif
                         </td>
+                        @endif
                         <td>
                             @php
                                 $l4 = $p->l4_summary;

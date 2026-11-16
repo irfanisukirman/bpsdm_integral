@@ -18,8 +18,8 @@ class QuestionController extends Controller
         $user = Auth::user();
         $bidangOptions = $this->bidangOptions();
         $isSuperadmin = $user->role === 'superadmin';
-        $selectedBidang = $isSuperadmin ? $request->query('bidang') : $user->bidang;
-        $programOptions = ['semua', 'PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'];
+        $selectedBidang = $isSuperadmin ? ($bidangOptions[0] ?? null) : $user->bidang;
+        $programOptions = ['semua', 'Teknis', 'LATSAR', 'PKP', 'PKA', 'PKN'];
         $selectedProgram = $request->query('program');
         if ($selectedProgram && !in_array($selectedProgram, $programOptions, true)) {
             abort(404);
@@ -38,31 +38,18 @@ class QuestionController extends Controller
         abort_if($selectedType && !in_array($selectedType, $typeOptions, true), 404);
         abort_if(mb_strlen($search) > 100, 422, 'Pencarian maksimal 100 karakter.');
 
-        $questions = $selectedBidang
-            ? $this->evaluationQuestions()
-                ->where('bidang', $selectedBidang)
-                ->when($selectedProgram, fn ($query) => $query->where('program_evaluasi', $selectedProgram))
+        $questions = $this->evaluationQuestions()
+                ->when(!$isSuperadmin, fn ($query) => $query->where('bidang', $user->bidang))
+                ->when($selectedProgram, fn ($query) => $query->whereIn(DB::raw('UPPER(program_evaluasi)'), \App\Support\EvaluationProgram::aliases($selectedProgram)))
                 ->when($selectedCategory, fn ($query) => $query->where('category', $selectedCategory))
                 ->when($selectedType, fn ($query) => $query->where('type', $selectedType))
                 ->when($search !== '', fn ($query) => $query->where('question_text', 'like', '%'.$search.'%'))
                 ->latest()
                 ->paginate(20)
-                ->withQueryString()
-            : collect();
-
-        $counts = $this->evaluationQuestions()
-            ->selectRaw('bidang, COUNT(*) as total')
-            ->groupBy('bidang')
-            ->pluck('total', 'bidang');
-        $bundleStats = collect($bidangOptions)->map(fn ($bidang) => [
-            'bidang' => $bidang,
-            'total' => (int) ($counts[$bidang] ?? 0),
-            'l1' => $this->evaluationQuestions()->where('bidang', $bidang)->where('category', 'like', 'l1_%')->count(),
-            'l34' => $this->evaluationQuestions()->where('bidang', $bidang)->where('category', 'like', 'l34_%')->count(),
-        ]);
+                ->withQueryString();
 
         return view('questions.index', compact(
-            'questions', 'bidangOptions', 'isSuperadmin', 'selectedBidang', 'bundleStats',
+            'questions', 'bidangOptions', 'isSuperadmin', 'selectedBidang',
             'programOptions', 'selectedProgram', 'search', 'selectedCategory', 'selectedType', 'categoryOptions', 'typeOptions'
         ));
     }
@@ -134,7 +121,7 @@ class QuestionController extends Controller
         $data = $request->validate([
             'bidang'        => Auth::user()->role === 'superadmin' ? ['required', 'string', Rule::in($this->bidangOptions())] : ['nullable'],
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
-            'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
+            'program_evaluasi' => ['required', Rule::in(['semua', 'LATSAR', 'PKP', 'PKA', 'PKN', 'Teknis'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
                 ? ['required', Rule::in(Question::l34SubCategoryOptions())]
                 : ['nullable'],
@@ -147,12 +134,13 @@ class QuestionController extends Controller
             'options.*'     => 'nullable|string',
         ]);
 
+        if ($data['category'] === 'l34_rekan' && \App\Support\EvaluationProgram::isManagerial($data['program_evaluasi'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['category' => 'LATSAR, PKP, PKA, dan PKN hanya menggunakan penilaian mandiri dan atasan.']);
+        }
         $data['bidang'] = Auth::user()->role === 'superadmin' ? $data['bidang'] : Auth::user()->bidang;
         abort_if(blank($data['bidang']), 422, 'Bidang akun Admin belum ditentukan.');
         $data['training_type'] = $data['bidang'];
-        $data['program_evaluasi'] = str_starts_with($data['category'], 'l34_')
-            ? $data['program_evaluasi']
-            : 'PKTI/PKTU';
+
         $data['metode'] = in_array($data['category'], ['l1_penyelenggara', 'l1_narasumber'], true)
             ? strtolower($data['metode'] ?? 'semua')
             : 'semua';
@@ -182,7 +170,7 @@ class QuestionController extends Controller
         $data = $request->validate([
             'bidang'        => Auth::user()->role === 'superadmin' ? ['required', 'string', Rule::in($this->bidangOptions())] : ['nullable'],
             'category'      => ['required', Rule::in(['l1_penyelenggara', 'l1_narasumber', 'l34_mandiri', 'l34_rekan', 'l34_atasan'])],
-            'program_evaluasi' => ['required', Rule::in(['semua', 'CPNS', 'PKP', 'PKA', 'PKN', 'PKTI/PKTU'])],
+            'program_evaluasi' => ['required', Rule::in(['semua', 'LATSAR', 'PKP', 'PKA', 'PKN', 'Teknis'])],
             'sub_category'  => str_starts_with((string) $request->input('category'), 'l34_')
                 ? ['required', Rule::in(Question::l34SubCategoryOptions())]
                 : ['nullable'],
@@ -197,11 +185,12 @@ class QuestionController extends Controller
 
         $question = Question::findOrFail($id);
         $this->authorizeQuestion($question);
+        if ($data['category'] === 'l34_rekan' && \App\Support\EvaluationProgram::isManagerial($data['program_evaluasi'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['category' => 'LATSAR, PKP, PKA, dan PKN hanya menggunakan penilaian mandiri dan atasan.']);
+        }
         $data['bidang'] = Auth::user()->role === 'superadmin' ? $data['bidang'] : Auth::user()->bidang;
         $data['training_type'] = $data['bidang'];
-        $data['program_evaluasi'] = str_starts_with($data['category'], 'l34_')
-            ? $data['program_evaluasi']
-            : 'PKTI/PKTU';
+
         $data['metode'] = in_array($data['category'], ['l1_penyelenggara', 'l1_narasumber'], true)
             ? strtolower($data['metode'] ?? 'semua')
             : 'semua';
@@ -240,22 +229,22 @@ class QuestionController extends Controller
     public function destroySelected(Request $request)
     {
         $data = $request->validate([
-            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
+            'bidang' => ['nullable', 'string', Rule::in($this->bidangOptions())],
             'question_ids' => ['required', 'array', 'min:1'],
             'question_ids.*' => ['required', 'integer', 'distinct', 'exists:evaluation_questions,id'],
-            'program' => ['nullable', Rule::in(['semua', 'PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'])],
+            'program' => ['nullable', Rule::in(['semua', 'Teknis', 'LATSAR', 'PKP', 'PKA', 'PKN'])],
         ], [
             'question_ids.required' => 'Pilih minimal satu pertanyaan yang akan dihapus.',
             'question_ids.min' => 'Pilih minimal satu pertanyaan yang akan dihapus.',
         ]);
 
         $user = Auth::user();
-        $bidang = $user->role === 'superadmin' ? $data['bidang'] : $user->bidang;
-        abort_if(blank($bidang) || ($user->role !== 'superadmin' && $data['bidang'] !== $bidang), 403);
+        $bidang = $user->role === 'superadmin' ? ($data['bidang'] ?? null) : $user->bidang;
+        abort_if($user->role !== 'superadmin' && blank($bidang), 403);
 
         $questionIds = collect($data['question_ids'])->map(fn ($id) => (int) $id)->unique()->values();
         $authorizedIds = $this->evaluationQuestions()
-            ->where('bidang', $bidang)
+            ->when($user->role !== 'superadmin', fn ($query) => $query->where('bidang', $bidang))
             ->whereIn('id', $questionIds)
             ->pluck('id');
 
@@ -267,7 +256,7 @@ class QuestionController extends Controller
             Question::whereIn('id', $authorizedIds)->delete();
         });
 
-        $parameters = $user->role === 'superadmin' ? ['bidang' => $bidang] : [];
+        $parameters = [];
         if (filled($data['program'] ?? null)) {
             $parameters['program'] = $data['program'];
         }
@@ -277,22 +266,24 @@ class QuestionController extends Controller
     }
     public function destroyBundle(Request $request)
     {
-        $data = $request->validate([
-            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
-        ]);
         $user = Auth::user();
-        $bidang = $user->role === 'superadmin' ? $data['bidang'] : $user->bidang;
-        abort_if(blank($bidang) || ($user->role !== 'superadmin' && $data['bidang'] !== $bidang), 403);
+        abort_unless($user->role === 'superadmin', 403);
+        abort_if($user->role !== 'superadmin' && blank($user->bidang), 403);
 
-        $questionIds = $this->evaluationQuestions()->where('bidang', $bidang)->pluck('id');
+        $questionIds = Question::query()
+            ->where('category', 'not like', '%monitoring%')
+            ->where('category', 'not like', '%l2%')
+            ->where('type', '!=', 'ya_tidak')
+            ->when($user->role !== 'superadmin', fn ($query) => $query->where('bidang', $user->bidang))
+            ->pluck('id');
         DB::transaction(function () use ($questionIds) {
             \App\Models\EvaluationResultL1::whereIn('question_id', $questionIds)->delete();
             \App\Models\EvaluationResultL34::whereIn('question_id', $questionIds)->delete();
             Question::whereIn('id', $questionIds)->delete();
         });
 
-        return redirect()->route('questions.index', $user->role === 'superadmin' ? ['bidang' => $bidang] : [])
-            ->with('success', $questionIds->count().' pertanyaan pada bidang tersebut berhasil dihapus.');
+        return redirect()->route('questions.index')
+            ->with('success', $questionIds->count().' pertanyaan evaluasi beserta jawaban terkait berhasil dihapus.');
     }
 
     public function import(Request $request)
@@ -334,7 +325,7 @@ class QuestionController extends Controller
             $rows[] = [
                 $index + 1,
                 $question->bidang ?: $question->training_type,
-                $question->program_evaluasi ?: 'PKTI/PKTU',
+                $question->program_evaluasi ?: 'Teknis',
                 match ($question->category) {
                     'l1_penyelenggara' => 'L1 Penyelenggara',
                     'l1_narasumber' => 'L1 Narasumber',
@@ -371,11 +362,11 @@ class QuestionController extends Controller
         abort_if(blank($bidang) || !in_array($bidang, $this->bidangOptions(), true), 422, 'Pilih bidang terlebih dahulu.');
         $header = [
             ['bidang', 'metode', 'program_evaluasi', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
-            [$bidang, 'klasikal', 'PKTI/PKTU', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
-            [$bidang, 'semua', 'PKTI/PKTU', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
+            [$bidang, 'klasikal', 'Teknis', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
+            [$bidang, 'semua', 'Teknis', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
         ];
-        if ($bidang === 'Bidang Pengembangan Kompetensi Manajerial') {
-            $programs = ['CPNS', 'PKP', 'PKA', 'PKN'];
+        {
+            $programs = ['LATSAR', 'PKP', 'PKA', 'PKN'];
             $commonSections = [
                 'Perubahan Sikap Perilaku',
                 'Dampak Pelatihan',
@@ -416,8 +407,9 @@ class QuestionController extends Controller
                     }
                 }
             }
-        } else {
-            foreach (['semua', 'PKTI/PKTU'] as $program) {
+        }
+        {
+            foreach (['Teknis'] as $program) {
                 foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
                     $header[] = [$bidang, 'semua', $program, $peran, 'Perubahan Perilaku', 'slider', 'Sejauh mana kompetensi hasil pelatihan diterapkan dalam pekerjaan?', ''];
                     $header[] = [$bidang, 'semua', $program, $peran, 'Dampak Pelatihan', 'checkbox', 'Dampak pelatihan apa saja yang terlihat setelah pelatihan?', 'Produktivitas meningkat, Kualitas kerja meningkat'];
@@ -442,7 +434,12 @@ class QuestionController extends Controller
         return Question::query()
             ->where('category', 'not like', '%monitoring%')
             ->where('category', 'not like', '%l2%')
-            ->where('type', '!=', 'ya_tidak');
+            ->where('type', '!=', 'ya_tidak')
+            ->where(function ($query) {
+                $query->where('category', '!=', 'l34_rekan')
+                    ->orWhereNull('program_evaluasi')
+                    ->orWhereNotIn(DB::raw('UPPER(program_evaluasi)'), ['MANAJERIAL', 'LATSAR', 'CPNS', 'PKP', 'PKA', 'PKN']);
+            });
     }
 
     private function duplicateKey(Question $question): string

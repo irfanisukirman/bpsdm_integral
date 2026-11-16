@@ -3,90 +3,33 @@
 @section('title', 'Kelola Soal Evaluasi')
 @push('css')
 <style>
-.question-bank-card{border:0;border-radius:16px;overflow:hidden}.question-preview-select{max-width:380px;background:#fff!important;color:#566a7f!important;opacity:1!important}.question-row{transition:background-color .16s}.question-row:hover{background:#fafaff}.question-filter-card{border:0;border-radius:16px}@media(max-width:767.98px){.questions-table{min-width:900px}}
+.question-bank-card{border:0;border-radius:16px;overflow:hidden}
+.questions-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.questions-table{width:100%;min-width:800px;table-layout:fixed;margin-bottom:0}
+.questions-table .question-select-column{width:52px}
+.questions-table .question-category-column{width:230px}
+.questions-table .question-actions-column{width:136px}
+.questions-table>thead>tr>th{padding:1rem .85rem;white-space:normal}
+.questions-table>tbody>tr>td{padding:1.15rem .85rem;vertical-align:top;white-space:normal;overflow-wrap:anywhere}
+.questions-table .badge{display:inline-block;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5;text-align:left}
+.question-row{transition:background-color .16s}
+.question-row:hover{background:#fafaff}
+.question-text{white-space:pre-line;overflow-wrap:anywhere;line-height:1.6}
+.question-preview{min-width:0;line-height:1.6}
+.question-preview ol{padding-left:1.25rem}
+.question-preview li{padding-left:.25rem;margin-bottom:.4rem}
+.question-preview .form-range{min-width:0;flex:1 1 150px}
+.question-option{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.question-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.question-actions .btn{flex-shrink:0;width:30px;height:30px}
+.question-actions form{margin:0}
+.question-filter-card{border:0;border-radius:16px}
+@media(max-width:991.98px){.questions-table .question-category-column{width:200px}}
 </style>
 @endpush
 
 @section('content')
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 py-3 mb-4"><h4 class="fw-bold mb-0"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4><a href="{{ route('questions.export') }}" class="btn btn-success"><i class="bx bx-spreadsheet me-1"></i>Export Semua Pertanyaan</a></div>
-
-@if($isSuperadmin && blank($selectedBidang))
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-            <div>
-                <h5 class="mb-1"><i class="bx bx-copy-alt text-primary me-2"></i>Duplikasi Bundel Evaluasi</h5>
-                <p class="text-muted mb-0">Salin seluruh pertanyaan evaluasi dari satu bidang ke bidang lain.</p>
-            </div>
-            <span class="badge bg-label-primary">Khusus Superadmin</span>
-        </div>
-        <form action="{{ route('questions.duplicate-bundle') }}" method="POST" onsubmit="return confirm('Duplikat seluruh bundel pertanyaan ke bidang tujuan?')">
-            @csrf
-            <div class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label fw-bold">Bidang Sumber</label>
-                    <select name="source_bidang" class="form-select border-primary" required>
-                        <option value="">-- Pilih Bidang Sumber --</option>
-                        @foreach($bundleStats->where('total', '>', 0) as $bundle)
-                            <option value="{{ $bundle['bidang'] }}">{{ $bundle['bidang'] }} ({{ $bundle['total'] }} pertanyaan)</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label fw-bold">Bidang Tujuan</label>
-                    <select name="target_bidang" class="form-select border-primary" required>
-                        <option value="">-- Pilih Bidang Tujuan --</option>
-                        @foreach($bidangOptions as $bidang)
-                            <option value="{{ $bidang }}">{{ $bidang }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bx bx-copy me-1"></i>Duplikat</button>
-                </div>
-            </div>
-            <div class="form-text mt-2">Pertanyaan yang identik di bidang tujuan akan dilewati sehingga tidak terjadi duplikasi ganda.</div>
-        </form>
-    </div>
-</div>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h5 class="mb-1">Bundel Evaluasi per Bidang</h5>
-        <small class="text-muted">Pilih bidang untuk membuat dan mengelola pertanyaannya.</small>
-    </div>
-</div>
-<div class="row g-3">
-    @foreach($bundleStats as $bundle)
-    <div class="col-md-6 col-xl-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="avatar-initial rounded bg-label-primary p-3"><i class="bx bx-folder-open fs-4"></i></span>
-                    <span class="badge {{ $bundle['total'] > 0 ? 'bg-label-success' : 'bg-label-secondary' }}">{{ $bundle['total'] }} pertanyaan</span>
-                </div>
-                <h6 class="mb-3" style="line-height:1.45">{{ $bundle['bidang'] }}</h6>
-                <div class="d-flex gap-2 mb-4">
-                    <span class="badge bg-label-info">L1: {{ $bundle['l1'] }}</span>
-                    <span class="badge bg-label-warning">L3 & L4: {{ $bundle['l34'] }}</span>
-                </div>
-                <a href="{{ route('questions.index', ['bidang' => $bundle['bidang']]) }}" class="btn btn-outline-primary mt-auto">
-                    <i class="bx bx-cog me-1"></i>Kelola Evaluasi
-                </a>
-            </div>
-        </div>
-    </div>
-    @endforeach
-</div>
-@else
-@if($isSuperadmin)
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <div class="alert alert-primary mb-0 py-2 px-3">
-        <i class="bx bx-folder-open me-1"></i>Bundel: <strong>{{ $selectedBidang }}</strong>
-    </div>
-    <a href="{{ route('questions.index') }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Daftar Bidang</a>
-</div>
-@endif
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
     <div class="d-flex align-items-center gap-2">
@@ -101,25 +44,27 @@
         </form>
         <small class="text-muted d-none d-md-inline">Centang butir yang ingin dihapus.</small>
     </div>
+    @if($isSuperadmin)
     <form action="{{ route('questions.destroy-bundle') }}" method="POST"
-          onsubmit="return confirm('Hapus seluruh pertanyaan evaluasi pada bidang ini? Semua jawaban yang terkait dengan pertanyaan tersebut juga akan dihapus permanen.')">
+          onsubmit="return confirm('Hapus semua pertanyaan evaluasi {{ $isSuperadmin ? 'di seluruh bidang' : 'di bidang Anda' }}? Filter dan halaman yang sedang dibuka tidak membatasi penghapusan. Semua jawaban terkait juga akan dihapus permanen.')">
         @csrf @method('DELETE')
-        <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
-        <button type="submit" class="btn btn-outline-danger" {{ $questions->isEmpty() ? 'disabled' : '' }}>
-            <i class="bx bx-trash me-1"></i>Hapus Semua Pertanyaan Bidang Ini
+        <button type="submit" class="btn btn-outline-danger">
+            <i class="bx bx-trash me-1"></i>Hapus Semua Pertanyaan
         </button>
     </form>
+    @endif
+
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="GET" action="{{ route('questions.index') }}" class="row g-3 align-items-end">
-            @if($isSuperadmin)<input type="hidden" name="bidang" value="{{ $selectedBidang }}">@endif
+
             <div class="col-lg-4"><label class="form-label fw-bold mb-1">Cari Pertanyaan</label><div class="input-group"><span class="input-group-text"><i class="bx bx-search"></i></span><input type="search" name="q" value="{{ $search }}" maxlength="100" class="form-control" placeholder="Ketik isi pertanyaan..."></div></div>
             <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Program</label><select name="program" class="form-select"><option value="">Semua</option>@foreach($programOptions as $program)<option value="{{ $program }}" @selected($selectedProgram === $program)>{{ $program === 'semua' ? 'Semua Program' : $program }}</option>@endforeach</select></div>
             <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Level / Peran</label><select name="category" class="form-select"><option value="">Semua</option>@foreach(['l1_penyelenggara'=>'L1 Penyelenggara','l1_narasumber'=>'L1 Narasumber','l34_mandiri'=>'L3/4 Mandiri','l34_atasan'=>'L3/4 Atasan','l34_rekan'=>'L3/4 Rekan'] as $value=>$label)<option value="{{ $value }}" @selected($selectedCategory === $value)>{{ $label }}</option>@endforeach</select></div>
             <div class="col-sm-6 col-lg-2"><label class="form-label fw-bold mb-1">Tipe Jawaban</label><select name="type" class="form-select"><option value="">Semua</option>@foreach(['slider'=>'Slider','dropdown'=>'Dropdown','checkbox'=>'Checkbox','text'=>'Teks'] as $value=>$label)<option value="{{ $value }}" @selected($selectedType === $value)>{{ $label }}</option>@endforeach</select></div>
-            <div class="col-sm-6 col-lg-2 d-flex gap-2"><button class="btn btn-primary flex-grow-1" type="submit"><i class="bx bx-filter-alt me-1"></i>Terapkan</button><a href="{{ route('questions.index', $isSuperadmin ? ['bidang'=>$selectedBidang] : []) }}" class="btn btn-outline-secondary" title="Reset"><i class="bx bx-reset"></i></a></div>
+            <div class="col-sm-6 col-lg-2 d-flex gap-2"><button class="btn btn-primary flex-grow-1" type="submit"><i class="bx bx-filter-alt me-1"></i>Terapkan</button><a href="{{ route('questions.index') }}" class="btn btn-outline-secondary" title="Reset"><i class="bx bx-reset"></i></a></div>
         </form>
     </div>
 </div>
@@ -174,11 +119,11 @@
                     <label class="form-label fw-bold text-dark">Program Evaluasi</label>
                     <select name="program_evaluasi" id="create_program_evaluasi" class="form-select border-primary" onchange="syncMethodField('create')">
                         <option value="semua">Semua Program</option>
-                        @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                        @foreach(['Teknis', 'LATSAR', 'PKP', 'PKA', 'PKN'] as $program)
                             <option value="{{ $program }}">{{ $program }}</option>
                         @endforeach
                     </select>
-                    <div id="create_program_help" class="form-text">Digunakan untuk evaluasi Level 3 & 4.</div>
+                    <div id="create_program_help" class="form-text">Pertanyaan digunakan sesuai program pelatihan yang dipilih.</div>
                 </div>
                 <div class="col-md-4 mb-3" id="create_subcategory_wrapper" style="display:none">
                     <label class="form-label fw-bold text-dark">Bagian Evaluasi L3/L4</label>
@@ -221,7 +166,7 @@
                         </button>
                         <button type="submit" class="btn btn-primary w-100 shadow"><i class="bx bx-save me-1"></i> Simpan Pertanyaan Evaluasi</button>
                     </div>
-           
+
         </form>
     </div>
 </div>
@@ -232,57 +177,55 @@
         <div><h5 class="mb-1">Daftar Pertanyaan</h5><small class="text-muted">Preview menunjukkan bentuk jawaban yang akan dilihat responden.</small></div>
         <span class="badge bg-label-primary">{{ $questions->total() }} hasil</span>
     </div>
-    <div class="table-responsive text-wrap p-3">
-        <table class="table table-hover questions-table" style="table-layout: fixed; width: 100%;">
+    <div class="table-responsive questions-table-wrap">
+        <table class="table table-hover questions-table">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 52px;" class="text-center">
+                    <th class="question-select-column text-center">
                         <input type="checkbox" id="selectAllQuestions" class="form-check-input" title="Pilih semua pertanyaan yang tampil" aria-label="Pilih semua pertanyaan">
                     </th>
-                    <th style="width: 240px;">Bidang</th>
-                    <th style="width: 190px;">Klasifikasi</th>
+                    <th class="question-category-column">Klasifikasi</th>
                     <th>Pertanyaan & Preview</th>
-                    <th style="width: 100px;" class="text-center">Aksi</th>
+                    <th class="question-actions-column text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @php $count = 0; @endphp
                 @foreach($questions as $q)
                     {{-- Saringan: Hilangkan monitoring, level 2, dan tipe ya_tidak --}}
-                    @if(!str_contains(strtolower($q->category), 'monitoring') && 
-                        !str_contains(strtolower($q->category), 'l2') && 
+                    @if(!str_contains(strtolower($q->category), 'monitoring') &&
+                        !str_contains(strtolower($q->category), 'l2') &&
                         $q->type !== 'ya_tidak')
-                        
+
                         @php $count++; @endphp
                         <tr class="question-row">
                             <td class="text-center align-top">
                                 <input type="checkbox" name="question_ids[]" value="{{ $q->id }}" form="bulkDeleteQuestionsForm" class="form-check-input question-select" aria-label="Pilih pertanyaan {{ $count }}">
                             </td>
-                            <td class="align-top"><span class="badge bg-label-primary text-wrap text-start">{{ $q->bidang ?: $q->training_type }}</span></td>
                             <td class="align-top text-wrap">
                                 <small class="fw-bold text-uppercase text-muted" style="font-size: 10px;">
                                     {{ str_replace('_', ' ', $q->category) }}
                                 </small>
                                 <div class="mt-1"><span class="badge bg-label-info">{{ in_array($q->category, ['l1_penyelenggara', 'l1_narasumber']) ? ucfirst($q->metode ?: 'semua') : 'Semua metode' }}</span></div>
+                                    <div class="mt-1"><span class="badge bg-label-primary">{{ $q->program_evaluasi === 'semua' ? 'Semua Program' : ($q->program_evaluasi ?: 'Teknis') }}</span></div>
                                 @if(str_starts_with($q->category, 'l34_'))
-                                    <div class="mt-1"><span class="badge bg-label-primary">{{ $q->program_evaluasi === 'semua' ? 'Semua Program' : ($q->program_evaluasi ?: 'PKTI/PKTU') }}</span></div>
                                     <div class="mt-1"><span class="badge bg-label-warning">{{ $q->sub_category ?: 'Belum dikategorikan' }}</span></div>
                                 @endif
                             </td>
-                            <td class="align-top">
-                                <div class="fw-bold text-dark mb-2 text-wrap" style="line-height: 1.4;">{{ $q->question_text }}</div>
-                                
+                            <td class="align-top question-preview">
+                                <div class="fw-bold text-dark mb-3 question-text">{{ $q->question_text }}</div>
+
                                 @if($q->type === 'slider')
-                                    <div class="d-flex align-items-center gap-2"><input type="range" class="form-range" style="max-width:220px" value="80" disabled><span class="badge bg-label-secondary">Slider 10-100</span></div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2"><input type="range" class="form-range" style="max-width:220px" value="80" disabled><span class="badge bg-label-secondary">Slider 10-100</span></div>
                                 @elseif($q->type === 'dropdown')
                                     @if(!empty($q->options))
-                                        <select class="form-select form-select-sm question-preview-select" disabled><option>Preview pilihan jawaban</option>@foreach($q->options as $opt)<option>{{ $opt }}</option>@endforeach</select>
+                                        <ol class="mb-0 ps-3">@foreach($q->options as $opt)<li class="mb-1 text-break">{{ $opt }}</li>@endforeach</ol>
                                     @else
                                         <span class="badge bg-label-danger"><i class="bx bx-error-circle me-1"></i>Dropdown belum memiliki pilihan</span>
                                     @endif
                                 @elseif($q->type === 'checkbox')
                                     @if(!empty($q->options))
-                                        <div class="d-flex flex-wrap gap-2">@foreach($q->options as $opt)<span class="border rounded px-2 py-1 small"><i class="bx bx-checkbox me-1 text-primary"></i>{{ $opt }}</span>@endforeach</div>
+                                        <div class="d-flex flex-wrap gap-2">@foreach($q->options as $opt)<span class="border rounded px-2 py-1 small question-option"><i class="bx bx-checkbox me-1 text-primary"></i>{{ $opt }}</span>@endforeach</div>
                                     @else
                                         <span class="badge bg-label-danger"><i class="bx bx-error-circle me-1"></i>Checkbox belum memiliki pilihan</span>
                                     @endif
@@ -291,7 +234,7 @@
                                 @endif
                             </td>
                             <td class="text-center align-top">
-                                <div class="d-flex justify-content-center gap-1">
+                                <div class="question-actions">
                                     @if($isSuperadmin)
                                     <button type="button"
                                             class="btn btn-xs btn-icon btn-outline-primary"
@@ -312,9 +255,9 @@
                         </tr>
                     @endif
                 @endforeach
-                
+
                 @if($count == 0)
-                <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3, L4).</td></tr>
+                <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada soal evaluasi (L1, L3, L4).</td></tr>
                 @endif
             </tbody>
         </table>
@@ -331,33 +274,41 @@
     <div class="modal-dialog modal-dialog-centered">
         <form action="{{ route('questions.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
             @csrf
-            <input type="hidden" name="bidang" value="{{ $selectedBidang }}">
+
             <div class="modal-header border-bottom">
                 <h5 class="modal-title">Import Bank Soal (Excel)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Bidang untuk Import</label>
+                    <select name="bidang" class="form-select" required onchange="document.getElementById('questionTemplateLink').href = @js(route('questions.template')) + '?bidang=' + encodeURIComponent(this.value)">
+                        @foreach($isSuperadmin ? $bidangOptions : [Auth::user()->bidang] as $bidang)
+                            <option value="{{ $bidang }}">{{ $bidang }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <!-- Panduan Singkat -->
                 <div class="alert alert-info py-2 shadow-none mb-3">
                     <small class="fw-bold d-block mb-1">ATURAN PENGISIAN EXCEL:</small>
                     <ul class="small mb-0 ps-3">
-                        <li><strong>bidang</strong>: otomatis mengikuti bidang yang sedang dikelola.</li>
+                        <li><strong>bidang</strong>: mengikuti bidang untuk import yang dipilih di atas.</li>
                         <li><strong>metode</strong>: klasikal, full learning, blended, atau semua.</li>
-                        <li><strong>program_evaluasi</strong>: semua, CPNS, PKP, PKA, PKN, atau PKTI/PKTU.</li>
-                        <li>CPNS, PKP, PKA, dan PKN hanya digunakan pada Bidang Pengembangan Kompetensi Manajerial.</li>
+                        <li><strong>program_evaluasi</strong>: semua, LATSAR, PKP, PKA, PKN, atau Teknis.</li>
+                        <li>LATSAR, PKP, PKA, PKN: mandiri dan atasan. Teknis: mandiri, atasan, dan rekan kerja.</li>
                         <li><strong>level_peran</strong>: Mandiri, Atasan, Rekan, Penyelenggara, Narasumber.</li>
                         <li><strong>tipe_jawaban</strong>: slider, dropdown, checkbox, atau text.</li>
-                        <li><strong>pilihan_jawaban</strong>: Isi jika tipe dropdown/checkbox (pisahkan dengan koma).</li>
+                        <li><strong>pilihan_jawaban</strong>: Wajib diisi untuk dropdown/checkbox. Pisahkan dengan koma, |, titik koma, atau baris baru. Nama kolom jawaban juga diterima.</li>
                     </ul>
                 </div>
-                
+
                 <div class="mb-3">
                     <label class="form-label fw-bold">Pilih File Excel</label>
                     <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
                 </div>
             </div>
             <div class="modal-footer border-top">
-                <a href="{{ route('questions.template', ['bidang' => $selectedBidang]) }}" class="btn btn-outline-secondary">
+                <a id="questionTemplateLink" href="{{ route('questions.template', ['bidang' => $selectedBidang]) }}" class="btn btn-outline-secondary">
                     <i class="bx bx-download me-1"></i> Download Template
                 </a>
                 <button type="submit" class="btn btn-primary">Mulai Import</button>
@@ -385,7 +336,7 @@
                     <input type="text" id="duplicateSourceBidang" class="form-control bg-light" readonly>
                 </div>
                 <div class="alert alert-warning mb-0">
-                    Salinan dibuat pada bidang yang sama. Gunakan duplikasi bundel untuk menyalin antarbidang.
+                    Salinan dibuat pada bidang yang sama.
                 </div>
             </div>
             <div class="modal-footer border-top">
@@ -443,13 +394,14 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Program Evaluasi</label>
-                        <select name="program_evaluasi" id="edit_program_evaluasi" class="form-select" onchange="syncMethodField('edit')">
+                        <select name="program_evaluasi" id="edit_program_evaluasi" class="form-select" required onchange="syncMethodField('edit')">
+                            <option value="" disabled>Pilih program evaluasi</option>
                             <option value="semua">Semua Program</option>
-                            @foreach(['PKTI/PKTU', 'CPNS', 'PKP', 'PKA', 'PKN'] as $program)
+                            @foreach(['Teknis', 'LATSAR', 'PKP', 'PKA', 'PKN'] as $program)
                                 <option value="{{ $program }}">{{ $program }}</option>
                             @endforeach
                         </select>
-                        <div id="edit_program_help" class="form-text">Digunakan untuk evaluasi Level 3 & 4.</div>
+                        <div id="edit_program_help" class="form-text">Pertanyaan digunakan sesuai program pelatihan yang dipilih.</div>
                     </div>
                     <div class="col-md-6 mb-3" id="edit_subcategory_wrapper" style="display:none">
                         <label class="form-label">Bagian Evaluasi L3/L4</label>
@@ -475,9 +427,8 @@
                     </div>
                     <div class="col-12 mb-3" id="edit-options-wrapper" style="display:none;">
                         <label class="form-label text-primary fw-bold">Pilihan Jawaban</label>
-                        <div class="options-container">
-                            <!-- Diisi via JS -->
-                        </div>
+                        <div class="options-container"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOptionField('edit-options-wrapper')"><i class="bx bx-plus me-1"></i>Tambah Pilihan</button>
                     </div>
                 </div>
             </div>
@@ -488,19 +439,28 @@
         </form>
     </div>
 </div>
-@endif
 @endsection
 
 @push('js')
 <script>
     function addOptionField(wrapperId, value = '') {
-        const container = $(`#${wrapperId} .options-container`);
-        const html = `
-            <div class="input-group mb-2 animate__animated animate__fadeIn">
-                <input type="text" name="options[]" class="form-control" value="${value}" placeholder="Masukkan pilihan">
-                <button class="btn btn-outline-danger" type="button" onclick="removeOptionField(this)"><i class="bx bx-x"></i></button>
-            </div>`;
-        container.append(html);
+        const container = document.querySelector(`#${wrapperId} .options-container`);
+        const row = document.createElement('div');
+        row.className = 'input-group mb-2';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'options[]';
+        input.className = 'form-control';
+        input.value = value;
+        input.placeholder = 'Masukkan pilihan';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-outline-danger';
+        button.setAttribute('aria-label', 'Hapus pilihan');
+        button.innerHTML = '<i class="bx bx-x"></i>';
+        button.addEventListener('click', () => row.remove());
+        row.append(input, button);
+        container.appendChild(row);
     }
 
     function removeOptionField(btn) {
@@ -541,9 +501,9 @@
         if (!field || !category || !program) return;
 
         const selected = preferredValue || field.value;
-        const managerialPrograms = ['CPNS', 'PKP', 'PKA', 'PKN'];
+        const managerialPrograms = ['LATSAR', 'PKP', 'PKA', 'PKN'];
         const isManagerial = (bidang?.value || '') === 'Bidang Pengembangan Kompetensi Manajerial';
-        const useManagerialSections = isManagerial && managerialPrograms.includes(program.value);
+        const useManagerialSections = managerialPrograms.includes(program.value);
         let sections = [...defaultL34Sections];
 
         if (useManagerialSections) {
@@ -572,6 +532,12 @@
         const program = document.getElementById(prefix + '_program_evaluasi');
         const programHelp = document.getElementById(prefix + '_program_help');
         if (!category || !method || !help) return;
+        const peer = category.querySelector('option[value="l34_rekan"]');
+        if (peer) {
+            peer.disabled = ['LATSAR', 'PKP', 'PKA', 'PKN'].includes(program?.value);
+            peer.hidden = peer.disabled;
+            if (peer.disabled && category.value === 'l34_rekan') category.value = 'l34_mandiri';
+        }
         const isLevelOne = ['l1_penyelenggara', 'l1_narasumber'].includes(category.value);
         const isLevel34 = category.value.startsWith('l34_');
 
@@ -588,12 +554,12 @@
 
         if (program) {
             program.disabled = false;
-            if (!isLevel34) program.value = 'PKTI/PKTU';
+
         }
         if (programHelp) {
             programHelp.textContent = isLevel34
                 ? 'Pilih program tertentu atau Semua Program agar pertanyaan digunakan bersama.'
-                : 'Kategori Level 1 otomatis berlaku untuk semua program.';
+                : 'Pilih program yang menggunakan pertanyaan ini.';
         }
     }
 
@@ -603,7 +569,7 @@
         $('#edit_bidang').val(data.bidang || data.training_type);
         $('#edit_category').val(data.category);
         $('#edit_metode').val(data.metode || 'semua');
-        $('#edit_program_evaluasi').val(data.program_evaluasi || 'PKTI/PKTU');
+        $('#edit_program_evaluasi').val(data.program_evaluasi === 'Manajerial' ? '' : (data.program_evaluasi || 'Teknis'));
         $('#edit_sub_category').val(data.sub_category || 'Data Diri Alumni');
         $('#edit_type').val(data.type);
         $('#edit_question_text').val(data.question_text);
