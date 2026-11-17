@@ -46,6 +46,30 @@ class Training extends Model
         'created_by',
     ];
 
+    protected $casts = ['l34_report_signatories' => 'array', 'monitoring_report_signatories' => 'array'];
+
+    public function monitoringReportSignatories(): array
+    {
+        return array_replace([
+            'head_title' => 'Kepala Bidang Sertifikasi Kompetensi dan Pengelolaan Kelembagaan',
+            'head_name' => 'RISGIYANTO S.Si., M.Kom.', 'head_nip' => '197011012007011010',
+            'monitor_title' => 'Tim Monitoring', 'monitor_name' => 'Tantan Gunawan, M.I.Kom',
+            'monitor_nip' => '197307012014111001',
+        ], $this->monitoring_report_signatories ?? []);
+    }
+
+    public function l34ReportSignatories(): array
+    {
+        return array_replace([
+            'head_title' => 'Kepala Bidang Sertifikasi Kompetensi dan Pengelolaan Kelembagaan',
+            'head_name' => 'Angga Muchlis Al-Rachmat,S.I.P., M.Si.',
+            'head_nip' => '197905012009021001',
+            'monitor_title' => 'Tim Monitoring',
+            'monitor_name' => 'Lucky Rizki Rachmadi, S.Pi.',
+            'monitor_nip' => '198904112014031002',
+        ], $this->l34_report_signatories ?? []);
+    }
+
     public function getSisaHariAttribute()
     {
         $today = Carbon::now()->startOfDay();

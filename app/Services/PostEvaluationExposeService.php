@@ -15,7 +15,9 @@ class PostEvaluationExposeService
 
     public function payload(array $summary): array
     {
-        return ['program' => $summary['program'], 'total' => $summary['total'], 'completed' => $summary['completed'], 'partial' => $summary['partial'],
+        return ['narrative_version' => $summary['narrative_version'] ?? 1, 'evaluator_notes_hash' => $summary['evaluator_notes_hash'] ?? null,
+            'evaluator_note_count' => $summary['evaluator_note_count'] ?? 0, 'interview_coverage' => $summary['interview_coverage'] ?? [],
+            'program' => $summary['program'], 'total' => $summary['total'], 'completed' => $summary['completed'], 'partial' => $summary['partial'],
             'roles' => $summary['roles'], 'survey' => $summary['survey'], 'interview' => $summary['interview'],
             'slides' => array_map(fn ($slide) => ['title' => $slide['title'], 'series' => $slide['series']], $summary['slides']),
             'bands' => self::BANDS, 'calculation' => 'survey_average and interview_average are averages of filled long-term, objectives and benefits indicators, not the weighted five-criterion score; missing is never zero; results include drafts.'];

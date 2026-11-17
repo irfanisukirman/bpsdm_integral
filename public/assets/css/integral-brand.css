@@ -1,0 +1,85 @@
+/* Sapawarga-inspired palette, adapted for Integral's green identity and two themes.
+   Reference: https://jabarprov.go.id/sapawarga (17 November 2026). */
+@media screen {
+  html[data-integral-theme] {
+    --integral-brand:#008444; --integral-brand-hover:#006f39; --integral-brand-accent:#16a75c;
+    --integral-brand-soft:#e6f6ec; --integral-brand-ink:#006b37; --integral-brand-border:#c3e9d0;
+    --integral-canvas:#f5f8f6; --integral-surface:#fff; --integral-raised:#f1f7f3;
+    --integral-text:#243c35; --integral-muted:#62756d; --integral-border:#dfe9e3;
+    --bs-primary:#008444; --bs-primary-rgb:0,132,68; --bs-body-bg:#f5f8f6; --bs-body-bg-rgb:245,248,246;
+    --bs-body-color:#52685e; --bs-body-color-rgb:82,104,94;
+  }
+  html[data-integral-theme="dark"] {
+    --integral-brand:#16a75c; --integral-brand-hover:#069550; --integral-brand-accent:#70cd94;
+    --integral-brand-soft:#193c32; --integral-brand-ink:#90e2b1; --integral-brand-border:#305d49;
+    --integral-canvas:#0f1b1b; --integral-surface:#182b2a; --integral-raised:#223936;
+    --integral-text:#e1eee7; --integral-muted:#a8bfb3; --integral-border:#344f45;
+    --bs-primary:#70cd94; --bs-primary-rgb:112,205,148; --bs-body-bg:#0f1b1b; --bs-body-bg-rgb:15,27,27;
+    --bs-body-color:#d6e8dd; --bs-body-color-rgb:214,232,221;
+  }
+  html[data-integral-theme] body { background-color:var(--integral-canvas); color:var(--bs-body-color); }
+  html[data-integral-theme] :is(.card,.modal-content,.dropdown-menu) { border-radius:14px; }
+  html[data-integral-theme] .card { border:1px solid var(--integral-border); box-shadow:0 4px 20px rgba(18,64,53,.045); }
+  html[data-integral-theme] .bg-navbar-theme { border:1px solid var(--integral-border); box-shadow:0 3px 18px rgba(18,64,53,.05); }
+  html[data-integral-theme] :is(.text-primary,a:not(.btn):not(.menu-link):not(.dropdown-item):not(.nav-link):not(.text-white):not(.app-brand-link):not(.action-card):not(.summary-card):not(.attention-item)) { color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] .btn-primary { color:#fff; background:#008444; border-color:#008444; box-shadow:0 3px 9px rgba(0,132,68,.17); }
+  html[data-integral-theme] .btn-primary:is(:hover,:focus,:active), html[data-integral-theme] .btn-check:checked+.btn-primary { color:#fff; background:#006f39!important; border-color:#006f39!important; }
+  html[data-integral-theme] .btn-primary:disabled { background:#477c61; border-color:#477c61; box-shadow:none; }
+  html[data-integral-theme] .btn-outline-primary { color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-accent)!important; }
+  html[data-integral-theme] .btn-outline-primary:is(:hover,:focus,:active) { color:#fff!important; background:#008444!important; border-color:#008444!important; }
+  html[data-integral-theme] :is(.bg-label-primary,.btn-label-primary,.code-chip,.tab-count,.registration-code-card__icon,.section-number,.section-intro>span,.file-icon,.template-icon,.schedule-date,.copy-inline-code) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-border)!important; }
+  html[data-integral-theme] .bg-primary { background-color:#008444!important; color:#fff; }
+  html[data-integral-theme] :is(.nav-pills,.workflow-tabs) .nav-link.active { background:#008444!important; color:#fff!important; box-shadow:0 3px 10px rgba(0,132,68,.14); }
+  html[data-integral-theme] .nav-tabs .nav-link.active { color:var(--integral-brand-ink)!important; border-bottom-color:#16a75c!important; }
+  html[data-integral-theme] .page-item.active .page-link { background:#008444!important; border-color:#008444!important; color:#fff!important; }
+  html[data-integral-theme] .page-link { color:var(--integral-brand-ink); }
+  html[data-integral-theme] :is(.form-control,.form-select):focus { border-color:#16a75c!important; box-shadow:0 0 0 .2rem rgba(22,167,92,.15)!important; }
+  html[data-integral-theme] .form-check-input:checked { background-color:#008444!important; border-color:#008444!important; }
+  html[data-integral-theme] .form-check-input:focus { border-color:#16a75c; box-shadow:0 0 0 .2rem rgba(22,167,92,.15); }
+  html[data-integral-theme] :is(.action-card,.summary-card):hover { border-color:var(--integral-brand-accent)!important; box-shadow:0 5px 18px rgba(0,132,68,.1); }
+  html[data-integral-theme] :is(.attention-action,.action-card__arrow,.schedule-detail i,.alumni-soft-badge,.alumni-stat-icon.is-indigo,.report-code-hint code) { color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] :is(.registration-code-card,.workflow-shell,.action-card,.summary-card) { border-color:var(--integral-border)!important; }
+  html[data-integral-theme="light"] :is(h1,h2,h3,h4,h5,h6) { color:#243c35; }
+  html[data-integral-theme] .registration-code-card strong { color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] .integral-appearance { background:var(--integral-raised); border-color:var(--integral-border); }
+  html[data-integral-theme] .integral-appearance .integral-appearance__button.is-active { background:#008444; color:#fff; box-shadow:0 2px 8px rgba(0,132,68,.2); }
+  html[data-integral-theme] .integral-appearance__button:hover:not(.is-active) { background:var(--integral-brand-soft); color:var(--integral-brand-ink); }
+  html[data-integral-theme] .integral-appearance__button:focus-visible { outline-color:#70cd94; }
+  html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) { background:radial-gradient(ellipse at 100% 0%,rgba(112,205,148,.25),transparent 60%),linear-gradient(120deg,#005c36,#006d42)!important; box-shadow:0 10px 26px rgba(0,87,61,.16); color:#fff; }
+  html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) :is(h1,h2,h3,h4,h5,.text-primary,.text-muted) { color:#eefaf3!important; }
+  html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) :is(.btn-outline-primary,.btn-outline-secondary,.btn-light) { color:#e8faf0!important; background:rgba(7,36,41,.22)!important; border-color:rgba(195,233,208,.55)!important; }
+  html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) .btn:is(:hover,:focus-visible) { background:#006b3e!important; color:#fff!important; }
+  html[data-integral-theme] :is(.activity-report-ai-panel,.report-tabs-shell,.info-box,.upload-zone,.code-chip) { background:var(--integral-brand-soft)!important; border-color:var(--integral-brand-border)!important; color:var(--integral-text); }
+  html[data-integral-theme] .activity-report-ai-icon { background:#008444; color:#fff; }
+  html[data-integral-theme] :is(.copy-inline-code,.info-box i,.activity-report-ai-panel h5) { color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] .l34-dashboard .dashboard-hero { background:radial-gradient(ellipse at 100% 0%,rgba(112,205,148,.22),transparent 60%),linear-gradient(120deg,#e6f6ec,#f0f8f2)!important; color:var(--integral-text)!important; border-color:var(--integral-brand-border)!important; }
+  html[data-integral-theme] .l34-dashboard .dashboard-hero-copy h3 { color:#163d36!important; }
+  html[data-integral-theme] .l34-dashboard :is(.dashboard-kicker,.dashboard-hero-copy>.d-flex>span) { color:#006b37!important; }
+  html[data-integral-theme] .l34-dashboard .dashboard-hero-copy>.d-flex>span { background:#c3e9d0!important; }
+  html[data-integral-theme] .l34-dashboard .dashboard-jump a:hover { color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-accent); }
+  html[data-integral-theme="dark"] .l34-dashboard .dashboard-hero { background:radial-gradient(ellipse at 100% 0%,rgba(22,167,92,.12),transparent 70%),linear-gradient(120deg,#193a35,#163d31)!important; }
+  html[data-integral-theme="dark"] .l34-dashboard .dashboard-hero-copy h3 { color:#e1eee7!important; }
+  html[data-integral-theme="dark"] .l34-dashboard :is(.dashboard-kicker,.dashboard-hero-copy>.d-flex>span) { color:#90e2b1!important; }
+  html[data-integral-theme="dark"] .l34-dashboard .dashboard-hero-copy>.d-flex>span { background:#23533d!important; }
+  html[data-integral-theme="dark"] :is(.form-control,.form-select,.form-check-input) { background-color:#122321!important; border-color:#426052; }
+  html[data-integral-theme="dark"] .integral-appearance { background:#122321; }
+  html[data-integral-theme="dark"] :is(.card,.modal-content,.dropdown-menu) { box-shadow:0 6px 24px rgba(0,0,0,.16); }
+  html[data-integral-theme] :is(.text-info,.metric-blue i,.is-blue i) { color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] :is(.bg-label-info,.metric-blue,.metric-purple,.alumni-stat-icon.is-blue,.alumni-stat-icon.is-indigo,.alumni-stat-icon.is-teal,.evaluation-headline) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-border)!important; }
+  html[data-integral-theme] :is(.btn-info,.bg-info) { background:#147d67!important; border-color:#147d67!important; color:#fff!important; }
+  html[data-integral-theme] .btn-outline-info { color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-accent)!important; }
+  html[data-integral-theme] .btn-outline-info:hover { background:#147d67!important; color:#fff!important; }
+  html[data-integral-theme] .l34-dashboard { --dash-ink:var(--integral-text); --dash-muted:var(--integral-muted); --dash-indigo:var(--integral-brand); }
+  html[data-integral-theme] .l34-dashboard :is(.dashboard-note,.dashboard-rank) { background:var(--integral-brand-soft)!important; border-color:var(--integral-brand-border)!important; color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] .l34-dashboard :is(.dashboard-progress,.dashboard-stat,.dashboard-jump a) { border-color:var(--integral-border)!important; }
+
+  html[data-integral-theme] :is(.alert-primary,.alert-info,.btn-label-info) { background:var(--integral-brand-soft)!important; border-color:var(--integral-brand-border)!important; color:var(--integral-brand-ink)!important; }
+  html[data-integral-theme] .border-info { border-color:var(--integral-brand-accent)!important; }
+  html[data-integral-theme] .bg-label-secondary { background:var(--integral-raised)!important; color:var(--integral-muted)!important; }
+  html[data-integral-theme] .integral-confirm-modal:not(.is-danger) .integral-confirm-icon { background:var(--integral-brand-soft); color:var(--integral-brand-ink); }
+
+  html[data-integral-theme] .card.dashboard-hero { background:radial-gradient(ellipse at 100% 0%,rgba(112,205,148,.18),transparent 60%),linear-gradient(135deg,#008444,#005c36)!important; color:#effbf4!important; }
+  html[data-integral-theme] .card.dashboard-hero :is(h1,h2,h3,h4,.card-body) { color:#effbf4!important; }
+  html[data-integral-theme] .card.dashboard-hero :is(.badge.bg-white,.btn-light) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-border)!important; }
+
+}

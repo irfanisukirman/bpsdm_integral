@@ -10,9 +10,9 @@
 @else
 <a href="{{ route('post-evaluation.index') }}" class="small">&larr; Semua hasil pelatihan</a>
 @endif
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 my-3"><div><span class="badge bg-label-primary mb-2">{{ $training->program_evaluasi }}</span><h4 class="fw-bold">{{ $training->nama_pelatihan }}</h4><p class="text-muted">Hasil Evaluasi Pasca Level 3 &amp; 4 - Angkatan {{ $training->angkatan }}</p></div><div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="{{ route('post-evaluation.expose',$training) }}">Ekspose</a><a class="btn btn-primary" href="{{ route('post-evaluation.pdf',$training) }}">Unduh PDF</a>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 my-3"><div><span class="badge bg-label-primary mb-2">{{ $training->program_evaluasi }}</span><h4 class="fw-bold">{{ $training->nama_pelatihan }}</h4><p class="text-muted">Hasil Evaluasi Pasca Level 3 &amp; 4 - Angkatan {{ $training->angkatan }}</p></div>@if($manager)<div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="{{ route('post-evaluation.expose',$training) }}">Ekspose</a><a class="btn btn-primary" href="{{ route('post-evaluation.pdf',$training) }}">Unduh PDF</a>
 @if($manager)<a class="btn btn-outline-success" href="{{ route('evall34.export',$training) }}">Excel Survei</a>
-@endif<a class="btn btn-outline-secondary" href="{{ route('post-evaluation.proper.public',$training->proper_uid) }}" target="_blank" rel="noopener">Link Pengisian Proper</a></div></div>
+@endif<a class="btn btn-outline-secondary" href="{{ route('post-evaluation.proper.public',$training->proper_uid) }}" target="_blank" rel="noopener">Link Pengisian Proper</a></div>@endif</div>
 
 @foreach(['success'=>'success','error'=>'danger'] as $key=>$tone)
 @if(session($key))<div class="alert alert-{{ $tone }}">{{ session($key) }}</div>
@@ -23,10 +23,12 @@
 @foreach($errors->all() as $error)<li>{{ $error }}</li>
 @endforeach</ul></div>
 @endif
+@if($manager)
 <div class="card card-body mb-3"><label class="form-label fw-bold">Link publik pengisian inovasi / Proper</label><input class="form-control" readonly onclick="this.select()" value="{{ route('post-evaluation.proper.public',$training->proper_uid) }}"><small class="text-muted mt-2">Bagikan kepada alumni pelatihan ini. Alumni memasukkan NIP/NIK, melengkapi Proper, milestone, kondisi terkini dan dokumen pendukung.</small></div>
+@endif
 <ul class="nav nav-pills pasca-tabs gap-2 mb-4">
-@foreach(['ringkasan'=>'Ringkasan','jawaban'=>'Jawaban','peserta'=>'Peserta & Progres','wawancara'=>'Wawancara','pengaturan'=>'Pengaturan','import'=>'Import Data'] as $key=>$label)
-@if($manager || !in_array($key,['pengaturan','import']))<li class="nav-item"><a class="nav-link {{ $tab === $key ? 'active' : '' }}" href="{{ route('post-evaluation.show',[$training,'tab'=>$key]) }}">{{ $label }}</a></li>
+@foreach(['ringkasan'=>'Ringkasan','jawaban'=>'Jawaban','wawancara'=>'Peserta & Wawancara','pengaturan'=>'Pengaturan','import'=>'Import Data'] as $key=>$label)
+@if($manager || in_array($key,['ringkasan','wawancara']))<li class="nav-item"><a class="nav-link {{ $tab === $key ? 'active' : '' }}" href="{{ route('post-evaluation.show',[$training,'tab'=>$key]) }}">{{ $label }}</a></li>
 @endif
 @endforeach</ul>
 
@@ -35,11 +37,10 @@
 
 @if($tab === 'ringkasan')
 
-@include('post-evaluation.summary')
 @if($manager)
 @include('post-evaluation.ai-expose')
-@include('post-evaluation.publication')
 @endif
+@include('post-evaluation.summary')
 
 @elseif($tab === 'jawaban')
 <form method="GET" class="input-group mb-3"><input type="hidden" name="tab" value="jawaban"><input name="q" value="{{ $search }}" class="form-control" maxlength="100" placeholder="Cari alumni, pertanyaan atau jawaban"><button class="btn btn-primary">Cari</button></form>
@@ -58,7 +59,7 @@
 @endforeach
 </tbody></table></div>
 
-@elseif(in_array($tab,['peserta','wawancara']))
+@elseif($tab === 'wawancara')
 <form method="GET" class="input-group mb-3"><input type="hidden" name="tab" value="{{ $tab }}"><input name="q" value="{{ $search }}" class="form-control" maxlength="100" placeholder="Cari alumni / instansi / tim"><button class="btn btn-primary">Cari</button></form>
 
 @if($manager && $tab === 'wawancara')

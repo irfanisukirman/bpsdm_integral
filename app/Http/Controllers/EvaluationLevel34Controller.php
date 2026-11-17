@@ -384,6 +384,25 @@ class EvaluationLevel34Controller extends Controller
         }, $fileName);
     }
 
+    public function saveReportSignatories(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $user = $request->user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && filled($user->bidang) && $user->bidang === $training->bidang), 403);
+        $data = $request->validate([
+            'head_title' => 'required|string|max:250', 'head_name' => 'required|string|max:200',
+            'head_nip' => ['required', 'regex:/^[0-9]{18}$/'],
+            'monitor_title' => 'required|string|max:250', 'monitor_name' => 'required|string|max:200',
+            'monitor_nip' => ['required', 'regex:/^[0-9]{18}$/'],
+        ], ['head_nip.regex' => 'NIP Kepala Bidang harus terdiri dari 18 angka.', 'monitor_nip.regex' => 'NIP Tim Monitoring harus terdiri dari 18 angka.']);
+        $training->l34_report_signatories = $data;
+        $training->save();
+
+        return $request->boolean('download')
+            ? redirect()->route('evall34.export_word', $training->id)
+            : redirect()->route('evall34.dashboard', $training->id)->with('success', 'Penandatangan laporan berhasil disimpan.');
+    }
+
     public function exportWord($id)
     {
         // Set locale agar nama bulan otomatis bahasa Indonesia
@@ -399,6 +418,9 @@ class EvaluationLevel34Controller extends Controller
 
         $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
         $chartFiles = [];
+        foreach ($training->l34ReportSignatories() as $field => $value) {
+            $templateProcessor->setValue('l34_sign_'.$field, htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+        }
 
 
         // --- 1. DATA INFORMASI UMUM ---

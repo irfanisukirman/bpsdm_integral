@@ -54,8 +54,8 @@ class L34WordChapterService
             $table->addRow();
             $table->addCell(500)->addText((string) ($index + 1), $body, $center);
             $table->addCell(2200)->addText($participant->name."\n".($participant->nip_nik ?: '-'), $body);
-            $table->addCell(1800)->addText('Pendidikan: '.($profile?->edu_during_training ?: '-').' -> '.($profile?->edu_current ?: '-')."\nPangkat: ".($profile?->rank_during_training ?: '-').' -> '.($profile?->rank_current ?: '-'), $body);
-            $table->addCell(1800)->addText(($profile?->pos_during_training ?: $participant->jabatan ?: '-').' -> '.($profile?->pos_current ?: '-'), $body);
+            $table->addCell(1800)->addText('Pendidikan: '.$this->comparison($profile?->edu_during_training, $profile?->edu_current)."\nPangkat: ".$this->comparison($profile?->rank_during_training, $profile?->rank_current), $body);
+            $table->addCell(1800)->addText($this->comparison($profile?->pos_during_training ?: $participant->jabatan, $profile?->pos_current), $body);
             $table->addCell(1900)->addText(($profile?->unit_current ?: '-')."\n".($profile?->dept_current ?: $participant->instansi ?: '-'), $body);
             $table->addCell(1500)->addText(collect($training->evaluationRoleLabels())->map(fn ($label, $role) => $label.': '.($roles->contains($role) ? 'Sudah' : 'Belum'))->implode("\n"), $body);
         }
@@ -134,6 +134,16 @@ class L34WordChapterService
 
         $zip->close();
     }
+    private function comparison(?string $before, ?string $after): string
+    {
+        $before = trim((string) $before);
+        $after = trim((string) $after);
+        $before = $before === '' || $before === '-' ? 'Belum tersedia' : $before;
+        $after = $after === '' || $after === '-' ? 'Belum tersedia' : $after;
+
+        return 'Saat pelatihan: '.$before.'; Saat evaluasi: '.$after;
+    }
+
     private function addSectionTitle(Table $table, string $text, array $style): void
     {
         $table->addRow();

@@ -769,7 +769,7 @@ class TrainingController extends Controller
 
         $training->update($data);
 
-        Folder::where('training_id', $training->id)->update([
+        Folder::where('training_id', $training->id)->whereNull('parent_id')->update([
             'name' => $training->nama_pelatihan.' - Angkatan '.$training->angkatan,
         ]);
 

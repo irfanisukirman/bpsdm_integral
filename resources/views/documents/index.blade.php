@@ -16,6 +16,9 @@
         </div>
         
         <div class="d-flex flex-wrap gap-2">
+            @if(($currentFolder ?? null)?->training_id && in_array(auth()->user()->role,['superadmin','admin_bidang']))
+                <a href="{{ route('trainings.manage',$currentFolder->training_id) }}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Kembali ke Pelatihan</a>
+            @endif
             <a href="{{ route('documents.archives') }}" class="btn btn-outline-dark"><i class="bx bx-archive me-1"></i>Arsip</a>
             @if(Auth::user()->role === 'superadmin' && !request()->query('folder') && isset($currentBidang))
                 <a href="{{route('documents.index')}}" class="btn btn-outline-secondary"><i class="bx bx-arrow-back me-1"></i>Daftar Bidang</a>

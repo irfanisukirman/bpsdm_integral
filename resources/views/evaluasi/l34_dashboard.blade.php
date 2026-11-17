@@ -6,7 +6,7 @@
     $tones=['mandiri'=>'primary','atasan'=>'info','rekan'=>'warning'];
 @endphp
 <div class="container-xxl container-p-y l34-dashboard">
-    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center mb-3 no-print"><a href="{{ route('trainings.manage',$training) }}" class="small text-muted"><i class="bx bx-arrow-back me-1" aria-hidden="true"></i>Kembali ke Pengelolaan</a><div class="d-flex flex-wrap gap-2"><a href="{{ route('evall34.index',$training) }}" class="btn btn-sm btn-outline-secondary">Monitoring Respons</a><button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bx bx-printer me-1"></i>Cetak</button><a href="{{ route('evall34.export',$training) }}" class="btn btn-sm btn-outline-success">Excel</a><a href="{{ route('evall34.export_word',$training) }}" class="btn btn-sm btn-primary">Laporan Word</a></div></div>
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center mb-3 no-print"><a href="{{ route('trainings.manage',$training) }}" class="small text-muted"><i class="bx bx-arrow-back me-1" aria-hidden="true"></i>Kembali ke Pengelolaan</a><div class="d-flex flex-wrap gap-2"><a href="{{ route('evall34.index',$training) }}" class="btn btn-sm btn-outline-secondary">Monitoring Respons</a><button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bx bx-printer me-1"></i>Cetak</button><a href="{{ route('evall34.export',$training) }}" class="btn btn-sm btn-outline-success">Excel</a><button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#l34ReportSignatories">Laporan Word</button></div></div>
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
     <header class="dashboard-hero mb-4" style="background-color:#eef3ff;color:#233752"><div class="dashboard-hero-copy"><span class="dashboard-kicker">EVALUASI PASCAPELATIHAN / LEVEL 3 &amp; 4</span><h3 class="fw-bold mt-2 mb-2" style="color:#233752">{{ $training->nama_pelatihan }}</h3><div class="d-flex flex-wrap gap-2 mb-3"><span>{{ $training->program_evaluasi }}</span><span>Angkatan {{ $training->angkatan }}</span><span>{{ $activeRoles->count() }} peran penilai</span></div><p class="mb-0">{{ $executiveNarrative }}</p></div><div class="dashboard-hero-meta"><small>Respons terakhir</small><strong>{{ $latestAnswerAt?$latestAnswerAt->translatedFormat('d M Y, H:i'):'Belum ada respons' }}</strong><small class="mt-2">{{ $training->bidang }}</small></div></header>
     <nav class="dashboard-jump mb-4 no-print" aria-label="Bagian dashboard"><a href="#progresPenilaian">Progres pengisian</a><a href="#hasilEvaluasi">Hasil evaluasi</a><a href="#detailIndikator">Indikator</a><a href="#tindakLanjut">Tindak lanjut</a><a href="#analisisAi">Analisis AI</a></nav>
@@ -47,5 +47,6 @@
     @include('evaluasi.partials.ai_dashboard_analysis',['analysis'=>$aiAnalysis,'aiError'=>session('l34_ai_analysis_error'),'aiRoute'=>route('evall34.dashboard.ai',$training)])
     </section>
 </div>
+@include('evaluasi.partials.l34_report_signatories')
 @endsection
 @include('evaluasi.partials.l34_dashboard_assets')

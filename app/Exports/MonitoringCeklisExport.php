@@ -18,6 +18,7 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
 {
     protected $training;
     protected $categoryRowIndices = []; 
+    protected $signatureStart;
     protected $dynamicColumns = [];
 
     public function __construct($training)
@@ -149,13 +150,16 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
             $rows[] = ['', '[' . $col->header_title . '] ' . ($sum->conclusion ?? '-')];
         }
 
-        // Tanda Tangan
+        // The three monitoring documents share the same saved signatories.
+        $sign = $t->monitoringReportSignatories();
         $rows[] = [''];
-        $rows[] = ['', '', '', '', 'Cimahi, ' . date('d F Y')];
-        $rows[] = ['', '', '', '', 'Tim Monitoring BPSDM Jawa Barat'];
+        $this->signatureStart = count($rows) + 1;
+        $rows[] = ['', '', '', '', 'Cimahi, ' . Carbon::now('Asia/Jakarta')->locale('id')->translatedFormat('d F Y')];
+        $rows[] = [$sign['head_title'], '', '', '', $sign['monitor_title']];
         $rows[] = [''];
         $rows[] = [''];
-        $rows[] = ['', '', '', '', \Auth::user()->name];
+        $rows[] = [$sign['head_name'], '', '', '', $sign['monitor_name']];
+        $rows[] = ['NIP. '.$sign['head_nip'], '', '', '', 'NIP. '.$sign['monitor_nip']];
 
         return $rows;
     }
@@ -216,7 +220,14 @@ class MonitoringCeklisExport implements FromArray, WithEvents, WithColumnWidths
                 $sheet->getStyle('C9:'.$highestCol.$highestRow)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
                 // 6. STYLE TANDA TANGAN
-                $sheet->getStyle('E'.($highestRow-4).':E'.$highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                if ($this->signatureStart) {
+                    for ($row = $this->signatureStart; $row <= $highestRow; $row++) {
+                        $sheet->mergeCells('A'.$row.':B'.$row);
+                        $sheet->getRowDimension($row)->setRowHeight($row === $this->signatureStart + 1 ? 48 : 30);
+                    }
+                    $sheet->getColumnDimension('E')->setWidth(42);
+                    $sheet->getStyle('A'.$this->signatureStart.':'.$highestCol.$highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+                }
             },
         ];
     }

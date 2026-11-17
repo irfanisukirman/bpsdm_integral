@@ -147,7 +147,7 @@
                         </td>
                         <td class="users-actions-cell">
                             <div class="users-row-actions">
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="manageUserRoles({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalUserRoles"><i class="bx bx-shield-quarter me-1" aria-hidden="true"></i>Kelola Peran</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="manageUserRoles({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalUserRoles" title="Kelola peran {{ $user->name }}" aria-label="Kelola peran {{ $user->name }}"><i class="bx bx-shield-quarter me-1" aria-hidden="true"></i><span class="users-role-label">Kelola Peran</span></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary users-icon-action" onclick="editUser({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalEditUser" title="Edit data {{ $user->name }}" aria-label="Edit data {{ $user->name }}"><i class="bx bx-edit-alt" aria-hidden="true"></i></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary users-icon-action" onclick="openUserActions({{ json_encode($user) }})" data-bs-toggle="modal" data-bs-target="#modalUserActions" title="Aksi lain untuk {{ $user->name }}" aria-label="Aksi lain untuk {{ $user->name }}"><i class="bx bx-dots-vertical-rounded" aria-hidden="true"></i></button>
                             </div>
@@ -445,6 +445,21 @@
 
 @push('css')
 <style>
-.users-table{min-width:1000px;table-layout:fixed}.users-table th,.users-table td{vertical-align:middle;padding:1rem}.users-table th:nth-child(1){width:28%}.users-table th:nth-child(2){width:24%}.users-table th:nth-child(3){width:19%}.users-table th:nth-child(4){width:17%}.users-table th.users-actions-cell{width:230px}.users-table td:not(.users-actions-cell){white-space:normal;overflow-wrap:anywhere}.users-table .avatar{flex-shrink:0}.users-table .d-flex.flex-column{min-width:0}.users-table .badge{white-space:normal;text-align:left;line-height:1.45;overflow-wrap:anywhere}.users-actions-cell{position:sticky;right:0;background:var(--bs-body-bg,#fff);box-shadow:-5px 0 10px -8px rgba(67,89,113,.45)}.users-table thead .users-actions-cell{background:#f5f5f9}.users-row-actions{display:flex;justify-content:flex-end;align-items:center;gap:.4rem;white-space:nowrap}.users-row-actions .btn{min-height:36px;flex-shrink:0}.users-icon-action{width:36px;padding:0;display:inline-flex;align-items:center;justify-content:center}.users-icon-action .bx{font-size:1.1rem}@media(max-width:575px){.users-table th,.users-table td{padding:.75rem}.users-table th.users-actions-cell{width:220px}}
+.users-table-scroll.table-responsive{overflow-x:auto!important;position:relative;isolation:isolate;border-radius:14px;scrollbar-width:thin;overscroll-behavior-x:contain}
+.users-table{width:100%;min-width:1150px;table-layout:fixed}
+.users-table th,.users-table td{vertical-align:middle;padding:1rem}
+.users-table th:nth-child(1){width:260px}.users-table th:nth-child(2){width:280px}.users-table th:nth-child(3){width:200px}.users-table th:nth-child(4){width:170px}
+.users-table th.users-actions-cell{width:240px}
+.users-table td:not(.users-actions-cell){white-space:normal;overflow-wrap:anywhere}
+.users-table .avatar{flex-shrink:0}.users-table .d-flex.flex-column{min-width:0}
+.users-table .badge{white-space:normal;text-align:left;line-height:1.45;overflow-wrap:anywhere}
+.users-table .users-actions-cell{position:sticky;right:0;z-index:1;background:var(--integral-surface,#fff);box-shadow:-6px 0 12px -9px rgba(0,75,40,.28);border-left:1px solid var(--integral-border,#dfe9e3)}
+.users-table thead .users-actions-cell{z-index:2;background:var(--integral-raised,#f1f7f3)}
+.users-row-actions{display:grid;grid-template-columns:minmax(116px,1fr) 36px 36px;align-items:center;gap:8px;white-space:nowrap}
+.users-row-actions .btn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-height:36px;min-width:0;margin:0;padding:0 8px;gap:5px;border-radius:8px;font-size:.78rem;line-height:1;white-space:nowrap}
+.users-row-actions .btn .me-1{margin-right:0!important}.users-row-actions .bx{flex-shrink:0;font-size:1.05rem;line-height:1}
+.users-row-actions .users-icon-action{width:36px;padding:0}
+@media(max-width:575.98px){.users-table{min-width:1054px}.users-table th,.users-table td{padding:.75rem}.users-table th.users-actions-cell{width:144px}.users-row-actions{grid-template-columns:repeat(3,36px);gap:6px}.users-row-actions .btn{width:36px;padding:0}.users-role-label{display:none}}
+
 </style>
 @endpush

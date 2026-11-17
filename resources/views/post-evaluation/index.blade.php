@@ -5,7 +5,7 @@
 
 @section('content')
 <h4 class="fw-bold mb-2">Hasil Evaluasi Pasca Level 3 &amp; 4</h4>
-<p class="text-muted">Hasil survei, wawancara dan ekspose dari data evaluasi pelatihan, tanpa import ulang.</p>
+<p class="text-muted">{{ auth()->user()->role === 'superadmin' ? 'Hasil survei, wawancara dan ekspose dari data evaluasi pelatihan.' : 'Hanya pelatihan tempat Anda ditugaskan sebagai evaluator yang ditampilkan.' }}</p>
 <form method="GET" class="input-group mb-4"><input name="q" value="{{ request('q') }}" class="form-control" placeholder="Cari pelatihan" maxlength="100"><button class="btn btn-primary">Cari</button></form>
 <div class="row g-3">
 @forelse($trainings as $training)

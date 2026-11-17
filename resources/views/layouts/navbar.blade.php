@@ -22,6 +22,12 @@
             </div>
         </form>
         <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item me-2">
+                <div class="integral-appearance" role="group" aria-label="Mode tampilan">
+                    <button type="button" class="integral-appearance__button" data-integral-appearance="light" aria-pressed="false" aria-label="Gunakan Light Mode" title="Light Mode"><i class="bx bx-sun" aria-hidden="true"></i><span>Light</span></button>
+                    <button type="button" class="integral-appearance__button" data-integral-appearance="dark" aria-pressed="false" aria-label="Gunakan Dark Mode" title="Dark Mode"><i class="bx bx-moon" aria-hidden="true"></i><span>Dark</span></button>
+                </div>
+            </li>
             <li class="nav-item navbar-dropdown dropdown me-2">
                 <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" aria-label="Notifikasi">
                     <i class="bx bx-bell fs-4"></i>

@@ -46,7 +46,7 @@ class PostEvaluationAiExposeTest extends TestCase
         return $content;
     }
 
-    public function test_ai_generates_only_from_aggregates_and_is_used_in_expose_and_public_snapshot(): void
+    public function test_ai_generates_from_aggregates_and_anonymized_notes_and_is_used_in_public_snapshot(): void
     {
         [$admin,$training,$iv] = $this->data();
         $content = $this->response();
@@ -57,7 +57,7 @@ class PostEvaluationAiExposeTest extends TestCase
         Http::assertSent(function ($request) {
             $payload = $request['contents'][0]['parts'][0]['text'];
 
-            return ! str_contains($payload, 'NAMA RAHASIA') && ! str_contains($payload, '111122223333444455') && ! str_contains($payload, 'CATATAN PRIVAT') && ! str_contains($payload, 'JUDUL PROPER PRIVAT') && str_contains($payload, 'bands');
+            return ! str_contains($payload, 'NAMA RAHASIA') && ! str_contains($payload, '111122223333444455') && str_contains($payload, 'CATATAN PRIVAT') && ! str_contains($payload, 'JUDUL PROPER PRIVAT') && str_contains($payload, 'bands');
         });
         $this->get(route('post-evaluation.expose', $training))->assertOk()->assertSee('Pembahasan AI panel 0')->assertSee('Rekomendasi AI 1');
         $this->post(route('post-evaluation.publish', $training), ['action' => 'publish'])->assertRedirect();
@@ -110,4 +110,43 @@ class PostEvaluationAiExposeTest extends TestCase
         $this->post(route('post-evaluation.ai.generate', $training))->assertSessionHas('error');
         $this->assertSame(0,AiGeneration::where('status','completed')->count());
     }
+    public function test_automatic_generation_reuses_current_result_and_note_changes_invalidate_it(): void
+    {
+        [$admin, $training, $iv] = $this->data();
+        $iv->update(['notes' => ['NAMA RAHASIA 111122223333444455 email uji@example.com: target tertunda', '', '', '', '']]);
+        $content = $this->response();
+        Http::fake(['*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => json_encode($content)]]]]]])]);
+        $url = route('post-evaluation.ai.generate', $training);
+        $this->actingAs($admin)->postJson($url, ['automatic' => true])->assertOk();
+        $this->postJson($url, ['automatic' => true])->assertOk()->assertJson(['cached' => true]);
+        Http::assertSentCount(1);
+        Http::assertSent(function ($request) {
+            $text = $request['contents'][0]['parts'][0]['text'];
+            return str_contains($text, 'target tertunda') && !str_contains($text, 'NAMA RAHASIA') && !str_contains($text, '111122223333444455') && !str_contains($text, 'uji@example.com');
+        });
+        $service = app(PostEvaluationService::class);
+        $summary = $service->summary($training, $service->people($training));
+        $this->assertSame('current', $summary['ai_status']);
+        $this->assertArrayNotHasKey('evaluator_notes', $summary);
+        $this->assertSame(1, $summary['evaluator_note_count']);
+        $iv->update(['notes' => ['Catatan terbaru tanpa perubahan angka', '', '', '', '']]);
+        $this->assertSame('stale', $service->summary($training, $service->people($training))['ai_status']);
+        $this->postJson($url, ['automatic' => true])->assertOk();
+        Http::assertSentCount(2);
+        $this->post(route('post-evaluation.publish', $training), ['action' => 'publish'])->assertRedirect();
+        $snapshot = PostEvaluationSetting::where('training_id', $training->id)->firstOrFail()->snapshot;
+        $this->assertStringNotContainsString('Catatan terbaru', json_encode($snapshot));
+        $this->assertArrayNotHasKey('evaluator_notes', $snapshot);
+    }
+
+    public function test_automatic_ui_and_failed_generation_do_not_loop_requests(): void
+    {
+        [$admin, $training] = $this->data();
+        $this->actingAs($admin)->get(route('post-evaluation.show', $training))->assertOk()->assertSee('pasca-narrative-form')->assertSee("data.set('automatic', '1')", false);
+        Http::fake(['*' => Http::response(['error' => ['message' => 'Unavailable']], 500)]);
+        $this->postJson(route('post-evaluation.ai.generate', $training), ['automatic' => true])->assertStatus(502);
+        $this->postJson(route('post-evaluation.ai.generate', $training), ['automatic' => true])->assertStatus(429);
+        Http::assertSentCount(1);
+    }
+
 }

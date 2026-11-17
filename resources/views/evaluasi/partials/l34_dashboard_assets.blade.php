@@ -7,7 +7,7 @@
 <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}?v={{ filemtime(public_path('assets/vendor/libs/apex-charts/apexcharts.js')) }}"></script>
 <script>
 (() => {
-    const palette = ['#6366f1', '#16a9bb', '#e5aa3c'];
+    const palette = ['#008444', '#70cd94', '#e5aa3c'];
     const number = value => Number(value).toLocaleString('id-ID', { maximumFractionDigits: 1 });
     function wrap(text, width = 34) {
         const words = String(text).split(/\s+/), lines = [];
@@ -58,14 +58,14 @@
         options.annotations = { xaxis: [{ x: 80, borderColor: '#c5a35a', strokeDashArray: 4, label: { text: 'Acuan 80', style: { fontSize: '9px', color: '#8a702e', background: '#fff5da' } } }] };
         renderChart(id, options);
     }
-    indicatorChart('l3Chart', @json($l3Indicators->values()), '#6366f1');
-    indicatorChart('l4Chart', @json($l4Indicators->values()), '#16a9bb');
+    indicatorChart('l3Chart', @json($l3Indicators->values()), '#008444');
+    indicatorChart('l4Chart', @json($l4Indicators->values()), '#147d67');
     const impactValues = @json($impactDistribution->values());
     renderChart('impactChart', {
         chart: { type: 'donut', height: '100%', parentHeightOffset: 0, animations: { enabled: false }, fontFamily: "'Public Sans', sans-serif" },
         series: impactValues.some(value => value > 0) ? impactValues : [],
         labels: @json($impactDistribution->keys()),
-        colors: ['#22a380','#16a9bb','#e5aa3c','#e87575','#c5cedb'],
+        colors: ['#008444','#70cd94','#e5aa3c','#e87575','#c5cedb'],
         plotOptions: { pie: { donut: { size: '74%' } } },
         dataLabels: { enabled: false }, legend: { show: false },
         tooltip: { y: { formatter: value => number(value) + ' alumni' } },

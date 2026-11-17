@@ -404,6 +404,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Kelola Dokumen & Folder
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('trainings/{training}/documents', [DocumentController::class, 'trainingFolder'])->name('documents.training');
     Route::post('documents/folder', [DocumentController::class, 'createFolder'])->name('documents.folder.create');
     Route::get('documents/archives', [DocumentController::class, 'archives'])->name('documents.archives');
     Route::put('documents/folder/{folder}/archive', [DocumentController::class, 'archiveFolder'])->name('documents.folder.archive');
@@ -472,6 +473,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trainings/{id}/new-code', [TrainingController::class, 'generateNewCode'])->name('trainings.new_code');
     
     Route::get('trainings/{id}/export-word-l34', [EvaluationLevel34Controller::class, 'exportWord'])->name('evall34.export_word');
+    Route::post('trainings/{id}/evaluasi-l34/report-signatories', [EvaluationLevel34Controller::class, 'saveReportSignatories'])->name('evall34.report-signatories');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
     Route::get('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'organizerTextSummary'])->name('evall1.organizer-summary');
@@ -514,6 +516,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('monitoring/{id}/store', [MonitoringController::class, 'store'])->name('monitoring.store');
     
     // Export Monitoring
+    Route::get('monitoring/{id}/laporan/pengaturan', [MonitoringController::class, 'reportSettings'])->name('monitoring.report-settings');
+    Route::post('monitoring/{id}/laporan/pengaturan', [MonitoringController::class, 'saveReportSettings'])->name('monitoring.report-settings.save');
     Route::get('monitoring/{id}/export-laporan', [MonitoringController::class, 'exportLaporan'])->name('monitoring.export.laporan');
     Route::get('monitoring/{id}/export-tindak-lanjut', [MonitoringController::class, 'exportTindakLanjut'])->name('monitoring.export.tindaklanjut');
     Route::get('monitoring/{id}/export-rekap', [MonitoringController::class, 'exportCeklis'])->name('monitoring.export.rekap');

@@ -27,6 +27,7 @@
                 ['title' => 'Catatan Pelaksanaan', 'description' => 'Catatan pengamatan kelas selama kegiatan', 'icon' => 'bx-note', 'tone' => 'secondary', 'url' => route('trainings.execution-notes.index', $training), 'status' => $training->execution_notes_count.' catatan', 'status_tone' => $training->execution_notes_count ? 'info' : 'secondary'],
                 ['title' => 'Instrumen Monitoring', 'description' => 'Periksa kesesuaian pelaksanaan', 'icon' => 'bx-search-alt', 'tone' => 'info', 'url' => route('monitoring.fill', $training), 'status' => $monitoringStats['total'].' temuan', 'status_tone' => $monitoringStats['open'] ? 'warning' : 'success'],
                 ['title' => 'Tindak Lanjut Monitoring', 'description' => $monitoringStats['verified'].' selesai Â· '.$monitoringStats['open'].' perlu aksi', 'icon' => 'bx-task', 'tone' => 'warning', 'url' => route('followup.index', ['training_id' => $training->id]), 'status' => $monitoringStats['overdue'] ? $monitoringStats['overdue'].' terlambat' : 'Terkendali', 'status_tone' => $monitoringStats['overdue'] ? 'danger' : 'success'],
+                ['title' => 'Download Laporan Monitoring', 'description' => 'Laporan monitoring, tindak lanjut, dan ceklis monitoring', 'icon' => 'bx-download', 'tone' => 'primary', 'url' => '#modalMonitoringDownloads', 'modal' => '#modalMonitoringDownloads', 'status' => '3 dokumen', 'status_tone' => 'primary'],
             ],
         ],
         'evaluation' => [
@@ -45,7 +46,7 @@
             'items' => [
                 ['title' => 'Laporan Kegiatan', 'description' => $dashboard['photos'].' foto dokumentasi terpilih', 'icon' => 'bx-file', 'tone' => 'success', 'url' => route('training-activity-report.index', $training), 'status' => $dashboard['report']?->status === 'final' ? 'Final' : 'Draft', 'status_tone' => $dashboard['report']?->status === 'final' ? 'success' : 'warning'],
                 ['title' => 'Kelola Sertifikat', 'description' => $dashboard['certificates'].' dari '.$dashboard['approved'].' sertifikat final', 'icon' => 'bx-medal', 'tone' => 'warning', 'url' => route('training-certificates.index', $training), 'status' => $dashboard['certificates'].' terbit', 'status_tone' => $dashboard['certificates'] >= $dashboard['approved'] && $dashboard['approved'] ? 'success' : 'warning'],
-                ['title' => 'Dokumen Pelatihan', 'description' => 'Arsip seluruh dokumen kegiatan', 'icon' => 'bx-archive', 'tone' => 'primary', 'url' => route('documents.index'), 'status' => 'Buka arsip', 'status_tone' => 'primary'],
+                ['title' => 'Dokumen Pelatihan', 'description' => 'Arsip seluruh dokumen kegiatan', 'icon' => 'bx-archive', 'tone' => 'primary', 'url' => route('documents.training', $training), 'status' => 'Buka folder', 'status_tone' => 'primary'],
             ],
         ],
     ];
@@ -229,4 +230,14 @@ document.getElementById('copyTrainingCode')?.addEventListener('click', async fun
 @media(max-width:767.98px){.registration-code-card{align-items:flex-start;flex-wrap:wrap}.registration-code-card .btn{width:100%}.training-hero{padding:1.25rem}.training-hero__icon{display:none}.hero-actions .btn{flex:1}.action-grid{grid-template-columns:1fr}.attention-item{align-items:flex-start;padding:1rem}.attention-action{font-size:0}.attention-action i{font-size:1.3rem}.summary-card span{white-space:normal}.workflow-content{padding:1rem}.workflow-head{padding:1rem}.all-clear{align-items:flex-start;padding:1.5rem}}
 @media(max-width:479.98px){.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.summary-card{align-items:flex-start;flex-direction:column}.training-hero h3{font-size:1.35rem}.action-card__arrow{display:none}}
 </style>
+<div class="modal fade" id="modalMonitoringDownloads" tabindex="-1" aria-labelledby="monitoringDownloadsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="monitoringDownloadsTitle">Download Laporan Monitoring</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+        <div class="modal-body"><p class="text-muted mb-3">{{ $training->nama_pelatihan }}. Pilih dokumen untuk seluruh tahapan pelaksanaan pelatihan.</p><div class="d-grid gap-2">
+            <a class="btn btn-outline-primary text-start" href="{{ route('monitoring.report-settings', $training->id) }}"><i class="bx bx-download me-2"></i>Laporan Monitoring</a>
+            <a class="btn btn-outline-warning text-start" href="{{ route('monitoring.report-settings', ['id' => $training->id, 'document' => 'tindaklanjut']) }}"><i class="bx bx-download me-2"></i>Laporan Tindak Lanjut</a>
+            <a class="btn btn-outline-success text-start" href="{{ route('monitoring.report-settings', ['id' => $training->id, 'document' => 'ceklis']) }}"><i class="bx bx-download me-2"></i>Ceklis Monitoring</a>
+        </div></div>
+    </div></div>
+</div>
 @endsection

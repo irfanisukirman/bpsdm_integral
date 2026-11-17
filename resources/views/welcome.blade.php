@@ -9,8 +9,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-fonts.css') }}?v=20261117">
 
     <!-- Icons -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
@@ -29,15 +28,15 @@
         }
 
         :root {
-            --integral-primary: #696cff;
-            --integral-dark: #233446;
-            --integral-gradient: linear-gradient(135deg, #696cff 0%, #30336b 100%);
+            --integral-primary: #008444;
+            --integral-dark: #004d29;
+            --integral-gradient: linear-gradient(135deg, #008444 0%, #006430 100%);
         }
 
         body {
-            font-family: 'Public Sans', sans-serif;
+            font-family: 'Lato', sans-serif;
             background-color: #fff;
-            color: #566a7f;
+            color: #424242;
         }
 
         /* Modern Glassmorphism Navbar */
@@ -62,7 +61,7 @@
         .hero-section {
             padding-top: 140px;
             padding-bottom: 80px;
-            background: radial-gradient(circle at 10% 20%, rgba(105, 108, 255, 0.05) 0%, rgba(255, 255, 255, 1) 90.2%);
+            background: radial-gradient(circle at 10% 20%, rgba(22, 167, 92, 0.05) 0%, rgba(255, 255, 255, 1) 90.2%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -85,33 +84,33 @@
             align-items: center;
             gap: 10px;
             padding: 8px 14px;
-            border: 1px solid rgba(105, 108, 255, .2);
+            border: 1px solid rgba(22, 167, 92, .2);
             border-radius: 999px;
             background: rgba(255, 255, 255, .82);
-            color: #4b52bf;
+            color: #006430;
             font-size: .78rem;
             font-weight: 700;
             letter-spacing: .08em;
             text-transform: uppercase;
-            box-shadow: 0 8px 25px rgba(55, 65, 145, .08);
+            box-shadow: 0 8px 25px rgba(0, 100, 48, .08);
         }
 
         .hero-brand-mark img { width: 26px; height: 26px; object-fit: contain; }
         .hero-integral-title { font-size: clamp(3rem, 5vw, 4.6rem); letter-spacing: -.04em; margin: 18px 0 0; }
-        .hero-integral-title span { background: linear-gradient(120deg, #4f52db, #2797e6); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .hero-system-name { font-size: clamp(1.15rem, 2vw, 1.55rem); font-weight: 700; color: #263750; letter-spacing: .02em; margin-bottom: 18px; }
-        .hero-description { max-width: 720px; line-height: 1.75; font-size: 1.04rem; color: #697a8d; }
+        .hero-integral-title span { background: linear-gradient(120deg, #008444, #70cd94); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero-system-name { font-size: clamp(1.15rem, 2vw, 1.55rem); font-weight: 700; color: #212121; letter-spacing: .02em; margin-bottom: 18px; }
+        .hero-description { max-width: 720px; line-height: 1.75; font-size: 1.04rem; color: #616161; }
         .hero-illustration-wrap { position: relative; display: flex; align-items: center; justify-content: center; min-height: 460px; }
-        .hero-illustration-wrap::before { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(105,108,255,.16) 0%, rgba(105,108,255,0) 68%); }
+        .hero-illustration-wrap::before { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(22,167,92,.16) 0%, rgba(22,167,92,0) 68%); }
         .hero-illustration-wrap .hero-img { position: relative; z-index: 1; width: 104%; max-width: 640px; }
         .hero-copy-minimal { position: relative; z-index: 2; }
-        .hero-copy-minimal::before { content: ""; position: absolute; left: -28px; top: 22px; width: 5px; height: 116px; border-radius: 8px; background: linear-gradient(180deg, #696cff, #29a0e2); }
+        .hero-copy-minimal::before { content: ""; position: absolute; left: -28px; top: 22px; width: 5px; height: 116px; border-radius: 8px; background: linear-gradient(180deg, #008444, #70cd94); }
         .hero-actions { flex-wrap: nowrap !important; align-items: center; }
         .hero-actions .btn { padding: 11px 20px; font-size: .92rem; white-space: nowrap; }
         .hero-capabilities { display: flex; flex-wrap: wrap; gap: 9px; margin: 24px 0 30px; }
-        .hero-capabilities span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border-radius: 10px; background: #fff; border: 1px solid #e6e9f3; color: #506078; font-size: .78rem; font-weight: 600; box-shadow: 0 5px 16px rgba(39, 54, 93, .05); }
+        .hero-capabilities span { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border-radius: 10px; background: #fff; border: 1px solid #dfe9e3; color: #424242; font-size: .78rem; font-weight: 600; box-shadow: 0 5px 16px rgba(0, 80, 40, .05); }
         .hero-capabilities i { color: var(--integral-primary); font-size: 1rem; }
-        .integral-showcase { position: relative; max-width: 480px; margin-left: auto; padding: 28px; border-radius: 30px; color: #fff; background: linear-gradient(145deg, #283b79 0%, #5368df 52%, #2aa4df 100%); box-shadow: 0 30px 65px rgba(43, 67, 145, .3); overflow: hidden; }
+        .integral-showcase { position: relative; max-width: 480px; margin-left: auto; padding: 28px; border-radius: 30px; color: #fff; background: linear-gradient(145deg, #006430 0%, #008444 52%, #16a75c 100%); box-shadow: 0 30px 65px rgba(0, 100, 48, .3); overflow: hidden; }
         .integral-showcase::before,.integral-showcase::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.09)}
         .integral-showcase::before{width:220px;height:220px;right:-80px;top:-90px}.integral-showcase::after{width:150px;height:150px;left:-65px;bottom:-75px}
         .showcase-logo { position: relative; z-index: 1; width: 86px; height: 86px; padding: 10px; object-fit: contain; border-radius: 22px; background: rgba(255,255,255,.14); backdrop-filter: blur(8px); }
@@ -126,7 +125,7 @@
             max-width: 100%;
             height: auto;
             animation: floating 3.5s ease-in-out infinite;
-            filter: drop-shadow(0 20px 30px rgba(105, 108, 255, 0.2));
+            filter: drop-shadow(0 20px 30px rgba(22, 167, 92, 0.2));
         }
 
         @keyframes floating {
@@ -147,7 +146,7 @@
 
         .feature-card:hover {
             transform: translateY(-15px);
-            box-shadow: 0 20px 40px rgba(105, 108, 255, 0.12);
+            box-shadow: 0 20px 40px rgba(22, 167, 92, 0.12);
             border-color: var(--integral-primary);
         }
 
@@ -162,7 +161,7 @@
             justify-content: center;
             font-size: 35px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(105, 108, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(22, 167, 92, 0.3);
         }
 
         /* Custom Button */
@@ -178,12 +177,12 @@
             background: var(--integral-gradient);
             color: #fff;
             border: none;
-            box-shadow: 0 4px 15px rgba(105, 108, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(22, 167, 92, 0.4);
         }
 
         .btn-primary-gradient:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(105, 108, 255, 0.5);
+            box-shadow: 0 8px 25px rgba(22, 167, 92, 0.5);
             color: #fff;
         }
 
@@ -260,13 +259,13 @@
         /* Styling Dasar Link */
     .navbar-nav .nav-link {
         position: relative;
-        color: var(--integral-dark) !important;
+        color: #fff !important;
         transition: all 0.3s ease;
     }
 
     /* Efek Hover Warna Teks */
     .navbar-nav .nav-link:hover {
-        color: var(--integral-primary) !important;
+        color: #fff !important;
         transform: translateY(-2px); /* Sedikit mengangkat teks */
     }
 
@@ -296,7 +295,7 @@
 
     .btn-integral-primary:hover {
         transform: scale(1.05) translateY(-3px);
-        box-shadow: 0 10px 20px rgba(105, 108, 255, 0.4) !important;
+        box-shadow: 0 10px 20px rgba(22, 167, 92, 0.4) !important;
     }
     .active-link {
         color: var(--integral-primary) !important;
@@ -310,7 +309,7 @@
         .integration-section {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+            background: linear-gradient(180deg, #f0f8f2 0%, #ffffff 100%);
         }
         .integration-section::before,
         .integration-section::after {
@@ -324,7 +323,7 @@
             height: 360px;
             left: -190px;
             top: 80px;
-            background: rgba(105, 108, 255, .07);
+            background: rgba(22, 167, 92, .07);
         }
         .integration-section::after {
             width: 280px;
@@ -338,7 +337,7 @@
             align-items: center;
             gap: .75rem;
             margin-bottom: 1.25rem;
-            color: #566a7f;
+            color: #424242;
             font-size: .76rem;
             font-weight: 700;
             letter-spacing: .12em;
@@ -348,17 +347,17 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: linear-gradient(90deg, #d9dcff, transparent);
+            background: linear-gradient(90deg, #c3e9d0, transparent);
         }
         .integration-card {
-            --app-color: #696cff;
+            --app-color: #008444;
             position: relative;
             display: flex;
             flex-direction: column;
             min-height: 100%;
             padding: 1.5rem;
             overflow: hidden;
-            border: 1px solid #e8e9f3;
+            border: 1px solid #dfe9e3;
             border-radius: 1.1rem;
             background: rgba(255, 255, 255, .95);
             box-shadow: 0 .35rem 1.2rem rgba(67, 89, 113, .07);
@@ -386,7 +385,7 @@
         }
         .integration-card:hover {
             transform: translateY(-7px);
-            border-color: color-mix(in srgb, var(--app-color) 38%, #e8e9f3);
+            border-color: color-mix(in srgb, var(--app-color) 38%, #dfe9e3);
             box-shadow: 0 1rem 2.2rem rgba(67, 89, 113, .15);
         }
         .integration-card__head {
@@ -433,14 +432,14 @@
         }
         .integration-card h3 {
             margin-bottom: .6rem;
-            color: #233446;
+            color: #004d29;
             font-size: 1.08rem;
             font-weight: 700;
         }
         .integration-card p {
             flex: 1;
             margin-bottom: 1.25rem;
-            color: #697a8d;
+            color: #616161;
             font-size: .84rem;
             line-height: 1.6;
         }
@@ -471,18 +470,19 @@
             .integration-card { padding: 1.25rem; }
             .integration-card__head { margin-bottom: .9rem; }
         }    </style>
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-welcome.css') }}?v=20261117-gedung-sate-wide">
 </head>
 <body>
 
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-custom" id="mainNavbar">
+    <nav class="navbar navbar-expand-xl navbar-custom" id="mainNavbar">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#top">
                 <img src="{{ asset('assets/img/favicon/inte.png') }}" alt="Logo" width="38" class="me-2">
                 <span class="fw-bold text-dark h4 mb-0" style="letter-spacing: 1px;">INTEGRAL</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Buka menu navigasi">
+                <i class="bx bx-menu fs-3" aria-hidden="true"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
@@ -520,12 +520,21 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
-    <section class="hero-section" id="top">
+    <header class="welcome-intro" id="top">
+        <img class="welcome-gedung-sate" src="{{ asset('assets/img/illustrations/gedung-sate.png') }}" alt="" aria-hidden="true" fetchpriority="high" decoding="async">
+        <div class="container">
+            <nav class="welcome-breadcrumb" aria-label="Lokasi halaman"><a href="{{ route('landing') }}">Beranda</a><i class="bx bx-chevron-right" aria-hidden="true"></i><span aria-current="page">Integral</span></nav>
+            <h2>Aplikasi Integral</h2>
+            <p>Platform pengelolaan pelatihan terintegrasi BPSDM Provinsi Jawa Barat. Hubungkan persiapan, pelaksanaan, evaluasi, dan pelaporan dalam satu layanan.</p>
+        </div>
+    </header>
+
+    <!-- Main panel overlaps the introduction, following the supplied reference. -->
+    <section class="hero-section welcome-feature-panel" aria-label="Pengelolaan pelatihan terpadu">
         <div class="container">
             <div class="row align-items-center g-4">
                 <div class="col-lg-6 hero-copy hero-copy-minimal animate__animated animate__fadeInLeft">
-                    <h1 class="hero-title hero-integral-title"><span>Integral</span></h1>
+                    <h1 class="hero-title hero-integral-title">Satu Platform untuk<br><span>Beragam Kebutuhan</span><br>Pengelolaan Pelatihan</h1>
                     <div class="hero-system-name">Integrated Training Management System</div>
                     <p class="hero-description mb-0">Satu platform untuk mengelola pelatihan, peserta, presensi, evaluasi, dokumen, sertifikat, monitoring, dan pelaporan secara terpadu.</p>
                     <div class="d-flex gap-3 hero-btns hero-actions mt-4">
@@ -547,7 +556,7 @@
         @php
             $mainApplications = [
                 ['name' => 'Jabar Corpu Talent', 'description' => 'Platform pembelajaran digital dan ruang berbagi pengetahuan bagi ASN Jawa Barat.', 'url' => 'https://jabarcorputalent.jabarprov.go.id', 'color' => '#f4b740', 'icon' => 'bx-book-reader', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-jct.png'],
-                ['name' => 'Jabar Talent Connect', 'description' => 'Platform penyusunan kebutuhan dan kurikulum pengembangan kompetensi ASN.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/jtc', 'color' => '#03c3ec', 'icon' => 'bx-network-chart', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-talent.png'],
+                ['name' => 'Jabar Talent Connect', 'description' => 'Platform penyusunan kebutuhan dan kurikulum pengembangan kompetensi ASN.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/jtc', 'color' => '#16a75c', 'icon' => 'bx-network-chart', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-talent.png'],
                 ['name' => 'Ajuan Rekomendasi', 'description' => 'Layanan pengajuan surat rekomendasi untuk kegiatan pendalaman tugas Anggota DPRD.', 'url' => 'https://integral-bpsdm.jabarprov.go.id/aksi', 'color' => '#ff5b5c', 'icon' => 'bx-file-find', 'logo' => 'https://integral-bpsdm.jabarprov.go.id/images/logo-aksi.png'],
             ];
         @endphp
@@ -618,7 +627,7 @@
         </div>
     </section>
 
-    <section id="stats" class="py-5" style="background: linear-gradient(135deg, #696cff 0%, #30336b 100%); position: relative; overflow: hidden;">
+    <section id="stats" class="py-5" style="background: linear-gradient(135deg, #008444 0%, #006430 100%); position: relative; overflow: hidden;">
         <!-- Dekorasi Background -->
         <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         
@@ -823,14 +832,12 @@
 
     <script>
         // Navbar Scroll Effect
-        window.onscroll = function() {
-            const nav = document.getElementById('mainNavbar');
-            if (window.pageYOffset > 50) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
+        const updateNavbarAppearance = () => {
+            document.getElementById('mainNavbar').classList.toggle('scrolled', window.scrollY > 50);
         };
+        window.addEventListener('scroll', updateNavbarAppearance, { passive: true });
+        window.addEventListener('pageshow', updateNavbarAppearance);
+        updateNavbarAppearance();
 
         window.addEventListener('scroll', () => {
             let sections = document.querySelectorAll('section, header');

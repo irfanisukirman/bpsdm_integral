@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Narasumber wajib melengkapi profil sebelum mengakses portal lainnya.
-        $middleware->web(append: [\App\Http\Middleware\ApplyUserRoleContext::class, CekSetupPengajar::class, EnsureImportedParticipantProfileComplete::class]);
+        $middleware->web(append: [\App\Http\Middleware\ApplyUserRoleContext::class, CekSetupPengajar::class, EnsureImportedParticipantProfileComplete::class, \App\Http\Middleware\ArchiveTrainingDocuments::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -1,4 +1,4 @@
-@extends('layouts.form')
+@extends('layouts.profile-onboarding')
 
 {{-- Konfigurasi Header & Metadata Form --}}
 @section('form_title', 'Lengkapi Profil Pengguna')
@@ -11,6 +11,7 @@
 {{-- KONTEN INPUTAN FORM --}}
 @section('form_content')
 
+    <section class="profile-step" data-step="0" aria-label="Identitas pribadi">
     @if($user->must_complete_profile || $user->must_change_password)
     <div class="alert alert-warning border-0 shadow-sm mb-4">
         <div class="d-flex gap-3"><i class="bx bx-shield-quarter fs-3"></i><div><strong>Akun hasil import peserta</strong><div class="small mt-1">Username login Anda adalah NIP/NIK <strong>{{ $user->nip_nik }}</strong>. Lengkapi seluruh profil dan buat password baru sebelum mengakses pelatihan.</div></div></div>
@@ -29,33 +30,19 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
             <div class="form-section-title">
-                <i class="bx bx-user-pin fs-4 me-2"></i> 1. Identitas Utama & Kepegawaian
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label fw-bold">Daftar Sebagai <span class="required-star">*</span></label>
-                @if($user->must_complete_profile)<input type="hidden" name="user_type" value="peserta">@endif
-                <select name="user_type" id="userTypeSelect" class="form-select form-select-lg border-primary" required @disabled($user->must_complete_profile)>
-                    <option value="">-- Pilih tujuan pendaftaran --</option>
-                    <option value="peserta" @selected(old('user_type', $user->user_type)==='peserta')>Peserta Pelatihan</option>
-                    <option value="narasumber" @selected(old('user_type', $user->user_type)==='narasumber')>Narasumber / Pengajar</option>
-                    <option value="mitra" @selected(old('user_type', $user->user_type)==='mitra')>Mitra Kerja Sama</option>
-                </select>
-                <div id="userTypeExplanation" class="alert alert-danger py-2 mt-3 mb-0 small d-none" role="alert"></div>
-                <div class="form-text mt-2"><i class="bx bx-shield-quarter me-1"></i>Akun admin dan superadmin tidak dapat dibuat melalui registrasi publik.</div>
+                <i class="bx bx-user-pin fs-4 me-2"></i> Identitas pribadi
             </div>
 
             <div class="row">
-                <!-- NIP / NIK -->
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">NIP / NIK <span class="required-star">*</span></label>
-                    <input type="text" 
-                           name="nip_nik" 
-                           class="form-control" 
-                           placeholder="Contoh: 19950303..." 
-                           value="{{ old('nip_nik', auth()->user()->nip_nik) }}" 
-                           required>
-                    <div class="form-text small text-info">Gunakan NIP asli Anda untuk sinkronisasi riwayat pelatihan.</div>
+                    <label for="profileNip" class="form-label">NIP <span class="required-star">*</span></label>
+                    <input id="profileNip" type="text" name="nip" class="form-control" inputmode="numeric" pattern="[0-9]{18}" minlength="18" maxlength="18" value="{{ old('nip', $user->nip ?? (preg_match('/^[0-9]{18}$/', $user->nip_nik ?? '') ? $user->nip_nik : '')) }}" placeholder="Masukkan 18 digit NIP" required>
+                    <div class="form-text">Nomor Induk Pegawai, wajib 18 digit.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="profileNik" class="form-label">NIK <span class="required-star">*</span></label>
+                    <input id="profileNik" type="text" name="nik" class="form-control" inputmode="numeric" pattern="[0-9]{16}" minlength="16" maxlength="16" value="{{ old('nik', $user->nik ?? (preg_match('/^[0-9]{16}$/', $user->nip_nik ?? '') ? $user->nip_nik : '')) }}" placeholder="Masukkan 16 digit NIK" required>
+                    <div class="form-text">Nomor Induk Kependudukan sesuai KTP, wajib 16 digit.</div>
                 </div>
 
                 <!-- Nomor WhatsApp -->
@@ -105,6 +92,12 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+    </section>
+    <section class="profile-step" data-step="1" aria-label="Kepegawaian" hidden>
+    <div class="card shadow-sm border-0 mb-4"><div class="card-body p-4">
+    <div class="form-section-title"><i class="bx bx-briefcase me-2"></i>Kepegawaian & instansi</div>
             <div class="row">
                 <!-- Jabatan -->
                 <div class="col-md-6 mb-3">
@@ -113,7 +106,7 @@
                            name="jabatan" 
                            class="form-control" 
                            placeholder="Contoh: Analis SDM Aparatur" 
-                           value="{{ old('jabatan') }}" 
+                           value="{{ old('jabatan', $user->jabatan) }}" 
                            required>
                 </div>
 
@@ -138,11 +131,13 @@
         </div>
     </div>
 
+    </section>
+    <section class="profile-step" data-step="2" aria-label="Wilayah" hidden>
     <!-- KARTU 2: WILAYAH KERJA / DOMISILI (DENGAN PENCARIAN SELECT2) -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
             <div class="form-section-title">
-                <i class="bx bx-map-pin fs-4 me-2"></i> 2. Wilayah Domisili / Kerja
+                <i class="bx bx-map-pin fs-4 me-2"></i> Wilayah domisili / kerja
             </div>
 
             <div class="row">
@@ -173,20 +168,22 @@
         </div>
     </div>
 
+    </section>
+    <section class="profile-step" data-step="3" aria-label="Alamat dan lokasi" hidden>
     <!-- KARTU 3: TITIK LOKASI -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
             <div class="form-section-title">
-                <i class="bx bx-map fs-4 me-2"></i> 3. Titik Lokasi Desa/Kelurahan
+                <i class="bx bx-map fs-4 me-2"></i> Alamat & titik lokasi
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Alamat Lengkap <span class="required-star">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bx bx-search-alt"></i></span>
-                    <input type="text" name="address" id="addressSearch" class="form-control" value="{{old('address',$user->address)}}" placeholder="Contoh: Jl. Nihmat, Bandung" autocomplete="street-address" required>
+                    <input type="text" name="address" id="addressSearch" class="form-control" value="{{old('address',$user->address)}}" placeholder="Cari nama jalan atau desa, contoh: Jalan Dago / Desa Ciburial" autocomplete="street-address" required>
                     <button type="button" id="searchAddressButton" class="btn btn-primary"><i class="bx bx-search me-1"></i>Cari Alamat</button>
                 </div>
-                <div class="form-text">Tekan Cari Alamat, lalu pilih hasil yang sesuai. Peta dan koordinat akan diarahkan otomatis.</div>
+                <div class="form-text">Cari nama jalan, desa, atau alamat lengkap, lalu pilih hasilnya. Titik pada peta akan terisi otomatis dan dapat disesuaikan.</div>
                 <div id="addressSearchResults" class="list-group mt-2 shadow-sm d-none" style="max-height:260px;overflow-y:auto"></div>
             </div>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -205,6 +202,7 @@
         </div>
     </div>
 
+    </section>
 @endsection
 
 @push('form_css')
@@ -218,21 +216,6 @@
 
     
 $(document).ready(function() {
-    const userTypeSelect = document.getElementById('userTypeSelect');
-    const userTypeExplanation = document.getElementById('userTypeExplanation');
-    const typeExplanations = {
-        peserta: '<strong>Peserta Pelatihan:</strong> untuk mengikuti pelatihan, mengunggah kelengkapan, mengisi evaluasi, dan mengunduh sertifikat.',
-        narasumber: '<strong>Narasumber / Pengajar:</strong> untuk menerima jadwal mengajar dan melengkapi administrasi narasumber. Akses pengajar langsung aktif.',
-        mitra: '<strong>Mitra Kerja Sama:</strong> untuk mengajukan dan mengelola proses kemitraan. Akun harus menunggu persetujuan superadmin.'
-    };
-    function updateUserTypeExplanation() {
-        const message = typeExplanations[userTypeSelect.value];
-        userTypeExplanation.innerHTML = message || '';
-        userTypeExplanation.classList.toggle('d-none', !message);
-    }
-    userTypeSelect.addEventListener('change', updateUserTypeExplanation);
-    updateUserTypeExplanation();
-
     const $provSelect = $('#provinsi');
     const $kabSelect = $('#kabupaten');
     const $kecSelect = $('#kecamatan');
@@ -251,6 +234,7 @@ $(document).ready(function() {
     const initialLng = parseFloat(longitudeInput.value);
     const hasInitialPoint = Number.isFinite(initialLat) && Number.isFinite(initialLng);
     const locationMap = L.map('profileLocationMap').setView(hasInitialPoint ? [initialLat, initialLng] : [-2.5, 118], hasInitialPoint ? 15 : 5);
+    document.addEventListener('integral:profile-step', () => setTimeout(() => locationMap.invalidateSize(), 50));
     let locationMarker = null;
     let locationSearchController = null;
 

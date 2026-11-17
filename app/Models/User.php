@@ -77,7 +77,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'username', 'google_id', 'avatar', 'whatsapp', 'role', 'user_type', 'user_type_status', 'bidang',
-        'nip_nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 'institution_id',
+        'nip_nik', 'nip', 'nik', 'gender', 'birth_place', 'birth_date', 'jabatan', 'golongan', 'instansi', 'institution_id',
         'provinsi', 'kota', 'kecamatan', 'kelurahan', 'address', 'latitude', 'longitude',
         'status_kepegawaian', 'employment_status_id', 'password', 'profile_photo', 'must_complete_profile', 'must_change_password',
     ];

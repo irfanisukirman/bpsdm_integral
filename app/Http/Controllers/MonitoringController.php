@@ -211,6 +211,47 @@ class MonitoringController extends Controller
     /**
      * Placeholder untuk fungsi Export (Sempurnakan sesuai kebutuhan template)
      */
+    public function reportSettings(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $this->authorizeTraining($training);
+        $stageId = $request->query('stage_id');
+        $document = $request->query('document', 'monitoring');
+        abort_unless(in_array($document, ['monitoring', 'tindaklanjut', 'ceklis'], true), 404);
+        abort_if($stageId && ! $training->stages()->whereKey($stageId)->exists(), 404);
+        return response()->view('monitoring.report-settings', compact('training', 'stageId', 'document'))->header('Cache-Control', 'private, no-store');
+    }
+
+    public function saveReportSettings(Request $request, $id)
+    {
+        $training = Training::findOrFail($id);
+        $this->authorizeTraining($training);
+        $data = $request->validate([
+            'head_title' => 'required|string|max:250', 'head_name' => 'required|string|max:200',
+            'head_nip' => ['required', 'regex:/^[0-9]{18}$/'],
+            'monitor_title' => 'required|string|max:250', 'monitor_name' => 'required|string|max:200',
+            'monitor_nip' => ['required', 'regex:/^[0-9]{18}$/'],
+            'stage_id' => 'nullable|integer',
+            'document' => 'nullable|in:monitoring,tindaklanjut,ceklis',
+        ], ['head_nip.regex' => 'NIP Kepala Bidang harus 18 angka.', 'monitor_nip.regex' => 'NIP Tim Monitoring harus 18 angka.']);
+        $stageId = $data['stage_id'] ?? null;
+        abort_if($stageId && ! $training->stages()->whereKey($stageId)->exists(), 404);
+        $document = $data['document'] ?? 'monitoring';
+        unset($data['stage_id'], $data['document']);
+        $training->monitoring_report_signatories = $data;
+        $training->save();
+        return $request->boolean('download')
+            ? redirect()->route(['monitoring' => 'monitoring.export.laporan', 'tindaklanjut' => 'monitoring.export.tindaklanjut', 'ceklis' => 'monitoring.export.rekap'][$document], ['id' => $training->id, 'stage_id' => $stageId])
+            : redirect()->route('monitoring.report-settings', ['id' => $training->id, 'stage_id' => $stageId, 'document' => $document === 'monitoring' ? null : $document])->with('success', 'Penandatangan laporan monitoring tersimpan.');
+    }
+
+    private function fillReportSignatories(TemplateProcessor $template, Training $training): void
+    {
+        foreach ($training->monitoringReportSignatories() as $field => $value) {
+            $template->setValue('monitor_sign_'.$field, htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+        }
+    }
+
     public function exportLaporan($id, Request $request)
     {
         $training = Training::with(['stages', 'summaries', 'monitoringResults.question', 'monitoringResults.stage'])->findOrFail($id);
@@ -225,6 +266,7 @@ class MonitoringController extends Controller
             : $training->monitoringResults;
 
         $templateProcessor = new TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
+        $this->fillReportSignatories($templateProcessor, $training);
 
         // 1. Data Global
         $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
@@ -317,6 +359,7 @@ class MonitoringController extends Controller
         
         // Load Template
         $templateProcessor = new TemplateProcessor(public_path('templates/laporan_tindak_lanjut.docx'));
+        $this->fillReportSignatories($templateProcessor, $training);
 
         // Header Dokumen
         $templateProcessor->setValue('nama_pelatihan', $training->nama_pelatihan);
@@ -471,6 +514,7 @@ class MonitoringController extends Controller
         ];
 
         $template = new TemplateProcessor(public_path('templates/laporan_monitoring.docx'));
+        $this->fillReportSignatories($template, $training);
         $values = [
             'nama_pelatihan' => strtoupper($training->nama_pelatihan),
             'bidang' => $training->bidang ?: '-',
@@ -533,6 +577,7 @@ class MonitoringController extends Controller
         )->count();
 
         $template = new TemplateProcessor(public_path('templates/laporan_tindak_lanjut.docx'));
+        $this->fillReportSignatories($template, $training);
         $values = [
             'nama_pelatihan' => strtoupper($training->nama_pelatihan),
             'bidang' => $training->bidang ?: '-',

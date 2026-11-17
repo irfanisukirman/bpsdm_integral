@@ -277,6 +277,8 @@ class PostEvaluationService
             'recommendations' => [$low ? "Konfirmasi bukti capaian $low alumni dengan nilai jangka panjang <=60 dan rencanakan pendampingan." : 'Tinjau bukti capaian sebelum mereplikasi praktik baik.', $completed < $total ? 'Selesaikan wawancara draf dan validasi bukti bersama tim.' : 'Validasi hasil dan tetapkan tindak lanjut bersama unit kerja alumni.', 'Lengkapi indikator yang belum terpetakan; data kosong tidak dihitung sebagai nol.'],
             'generated_at' => now()->toIso8601String()];
 
+        $summary = array_merge($summary, app(PostEvaluationNarrativeService::class)->metadata($people));
+
         return app(PostEvaluationExposeService::class)->decorate($t, $summary);
     }
 }

@@ -53,3 +53,11 @@ Artisan::command('questions:sync-technical-excel {--apply : Terapkan katalog Tek
     if ($result['backup']) $this->info('Cadangan privat: '.$result['backup']);
     $this->info($result['applied'] ? 'Bank soal Teknis diperbarui; jawaban lama tetap tersimpan.' : 'Pratinjau saja; gunakan --apply untuk menerapkan.');
 });
+
+Artisan::command('documents:repair-training-folders {training} {--apply}', function () {
+    $training=\App\Models\Training::findOrFail($this->argument('training'));
+    $result=app(\App\Services\TrainingFolderRepairService::class)->repair($training,(bool)$this->option('apply'));
+    $this->table(['ID','Nama lama','Nama baru','Folder induk'],array_map(fn($row)=>[$row['id'],$row['old_name'],$row['name'],$row['parent_id']],$result['changes']));
+    if($result['backup'])$this->info('Cadangan privat: '.$result['backup']);
+    $this->info($result['apply']?'Struktur folder diperbaiki. Tidak ada berkas dihapus.':'Pratinjau; tambahkan --apply untuk menerapkan.');
+});

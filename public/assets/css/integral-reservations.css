@@ -1,0 +1,42 @@
+/* Public facility reservations: same typography and palette as the welcome page. */
+:root { --bs-font-sans-serif:"Lato",sans-serif; --bs-body-font-family:"Lato",sans-serif; --bs-primary:#008444; --bs-primary-rgb:0,132,68; --bs-body-color:#424242; }
+html { scroll-behavior:smooth; scroll-padding-top:110px; }
+body { font-family:"Lato",sans-serif; background:#f5f8f6; color:#424242; line-height:1.65; }
+h1,h2,h3,h4,h5,h6,.form-label { font-family:"Roboto",sans-serif; color:#212121; line-height:1.4; }
+.public-hero h1 { font-family:"Lora",serif; font-weight:600!important; font-size:clamp(1.9rem,4vw,3rem); line-height:1.3; }
+.text-muted,.footer-public { color:#616161!important; }
+.public-nav { position:sticky; top:0; z-index:1030; background:#003d20; border-color:rgba(195,233,208,.2); transition:background-color .3s ease,box-shadow .3s ease; }
+.public-nav.scrolled { background:#16a75c; box-shadow:0 4px 18px rgba(0,100,48,.15); }
+.public-nav :is(.text-body,strong,.text-muted) { color:#fff!important; }
+.public-nav .brand-mark { background:#e6f6ec; box-shadow:none; }
+.public-nav .btn-outline-secondary { background:#e6f6ec; border-color:#c3e9d0; color:#004d29; }
+.public-nav .btn-outline-secondary:hover { background:#c3e9d0; color:#004d29; }
+.public-hero { position:relative; isolation:isolate; overflow:hidden; background:linear-gradient(120deg,#006430,#008444 65%,#069550); }
+.public-hero::before { content:""; position:absolute; width:320px; height:320px; border:52px solid rgba(112,205,148,.14); border-radius:50%; top:-190px; right:-80px; z-index:-1; pointer-events:none; }
+.public-hero::after { content:""; position:absolute; width:220px; height:220px; border:1px solid rgba(195,233,208,.23); border-radius:50%; bottom:-180px; left:10%; z-index:-1; pointer-events:none; }
+.public-hero :is(.text-white-50,p) { color:#d6efdf!important; }
+.public-hero .badge.bg-white,.public-hero .btn-light { background:#e6f6ec!important; color:#006430!important; border-color:#c3e9d0; }
+.card { border:1px solid #e0e8e2; border-radius:16px; box-shadow:0 4px 20px rgba(0,100,48,.045); }
+.facility-card { border:1px solid #e0e8e2; }
+.facility-card:hover { border-color:#70cd94; box-shadow:0 8px 24px rgba(0,100,48,.10); }
+.facility-image { background:#edf5f0; }
+.placeholder-image { background:linear-gradient(135deg,#e6f6ec,#c3e9d0); color:#008444; }
+.text-primary,.price { color:#008444!important; }
+.btn-primary { background:#008444; border-color:#008444; box-shadow:0 3px 8px rgba(0,132,68,.15); }
+.btn-primary:is(:hover,:active,:focus) { background:#006430!important; border-color:#006430!important; }
+.btn-outline-primary { color:#008444; border-color:#16a75c; }
+.btn-outline-primary:hover { color:#fff; background:#008444; border-color:#008444; }
+.bg-label-primary,.tracking-icon { background:#e6f6ec!important; color:#006430!important; }
+.bg-label-info,.alert-info { background:#e6f6ec!important; color:#006430!important; border-color:#c3e9d0; }
+.bg-light { background:#f0f8f2!important; }
+.form-control,.form-select { border-color:#cbded1; line-height:1.6; }
+.form-control:focus,.form-select:focus { border-color:#16a75c; box-shadow:0 0 0 .2rem rgba(22,167,92,.14); }
+.form-check-input:checked { background-color:#008444; border-color:#008444; }
+.form-check-card:has(input:checked) { background:#f0f8f2; border-color:#70cd94; }
+.form-check-card { border-color:#dfe9e3; }
+.footer-public { background:#004d29; color:#d6efdf!important; }
+a:not(.btn):not(.text-body) { color:#008444; }
+a:focus-visible,.btn:focus-visible { outline:3px solid #70cd94; outline-offset:3px; }
+@media(max-width:575.98px) { .public-nav .container { gap:12px; } .public-nav strong { font-size:.9rem; } .public-nav small { font-size:.7rem; } .public-nav .btn { flex-shrink:0; } .public-hero .container { padding-block:.75rem!important; } .tracking-card .input-group .form-control { min-width:0; } }
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; } }
+@media print { .public-nav { position:static; background:#fff; } .public-nav :is(.text-body,strong,.text-muted) { color:#212121!important; } }

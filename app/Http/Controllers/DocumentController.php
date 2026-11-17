@@ -121,7 +121,7 @@ class DocumentController extends Controller
         foreach($request->file('attachments',[]) as $upload){
             $path=$upload->store('documents','public');$existing=File::where('folder_id',$folder->id)->where('display_name',$upload->getClientOriginalName())->first();
             if($existing){
-                DB::transaction(function()use($existing,$upload,$path){$number=((int)$existing->versions()->max('version_number'))+1;$existing->versions()->create(['version_number'=>$number,'file_path'=>$existing->file_path,'file_type'=>$existing->file_type,'file_size'=>$existing->file_size,'uploaded_by'=>$existing->user_id,'notes'=>'Versi disimpan otomatis sebelum pembaruan']);$existing->update(['file_path'=>$path,'file_type'=>$upload->getClientOriginalExtension(),'file_size'=>$upload->getSize(),'user_id'=>Auth::id()]);});$versionCount++;
+                DB::transaction(function()use($existing,$upload,$path){$number=((int)$existing->versions()->max('version_number'))+1;$existing->versions()->create(['version_number'=>$number,'storage_disk'=>$existing->storage_disk ?: 'public','file_path'=>$existing->file_path,'file_type'=>$existing->file_type,'file_size'=>$existing->file_size,'uploaded_by'=>$existing->user_id,'notes'=>'Versi disimpan otomatis sebelum pembaruan']);$existing->update(['storage_disk'=>'public','content_hash'=>null,'file_path'=>$path,'file_type'=>$upload->getClientOriginalExtension(),'file_size'=>$upload->getSize(),'user_id'=>Auth::id()]);});$versionCount++;
             }else{File::create(['folder_id'=>$folder->id,'display_name'=>$upload->getClientOriginalName(),'file_path'=>$path,'file_type'=>$upload->getClientOriginalExtension(),'file_size'=>$upload->getSize(),'user_id'=>Auth::id()]);}
             $uploadedCount++;
         }
@@ -172,7 +172,7 @@ class DocumentController extends Controller
     public function destroyFile($id)
     {
         $file=File::with(['folder','versions'])->findOrFail($id);abort_unless(app(DocumentAccessService::class)->canManage(Auth::user(),$file->folder),403,'Kontributor tidak dapat menghapus file.');
-        $paths=$file->versions->pluck('file_path')->push($file->file_path)->filter()->unique();DB::transaction(fn()=>$file->delete());Storage::disk('public')->delete($paths->all());LogHelper::record('Dokumen','Menghapus file beserta riwayat versi: '.$file->display_name);return back()->with('success','File dan seluruh riwayat versinya berhasil dihapus.');
+        $paths=$file->versions->map(fn($v)=>['disk'=>$v->storage_disk ?: 'public','path'=>$v->file_path])->push(['disk'=>$file->storage_disk ?: 'public','path'=>$file->file_path]);DB::transaction(fn()=>$file->delete());foreach($paths as $item)Storage::disk($item['disk'])->delete($item['path']);LogHelper::record('Dokumen','Menghapus file beserta riwayat versi: '.$file->display_name);return back()->with('success','File dan seluruh riwayat versinya berhasil dihapus.');
     }
     /**
      * Menghapus Folder (Beserta isinya)
@@ -185,7 +185,7 @@ class DocumentController extends Controller
 
         // Hapus fisik file di dalamnya
         foreach ($folder->files as $file) {
-            Storage::disk('public')->delete($file->file_path);
+            Storage::disk($file->storage_disk ?: 'public')->delete($file->file_path);
         }
 
         $folder->delete();
@@ -260,13 +260,13 @@ class DocumentController extends Controller
 
     public function downloadVersion(FileVersion $version)
     {
-        $version->load('file.folder');abort_unless(app(DocumentAccessService::class)->canView(Auth::user(),$version->file->folder),403);abort_unless(Storage::disk('public')->exists($version->file_path),404);return Storage::disk('public')->download($version->file_path,$version->file->display_name.' - versi '.$version->version_number.'.'.$version->file_type);
+        $version->load('file.folder');abort_unless(app(DocumentAccessService::class)->canView(Auth::user(),$version->file->folder),403);abort_unless(Storage::disk($version->storage_disk ?: 'public')->exists($version->file_path),404);return Storage::disk($version->storage_disk ?: 'public')->download($version->file_path,$version->file->display_name.' - versi '.$version->version_number.'.'.$version->file_type);
     }
 
     public function restoreVersion(FileVersion $version)
     {
-        $version->load('file.folder');$file=$version->file;abort_unless(app(DocumentAccessService::class)->canContribute(Auth::user(),$file->folder),403);abort_unless(Storage::disk('public')->exists($version->file_path),404);$extension=$version->file_type?:pathinfo($version->file_path,PATHINFO_EXTENSION);$restoredPath='documents/'.Str::uuid().'.'.$extension;Storage::disk('public')->copy($version->file_path,$restoredPath);
-        DB::transaction(function()use($file,$version,$restoredPath){$number=((int)$file->versions()->max('version_number'))+1;$file->versions()->create(['version_number'=>$number,'file_path'=>$file->file_path,'file_type'=>$file->file_type,'file_size'=>$file->file_size,'uploaded_by'=>$file->user_id,'notes'=>'Versi aktif sebelum pemulihan versi '.$version->version_number]);$file->update(['file_path'=>$restoredPath,'file_type'=>$version->file_type,'file_size'=>$version->file_size,'user_id'=>Auth::id()]);});LogHelper::record('Dokumen','Memulihkan '.$file->display_name.' ke versi '.$version->version_number);return redirect()->route('documents.file.versions',$file)->with('success','Versi '.$version->version_number.' berhasil dipulihkan sebagai versi aktif.');
+        $version->load('file.folder');$file=$version->file;abort_unless(app(DocumentAccessService::class)->canContribute(Auth::user(),$file->folder),403);abort_unless(Storage::disk($version->storage_disk ?: 'public')->exists($version->file_path),404);$extension=$version->file_type?:pathinfo($version->file_path,PATHINFO_EXTENSION);$restoredPath='documents/'.Str::uuid().'.'.$extension;Storage::disk($version->storage_disk ?: 'public')->copy($version->file_path,$restoredPath);
+        DB::transaction(function()use($file,$version,$restoredPath){$number=((int)$file->versions()->max('version_number'))+1;$file->versions()->create(['version_number'=>$number,'storage_disk'=>$file->storage_disk ?: 'public','file_path'=>$file->file_path,'file_type'=>$file->file_type,'file_size'=>$file->file_size,'uploaded_by'=>$file->user_id,'notes'=>'Versi aktif sebelum pemulihan versi '.$version->version_number]);$file->update(['storage_disk'=>$version->storage_disk ?: 'public','content_hash'=>null,'file_path'=>$restoredPath,'file_type'=>$version->file_type,'file_size'=>$version->file_size,'user_id'=>Auth::id()]);});LogHelper::record('Dokumen','Memulihkan '.$file->display_name.' ke versi '.$version->version_number);return redirect()->route('documents.file.versions',$file)->with('success','Versi '.$version->version_number.' berhasil dipulihkan sebagai versi aktif.');
     }
     /**
      * Link Publik untuk akses folder bersama
@@ -300,7 +300,7 @@ class DocumentController extends Controller
         }
 
         abort_unless(in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'], true), 415, 'Format berkas ini belum mendukung pratinjau.');
-        $path = Storage::disk('public')->path($file->file_path);
+        $path = Storage::disk($file->storage_disk ?: 'public')->path($file->file_path);
         abort_unless(is_file($path), 404, 'Berkas tidak ditemukan di penyimpanan.');
 
         return response()->file($path, [
@@ -315,7 +315,7 @@ class DocumentController extends Controller
         $folder = $this->authorizeSharedFile($token, $file);
         $extension = strtolower($file->file_type ?: pathinfo($file->display_name, PATHINFO_EXTENSION));
         abort_unless(in_array($extension, ['xls', 'xlsx'], true), 415, 'Berkas ini bukan dokumen Excel.');
-        $path = Storage::disk('public')->path($file->file_path);
+        $path = Storage::disk($file->storage_disk ?: 'public')->path($file->file_path);
         abort_unless(is_file($path), 404, 'Berkas tidak ditemukan di penyimpanan.');
 
         try {
@@ -365,9 +365,9 @@ class DocumentController extends Controller
     {
         $file = File::with('folder')->findOrFail($id);
         $this->authorizeFileAccess($file);
-        abort_unless(Storage::disk('public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
+        abort_unless(Storage::disk($file->storage_disk ?: 'public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
 
-        return response()->file(Storage::disk('public')->path($file->file_path), [
+        return response()->file(Storage::disk($file->storage_disk ?: 'public')->path($file->file_path), [
             'Content-Disposition' => 'inline; filename="' . addslashes($file->display_name) . '"',
         ]);
     }
@@ -376,51 +376,26 @@ class DocumentController extends Controller
     {
         $file = File::with('folder')->findOrFail($id);
         $this->authorizeFileAccess($file);
-        abort_unless(Storage::disk('public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
+        abort_unless(Storage::disk($file->storage_disk ?: 'public')->exists($file->file_path), 404, 'Berkas tidak ditemukan di penyimpanan.');
 
-        return Storage::disk('public')->download($file->file_path, $file->display_name);
+        return Storage::disk($file->storage_disk ?: 'public')->download($file->file_path, $file->display_name);
     }
 
     private function authorizeFileAccess(File $file): void
     {
         $folder=$file->folder;abort_unless($folder,404);if($folder->is_public)return;$user=Auth::user();abort_unless($user&&app(DocumentAccessService::class)->canView($user,$folder),403);
     }
+    public function trainingFolder(\App\Models\Training $training)
+    {
+        $user=Auth::user();
+        abort_unless($user && ($user->role==='superadmin'||($user->role==='admin_bidang' && $user->bidang===$training->bidang)),403);
+        $archive=app(\App\Services\TrainingDocumentArchiveService::class);
+        $archive->sync($training);
+        return redirect()->route('documents.index',['folder'=>$archive->root($training)->id]);
+    }
+
     public static function archiveInternal($trainingId, $categoryName, $fileName, $content, $extension)
     {
-        // 1. Cari Folder Utama Pelatihan tersebut
-        $parentFolder = Folder::where('training_id', $trainingId)->whereNull('parent_id')->first();
-
-        // Jika belum ada folder utamanya (backup), buat otomatis
-        if (!$parentFolder) {
-            $training = \App\Models\Training::find($trainingId);
-            $parentFolder = Folder::create([
-                'training_id' => $trainingId,
-                'name' => $training->nama_pelatihan,
-                'bidang' => $training->bidang,
-                'user_id' => Auth::id() ?? 1,
-            ]);
-        }
-
-        // 2. Buat/Cari Sub-Folder Kategori (Misal: LAPORAN MONITORING)
-        $subFolder = Folder::firstOrCreate([
-            'name' => strtoupper($categoryName),
-            'parent_id' => $parentFolder->id,
-            'training_id' => $trainingId,
-            'bidang' => $parentFolder->bidang
-        ], ['user_id' => Auth::id() ?? 1]);
-
-        // 3. Simpan File Fisik
-        $path = 'documents/' . $fileName;
-        Storage::disk('public')->put($path, $content);
-
-        // 4. Catat ke Tabel Files
-        File::create([
-            'folder_id' => $subFolder->id,
-            'display_name' => $fileName,
-            'file_path' => $path,
-            'file_type' => $extension,
-            'file_size' => strlen($content),
-            'user_id' => Auth::id() ?? 1
-        ]);
+        return app(\App\Services\TrainingDocumentArchiveService::class)->store(\App\Models\Training::findOrFail($trainingId), $categoryName, $fileName, $content, $extension);
     }
 }

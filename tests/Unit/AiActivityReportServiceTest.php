@@ -20,6 +20,9 @@ class AiActivityReportServiceTest extends TestCase
 
         $this->assertSame(AiActivityReportService::FIELDS, array_keys($result));
         Http::assertSent(fn ($request) => str_contains($request['contents'][0]['parts'][0]['text'], 'Pelatihan Uji')
-            && ! str_contains($request['contents'][0]['parts'][0]['text'], 'participant_name'));
+            && ! str_contains($request['contents'][0]['parts'][0]['text'], 'participant_name')
+            && str_contains($request['contents'][0]['parts'][0]['text'], '300-450 kata')
+            && str_contains($request['contents'][0]['parts'][0]['text'], 'dua baris baru')
+            && str_contains($request['contents'][0]['parts'][0]['text'], 'Target panjang bukan alasan mengarang fakta'));
     }
 }

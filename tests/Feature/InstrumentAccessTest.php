@@ -28,7 +28,7 @@ class InstrumentAccessTest extends TestCase
     public function test_superadmin_can_view_instrument_banks_and_menu(): void
     {
         $user = User::factory()->create(['role' => 'superadmin']);
-        $this->actingAs($user)->get(route('questions.index'))->assertOk()->assertSee('Kelola Instrumen');
+        $this->actingAs($user)->get(route('questions.index'))->assertOk()->assertSeeInOrder(['Pengaturan Sistem', 'Bank Instrumen'])->assertDontSee('Kelola Instrumen');
         $this->get(route('indicators.index'))->assertOk()->assertSee('Bank Instrumen');
     }
 }

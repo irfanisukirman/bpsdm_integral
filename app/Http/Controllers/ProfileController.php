@@ -54,6 +54,12 @@ class ProfileController extends Controller
             'longitude'          => 'required|numeric|between:-180,180',
         ];
 
+        if ($user->primaryRole() === 'participant') {
+            unset($rules['nip_nik']);
+            $rules['nip'] = ['required', 'digits:18', \Illuminate\Validation\Rule::unique('users', 'nip')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)];
+            $rules['nik'] = ['required', 'digits:16', \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)];
+        }
+
         // Tambahan validasi khusus jika role adalah Pengajar
         if ($user->role === 'pengajar' && $request->has('pangkat_golongan')) {
             $rules = array_merge($rules, [
@@ -88,7 +94,13 @@ class ProfileController extends Controller
         // 3. Simpan Data Profil Umum ke tabel Users
         $user->name               = $request->name;
         $user->whatsapp           = $request->whatsapp;
-        $user->nip_nik           = $request->nip_nik;
+        if ($user->primaryRole() === 'participant') {
+            $user->nip = $request->nip;
+            $user->nik = $request->nik;
+            $user->nip_nik = $request->nip;
+        } else {
+            $user->nip_nik = $request->nip_nik;
+        }
         $user->gender             = $request->gender;
         $user->birth_place        = $request->birth_place;
         $user->birth_date         = $request->birth_date;

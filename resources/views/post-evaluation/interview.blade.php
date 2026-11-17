@@ -72,6 +72,25 @@
 @endforeach
 </tbody></table></div>
 </section>
+@php
+    $scoreService = app(\App\Services\PostEvaluationService::class);
+    $currentScores = collect(range(0,4))->map(fn ($i) => old('scores.'.$i, $interview->scores[$i] ?? null))->map(fn ($v) => $v === '' || $v === null ? null : (float) $v)->all();
+    $filledScores = count(array_filter($currentScores, fn ($v) => $v !== null));
+    $weightedScore = $filledScores === 5 ? array_sum(array_map(fn ($v,$r) => $v * $r['weight'] / 100, $currentScores, $rubric)) : null;
+    $interviewAverage = $scoreService->average(array_slice($currentScores,1,3));
+    $surveyIndicators = collect(range(0,2))->map(fn ($i) => $scoreService->average(collect($surveyAnswers)->where('role','mandiri')->where('indicator',$i)->pluck('converted')->all()))->all();
+    $surveyAverage = $scoreService->average($surveyIndicators);
+@endphp
+<section class="card card-body mb-4 border border-primary" aria-label="Ringkasan penilaian langsung">
+<div class="row g-4 align-items-center">
+<div class="col-md-4"><small class="text-primary fw-bold">PENGISIAN LANGSUNG</small><h5 class="mt-2 mb-1">Nilai akhir berbobot</h5><div class="display-5 fw-bold text-primary" id="liveWeightedScore" aria-live="polite">{{ $weightedScore === null ? '-' : number_format($weightedScore,2,',','.') }}</div><span class="badge bg-label-primary mt-2" id="liveFilledScores">{{ $filledScores }}/5 nilai terisi</span></div>
+<div class="col-md-8"><div class="row g-3">
+<div class="col-sm-4"><small class="text-muted d-block">Wawancara ekspose</small><strong class="fs-4" id="liveInterviewAverage">{{ $interviewAverage === null ? '-' : number_format($interviewAverage,2,',','.') }}</strong></div>
+<div class="col-sm-4"><small class="text-muted d-block">Survei</small><strong class="fs-4">{{ $surveyAverage === null ? '-' : number_format($surveyAverage,2,',','.') }}</strong></div>
+<div class="col-sm-4"><small class="text-muted d-block">Status wawancara</small><strong id="liveInterviewStatus">{{ old('status',$interview->status) === 'completed' ? 'Selesai' : 'Draf' }}</strong></div>
+</div><p class="mt-3 mb-1">Isi nilai dan catatan saat wawancara. Setelah seluruh konfirmasi selesai, tandai wawancara selesai.</p><small class="text-muted">Nilai berbobot memakai lima kriteria; wawancara ekspose memakai rerata kriteria 2?4. Nilai kosong tidak dihitung sebagai nol.</small></div>
+</div>
+</section>
 @foreach($rubric as $i=>$criterion)
 <section class="card card-body mb-4 interview-criterion" id="criterion-{{ $i }}"><div class="d-flex flex-wrap gap-2 justify-content-between align-items-start mb-3"><h5>{{ $i+1 }}. {{ $criterion['label'] }}</h5><span class="badge bg-label-primary">Bobot {{ $criterion['weight'] }}%</span></div>
 <div class="row g-4"><div class="col-lg-7"><div class="interview-score-comment"><div class="interview-score-box"><label class="form-label fw-bold" for="score-{{ $i }}">Nilai wawancara</label><input class="form-control mb-2 interview-score-input" inputmode="decimal" id="score-{{ $i }}" name="scores[{{ $i }}]" type="number" min="0" max="100" step="0.0001" value="{{ old('scores.'.$i,$interview->scores[$i] ?? '') }}"><p class="small text-muted mb-0">Maksimal 100.<br>Kosongkan bila belum dinilai.</p></div><div class="interview-comment-box">
@@ -116,6 +135,20 @@
    }
   });
  });
+ const weights=@json(array_column($rubric,'weight'));
+ const formatScore=value=>value===null?'-':value.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const updateScoreSummary=()=>{
+  const values=[...form.querySelectorAll('.interview-score-input')].map(input=>input.value===''?null:Number(input.value)).map(value=>value!==null&&Number.isFinite(value)&&value>=0&&value<=100?value:null);
+  const filled=values.filter(value=>value!==null).length;
+  const comparison=values.slice(1,4).filter(value=>value!==null);
+  document.getElementById('liveWeightedScore').textContent=formatScore(filled===5?values.reduce((sum,value,i)=>sum+value*weights[i]/100,0):null);
+  document.getElementById('liveFilledScores').textContent=filled+'/5 nilai terisi';
+  document.getElementById('liveInterviewAverage').textContent=formatScore(comparison.length?comparison.reduce((sum,value)=>sum+value,0)/comparison.length:null);
+  document.getElementById('liveInterviewStatus').textContent=form.elements.status.value==='completed'?'Selesai':'Draf';
+ };
+ form.addEventListener('input',updateScoreSummary);
+ form.addEventListener('change',updateScoreSummary);
+ updateScoreSummary();
  let dirty=false,busy=false,version=0,timer,conflict=false;
  const save=async()=>{
   clearTimeout(timer);if(busy || conflict || !dirty)return;

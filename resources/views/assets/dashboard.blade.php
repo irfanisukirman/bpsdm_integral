@@ -16,7 +16,7 @@
     </div>
 
     <div class="card border-0 shadow-sm overflow-hidden mb-4">
-        <div class="card-body hero p-4 text-white">
+        <div class="card-body asset-operational-hero p-4 text-white">
             <div class="row align-items-center g-3">
                 <div class="col-lg-8"><small class="text-white-50 text-uppercase fw-bold">Ringkasan Operasional</small><h3 class="text-white fw-bold mt-2 mb-2">{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}</h3>
                     <p class="mb-0">@if($stats['bookings']) Terdapat {{ $stats['bookings'] }} jadwal pemakaian pada {{ $stats['used'] }} aset dengan total durasi {{ number_format($stats['hours'],1,',','.') }} jam. @else Tidak ada aset yang dijadwalkan pada tanggal ini. @endif</p>
@@ -87,7 +87,7 @@
 @endsection
 
 @push('styles')
-<style>.hero{background:linear-gradient(135deg,#233a7a,#5668d8 55%,#20a6b7)}.chart-box{height:300px;position:relative}.small-chart{height:240px}@media print{.no-print,.layout-navbar,.layout-menu{display:none!important}.card{box-shadow:none!important;break-inside:avoid}}</style>
+<style>.asset-dashboard .asset-operational-hero{background:linear-gradient(120deg,#006430,#008444 65%,#069550);color:#f1faf4}.asset-dashboard .asset-operational-hero h3{color:#f1faf4!important}.asset-dashboard .asset-operational-hero .badge{background:var(--integral-brand-soft)!important;color:var(--integral-brand-ink)!important}.chart-box{height:300px;position:relative}.small-chart{height:240px}@media print{.no-print,.layout-navbar,.layout-menu{display:none!important}.card{box-shadow:none!important;break-inside:avoid}}</style>
 @endpush
 
 @push('scripts')
@@ -95,9 +95,9 @@
 <script>
 document.addEventListener('DOMContentLoaded',function(){
  const common={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}};
- new Chart(document.getElementById('forecastChart'),{type:'bar',data:{labels:@json($forecast->pluck('label')),datasets:[{label:'Reservasi',data:@json($forecast->pluck('count')),backgroundColor:'#5668d8',borderRadius:6},{label:'Aset Unik',data:@json($forecast->pluck('assets')),backgroundColor:'#20a6b7',borderRadius:6}]},options:{...common,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
- const field=document.getElementById('fieldChart');if(@json($byField->isNotEmpty()))new Chart(field,{type:'doughnut',data:{labels:@json($byField->keys()),datasets:[{data:@json($byField->values()),backgroundColor:['#5668d8','#20a6b7','#71c68b','#ffbc5b','#e65b65','#8d70c9']}]},options:{...common,cutout:'58%'}});
- const type=document.getElementById('typeChart');if(@json($byType->isNotEmpty()))new Chart(type,{type:'pie',data:{labels:@json($byType->keys()),datasets:[{data:@json($byType->values()),backgroundColor:['#5668d8','#20a6b7','#ffbc5b','#71c68b']}]},options:common});
+ new Chart(document.getElementById('forecastChart'),{type:'bar',data:{labels:@json($forecast->pluck('label')),datasets:[{label:'Reservasi',data:@json($forecast->pluck('count')),backgroundColor:'#008444',borderRadius:6},{label:'Aset Unik',data:@json($forecast->pluck('assets')),backgroundColor:'#70cd94',borderRadius:6}]},options:{...common,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+ const field=document.getElementById('fieldChart');if(@json($byField->isNotEmpty()))new Chart(field,{type:'doughnut',data:{labels:@json($byField->keys()),datasets:[{data:@json($byField->values()),backgroundColor:['#008444','#70cd94','#16a75c','#ffbc5b','#e65b65','#386b50']}]},options:{...common,cutout:'58%'}});
+ const type=document.getElementById('typeChart');if(@json($byType->isNotEmpty()))new Chart(type,{type:'pie',data:{labels:@json($byType->keys()),datasets:[{data:@json($byType->values()),backgroundColor:['#008444','#70cd94','#ffbc5b','#16a75c']}]},options:common});
 });
 </script>
 @endpush

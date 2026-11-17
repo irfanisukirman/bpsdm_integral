@@ -57,7 +57,7 @@
                     @endphp
 
                     <div class="col-12">
-                        <div class="card h-100 shadow-sm border-0 transition-all 
+                        <div class="card participant-training-card shadow-sm border-0 transition-all 
                             {{ $isPending ? 'border-top border-warning border-3' : ($needsPostEvaluation ? 'border-top border-warning border-3' : ($isExpired ? 'border-top border-danger border-3' : 'border-top border-primary border-3')) }}
                             hover-shadow-lg">
 
@@ -170,21 +170,16 @@
                 @endforeach
             @else
                 {{-- KONDISI: JIKA TIDAK ADA PELATIHAN AKTIF (TAMPILAN TENGAH) --}}
-                <div class="col-md-8 col-lg-6">
-                    <div class="card shadow-lg border-0 text-center p-5 animate__animated animate__zoomIn" style="border-radius: 20px;">
+                <div class="col-12">
+                    <div class="card training-empty-panel border-0 shadow-sm">
                         <div class="card-body">
-                            <div class="mb-4">
-                                <div class="avatar bg-label-primary rounded-circle mx-auto shadow-sm" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bx bx-book-open" style="font-size: 4rem;"></i>
-                                </div>
+                            <div class="training-empty-icon bg-label-primary" aria-hidden="true"><i class="bx bx-book-open"></i></div>
+                            <div class="training-empty-copy">
+                                <h3 class="fw-bold mb-2">Mulai Pelatihan Anda</h3>
+                                <p class="text-muted mb-0">Anda belum terdaftar dalam pelatihan aktif. Gunakan <strong>Kode Undangan</strong> dari panitia penyelenggara untuk mengikuti pelatihan.</p>
                             </div>
-                            <h3 class="fw-bold text-dark">Mulai Pelatihan Anda</h3>
-                            <p class="text-muted px-lg-5 mb-5">
-                                Anda belum terdaftar dalam pelatihan aktif manapun saat ini. 
-                                Silakan masukkan <strong>Kode Undangan</strong> yang Anda terima dari panitia penyelenggara.
-                            </p>
-                            <button class="btn btn-primary btn-lg px-5 py-3 shadow pulse-button fw-bold" data-bs-toggle="modal" data-bs-target="#modalJoinGlobal">
-                                <i class="bx bx-plus-circle me-2 fs-3"></i> IKUTI PELATIHAN BARU
+                            <button type="button" class="btn btn-primary training-empty-action" data-bs-toggle="modal" data-bs-target="#modalJoinGlobal">
+                                <i class="bx bx-plus-circle me-2 fs-4"></i>Ikuti Pelatihan Baru
                             </button>
                         </div>
                     </div>
@@ -327,17 +322,17 @@
         
         .hover-shadow-lg:hover {
             transform: translateY(-4px);
-            box-shadow: 0 15px 30px rgba(105, 108, 255, 0.15) !important;
+            box-shadow: 0 15px 30px rgba(0, 100, 48, 0.15) !important;
         }
 
         .pulse-button {
-            animation: pulse-blue 2s infinite;
+            animation: pulse-green 2s infinite;
         }
 
-        @keyframes pulse-blue {
-            0% { box-shadow: 0 0 0 0 rgba(105, 108, 255, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(105, 108, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(105, 108, 255, 0); }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(22, 167, 92, 0.35); }
+            70% { box-shadow: 0 0 0 15px rgba(22, 167, 92, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(22, 167, 92, 0); }
         }
 
         .schedule-modal-day:last-child { margin-bottom: 0 !important; }
@@ -347,73 +342,65 @@
             background-color: #fcfcfd;
         }
 
-        .training-meta {
-            display: flex;
-            flex-direction: column;
-            gap: .7rem;
-            color: #697a8d;
-            font-size: .875rem;
+        .training-empty-panel { border-radius: 18px; }
+        .training-empty-panel .card-body { display: flex; align-items: center; gap: 24px; padding: 32px; }
+        .training-empty-icon { width: 76px; height: 76px; border-radius: 20px; display: grid; place-items: center; flex-shrink: 0; }
+        .training-empty-icon i { font-size: 40px; }
+        .training-empty-copy { flex: 1; min-width: 0; }
+        .training-empty-copy h3 { font-size: 1.4rem; }
+        .training-empty-copy p { max-width: 640px; line-height: 1.7; }
+        .training-empty-action { flex-shrink: 0; min-height: 46px; white-space: normal; }
+        @media (max-width: 991.98px) {
+            .training-empty-panel .card-body { flex-wrap: wrap; padding: 24px; gap: 18px; }
+            .training-empty-copy { flex-basis: calc(100% - 94px); }
+            .training-empty-action { margin-left: 94px; }
+        }
+        @media (max-width: 575.98px) {
+            .training-empty-panel .card-body { padding: 20px; gap: 14px; }
+            .training-empty-icon { width: 48px; height: 48px; border-radius: 12px; }
+            .training-empty-icon i { font-size: 28px; }
+            .training-empty-copy { flex-basis: calc(100% - 62px); }
+            .training-empty-copy h3 { font-size: 1.1rem; }
+            .training-empty-action { margin-left: 0; width: 100%; }
         }
 
-        .training-meta span {
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .task-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .75rem 1.5rem;
-        }
-
+        .participant-training-card { width: 100%; border-radius: 16px; }
+        .participant-training-card .card-header { padding: 18px 24px 12px; flex-wrap: wrap; gap: 10px; }
+        .participant-training-card .card-body { padding: 12px 24px 20px; }
+        .participant-training-card .card-footer { padding-inline: 24px; }
+        .participant-training-card .card-title { font-size: 1.25rem; line-height: 1.45; overflow-wrap: anywhere; }
+        .training-meta { display: flex; flex-wrap: wrap; gap: .6rem 1rem; font-size: .875rem; }
+        .training-meta span { display: inline-flex; align-items: baseline; overflow-wrap: anywhere; }
+        .training-meta i { flex-shrink: 0; }
         .training-landscape {
             display: grid;
-            grid-template-columns: minmax(240px, 1.1fr) minmax(220px, .85fr) minmax(340px, 1.3fr);
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) minmax(0, 1.15fr);
             align-items: stretch;
             gap: 1.25rem;
         }
-
-        .training-main-info,
-        .training-schedule-panel,
-        .task-section,
-        .training-landscape > .alert {
-            min-width: 0;
-            height: 100%;
+        .training-main-info, .training-schedule-panel, .task-section, .training-landscape > .alert { min-width: 0; }
+        .training-main-info { align-self: center; }
+        .training-schedule-panel { display: flex; flex-direction: column; justify-content: center; min-height: 110px; }
+        .task-section { display: flex; flex-direction: column; justify-content: center; }
+        .task-grid { display: grid; grid-template-columns: 1fr; gap: .6rem; }
+        .task-grid > div { gap: 12px; }
+        .task-grid .badge { white-space: normal; text-align: center; flex-shrink: 0; max-width: 115px; }
+        .task-grid .bx { flex-shrink: 0; }
+        .training-landscape > .alert { margin-bottom: 0; align-content: center; }
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .training-landscape { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+            .training-landscape .task-section, .training-landscape > .alert { grid-column: 1 / -1; }
+            .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.5rem; }
+        }
+        @media (max-width: 767.98px) {
+            .training-landscape { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+            .training-schedule-panel { min-height: auto; text-align: left !important; }
+            .participant-training-card .card-header { padding: 16px 16px 8px; align-items: flex-start !important; }
+            .participant-training-card .card-body { padding: 12px 16px 16px; }
+            .participant-training-card .card-footer { padding-inline: 16px; }
+            .participant-training-card .card-footer .btn { white-space: normal; }
+            .participant-training-card .card-title { font-size: 1.125rem; margin-bottom: 12px !important; }
         }
 
-        .training-schedule-panel {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 132px;
-        }
-
-        .task-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        @media (max-width: 1199.98px) {
-            .training-landscape {
-                grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
-            }
-            .training-landscape .task-section,
-            .training-landscape > .alert {
-                grid-column: 1 / -1;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .training-landscape { grid-template-columns: 1fr; }
-            .training-landscape .task-section,
-            .training-landscape > .alert { grid-column: auto; }
-            .task-grid { grid-template-columns: 1fr; }
-            .card-header { align-items: flex-start !important; gap: .75rem; }
-            .card-footer .btn { white-space: normal; }
-        }
-        
-        .bg-label-primary { background-color: #f0f0ff !important; }
-        .bg-label-danger { background-color: #fff0f0 !important; }
     </style>
 @endsection

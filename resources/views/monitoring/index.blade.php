@@ -67,17 +67,17 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.export.laporan', $t->id) }}">
+                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', $t->id) }}">
                                         <i class="bx bxs-file-doc me-2 text-primary"></i> Laporan Monitoring
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.export.tindaklanjut', $t->id) }}">
+                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', ['id' => $t->id, 'document' => 'tindaklanjut']) }}">
                                         <i class="bx bxs-file-doc me-2 text-warning"></i> Laporan Tindak Lanjut
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.export.rekap', $t->id) }}">
+                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', ['id' => $t->id, 'document' => 'ceklis']) }}">
                                         <i class="bx bxs-spreadsheet me-2 text-success"></i> Checklist Monitoring
                                     </a>
                                 </li>

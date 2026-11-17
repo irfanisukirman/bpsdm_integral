@@ -26,10 +26,16 @@
                 selectedAddressArea('provinsi'),
                 'Indonesia'
             ].filter(Boolean).join(', ');
-            const params = new URLSearchParams({q: query + (area ? ', ' + area : '')});
-            const response = await fetch(addressSearchUrl + '?' + params.toString(), {headers:{Accept:'application/json'}});
-            const payload = await response.json();
-            if (!response.ok) throw new Error(payload.message || 'Pencarian alamat gagal.');
+            async function findAddress(search) {
+                const params = new URLSearchParams({q: search.slice(0, 200)});
+                const response = await fetch(addressSearchUrl + '?' + params.toString(), {headers:{Accept:'application/json'}});
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.message || 'Pencarian alamat gagal.');
+                return payload;
+            }
+            let payload = await findAddress(query + (area ? ', ' + area : ''));
+            // A street or village may be outside the selected administrative area.
+            if (!payload.data.length && area) payload = await findAddress(query + ', Indonesia');
 
             addressResults.innerHTML = '';
             if (!payload.data.length) {
@@ -58,13 +64,17 @@
                 addressResults.appendChild(option);
             });
         } catch (error) {
-            addressResults.innerHTML = '<div class="list-group-item text-danger"><i class="bx bx-error-circle me-1"></i>' + error.message + '</div>';
+            const message = document.createElement('div');
+            message.className = 'list-group-item text-danger';
+            message.textContent = error.message;
+            addressResults.replaceChildren(message);
         } finally {
             addressButton.disabled = false;
             addressButton.innerHTML = '<i class="bx bx-search me-1"></i>Cari Alamat';
         }
     }
 
+    addressInput.addEventListener('input', () => addressInput.setCustomValidity(''));
     addressButton.addEventListener('click', searchProfileAddress);
     addressInput.addEventListener('keydown', event => {
         if (event.key === 'Enter') {

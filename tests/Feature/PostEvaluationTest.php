@@ -407,6 +407,14 @@ class PostEvaluationTest extends TestCase
         $this->post(route('post-evaluation.assign', $t), ['team_id' => $team->id, 'participant_ids' => [$p->id]])->assertRedirect();
         $other = Participant::create(['training_id' => $t->id, 'name' => 'ALUMNI TIM LAIN', 'nip_nik' => '222', 'instansi' => 'Unit Lain', 'registration_status' => 'approved']);
         $this->actingAs($member)->get(route('post-evaluation.show', [$t, 'tab' => 'peserta']))->assertOk()->assertSee('ALUMNI RAHASIA')->assertDontSee('ALUMNI TIM LAIN');
+        $this->get(route('post-evaluation.show', $t))->assertOk()
+            ->assertSee('Ringkasan')->assertSee('Peserta &amp; Wawancara', false)
+            ->assertDontSee('Link Pengisian Proper')->assertDontSee('Link publik pengisian inovasi')
+            ->assertDontSee('Unduh PDF')->assertDontSee('Excel Survei')->assertDontSee('>Ekspose</a>', false)
+            ->assertDontSee('Buat ulang narasi AI')->assertDontSee('pasca-narrative-form');
+        $this->get(route('post-evaluation.show', [$t, 'tab' => 'jawaban']))->assertForbidden();
+        $this->get(route('post-evaluation.expose', $t))->assertForbidden();
+        $this->get(route('post-evaluation.pdf', $t))->assertForbidden();
         $this->get(route('post-evaluation.interview', [$t, $other]))->assertForbidden();
         $this->post(route('post-evaluation.publish', $t), ['action' => 'publish'])->assertForbidden();
         $this->get(route('post-evaluation.show', [$t, 'tab' => 'pengaturan']))->assertForbidden();
@@ -526,4 +534,37 @@ class PostEvaluationTest extends TestCase
         $outsider = User::factory()->create(['role' => 'admin_bidang', 'bidang' => 'Bidang B']);
         $this->actingAs($outsider)->get(route('post-evaluation.evidence', [$t, $evidence->id]))->assertForbidden();
     }
+    public function test_interview_live_summary_shows_weighted_and_partial_values_after_survey(): void
+    {
+        [$admin, $training, $participant] = $this->setupData();
+        $interview = PostEvaluationInterview::firstOrCreate(['training_id' => $training->id, 'participant_id' => $participant->id]);
+        $interview->update(['scores' => [80, 90, 90, 86, 100], 'status' => 'completed']);
+        $response = $this->actingAs($admin)->get(route('post-evaluation.interview', [$training, $participant]));
+        $response->assertOk()->assertSeeInOrder(['Jawaban survei', 'PENGISIAN LANGSUNG', 'Nilai akhir berbobot', '87,80', '5/5 nilai terisi', 'Wawancara ekspose', '88,67']);
+        $interview->update(['scores' => [0, null, null, null, null], 'status' => 'draft']);
+        $this->get(route('post-evaluation.interview', [$training, $participant]))->assertOk()->assertSee('1/5 nilai terisi')->assertSee('id="liveWeightedScore" aria-live="polite">-</div>', false)->assertSee('id="liveInterviewStatus">Draf</strong>', false);
+    }
+
+    public function test_evaluator_training_list_only_contains_explicit_team_assignments_and_revokes_access(): void
+    {
+        [$admin, $assigned] = $this->setupData();
+        $assigned->update(['nama_pelatihan' => 'Pelatihan Ditugaskan']);
+        $other = $assigned->replicate(['proper_uid']); $other->nama_pelatihan = 'Pelatihan Tim Orang Lain'; $other->save();
+        $empty = $assigned->replicate(['proper_uid']); $empty->nama_pelatihan = 'Pelatihan Tanpa Penugasan'; $empty->save();
+        $evaluator = User::factory()->create(['role' => 'evaluator', 'bidang' => $assigned->bidang]);
+        $colleague = User::factory()->create(['role' => 'evaluator']);
+        $this->actingAs($evaluator)->get(route('post-evaluation.index'))->assertOk()->assertDontSee('Pelatihan Ditugaskan')->assertDontSee('Pelatihan Tanpa Penugasan');
+        $this->actingAs($admin)->post(route('post-evaluation.team', $assigned), ['name' => 'Tim Satu', 'users' => [$evaluator->id]])->assertRedirect();
+        $this->post(route('post-evaluation.team', $assigned), ['name' => 'Tim Dua', 'users' => [$evaluator->id]])->assertRedirect();
+        $this->post(route('post-evaluation.team', $other), ['name' => 'Tim Orang Lain', 'users' => [$colleague->id]])->assertRedirect();
+        $response = $this->actingAs($evaluator)->get(route('post-evaluation.index'))->assertOk()->assertSee('Pelatihan Ditugaskan')->assertDontSee('Pelatihan Tim Orang Lain')->assertDontSee('Pelatihan Tanpa Penugasan');
+        $this->assertSame(1, $response->viewData('trainings')->total());
+        $this->get(route('post-evaluation.index', ['q' => 'Pelatihan']))->assertOk()->assertDontSee('Pelatihan Tim Orang Lain');
+        $this->get(route('post-evaluation.show', $other))->assertForbidden();
+        DB::table('post_evaluation_team_user')->where('user_id', $evaluator->id)->delete();
+        $this->get(route('post-evaluation.index'))->assertOk()->assertDontSee('Pelatihan Ditugaskan');
+        $this->get(route('post-evaluation.show', $assigned))->assertForbidden();
+        $this->actingAs($admin)->get(route('post-evaluation.index'))->assertOk()->assertSee('Pelatihan Ditugaskan')->assertSee('Pelatihan Tim Orang Lain')->assertSee('Pelatihan Tanpa Penugasan');
+    }
+
 }

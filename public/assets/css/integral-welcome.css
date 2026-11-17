@@ -1,0 +1,100 @@
+/* Public welcome, using Integral's shared Sapawarga typography and green palette. */
+:root { --bs-font-sans-serif:"Lato",sans-serif; --bs-body-font-family:"Lato",sans-serif; --bs-primary:#008444; --bs-primary-rgb:0,132,68; --bs-body-color:#424242; --integral-primary:#008444; --integral-dark:#212121; --integral-gradient:linear-gradient(125deg,#008444,#006430); }
+body { font-family:"Lato",sans-serif; color:#424242; line-height:1.65; }
+h1,h2,h3,h4,h5,h6 { font-family:"Roboto",sans-serif; color:#212121; line-height:1.4; letter-spacing:-.02em; }
+.hero-title { font-family:"Lora",serif; font-weight:600; line-height:1.2; }
+.hero-system-name { font-family:"Roboto",sans-serif; color:#212121; }
+.nav-link,.btn { font-family:"Lato",sans-serif; }
+.text-primary { color:#008444!important; }
+.text-muted { color:#616161!important; }
+.navbar-custom { background:#003d20; border-bottom:1px solid rgba(195,233,208,.18); transition:background-color .3s ease,padding .3s ease,box-shadow .3s ease; }
+.navbar-custom.scrolled { background:#16a75c; box-shadow:0 5px 22px rgba(0,100,48,.16); }
+.navbar-custom .navbar-brand .text-dark,.navbar-custom .navbar-toggler { color:#fff!important; }
+.navbar-custom .navbar-brand img { background:#e6f6ec; border-radius:10px; padding:3px; }
+.navbar-custom .btn-primary-gradient { background:#e6f6ec; color:#004d29; }
+.navbar-custom .btn-primary-gradient:hover { background:#c3e9d0; color:#004d29; }
+.navbar-custom.scrolled .nav-link,.navbar-custom.scrolled .navbar-brand .text-dark,.navbar-custom.scrolled .navbar-toggler { color:#fff!important; }
+.navbar-custom .nav-link { color:#fff; font-size:.88rem; }
+.navbar-custom .nav-link:hover,.navbar-custom .nav-link.active { color:#006430!important; background:#e6f6ec; border-radius:8px; }
+.navbar-custom .navbar-nav .nav-link { padding-inline:.7rem!important; }
+.navbar-toggler:focus-visible,.btn:focus-visible,a:focus-visible { outline:3px solid #70cd94; outline-offset:3px; box-shadow:none; }
+.hero-section { min-height:min(820px,100svh); background:radial-gradient(ellipse at 85% 30%,#e6f6ec 0,transparent 55%),linear-gradient(180deg,#f6faf7,#fff); }
+.hero-integral-title span { background:none; color:#008444; }
+.hero-description { color:#616161; }
+.hero-copy-minimal::before { background:linear-gradient(#16a75c,#c3e9d0); }
+.hero-illustration-wrap::before { background:radial-gradient(circle,rgba(22,167,92,.15),transparent 70%); pointer-events:none; }
+.hero-actions { flex-wrap:wrap!important; }
+.hero-actions .btn-outline-secondary { color:#006430; border-color:#70cd94; background:#e6f6ec; }
+.hero-actions .btn-outline-secondary:hover { background:#c3e9d0; }
+.btn-primary-gradient { background:linear-gradient(125deg,#008444,#006430); }
+.btn-primary-gradient:hover { background:#006430; transform:translateY(-2px); }
+.integral-showcase { width:100%; background:linear-gradient(135deg,#006430,#008444 65%,#16a75c); box-shadow:0 22px 55px rgba(0,100,48,.18); }
+.integral-showcase::before,.integral-showcase::after { pointer-events:none; background:rgba(112,205,148,.13); }
+.showcase-title { color:#f1faf4; font-family:"Roboto",sans-serif; }
+.showcase-logo { width:66px; height:66px; background:#e6f6ec; }
+.showcase-item { background:rgba(0,70,35,.19); border-color:rgba(195,233,208,.3); }
+.showcase-item small { color:#d6efdf; }
+.showcase-item i { color:#c3e9d0; }
+.feature-card { border-color:#e0e8e2; }
+.feature-card:hover { transform:translateY(-5px); }
+.integration-section { background:linear-gradient(#f0f8f2,#fff); }
+.integration-group-label { color:#616161; }
+.integration-group-label::after { background:linear-gradient(90deg,#c3e9d0,transparent); }
+.integration-card__title { color:#212121; }
+.integration-card__description { color:#616161; }
+.footer { background:#004d29; }
+.footer h1,.footer h2,.footer h3,.footer h4,.footer h5,.footer h6 { color:#effaf3; }
+.footer .text-muted { color:#b8d9c4!important; }
+@media(max-width:1199.98px) { .navbar-custom .navbar-collapse { max-height:calc(100dvh - 90px); overflow-y:auto; padding-block:16px; } .navbar-custom .navbar-nav .nav-link { padding:.65rem!important; } }
+@media(max-width:575.98px) { .hero-section { padding-top:120px; padding-bottom:48px; min-height:auto; } .hero-illustration-wrap { min-height:auto; margin-top:18px; } .integral-showcase { padding:24px; border-radius:22px; } .hero-actions .btn { flex:1 1 150px; } .feature-card { padding:26px; } }
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; transition:none!important; } }
+
+/* Override the legacy inline navbar rule in every scroll/interaction state. */
+#mainNavbar .navbar-nav .nav-link,
+#mainNavbar.scrolled .navbar-nav .nav-link,
+#mainNavbar .navbar-nav .nav-link:is(:hover,:focus-visible,.active,.active-link) { color:#fff!important; }
+#mainNavbar .navbar-nav .nav-link:is(:hover,:focus-visible,.active,.active-link) { background:rgba(195,233,208,.16); border-radius:8px; }
+#mainNavbar .navbar-nav .nav-link::after { background-color:#c3e9d0; }
+
+/* Reference structure: dark introduction and an overlapping framed feature panel. */
+.welcome-intro { margin-top:82px; padding:26px 0 130px; background:radial-gradient(ellipse at 90% 0%,rgba(112,205,148,.12),transparent 65%),linear-gradient(120deg,#003d20,#004d29); color:#effaf3; }
+.welcome-breadcrumb { display:flex; align-items:center; gap:10px; margin-bottom:26px; font-size:.82rem; }
+.welcome-breadcrumb a { color:#9cdfb5; }
+.welcome-breadcrumb span { color:#fff; font-weight:700; }
+.welcome-intro h2 { font-family:"Lora",serif; color:#70cd94; font-size:1.65rem; font-weight:600; margin-bottom:12px; }
+.welcome-intro p { max-width:900px; color:#e0f2e7; font-size:.95rem; line-height:1.8; margin:0; }
+.hero-section.welcome-feature-panel { position:relative; display:block; min-height:auto; margin-top:-78px; padding:0 0 64px; background:transparent; }
+.welcome-feature-panel>.container { background:#fff; padding:20px; border:1px solid #e0e8e2; border-radius:12px; box-shadow:0 12px 38px rgba(0,62,30,.07); }
+.welcome-feature-panel>.container>.row { margin:0; padding:46px 24px; border-radius:18px; background:radial-gradient(ellipse at 95% 10%,#c3e9d0,transparent 70%),#f0faf3; }
+.welcome-feature-panel .hero-title { font-family:"Roboto",sans-serif; font-size:clamp(2rem,3.4vw,3.25rem); font-weight:700; line-height:1.35; letter-spacing:-.025em; margin:0 0 18px; color:#212121; }
+.welcome-feature-panel .hero-title span { color:#008444; background:none; }
+.welcome-feature-panel .hero-system-name { font-size:.95rem; font-weight:600; color:#006430; margin-bottom:14px; }
+.welcome-feature-panel .hero-copy { text-align:left; }
+.welcome-feature-panel .hero-copy-minimal::before { display:none; }
+.welcome-feature-panel .hero-description { font-size:1rem; color:#424242; }
+.welcome-feature-panel .hero-illustration-wrap { min-height:360px; }
+.welcome-feature-panel .hero-img { width:100%; max-width:560px; }
+.welcome-feature-panel .hero-actions { justify-content:flex-start; }
+@media(max-width:991.98px) { .welcome-intro { padding-bottom:110px; } .welcome-feature-panel>.container>.row { padding:28px 18px; } .welcome-feature-panel .hero-illustration-wrap { min-height:0; margin-top:20px; } .welcome-feature-panel .hero-img { max-width:430px; } }
+@media(max-width:575.98px) { .welcome-intro { margin-top:78px; padding:22px 0 100px; } .welcome-breadcrumb { margin-bottom:20px; } .welcome-intro p { font-size:.86rem; } .hero-section.welcome-feature-panel { margin-top:-58px; padding-bottom:40px; padding-inline:12px; } .welcome-feature-panel>.container { padding:10px; border-radius:12px; } .welcome-feature-panel>.container>.row { padding:22px 10px; border-radius:12px; } .welcome-feature-panel .hero-title { font-size:1.95rem; } .welcome-feature-panel .hero-description { font-size:.93rem; } }
+
+.welcome-intro>.container,.welcome-feature-panel>.container { max-width:1200px; }
+.welcome-feature-panel .hero-title { font-size:clamp(2rem,3vw,2.85rem); }
+@media(min-width:1200px) { .navbar-custom>.container { max-width:1280px; } .navbar-custom .btn-integral { padding-inline:20px; } .navbar-custom .navbar-nav .nav-link { padding-inline:.55rem!important; font-size:.84rem; } }
+@media(max-width:575.98px) { .welcome-feature-panel .hero-title { font-size:1.95rem; } }
+
+@media(min-width:1200px) and (max-width:1399.98px) {
+ .navbar-custom>.container { max-width:100%; padding-inline:20px; gap:12px; }
+ .navbar-custom .navbar-brand { margin-right:10px; }
+ .navbar-custom .navbar-brand .h4 { font-size:1.15rem; }
+ .navbar-custom .navbar-nav .nav-link { padding-inline:.4rem!important; font-size:.78rem; white-space:nowrap; }
+ .navbar-custom .btn-integral { padding:10px 14px; font-size:.82rem; white-space:nowrap; }
+ .navbar-custom .navbar-collapse { min-width:0; }
+}
+
+/* Supplied Gedung Sate PNG forms a quiet decorative layer beneath the introduction. */
+.welcome-intro { position:relative; isolation:isolate; overflow:hidden; padding-bottom:180px; }
+.welcome-intro>.container { position:relative; z-index:1; }
+.welcome-gedung-sate { position:absolute; right:0; bottom:0; width:100%; height:100%; object-fit:cover; object-position:center 70%; opacity:.24; pointer-events:none; user-select:none; z-index:0; mask-image:linear-gradient(to bottom,transparent 0%,#000 65%); -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 65%); }
+@media(max-width:991.98px) { .welcome-intro { padding-bottom:160px; } .welcome-gedung-sate { width:100%; opacity:.2; } }
+@media(max-width:575.98px) { .welcome-intro { padding-bottom:140px; } .welcome-gedung-sate { width:100%; height:100%; right:0; object-position:65% bottom; opacity:.22; } }

@@ -133,7 +133,7 @@
         <div class="tab-pane fade show active" id="narrative">
             <div class="activity-report-ai-panel mb-4">
                 <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-                    <div class="d-flex align-items-start gap-3"><span class="activity-report-ai-icon"><i class="bx bx-bot"></i></span><div><h5 class="fw-bold mb-1">Susun Draf Laporan dengan AI</h5><p class="small text-muted mb-0">AI menggunakan data agregat pelatihan, jadwal tanpa identitas, serta kesimpulan evaluasi anonim. Hasil tetap harus ditelaah admin.</p></div></div>
+                    <div class="d-flex align-items-start gap-3"><span class="activity-report-ai-icon"><i class="bx bx-bot"></i></span><div><h5 class="fw-bold mb-1">Susun Draf Laporan dengan AI</h5><p class="small text-muted mb-0">AI menyusun narasi lebih panjang dalam beberapa paragraf per bagian, dengan menggabungkan evaluasi Level 1?4, rangkuman dan tindak lanjut penyelenggara, kehadiran, jadwal, serta data pengajar tanpa identitas. Hasil tetap harus ditelaah admin.</p></div></div>
                     <form method="POST" action="{{ route('training-activity-report.ai-draft', $training) }}" onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').innerHTML='Menyusun draf...';">@csrf<button class="btn btn-primary text-nowrap"><i class="bx bx-sparkles me-1"></i>Buat Draf Semua Narasi</button></form>
                 </div>
                 @if(session('activity_report_ai_error'))<div class="alert alert-danger small mb-0 mt-3"><i class="bx bx-error-circle me-1"></i>{{ session('activity_report_ai_error') }}</div>@endif

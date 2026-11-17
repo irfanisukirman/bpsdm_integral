@@ -73,7 +73,7 @@ class ParticipantAccountImportTest extends TestCase
         $status=\App\Models\EmploymentStatus::where('code','PNS')->firstOrFail();
         $this->post(route('participant.profile.store'), [
             'institution_id'=>$institution->id,'employment_status_id'=>$status->id,
-            'user_type' => 'peserta', 'nip_nik' => '19880001', 'whatsapp' => '08123456789',
+            'user_type' => 'peserta', 'nip' => '198801012020011001', 'nik' => '3201010101880001', 'whatsapp' => '08123456789',
             'gender' => 'Laki-Laki', 'birth_place' => 'Bandung', 'birth_date' => '1990-01-01',
             'jabatan' => 'Analis', 'instansi' => 'BPSDM', 'status_kepegawaian' => 'PNS',
             'provinsi' => 'JAWA BARAT', 'kota' => 'KOTA BANDUNG', 'kecamatan' => 'COBLONG',

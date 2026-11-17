@@ -21,11 +21,21 @@
 
     <ul class="menu-inner py-3">
         @include('layouts.role-access')
-        @if(in_array(Auth::user()->role, ['superadmin', 'evaluator'], true) || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
-            <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+        @endif
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
+            <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
+                <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
+            </li>
         @endif
 
+
+
         <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
+
+
+
         @if(Auth::user()->role === 'resepsionis')
             <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>
         @endif        @if(Auth::user()->role === 'pengelola_magang')
@@ -37,37 +47,26 @@
                 <a href="{{ route('electronic-signatures.index') }}" class="menu-link"><i class="menu-icon bx bx-pen"></i><div class="fw-bold">Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge">{{$menuNoticeCount('electronic_signatures')}}</span>@endif</a>
             </li>
         @endif
-        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'manajemen_mutu'], true))
-            <li class="menu-item {{ request()->routeIs('quality-management.*') ? 'active' : '' }}">
-                <a href="{{ route('quality-management.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div class="fw-bold">Manajemen Mutu</div></a>
-            </li>
-        @endif
+
         @if(Auth::user()->role === 'participant' && Auth::user()->activeDailyReportAssignment()->exists())
             <li class="menu-item {{ request()->routeIs('daily-reports.*') ? 'active' : '' }}"><a href="{{route('daily-reports.index')}}" class="menu-link"><i class="menu-icon bx bx-notepad"></i><div class="fw-bold">Laporan Harian</div></a></li>
         @endif
         @if(Auth::user()->role === 'kasubag_pppk_pw')
             <li class="menu-item {{ request()->routeIs('daily-report-management.reports') ? 'active' : '' }}"><a href="{{route('daily-report-management.reports')}}" class="menu-link"><i class="menu-icon bx bx-bar-chart-square"></i><div class="fw-bold">Monitoring Laporan</div></a></li>
         @endif
-        @if(in_array(Auth::user()->role, ['superadmin', 'pengelola_keuangan'], true))
-            <li class="menu-item {{ request()->routeIs('finance.*') ? 'active' : '' }}"><a href="{{route('finance.index')}}" class="menu-link"><i class="menu-icon bx bx-wallet"></i><div class="fw-bold">Pengelolaan Keuangan</div></a></li>
-        @endif
-        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
-            <li class="menu-item {{ request()->routeIs('ai-assistant.*') ? 'active' : '' }}">
-                <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
-            </li>
-        @endif
+
         @if(Auth::user()->role === 'admin_aset')
             <li class="menu-item {{ request()->routeIs('assets.dashboard') ? 'active' : '' }}"><a href="{{ route('assets.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-grid-alt"></i><div class="fw-bold">Dashboard Aset</div></a></li>
         @elseif(in_array(Auth::user()->role, ['superadmin', 'admin_bidang']))
-            <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"><a href="{{ route('dashboard') }}" class="menu-link"><i class="menu-icon bx bx-home-circle"></i><div class="fw-bold">Dashboard Admin</div></a></li>
+            {{-- Dashboard Admin sudah ditampilkan paling atas. --}}
         @elseif(Auth::user()->role === 'resepsionis')
             {{-- Menu Buku Tamu sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'pengelola_magang')
             {{-- Menu pengelola magang sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'pengelola_keuangan')
-            {{-- Menu keuangan sudah ditampilkan di atas. --}}
+            {{-- Menu keuangan ditampilkan pada kategori tersendiri. --}}
         @elseif(Auth::user()->role === 'manajemen_mutu')
-            {{-- Menu Manajemen Mutu sudah ditampilkan di atas. --}}
+            {{-- Menu Manajemen Mutu ditampilkan pada kategori tersendiri. --}}
         @elseif(Auth::user()->role === 'kasubag_pppk_pw')
             {{-- Menu monitoring laporan sudah ditampilkan di atas. --}}
         @elseif(Auth::user()->role === 'intern')
@@ -89,6 +88,7 @@
             <li class="menu-item {{ request()->is('trainings*') && !request()->is('*attendance*') && !request()->is('*monitoring*') && !request()->is('*evaluasi*') ? 'active' : '' }}">
                 <a href="{{ route('trainings.index') }}" class="menu-link"><i class="menu-icon bx bx-collection"></i><div>Daftar Pelatihan</div>@if($menuNoticeCount('trainings'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('trainings')>99?'99+':$menuNoticeCount('trainings')}}</span>@endif</a>
             </li>
+
             <li class="menu-item {{ request()->routeIs('teacher-monitoring.*') ? 'active' : '' }}">
                 <a href="{{ route('teacher-monitoring.index') }}" class="menu-link"><i class="menu-icon bx bx-chalkboard"></i><div>Monitoring Pengajar</div></a>
             </li>
@@ -107,8 +107,43 @@
             </li>
         @endif
 
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-item {{ request()->routeIs('alumni.index') ? 'active' : '' }}">
+                <a href="{{ route('alumni.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                    <div>Kelola Alumni</div>
+                </a>
+            </li>
+        @endif
+
+
+
+        @if(in_array(Auth::user()->role, ['superadmin', 'evaluator'], true) || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Expose Evaluasi Pasca</span></li>
+            <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
+        @endif
+
+
+
+        @if(in_array(Auth::user()->role, ['superadmin', 'pengelola_keuangan'], true))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Keuangan</span></li>
+            <li class="menu-item {{ request()->routeIs('finance.*') ? 'active' : '' }}"><a href="{{route('finance.index')}}" class="menu-link"><i class="menu-icon bx bx-wallet"></i><div class="fw-bold">Pengelolaan Keuangan</div></a></li>
+        @endif
+
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Persetujuan Elektronik</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
+                <a href="{{ route('electronic-signatures.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-pen"></i>
+                    <div>Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Dokumen menunggu tanda tangan">{{$menuNoticeCount('electronic_signatures')>99?'99+':$menuNoticeCount('electronic_signatures')}}</span>@endif
+                </a>
+            </li>
+        @endif
+
         @if(Auth::user()->role === 'superadmin' || (Auth::user()->role === 'admin_bidang' && Auth::user()->bidang === \App\Models\Bidang::resolve('Bidang Sertifikasi Kompetensi & Pengelolaan Kelembagaan')))
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Panel SKPK</span></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Sertifikasi &amp; Kerjasama</span></li>
             <li class="menu-item {{ request()->routeIs('certifications.*') ? 'active' : '' }}">
                 <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
             </li>
@@ -169,11 +204,43 @@
                 </a>
             </li>
 
+        @endif
+
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'manajemen_mutu'], true))
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Manajemen Mutu &amp; Dokumen</span></li>
+            <li class="menu-item {{ request()->routeIs('quality-management.*') ? 'active' : '' }}">
+                <a href="{{ route('quality-management.index') }}" class="menu-link"><i class="menu-icon bx bx-check-shield"></i><div class="fw-bold">Manajemen Mutu</div></a>
+            </li>
+            @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
+                <a href="{{ route('documents.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-folder"></i>
+                    <div>Manajemen Dokumen</div>@if($menuNoticeCount('documents'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('documents')>99?'99+':$menuNoticeCount('documents')}}</span>@endif
+                </a>
+            </li>
+            @endif
+        @endif
+
+        @if(Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin_bidang')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             @if(Auth::user()->role === 'superadmin')
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Kelola Instrumen</span>
+                <span class="menu-header-text">Pengaturan Sistem</span>
             </li>
-
             <li class="menu-item {{ request()->is('monitoring-indicators*') || request()->is('questions*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons bx bx-book-content"></i>
@@ -193,44 +260,6 @@
                 </ul>
             </li>
 
-            @endif
-
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Kelola Dokumen</span>
-            </li>
-
-            <li class="menu-item {{ request()->is('documents*') ? 'active' : '' }}">
-                <a href="{{ route('documents.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-folder"></i>
-                    <div>Manajemen Dokumen</div>@if($menuNoticeCount('documents'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('documents')>99?'99+':$menuNoticeCount('documents')}}</span>@endif
-                </a>
-            </li>
-
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Persetujuan Elektronik</span>
-            </li>
-            <li class="menu-item {{ request()->routeIs('electronic-signatures.*') ? 'active' : '' }}">
-                <a href="{{ route('electronic-signatures.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-pen"></i>
-                    <div>Tanda Tangan Elektronik</div>@if($menuNoticeCount('electronic_signatures'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Dokumen menunggu tanda tangan">{{$menuNoticeCount('electronic_signatures')>99?'99+':$menuNoticeCount('electronic_signatures')}}</span>@endif
-                </a>
-            </li>
-
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Manajemen Alumni</span>
-            </li>
-
-            <li class="menu-item {{ request()->routeIs('alumni.index') ? 'active' : '' }}">
-                <a href="{{ route('alumni.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-user-pin"></i>
-                    <div>Kelola Alumni</div>
-                </a>
-            </li>
-
-            @if(Auth::user()->role === 'superadmin')
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Pengaturan Sistem</span>
-            </li>
             <li class="menu-item {{ request()->routeIs('settings.bidang.*') ? 'active' : '' }}"><a href="{{ route('settings.bidang.index') }}" class="menu-link"><i class="menu-icon tf-icons bx bx-buildings"></i><div>Kelola Bidang</div></a></li>
             <li class="menu-item {{ request()->routeIs('settings.login-help.*') ? 'active' : '' }}">
                 <a href="{{ route('settings.login-help.edit') }}" class="menu-link">

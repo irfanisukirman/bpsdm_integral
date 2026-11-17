@@ -91,10 +91,23 @@
                                 <label class="form-label fw-bold">Nama Lengkap</label>
                                 <input class="form-control" type="text" name="name" value="{{ old('name', $user->name) }}" required />
                             </div>
+                            @if($user->primaryRole() === 'participant')
+                            <div class="mb-3 col-md-6">
+                                <label for="profileNip" class="form-label fw-bold">NIP <span class="text-danger">*</span></label>
+                                <input id="profileNip" class="form-control" type="text" name="nip" inputmode="numeric" pattern="[0-9]{18}" minlength="18" maxlength="18" value="{{ old('nip', $user->nip ?? (preg_match('/^[0-9]{18}$/', $user->nip_nik ?? '') ? $user->nip_nik : '')) }}" required />
+                                <div class="form-text">Nomor Induk Pegawai, 18 digit.</div>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label for="profileNik" class="form-label fw-bold">NIK <span class="text-danger">*</span></label>
+                                <input id="profileNik" class="form-control" type="text" name="nik" inputmode="numeric" pattern="[0-9]{16}" minlength="16" maxlength="16" value="{{ old('nik', $user->nik ?? (preg_match('/^[0-9]{16}$/', $user->nip_nik ?? '') ? $user->nip_nik : '')) }}" required />
+                                <div class="form-text">Nomor Induk Kependudukan sesuai KTP, 16 digit.</div>
+                            </div>
+                            @else
                             <div class="mb-3 col-md-6">
                                 <label class="form-label fw-bold">NIP / NIK</label>
-                                <input class="form-control border-primary" type="text" name="nip_nik" value="{{ old('nip_nik', $user->nip_nik) }}" required />
+                                <input class="form-control" type="text" name="nip_nik" value="{{ old('nip_nik', $user->nip_nik) }}" required />
                             </div>
+                            @endif
                             <div class="mb-3 col-md-6">
                                 <label class="form-label fw-bold">Username (Login ID)</label>
                                 <input class="form-control bg-light" type="text" value="{{ $user->username }}" disabled />
@@ -149,7 +162,7 @@
                             </div>
                             <div class="mb-3 col-12">
                                 <label class="form-label fw-bold">Instansi / Unit Kerja</label>
-                                <select class="form-select" name="institution_id" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string)old('institution_id',$user->institution_id)===(string)$institution->id>{{$institution->name}}</option>@endforeach</select>
+                                <select class="form-select" name="institution_id" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string)old('institution_id',$user->institution_id)===(string)$institution->id)>{{$institution->name}}</option>@endforeach</select>
                             </div>
                         </div>
 

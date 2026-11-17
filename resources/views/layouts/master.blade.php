@@ -7,13 +7,14 @@
 
     <title>@yield('title') | INTEGRAL - Pengelolaan Pelatihan Terintegrasi</title>
 
+    <script src="{{ asset('assets/js/integral-theme.js') }}?v=20261117-fonts"></script>
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="preload" href="{{ asset('assets/fonts/sapawarga/lato-14cbedebef.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-fonts.css') }}?v=20261117">
 
     <!-- Icons -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
@@ -44,13 +45,20 @@
 
     @stack('css')
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-theme.css') }}?v=20261117-green3">
+
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-sidebar.css') }}?v=20261117-sidebar-labels">
+
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261117-freshgreen">
+
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-design.css') }}?v=20261117-reference">
 
     <!-- Helpers -->
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
 
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-    <script src="{{ asset('assets/js/config.js') }}"></script>
+    <script src="{{ asset('assets/js/config.js') }}?v=20261117-sapawarga-green"></script>
 </head>
 
 <body>

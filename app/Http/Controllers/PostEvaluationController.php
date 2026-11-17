@@ -28,16 +28,16 @@ class PostEvaluationController extends Controller
     {
         $user = $request->user();
         abort_if($user->role === 'admin_bidang', 403);
-        $trainings = Training::query()->when($user->role !== 'superadmin', function ($q) use ($user) {
-            $q->where(function ($scope) use ($user) {
-                if ($user->role === 'admin_bidang' && filled($user->bidang)) {
-                    $scope->where('bidang', $user->bidang);
-                }
-                $scope->orWhereIn('id', DB::table('post_evaluation_teams')->join('post_evaluation_team_user', 'team_id', '=', 'post_evaluation_teams.id')->where('user_id', $user->id)->select('training_id'));
+        $trainings = Training::query()->when($user->role !== 'superadmin', function ($query) use ($user) {
+            $query->whereExists(function ($assignment) use ($user) {
+                $assignment->selectRaw('1')->from('post_evaluation_teams as evaluator_team')
+                    ->join('post_evaluation_team_user as evaluator_member', 'evaluator_member.team_id', '=', 'evaluator_team.id')
+                    ->whereColumn('evaluator_team.training_id', 'trainings.id')
+                    ->where('evaluator_member.user_id', $user->id);
             });
         })->when($request->filled('q'), fn ($q) => $q->where('nama_pelatihan', 'like', '%'.mb_substr((string) $request->query('q'), 0, 100).'%'))->latest()->paginate(15)->withQueryString();
 
-        return view('post-evaluation.index', compact('trainings'));
+        return response()->view('post-evaluation.index', compact('trainings'))->header('Cache-Control', 'private, no-store');
     }
 
     public function show(Request $request, Training $training, PostEvaluationService $service)
@@ -46,7 +46,9 @@ class PostEvaluationController extends Controller
         $manager = $service->manages($request->user(), $training);
         $tab = $request->query('tab', 'ringkasan');
         abort_unless(in_array($tab, ['ringkasan', 'jawaban', 'peserta', 'wawancara', 'pengaturan', 'import'], true), 404);
-        abort_if(in_array($tab, ['pengaturan','import'], true) && ! $manager, 403);
+        // Keep existing participant links opening the combined workspace.
+        if ($tab === 'peserta') $tab = 'wawancara';
+        abort_if(! $manager && ! in_array($tab, ['ringkasan', 'wawancara'], true), 403);
         $people = $service->people($training, $request->user());
         $summary = $service->summary($training, $people);
         $surveySummary = $tab === 'ringkasan' ? app(PostEvaluationSurveySummaryService::class)->build($training, $people) : null;
@@ -295,27 +297,44 @@ class PostEvaluationController extends Controller
     public function generateExposeAi(Request $request, Training $training, PostEvaluationService $service, PostEvaluationAiService $ai, PostEvaluationExposeService $expose)
     {
         $service->authorize($request->user(), $training, true);
-        $summary = $service->summary($training, $service->people($training));
+        $people = $service->people($training);
+        $summary = $service->summary($training, $people);
+        $automatic = $request->boolean('automatic');
         if (! $ai->configured()) {
             throw ValidationException::withMessages(['ai' => 'Layanan AI belum dikonfigurasi. Lengkapi pengaturan provider AI aplikasi terlebih dahulu.']);
         }
         if ($summary['survey']['valid'] === 0 && $summary['interview']['valid'] === 0) {
-            throw ValidationException::withMessages(['ai' => 'Belum ada nilai survei atau wawancara untuk dianalisis. Lengkapi data atau pemetaan indikator terlebih dahulu.']);
+            throw ValidationException::withMessages(['ai' => 'Belum ada nilai survei atau wawancara untuk dianalisis. Lengkapi data terlebih dahulu.']);
         }
-        $generation = AiGeneration::create(['training_id' => $training->id, 'user_id' => $request->user()->id,
-            'feature' => PostEvaluationExposeService::FEATURE, 'model' => $ai->model(), 'source_hash' => $expose->fingerprint($summary),
-            'status' => 'processing', 'input_summary' => ['aggregate_only' => true, 'participant_identities_sent' => false, 'data' => $expose->payload($summary)]]);
+        $hash = $expose->fingerprint($summary);
+        $lock = \Illuminate\Support\Facades\Cache::lock('post-evaluation-ai:'.$training->id, 300);
+        if (! $lock->get()) return response()->json(['message' => 'Narasi sedang dibuat di sesi lain. Muat ulang setelah selesai.'], 409);
         try {
-            $content = $ai->generate($summary);
-            $generation->update(['status' => 'completed', 'generated_content' => $content, 'generated_at' => now()]);
-        } catch (\Throwable $error) {
-            report($error);
-            $generation->update(['status' => 'failed', 'error_message' => mb_substr($error->getMessage(), 0, 2000)]);
-
-            return back()->with('error', 'Narasi AI belum berhasil dibuat. Silakan coba kembali; hasil yang sudah tersimpan tidak dihapus.');
+            if ($automatic && AiGeneration::where('training_id', $training->id)->where('feature', PostEvaluationExposeService::FEATURE)->where('source_hash', $hash)->where('status', 'completed')->exists()) {
+                return response()->json(['message' => 'Narasi sudah sesuai data terkini.', 'cached' => true]);
+            }
+            if ($automatic && AiGeneration::where('training_id', $training->id)->where('feature', PostEvaluationExposeService::FEATURE)->where('source_hash', $hash)->where('status', 'failed')->where('created_at', '>', now()->subMinutes(5))->exists()) {
+                return response()->json(['message' => 'Gemini belum berhasil membuat narasi. Gunakan tombol Buat ulang untuk mencoba kembali.'], 429);
+            }
+            $summary['evaluator_notes'] = app(\App\Services\PostEvaluationNarrativeService::class)->notes($people);
+            $generation = AiGeneration::create(['training_id' => $training->id, 'user_id' => $request->user()->id,
+                'feature' => PostEvaluationExposeService::FEATURE, 'model' => $ai->model(), 'source_hash' => $hash,
+                'status' => 'processing', 'input_summary' => ['aggregate_only' => false, 'participant_identities_sent' => false,
+                    'anonymized_evaluator_notes_sent' => true, 'data' => $expose->payload($summary)]]);
+            try {
+                $content = $ai->generate($summary);
+                $generation->update(['status' => 'completed', 'generated_content' => $content, 'generated_at' => now()]);
+            } catch (\Throwable $error) {
+                report($error);
+                $generation->update(['status' => 'failed', 'error_message' => mb_substr($error->getMessage(), 0, 2000)]);
+                $message = 'Narasi AI belum berhasil dibuat. Silakan coba kembali; hasil sebelumnya tetap tersimpan.';
+                return $request->expectsJson() ? response()->json(['message' => $message], 502) : back()->with('error', $message);
+            }
+            $message = 'Pembahasan, kesimpulan dan rekomendasi AI tersimpan. Perbarui publikasi untuk menampilkan narasi terbaru pada link publik.';
+            return $request->expectsJson() ? response()->json(['message' => $message]) : back()->with('success', $message);
+        } finally {
+            $lock->release();
         }
-
-        return back()->with('success', 'Pembahasan, kesimpulan dan rekomendasi AI tersimpan. Tinjau pada Ekspose; perbarui publikasi jika ingin menampilkan narasi ini pada link publik.');
     }
 
     public function publish(Request $request, Training $training, PostEvaluationService $service)
@@ -335,7 +354,7 @@ class PostEvaluationController extends Controller
 
     public function expose(Request $request, Training $training, PostEvaluationService $service)
     {
-        $service->authorize($request->user(), $training);
+        $service->authorize($request->user(), $training, true);
         $summary = $service->summary($training, $service->people($training, $request->user()));
 
         return $this->presentation($request, $summary, false);

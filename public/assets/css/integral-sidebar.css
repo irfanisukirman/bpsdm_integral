@@ -1,0 +1,23 @@
+/* Integral fresh green (#16a75c), shared by Light and Dark modes. */
+@media screen {
+  #layout-menu.bg-menu-theme { background:#16a75c!important; color:#e9f8ef!important; border-right:1px solid rgba(166,225,190,.14); box-shadow:4px 0 22px rgba(4,42,24,.12)!important; }
+  #layout-menu .app-brand { border-bottom:1px solid rgba(195,233,208,.13); }
+  #layout-menu .app-brand-text { color:#effbf4!important; }
+  #layout-menu .app-brand-logo { display:inline-flex; align-items:center; justify-content:center; padding:4px; background:#e6f6ec; border-radius:10px; }
+  #layout-menu .menu-inner-shadow { background:linear-gradient(#16a75c 30%,rgba(22,167,92,0))!important; }
+  #layout-menu .menu-item > .menu-link { color:#fff!important; background:transparent!important; box-shadow:none!important; }
+  #layout-menu .menu-item > .menu-link :is(i,.menu-icon) { color:inherit!important; }
+  #layout-menu .menu-sub { background:transparent!important; }
+  #layout-menu .menu-header { border-left-color:#c3e9d0; background:rgba(0,75,40,.32); }
+  #layout-menu .menu-header-text { color:#e6f6ec!important; }
+  #layout-menu .menu-item.open > .menu-link { background:rgba(230,246,236,.16)!important; color:#fff!important; }
+  #layout-menu .menu-item.active > .menu-link { background:#c3e9d0!important; color:#004d29!important; box-shadow:0 3px 10px rgba(0,35,19,.18)!important; font-weight:700; }
+  #layout-menu .menu-item.active::before { background:#c3e9d0!important; }
+  #layout-menu .menu-item.active > .menu-link::before { background:#004d29!important; border-color:#004d29!important; }
+  #layout-menu .menu-item > .menu-link:hover,
+  #layout-menu .menu-item > .menu-link:focus-visible { background:#e6f6ec!important; color:#004d29!important; box-shadow:none!important; transform:none; }
+  #layout-menu .menu-item > .menu-link:hover::before { background:#004d29!important; }
+  #layout-menu .menu-item > .menu-link:focus-visible { outline:2px solid #b4e5c8; outline-offset:2px; }
+  #layout-menu .menu-notification-badge { border-color:#16a75c; color:#fff!important; }
+}
+

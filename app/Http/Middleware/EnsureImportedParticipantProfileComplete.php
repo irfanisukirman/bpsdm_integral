@@ -13,7 +13,7 @@ class EnsureImportedParticipantProfileComplete
     {
         $user = Auth::user();
         if ($user && $user->primaryRole() === 'participant' && ($user->must_complete_profile || $user->must_change_password)) {
-            if (!$request->routeIs('participant.profile.complete', 'participant.profile.store', 'logout')) {
+            if (!$request->routeIs('participant.profile.complete', 'participant.profile.store', 'profile.address-search', 'logout')) {
                 return redirect()->route('participant.profile.complete')
                     ->with('warning', 'Akun Anda dibuat melalui import peserta. Ganti password awal dan lengkapi profil untuk melanjutkan.');
             }

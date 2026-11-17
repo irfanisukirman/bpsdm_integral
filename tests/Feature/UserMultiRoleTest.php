@@ -170,7 +170,7 @@ class UserMultiRoleTest extends TestCase
         $status = EmploymentStatus::where('code', 'PNS')->firstOrFail();
         $this->actingAs($user)->post(route('roles.switch'), ['role' => 'participant'])->assertRedirect(route('participant.dashboard'));
         $this->post(route('participant.profile.store'), [
-            'user_type' => 'peserta', 'nip_nik' => '199001012020011001', 'whatsapp' => '628123456789', 'gender' => 'Laki-Laki',
+            'user_type' => 'peserta', 'nip' => '199001012020011001', 'nik' => '3201010101900001', 'whatsapp' => '628123456789', 'gender' => 'Laki-Laki',
             'birth_place' => 'Bandung', 'birth_date' => '1990-01-01', 'jabatan' => 'Analis', 'golongan' => 'III/a',
             'institution_id' => $institution->id, 'employment_status_id' => $status->id, 'provinsi' => 'JAWA BARAT', 'kota' => 'KOTA BANDUNG',
             'kecamatan' => 'COBLONG', 'kelurahan' => 'DAGO', 'address' => 'Jalan Uji', 'latitude' => -6.9, 'longitude' => 107.6,

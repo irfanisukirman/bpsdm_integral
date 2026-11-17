@@ -123,9 +123,9 @@
         <td colspan="{{ $totalCols - 2 }}"></td>
         <td colspan="2" style="text-align: center;">
             Cimahi, {{ \Carbon\Carbon::parse($training->tgl_selesai)->translatedFormat('d F Y') }}<br>
-            Tim Monitoring BPSDM Provinsi Jawa Barat<br><br><br><br>
-            <strong>{{ Auth::user()->name }}</strong><br>
-            NIP. {{ Auth::user()->whatsapp }}
+            {{ $training->monitoringReportSignatories()['monitor_title'] }}<br><br><br><br>
+            <strong>{{ $training->monitoringReportSignatories()['monitor_name'] }}</strong><br>
+            NIP. {{ $training->monitoringReportSignatories()['monitor_nip'] }}
         </td>
     </tr>
 </table>

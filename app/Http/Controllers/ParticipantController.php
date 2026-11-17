@@ -157,8 +157,8 @@ class ParticipantController extends Controller
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
         $request->validate([
-            'user_type' => 'required|in:peserta,narasumber,mitra',
-            'nip_nik' => 'required|unique:users,nip_nik,' . $user->id,
+            'nip' => ['required', 'digits:18', \Illuminate\Validation\Rule::unique('users', 'nip')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)],
+            'nik' => ['required', 'digits:16', \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)],
             'whatsapp' => 'required',
             'gender' => 'required',
             'birth_place' => 'required|string|max:255',
@@ -179,17 +179,20 @@ class ParticipantController extends Controller
 
         $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
         $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
+        $previousIdentity = $user->nip_nik;
         $publicPrimary = $user->primaryRole() === 'participant';
-        $requestedType = !$publicPrimary && filled($user->user_type) ? $user->user_type : ($user->must_complete_profile ? 'peserta' : $request->user_type);
-        $role = $user->primaryRole() === 'participant' ? ($requestedType === 'narasumber' ? 'pengajar' : 'participant') : $user->primaryRole();
+        $requestedType = !$publicPrimary && filled($user->user_type) ? $user->user_type : 'peserta';
+        $role = $publicPrimary ? 'participant' : $user->primaryRole();
         $typeStatus = in_array($requestedType, ['peserta', 'narasumber'], true) ? 'approved' : 'pending';
         $user->update([
             'user_type' => $requestedType,
             'user_type_status' => $typeStatus,
-            // Narasumber langsung aktif, sedangkan akun administratif tetap tidak tersedia di form publik.
+            // Peran tambahan hanya diberikan oleh admin, bukan melalui formulir publik.
             'role' => $role,
             'bidang' => $user->primaryRole() === 'participant' ? null : $user->getRawOriginal('bidang'),
-            'nip_nik' => $request->nip_nik,
+            'nip' => $request->nip,
+            'nik' => $request->nik,
+            'nip_nik' => $request->nip,
             'whatsapp' => $request->whatsapp,
             'gender' => $request->gender,
             'birth_place' => $request->birth_place,
@@ -213,7 +216,11 @@ class ParticipantController extends Controller
         ]);
 
         // Sinkronisasi ke tabel participants
-        \App\Models\Participant::where('nip_nik', $user->nip_nik)->update([
+        \App\Models\Participant::where(function ($query) use ($user, $previousIdentity) {
+            $query->where('user_id', $user->id);
+            if (filled($previousIdentity)) $query->orWhere('nip_nik', $previousIdentity);
+        })->update([
+            'nip_nik' => $user->nip,
             'user_id' => $user->id,
             'name' => $user->name,
             'phone' => $user->whatsapp,
@@ -227,16 +234,7 @@ class ParticipantController extends Controller
             'status_kepegawaian' => $user->status_kepegawaian,
         ]);
 
-        if ($publicPrimary && $requestedType === 'narasumber') {
-            return redirect()->route('pengajar.setup')
-                ->with('success', 'Akun Narasumber berhasil diaktifkan. Lengkapi data pengajar untuk melanjutkan.');
-        }
-
-        $message = $requestedType === 'peserta'
-            ? 'Profil peserta berhasil disimpan.'
-            : 'Profil berhasil disimpan. Pengajuan sebagai Mitra menunggu persetujuan admin.';
-
-        return redirect()->route('participant.dashboard')->with('success', $message);
+        return redirect()->route('participant.dashboard')->with('success', 'Profil berhasil disimpan.');
     }
 
     // Proses Daftar dengan Kode

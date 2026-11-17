@@ -1,0 +1,54 @@
+/* Typography and ornaments aligned with the user-supplied Sapawarga reference.
+   Body: Lato; headings: Roboto; editorial page titles: Lora. */
+:root { --integral-font-body:"Lato",sans-serif; --integral-font-heading:"Roboto",sans-serif; --integral-font-editorial:"Lora",serif; --bs-font-sans-serif:"Lato",sans-serif; --bs-body-font-family:"Lato",sans-serif; }
+body { font-family:var(--integral-font-body); line-height:1.65; }
+:is(.btn,.form-control,.form-select,.nav-link,.menu-link,.dropdown-item,.table,.modal,.integral-appearance__button) { font-family:var(--integral-font-body); }
+:is(h1,h2,h3,h4,h5,h6,.card-title,.modal-title) { font-family:var(--integral-font-heading); font-weight:700; letter-spacing:-.015em; line-height:1.4; overflow-wrap:break-word; }
+:is(.table th,.form-label,.dropdown-header) { font-family:var(--integral-font-heading); font-weight:600; }
+.apexcharts-text,.apexcharts-legend-text { font-family:"Lato",sans-serif!important; }
+@media screen {
+ html[data-integral-theme="light"] { --integral-text:#424242; --integral-muted:#616161; --integral-border:#e0e8e2; --bs-body-color:#424242; --bs-body-color-rgb:66,66,66; }
+ html[data-integral-theme="dark"] { --integral-text:#e6eee8; --integral-muted:#b3c6ba; --bs-body-color:#e6eee8; --bs-body-color-rgb:230,238,232; }
+ html[data-integral-theme] :is(.text-muted,.form-text,.section-intro p,.action-card p,.summary-card small,.summary-card span,.schedule-detail span,.photo-card__meta,.report-code-hint,.check-item small,.schedule-time span,.schedule-teacher small,.date-group__head span,.schedule-place span,.empty-mini p) { color:var(--integral-muted)!important; }
+ html[data-integral-theme="light"] :is(h1,h2,h3,h4,h5,h6,.card-title,.form-label,.table,.dropdown-item) { color:#212121; }
+ html[data-integral-theme] :is(.form-control,.form-select,.table td) { line-height:1.6; }
+ html[data-integral-theme] .table th { letter-spacing:.025em; font-size:.76rem; }
+ html[data-integral-theme] :is(.metric-card strong,.summary-card strong,.dashboard-stat>strong,.display-5) { font-family:var(--integral-font-heading); font-variant-numeric:tabular-nums; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero,.finance-hero,.notes-hero,.guest-hero,.executive-hero,.manage-hero,.manager-hero,.qm-hero,.cert-hero,.detail-hero,.aa-hero,.share-hero,.page-hero,.form-hero,.builder-hero,.coop-hero,.setting-hero,.monitor-hero,.intern-hero,.intern-detail-hero,.intern-welcome,.guest-head,.document-hero,.intro-panel) {
+   position:relative; isolation:isolate; overflow:hidden; background:linear-gradient(120deg,#006430,#008444 65%,#069550)!important; color:#f1faf4!important; border-color:rgba(112,205,148,.28)!important;
+ }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero,.finance-hero,.notes-hero,.guest-hero,.executive-hero,.manage-hero,.manager-hero,.qm-hero,.cert-hero,.detail-hero,.aa-hero,.share-hero,.page-hero,.form-hero,.builder-hero,.coop-hero,.setting-hero,.monitor-hero,.intern-hero,.intern-detail-hero,.intern-welcome,.guest-head,.document-hero,.intro-panel) :is(h1,h2,h3,h4,h5,h6,.text-muted,.text-primary,.text-dark,.text-body) { color:#f1faf4!important; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) :is(h1,h2,h3,h4) { font-family:var(--integral-font-editorial); font-weight:600; line-height:1.45; letter-spacing:-.025em; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero)::before { content:""; position:absolute; width:260px; height:260px; border:42px solid rgba(112,205,148,.13); border-radius:50%; top:-150px; right:-65px; z-index:-1; pointer-events:none; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero)::after { content:""; position:absolute; width:180px; height:180px; border:1px solid rgba(195,233,208,.16); border-radius:50%; bottom:-145px; left:44%; z-index:-1; pointer-events:none; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero,.card.dashboard-hero) :is(.btn-light,.badge.bg-white) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-border)!important; }
+ html[data-integral-theme] :is(.training-hero,.report-hero,.alumni-hero) .report-hero__meta { color:#e6f6ec!important; }
+ html[data-integral-theme] :is(.shape,.shape-1,.shape-2,.hero-orb,.hero-glow,.decorative-shape,.hero-illustration-wrap)::before { background:rgba(112,205,148,.14)!important; }
+ html[data-integral-theme] :is(.metric-primary,.metric-info,.metric-purple,.metric-teal,.public-link-box,.public-link-card__icon,.public-link-icon,.ai-draft-icon,.ai-executive-icon,.filter-icon,.date-icon,.month-icon,.group-icon,.step-icon,.note-card__icon,.question-number,.teacher-avatar,.available-badge,.field-badge,.selected-status,.version-badge,.summary-icon.primary,.agenda-empty>span,.empty-notes>span,.empty-participant>span,.today-empty>span,.portfolio-empty>span,.role-arrow,.card-mandiri .role-icon) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-border)!important; }
+ html[data-integral-theme] :is(.evaluation-headline>div,.coordination-note,.today-section,.calendar-nav,.date-title) { background:var(--integral-brand-soft)!important; border-color:var(--integral-brand-border)!important; color:var(--integral-text)!important; }
+ html[data-integral-theme] :is(.evaluation-headline strong,.coordination-note>i,.status-upcoming .training-row__line) { color:var(--integral-brand-ink)!important; }
+ html[data-integral-theme] :is(.calendar-day.selected,.quick-period.active,.submit-btn,.integral-search-submit,.chat-bubble-mine) { background:#008444!important; color:#fff!important; border-color:#008444!important; }
+ html[data-integral-theme] :is(.calendar-day:hover:not(:disabled),.quick-period:hover,.choice-label:has(input:checked),.share-user-results .list-group-item-action:hover) { background:var(--integral-brand-soft)!important; color:var(--integral-brand-ink)!important; border-color:var(--integral-brand-accent)!important; }
+ html[data-integral-theme] :is(.finance-budget-table .prognosis-head,.finance-budget-table .finance-total-row th,.finance-parent-row,.schedule-table th) { background:var(--integral-brand-soft)!important; color:var(--integral-text)!important; }
+ html[data-integral-theme] .progress-bar:not(.bg-warning):not(.bg-danger):not(.bg-info):not(.bg-success) { background:#16a75c!important; }
+ html[data-integral-theme] .survey-overview-fill.rekan { background:#70cd94; }
+ html[data-integral-theme] .alumni-page .alumni-legend-dot.is-indigo { background:#008444; }
+ html[data-integral-theme] .alumni-page .alumni-tabs .nav-link.active { background:#008444!important; color:#fff!important; }
+ html[data-integral-theme] .timeline-dot { background:#16a75c!important; box-shadow:0 0 0 4px var(--integral-brand-soft); }
+ html[data-integral-theme] :is(.schedule-item:hover,.date-group__head) { background:var(--integral-raised); }
+ html[data-integral-theme] :is(.action-card,.summary-card,.check-item,.narrative-field) { border-radius:12px; }
+ html[data-integral-theme] .l34-dashboard .dashboard-hero h3 { font-family:var(--integral-font-heading); }
+ html[data-integral-theme] .card.dashboard-hero h3 { font-family:var(--integral-font-heading); }
+ html[data-integral-theme="dark"] :is(.date-group__content,.today-agenda-list .schedule-item,.agenda-empty,.setting-panel,.public-link-box) { background:var(--integral-surface)!important; color:var(--integral-text)!important; border-color:var(--integral-border)!important; }
+
+ html[data-integral-theme] :is(.document-hero,.intro-panel) :is(.btn-outline-primary,.btn-outline-secondary,.btn-outline-dark,.btn-outline-light) { background:rgba(0,60,30,.22)!important; border-color:#a7dcb9!important; color:#effaf3!important; }
+ html[data-integral-theme] .camera-stage { background:#132f23!important; }
+ html[data-integral-theme] :is(.btn-camera,.integral-search-submit:hover) { background:#008444!important; border-color:#008444!important; color:#fff!important; }
+ html[data-integral-theme] .training-row__line { background:#16a75c!important; }
+ html[data-integral-theme] .status-upcoming .training-row__line { background:#70cd94!important; }
+ html[data-integral-theme] .kirkpatrick-slider::-webkit-slider-thumb { background:#008444!important; }
+ html[data-integral-theme] .kirkpatrick-slider::-moz-range-thumb { background:#008444!important; }
+ #layout-menu .menu-link { font-family:var(--integral-font-body); font-size:.9rem; line-height:1.5; }
+ #layout-menu .menu-header-text { font-family:var(--integral-font-heading); letter-spacing:.06em; }
+ #layout-menu .app-brand-text { font-family:var(--integral-font-body); letter-spacing:.025em!important; }
+}

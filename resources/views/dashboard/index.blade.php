@@ -4,7 +4,7 @@
 
 @push('css')
 <style>
-    .dashboard-hero { background: linear-gradient(135deg, #696cff 0%, #4f52d9 55%, #2f3192 100%); overflow: hidden; }
+    .dashboard-hero { background: linear-gradient(135deg, #008444 0%, #069550 55%, #005c36 100%); overflow: hidden; }
     .metric-card { border: 0; box-shadow: 0 .25rem 1rem rgba(67, 89, 113, .08); transition: transform .2s ease, box-shadow .2s ease; }
     .metric-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.4rem rgba(67, 89, 113, .13); }
     .metric-icon { width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 24px; }
@@ -188,39 +188,40 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     Chart.defaults.font.family = 'Public Sans, sans-serif';
-    Chart.defaults.color = '#697a8d';
+    Chart.defaults.color = '#616161';
+    Chart.defaults.font.family = 'Lato, sans-serif';
     const commonOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
 
     new Chart(document.getElementById('trainingTrend'), {
         type: 'line',
         data: {
             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-            datasets: [{ label: 'Pelatihan', data: @json($monthlyTrainings), borderColor: '#696cff', backgroundColor: 'rgba(105,108,255,.12)', fill: true, tension: .35, pointRadius: 4 }]
+            datasets: [{ label: 'Pelatihan', data: @json($monthlyTrainings), borderColor: '#008444', backgroundColor: 'rgba(22,167,92,.12)', fill: true, tension: .35, pointRadius: 4 }]
         },
         options: { ...commonOptions, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
     });
 
     new Chart(document.getElementById('trainingStatus'), {
         type: 'doughnut',
-        data: { labels: ['Berlangsung', 'Akan datang', 'Selesai'], datasets: [{ data: [{{ $stats['ongoing_training'] }}, {{ $stats['upcoming_training'] }}, {{ $stats['completed_training'] }}], backgroundColor: ['#71dd37', '#ffab00', '#8592a3'], borderWidth: 0 }] },
+        data: { labels: ['Berlangsung', 'Akan datang', 'Selesai'], datasets: [{ data: [{{ $stats['ongoing_training'] }}, {{ $stats['upcoming_training'] }}, {{ $stats['completed_training'] }}], backgroundColor: ['#16a75c', '#ffab00', '#6d897b'], borderWidth: 0 }] },
         options: { ...commonOptions, cutout: '68%' }
     });
 
     new Chart(document.getElementById('radarKirkpatrick'), {
         type: 'radar',
-        data: { labels: ['L1 Reaksi', 'L3 Perilaku', 'L4 Hasil'], datasets: [{ data: [{{ round($avgL1, 1) }}, {{ round($avgL3, 1) }}, {{ round($avgL4, 1) }}], backgroundColor: 'rgba(105,108,255,.16)', borderColor: '#696cff', pointBackgroundColor: '#696cff' }] },
+        data: { labels: ['L1 Reaksi', 'L3 Perilaku', 'L4 Hasil'], datasets: [{ data: [{{ round($avgL1, 1) }}, {{ round($avgL3, 1) }}, {{ round($avgL4, 1) }}], backgroundColor: 'rgba(22,167,92,.16)', borderColor: '#008444', pointBackgroundColor: '#008444' }] },
         options: { ...commonOptions, scales: { r: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
     });
 
     new Chart(document.getElementById('barLearning'), {
         type: 'bar',
-        data: { labels: ['Pre-test', 'Post-test'], datasets: [{ data: [{{ round($avgL2Pre, 1) }}, {{ round($avgL2Post, 1) }}], backgroundColor: ['#ffab00', '#71dd37'], borderRadius: 7 }] },
+        data: { labels: ['Pre-test', 'Post-test'], datasets: [{ data: [{{ round($avgL2Pre, 1) }}, {{ round($avgL2Post, 1) }}], backgroundColor: ['#ffab00', '#16a75c'], borderRadius: 7 }] },
         options: { ...commonOptions, scales: { y: { beginAtZero: true, max: 100 }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
     });
 
     new Chart(document.getElementById('pieMonitoring'), {
         type: 'doughnut',
-        data: { labels: ['Terpenuhi', 'Perlu tindak lanjut'], datasets: [{ data: [{{ $monYa }}, {{ $monTidak }}], backgroundColor: ['#71dd37', '#ff3e1d'], borderWidth: 0 }] },
+        data: { labels: ['Terpenuhi', 'Perlu tindak lanjut'], datasets: [{ data: [{{ $monYa }}, {{ $monTidak }}], backgroundColor: ['#16a75c', '#ff3e1d'], borderWidth: 0 }] },
         options: { ...commonOptions, cutout: '70%' }
     });
 });

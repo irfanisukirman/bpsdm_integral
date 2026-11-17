@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class File extends Model
 {
     protected $fillable = [
+        'storage_disk', 'content_hash',
         'folder_id',
         'display_name',
         'file_path',

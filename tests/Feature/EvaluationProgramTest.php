@@ -155,4 +155,178 @@ class EvaluationProgramTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $import->model(array_replace($row, ['level_peran' => 'Rekan']));
     }
+    public function test_word_export_labels_profile_comparisons_without_arrow_placeholders(): void
+    {
+        $training = $this->training('PKP');
+        \App\Models\Participant::create(['training_id' => $training->id, 'name' => 'Alumni Uji', 'nip_nik' => '123456', 'jabatan' => 'Analis', 'registration_status' => 'approved']);
+        $response = $this->actingAs(User::factory()->create(['role' => 'superadmin']))->get(route('evall34.export_word', $training));
+        $response->assertOk()->assertDownload();
+        $path = tempnam(sys_get_temp_dir(), 'l34-word-test-');
+        try {
+            file_put_contents($path, $response->streamedContent());
+            $zip = new \ZipArchive;
+            $this->assertTrue($zip->open($path));
+            $xml = $zip->getFromName('word/document.xml');
+            $zip->close();
+            $document = new \DOMDocument;
+            $this->assertTrue($document->loadXML($xml));
+            $text = $document->textContent;
+            $this->assertStringContainsString('Saat pelatihan: Analis; Saat evaluasi: Belum tersedia', $text);
+            $this->assertStringContainsString('Pendidikan: Saat pelatihan: Belum tersedia', $text);
+            $this->assertStringNotContainsString('->', $text);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_report_signatories_are_saved_per_training_and_replaced_in_download(): void
+    {
+        $training = $this->training('PKP');
+        $other = $this->training('PKP');
+        $admin = User::factory()->create(['role' => 'superadmin']);
+        $data = ['head_title' => 'Kepala Bidang Uji & Sertifikasi', 'head_name' => 'Nama Pejabat Baru', 'head_nip' => '198001012000011001', 'monitor_title' => 'Tim Evaluasi Uji', 'monitor_name' => 'Nama Petugas Baru', 'monitor_nip' => '198501012010011001'];
+        $this->actingAs($admin)->get(route('evall34.dashboard', $training))->assertOk()->assertSee('Penandatangan Laporan Word')->assertSee('Simpan &amp; Unduh Word', false);
+        $this->post(route('evall34.report-signatories', $training), $data + ['download' => '1'])->assertRedirect(route('evall34.export_word', $training));
+        $this->assertSame($data, $training->fresh()->l34ReportSignatories());
+        $this->assertNull($other->fresh()->l34_report_signatories);
+        $response = $this->get(route('evall34.export_word', $training))->assertOk()->assertDownload();
+        $path = tempnam(sys_get_temp_dir(), 'l34-sign-test-');
+        try {
+            file_put_contents($path, $response->streamedContent());
+            $zip = new \ZipArchive;
+            $this->assertTrue($zip->open($path));
+            $xml = $zip->getFromName('word/document.xml');
+            $zip->close();
+            $document = new \DOMDocument;
+            $this->assertTrue($document->loadXML($xml));
+            foreach ($data as $value) $this->assertStringContainsString($value, $document->textContent);
+            $this->assertStringNotContainsString('Angga Muchlis', $document->textContent);
+            $this->assertStringNotContainsString('Lucky Rizki', $document->textContent);
+            $this->assertStringNotContainsString('${l34_sign_', $document->textContent);
+        } finally { unlink($path); }
+    }
+
+    public function test_report_signatories_validate_nip_and_restrict_unit_access(): void
+    {
+        $training = $this->training('PKP');
+        $url = route('evall34.report-signatories', $training);
+        $this->actingAs(User::factory()->create(['role' => 'superadmin']))->post($url, ['head_nip' => 'invalid'])->assertSessionHasErrors(['head_nip','head_name','monitor_name']);
+        $this->assertNull($training->fresh()->l34_report_signatories);
+        $this->actingAs(User::factory()->create(['role' => 'admin_bidang', 'bidang' => 'Bidang Lain']))->post($url, $training->l34ReportSignatories())->assertForbidden();
+        $this->actingAs(User::factory()->create(['role' => 'admin_bidang', 'bidang' => $training->bidang]))->post($url, $training->l34ReportSignatories())->assertRedirect(route('evall34.dashboard', $training));
+    }
+
+    public function test_monitoring_report_uses_one_team_signatory_in_both_locations_without_signature_images(): void
+    {
+        $training = $this->training('PKP');
+        $admin = User::factory()->create(['role' => 'superadmin']);
+        $data = ['head_title' => 'Kepala Bidang Uji & Monitoring', 'head_name' => 'Pejabat Monitoring Baru', 'head_nip' => '198001012000011001', 'monitor_title' => 'Tim Monitoring Baru', 'monitor_name' => 'Petugas Monitoring Tunggal', 'monitor_nip' => '198501012010011001'];
+        $this->actingAs($admin)->get(route('monitoring.report-settings', $training))->assertOk()->assertSee('Satu isian Tim Monitoring mengisi seluruh bagian');
+        $this->post(route('monitoring.report-settings.save', $training), $data + ['download' => 1])->assertRedirect(route('monitoring.export.laporan', $training));
+        $this->assertSame($data, $training->fresh()->monitoringReportSignatories());
+        $this->assertNull($training->fresh()->l34_report_signatories);
+        $response = $this->get(route('monitoring.export.laporan', $training))->assertOk()->assertDownload();
+        $path = tempnam(sys_get_temp_dir(), 'monitoring-word-test-');
+        try {
+            file_put_contents($path, $response->streamedContent());
+            $zip = new \ZipArchive;
+            $this->assertTrue($zip->open($path));
+            $xml = $zip->getFromName('word/document.xml');
+            $this->assertFalse($zip->locateName('word/media/image19.png'));
+            $this->assertFalse($zip->locateName('word/media/image20.png'));
+            $zip->close();
+            $document = new \DOMDocument;
+            $this->assertTrue($document->loadXML($xml));
+            $text = $document->textContent;
+            foreach ($data as $value) $this->assertStringContainsString($value, $text);
+            $this->assertSame(2, substr_count($text, $data['monitor_name']));
+            $this->assertSame(2, substr_count($text, $data['monitor_nip']));
+            $this->assertStringNotContainsString('Tantan Gunawan', $text);
+            $this->assertStringNotContainsString('RISGIYANTO', $text);
+            $this->assertStringNotContainsString('${monitor_sign_', $text);
+        } finally { unlink($path); }
+    }
+
+    public function test_monitoring_signatories_are_scoped_and_validate_before_saving(): void
+    {
+        $training = $this->training('PKP');
+        $url = route('monitoring.report-settings.save', $training);
+        $this->actingAs(User::factory()->create(['role' => 'admin_bidang', 'bidang' => 'Bidang Lain']))->get(route('monitoring.report-settings', $training))->assertForbidden();
+        $this->post($url, $training->monitoringReportSignatories())->assertForbidden();
+        $this->actingAs(User::factory()->create(['role' => 'superadmin']))->post($url, ['head_nip' => 'abc'])->assertSessionHasErrors(['head_nip','head_name','monitor_name']);
+        $this->assertNull($training->fresh()->monitoring_report_signatories);
+        $this->actingAs(User::factory()->create(['role' => 'admin_bidang', 'bidang' => $training->bidang]))->post($url, $training->monitoringReportSignatories())->assertRedirect(route('monitoring.report-settings', $training));
+    }
+
+    public function test_followup_and_checklist_use_shared_monitoring_signatures_and_correct_download_target(): void
+    {
+        $training = $this->training('PKP');
+        $data = array_replace($training->monitoringReportSignatories(), ['head_name' => 'Kepala Bersama Uji', 'monitor_name' => 'Tim Bersama Uji']);
+        $this->actingAs(User::factory()->create(['role' => 'superadmin']));
+        foreach (['tindaklanjut' => 'monitoring.export.tindaklanjut', 'ceklis' => 'monitoring.export.rekap'] as $type => $route) {
+            $this->get(route('monitoring.report-settings', ['id' => $training->id, 'document' => $type]))->assertOk()->assertSee('name="document" value="'.$type.'"', false);
+            $this->post(route('monitoring.report-settings.save', $training), $data + ['document' => $type, 'download' => 1])->assertRedirect(route($route, $training));
+            $response = $this->get(route($route, $training))->assertOk()->assertDownload();
+            $path = tempnam(sys_get_temp_dir(), 'monitoring-shared-test-');
+            try {
+                file_put_contents($path, $response->streamedContent());
+                if ($type === 'ceklis') {
+                    $sheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path)->getActiveSheet();
+                    $text = json_encode($sheet->toArray(), JSON_UNESCAPED_UNICODE);
+                    foreach ([$data['head_name'],$data['monitor_name'],$data['head_nip'],$data['monitor_nip']] as $value) $this->assertStringContainsString($value, $text);
+                } else {
+                    $zip = new \ZipArchive;
+                    $this->assertTrue($zip->open($path));
+                    $xml = $zip->getFromName('word/document.xml');
+                    $zip->close();
+                    $dom = new \DOMDocument;
+                    $this->assertTrue($dom->loadXML($xml));
+                    foreach ($data as $value) $this->assertStringContainsString($value, $dom->textContent);
+                    $this->assertStringNotContainsString('${monitor_sign_', $dom->textContent);
+                    $this->assertStringNotContainsString('r:embed="rId6"', $xml);
+                    $this->assertStringNotContainsString('r:embed="rId7"', $xml);
+                }
+            } finally { unlink($path); }
+        }
+    }
+
+    public function test_activity_report_combines_evaluations_attendance_agenda_and_teachers(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $training = $this->training('PKP');
+        $admin = User::factory()->create(['role' => 'superadmin']);
+        $teacher = User::factory()->create(['name' => 'Pengajar Integrasi Uji', 'role' => 'pengajar']);
+        $p = \App\Models\Participant::create(['training_id' => $training->id, 'name' => 'Peserta Integrasi Uji', 'nip_nik' => '198001012000011001', 'registration_status' => 'approved']);
+        $schedule = \App\Models\Schedule::create(['training_id' => $training->id, 'date' => '2024-01-01', 'start_time' => '08:00', 'end_time' => '10:00', 'activity' => 'Materi Integrasi Uji', 'pic' => 'Panitia', 'schedule_type' => 'learning', 'jp' => 2, 'duration_unit' => 'JP', 'pengajar_id' => $teacher->id]);
+        \App\Models\Attendance::create(['schedule_id' => $schedule->id, 'participant_id' => $p->id, 'status' => 'hadir']);
+        $q = Question::create(['bidang' => 'Semua Bidang', 'program_evaluasi' => 'PKP', 'category' => 'l1_penyelenggara', 'type' => 'slider', 'metode' => 'semua', 'question_text' => 'Layanan penyelenggara uji']);
+        \App\Models\EvaluationResultL1::create(['training_id' => $training->id, 'participant_id' => $p->id, 'question_id' => $q->id, 'score' => 90]);
+        \App\Models\EvaluationResultL2::create(['participant_id' => $p->id, 'pretest' => 50, 'postest' => 80]);
+        \App\Models\EvaluationL1TextSummary::create(['training_id' => $training->id, 'conclusion' => 'Layanan cukup terstruktur.', 'follow_up' => 'Perbaiki koordinasi jadwal.']);
+        $q34 = Question::create(['bidang' => 'Semua Bidang', 'program_evaluasi' => 'PKP', 'category' => 'l34_mandiri', 'sub_category' => 'Perubahan Perilaku', 'type' => 'dropdown', 'metode' => 'semua', 'question_text' => 'Perilaku uji', 'options' => ['Tidak Sesuai','Kurang Sesuai','Sesuai','Sangat Sesuai']]);
+        \App\Models\EvaluationResultL34::create(['training_id' => $training->id, 'participant_id' => $p->id, 'question_id' => $q34->id, 'evaluator_name' => 'Diri sendiri', 'evaluator_role' => 'mandiri', 'note' => 'Sesuai']);
+        $this->actingAs($admin);
+        $response = $this->get(route('training-activity-report.index', $training))->assertOk();
+        $data = $response->viewData('data');
+        $this->assertSame('75,0', $data['values']['nilai_evaluasi_l3']);
+        $this->assertSame('50,0', $data['values']['nilai_pretest_l2']);
+        $this->assertSame('30,0', $data['values']['peningkatan_l2']);
+        $this->assertSame('100,0%', $data['values']['rata_rata_kehadiran']);
+        $this->assertSame('Perbaiki koordinasi jadwal.', $data['values']['tindak_lanjut_evaluasi']);
+        $this->assertSame($teacher->name, $data['teachers'][0]['teacher_name']);
+        $content = collect(\App\Services\AiActivityReportService::FIELDS)->mapWithKeys(fn ($field) => [$field => 'Draf '.$field])->all();
+        config()->set('services.ai.provider','gemini'); config()->set('services.gemini.api_key','test'); config()->set('services.gemini.model','test');
+        \Illuminate\Support\Facades\Http::fake(['*' => \Illuminate\Support\Facades\Http::response(['candidates' => [['content' => ['parts' => [['text' => json_encode($content)]]]]]])]);
+        $this->post(route('training-activity-report.ai-draft', $training))->assertSessionHas('activity_report_ai_draft');
+        \Illuminate\Support\Facades\Http::assertSent(function ($request) use ($p,$teacher) {
+            $text = $request['contents'][0]['parts'][0]['text'];
+            return str_contains($text,'Perbaiki koordinasi jadwal.') && str_contains($text,'pretest_level_2') && str_contains($text,'pengajar_agregat') && str_contains($text,'Materi Integrasi Uji') && !str_contains($text,$p->name) && !str_contains($text,$teacher->name);
+        });
+        $download = $this->post(route('training-activity-report.generate', $training), ['format' => 'docx'])->assertOk()->assertDownload();
+        $zip = new \ZipArchive; $this->assertTrue($zip->open($download->baseResponse->getFile()->getPathname()));
+        $xml = $zip->getFromName('word/document.xml'); $zip->close();
+        $dom = new \DOMDocument; $this->assertTrue($dom->loadXML($xml));
+        foreach (['Daftar Pengajar','Rekap Kehadiran','Pengajar Integrasi Uji','Materi Integrasi Uji','Perbaiki koordinasi jadwal.','Pre-test: 50,0','Post-test: 80,0','Level 3: 75,0'] as $text) $this->assertStringContainsString($text,$dom->textContent);
+    }
+
 }
