@@ -8,5 +8,5 @@ class PostEvaluationInterview extends Model
 {
     protected $guarded = [];
 
-    protected $casts = ['scores' => 'array', 'notes' => 'array', 'revision' => 'integer'];
+    protected $casts = ['scores' => 'array', 'continuation' => 'array', 'notes' => 'array', 'revision' => 'integer'];
 }

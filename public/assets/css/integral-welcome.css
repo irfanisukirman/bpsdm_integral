@@ -98,3 +98,17 @@ h1,h2,h3,h4,h5,h6 { font-family:"Roboto",sans-serif; color:#212121; line-height:
 .welcome-gedung-sate { position:absolute; right:0; bottom:0; width:100%; height:100%; object-fit:cover; object-position:center 70%; opacity:.24; pointer-events:none; user-select:none; z-index:0; mask-image:linear-gradient(to bottom,transparent 0%,#000 65%); -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 65%); }
 @media(max-width:991.98px) { .welcome-intro { padding-bottom:160px; } .welcome-gedung-sate { width:100%; opacity:.2; } }
 @media(max-width:575.98px) { .welcome-intro { padding-bottom:140px; } .welcome-gedung-sate { width:100%; height:100%; right:0; object-position:65% bottom; opacity:.22; } }
+
+/* Keep outlined actions green in idle, hover, focus and pressed states. */
+.btn-outline-primary {
+ --bs-btn-color:#008444; --bs-btn-border-color:#008444;
+ --bs-btn-hover-color:#fff; --bs-btn-hover-bg:#008444; --bs-btn-hover-border-color:#008444;
+ --bs-btn-active-color:#fff; --bs-btn-active-bg:#006430; --bs-btn-active-border-color:#006430;
+ --bs-btn-focus-shadow-rgb:22,167,92;
+ color:#008444!important; border-color:#008444!important; background-color:transparent!important;
+}
+.btn-outline-primary:is(:hover,:focus,:active,.active),#togglePublicAssets.is-expanded {
+ color:#fff!important; border-color:#008444!important; background-color:#008444!important;
+ box-shadow:0 4px 12px rgba(0,100,48,.14);
+}
+.btn-outline-primary:focus-visible { outline:3px solid #70cd94; outline-offset:3px; }

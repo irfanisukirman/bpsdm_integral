@@ -380,6 +380,50 @@ class PostEvaluationTest extends TestCase
         $this->get(route('post-evaluation.pdf', $t))->assertOk()->assertDownload();
     }
 
+    public function test_explicit_continuation_updates_scores_and_scoped_recap(): void
+    {
+        [$admin,$t,$p] = $this->setupData();
+        $this->actingAs($admin)->get(route('post-evaluation.interview', [$t,$p]))->assertOk()->assertSee('data-continuation', false);
+        $iv = PostEvaluationInterview::where('participant_id',$p->id)->firstOrFail();
+        $iv->update(['scores'=>[25,80,null,null,null]]);
+        $data=$this->interviewData();
+        $data['continuation']=['no','no','yes','yes','yes'];
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertOk();
+        $iv->refresh();
+        $this->assertEquals([25,0,70,60,100],$iv->scores);
+        $this->assertSame([false,false,true,true,true],$iv->continuation);
+        $summary=app(PostEvaluationService::class)->summary($t,app(PostEvaluationService::class)->people($t));
+        $this->assertSame(1,$summary['continuation_recap'][0]['no']);
+        $this->assertNull($summary['continuation_recap'][0]['average_yes']);
+        $this->assertSame(70.0,$summary['continuation_recap'][2]['average_yes']);
+        $data['revision']=1;
+        $data['continuation'][0]=null;
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertUnprocessable()->assertJsonValidationErrors('continuation');
+        $data['continuation'][0]='yes'; $data['scores'][0]=null;
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertUnprocessable()->assertJsonValidationErrors('scores');
+        $data['status']='draft';
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertOk();
+        $this->assertNull($iv->fresh()->scores[0]);
+        $this->get(route('post-evaluation.show',$t))->assertOk()->assertSee('Rekap keberlanjutan hasil wawancara');
+    }
+
+    public function test_legacy_percentage_migration_backs_up_scores_and_preserves_notes(): void
+    {
+        [$admin,$t,$p]=$this->setupData();
+        $iv=PostEvaluationInterview::create(['training_id'=>$t->id,'participant_id'=>$p->id,'scores'=>[60,79,89,100,null],
+            'notes'=>['Bukti lama','','','',''],'status'=>'completed','revision'=>7]);
+        $migration=require database_path('migrations/2026_11_19_090000_align_post_evaluation_interview_percentages.php');
+        $migration->up();
+        $this->assertEquals([25,50,75,100,null],$iv->fresh()->scores);
+        $this->assertSame([false,true,true,true,null],$iv->fresh()->continuation);
+        $this->assertSame('completed',$iv->fresh()->status);
+        $this->assertSame('Bukti lama',$iv->fresh()->notes[0]);
+        $this->assertSame(8,$iv->fresh()->revision);
+        $this->assertEquals([60,79,89,100,null],json_decode(DB::table('post_evaluation_score_backups')->where('interview_id',$iv->id)->value('original_scores'),true));
+        $migration->up();
+        $this->assertSame(8,$iv->fresh()->revision);
+    }
+
     public function test_stale_save_conflicts_and_draft_can_be_partial(): void
     {
         [$admin,$t,$p] = $this->setupData();
@@ -461,7 +505,7 @@ class PostEvaluationTest extends TestCase
         $service = app(PostEvaluationService::class);
         $this->assertSame(0.0, $service->score((object) ['score' => 0, 'note' => null], ['scale' => 'hundred'], $training));
         $this->assertSame(25.0, $service->score((object) ['score' => null, 'note' => '1'], ['scale' => 'four'], $training));
-        $this->assertSame([2, 2, 2, 2], $service->histogram([0, 60, 60.1, 79, 79.1, 89, 89.1, 100, null])['counts']);
+        $this->assertSame([2, 2, 2, 2], $service->histogram([0, 25, 25.1, 50, 50.1, 75, 75.1, 100, null])['counts']);
         $this->assertSame(1, $service->histogram([null, 0])['missing']);
     }
 

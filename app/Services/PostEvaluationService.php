@@ -23,38 +23,38 @@ class PostEvaluationService
 
     public const SCORE_GUIDES = [
         [
-            ['range' => 'nilai ≤60', 'description' => 'Tidak ada target jangka menengah yang tercapai'],
-            ['range' => 'nilai >60 sampai 79', 'description' => 'Sebagian kecil target jangka menengah tercapai'],
-            ['range' => 'nilai >79 sampai 89', 'description' => 'Sebagian besar target jangka menengah tercapai'],
-            ['range' => 'nilai >89 sampai 100', 'description' => 'Seluruh target tercapai'],
+            ['range' => 'nilai 0-25%', 'description' => 'Tidak ada target jangka menengah yang tercapai'],
+            ['range' => 'nilai >25-50%', 'description' => 'Sebagian kecil target jangka menengah tercapai'],
+            ['range' => 'nilai >50-75%', 'description' => 'Sebagian besar target jangka menengah tercapai'],
+            ['range' => 'nilai >75-100%', 'description' => 'Seluruh target tercapai'],
         ],
         [
-            ['range' => 'nilai ≤60', 'description' => 'Tidak ada target jangka panjang yang tercapai'],
-            ['range' => 'nilai >60 sampai 79', 'description' => 'Sebagian kecil target jangka panjang tercapai'],
-            ['range' => 'nilai >79 sampai 89', 'description' => 'Sebagian besar target jangka panjang tercapai'],
-            ['range' => 'nilai >89 sampai 100', 'description' => 'Seluruh target tercapai'],
+            ['range' => 'nilai 0-25%', 'description' => 'Tidak ada target jangka panjang yang tercapai'],
+            ['range' => 'nilai >25-50%', 'description' => 'Sebagian kecil target jangka panjang tercapai'],
+            ['range' => 'nilai >50-75%', 'description' => 'Sebagian besar target jangka panjang tercapai'],
+            ['range' => 'nilai >75-100%', 'description' => 'Seluruh target tercapai'],
         ],
         [
-            ['range' => 'nilai ≤60', 'description' => 'Tujuan proper tidak tercapai, proper tidak efektif'],
-            ['range' => 'nilai >60 sampai 79', 'description' => 'Sebagian kecil tujuan proper tercapai, proper kurang efektif'],
-            ['range' => 'nilai >79 sampai 89', 'description' => 'Sebagian besar tujuan proper tercapai, proper cukup efektif'],
-            ['range' => 'nilai >89 sampai 100', 'description' => 'Seluruh tujuan proper tercapai, proper efektif'],
+            ['range' => 'nilai 0-25%', 'description' => 'Tujuan proper tidak tercapai, proper tidak efektif'],
+            ['range' => 'nilai >25-50%', 'description' => 'Sebagian kecil tujuan proper tercapai, proper kurang efektif'],
+            ['range' => 'nilai >50-75%', 'description' => 'Sebagian besar tujuan proper tercapai, proper cukup efektif'],
+            ['range' => 'nilai >75-100%', 'description' => 'Seluruh tujuan proper tercapai, proper efektif'],
         ],
         [
-            ['range' => 'nilai ≤60', 'description' => 'Manfaat hanya dirasakan unit kerja'],
-            ['range' => 'nilai >60 sampai 79', 'description' => 'Manfaat dirasakan Perangkat Daerah'],
-            ['range' => 'nilai >79 sampai 89', 'description' => 'Manfaat dirasakan beberapa Perangkat Daerah / sebagian masyarakat'],
-            ['range' => 'nilai >89 sampai 100', 'description' => 'Manfaat dirasakan sebagian besar Perangkat Daerah / sebagian masyarakat'],
+            ['range' => 'nilai 0-25%', 'description' => 'Manfaat hanya dirasakan unit kerja'],
+            ['range' => 'nilai >25-50%', 'description' => 'Manfaat dirasakan Perangkat Daerah'],
+            ['range' => 'nilai >50-75%', 'description' => 'Manfaat dirasakan beberapa Perangkat Daerah / sebagian masyarakat'],
+            ['range' => 'nilai >75-100%', 'description' => 'Manfaat dirasakan sebagian besar Perangkat Daerah / sebagian masyarakat'],
         ],
         [
-            ['range' => 'nilai ≤60', 'description' => 'Informasi yang diberikan kurang tepat / kurang lengkap'],
-            ['range' => 'nilai >60 sampai 79', 'description' => 'Informasi yang diberikan cukup tepat / kurang lengkap'],
-            ['range' => 'nilai >79 sampai 89', 'description' => 'Informasi yang diberikan tepat / lengkap'],
-            ['range' => 'nilai >89 sampai 100', 'description' => 'Informasi yang diberikan sangat tepat / sangat lengkap'],
+            ['range' => 'nilai 0-25%', 'description' => 'Informasi yang diberikan kurang tepat / kurang lengkap'],
+            ['range' => 'nilai >25-50%', 'description' => 'Informasi yang diberikan cukup tepat / kurang lengkap'],
+            ['range' => 'nilai >50-75%', 'description' => 'Informasi yang diberikan tepat / lengkap'],
+            ['range' => 'nilai >75-100%', 'description' => 'Informasi yang diberikan sangat tepat / sangat lengkap'],
         ],
     ];
 
-    public const CATEGORIES = ['Kurang (<=60)', 'Cukup (>60-79)', 'Baik (>79-89)', 'Sangat Baik (>89-100)'];
+    public const CATEGORIES = ['0-25% - Kurang', '>25-50% - Cukup', '>50-75% - Baik', '>75-100% - Sangat Baik'];
 
     public function manages(User $u, Training $t): bool
     {
@@ -229,15 +229,35 @@ class PostEvaluationService
             return ['participant' => $p, 'interview' => $iv, 'team' => $teams[$iv?->team_id] ?? 'Belum dibagi', 'answers' => $answers,
                 'roles' => collect($t->evaluationRoles())->mapWithKeys(fn ($r) => [$r => $answers->where('evaluator_role', $r)->isNotEmpty()])->all(),
                 'survey' => $survey, 'coverage' => $coverage, 'survey_average' => $this->average($survey), 'scores' => $scores,
+                'continuation' => $iv?->continuation ?? array_fill(0, 5, null),
                 'interview_average' => $this->average(array_slice($scores, 1, 3)), 'weighted' => $weighted,
                 'partial' => count(array_filter($survey, fn ($v) => $v !== null)) < 3 || collect($coverage)->contains(fn ($c) => $c['filled'] < $c['expected'])];
         })->values()->all();
     }
 
+    public function continuationRecap(array $people): array
+    {
+        return array_map(function ($label, $i) use ($people) {
+            $yes = $no = $unknown = $draft = 0;
+            $values = [];
+            foreach ($people as $person) {
+                $answer = $person['continuation'][$i] ?? null;
+                if ($answer === true) {
+                    $yes++;
+                    if (($person['scores'][$i] ?? null) !== null) $values[] = $person['scores'][$i];
+                } elseif ($answer === false) $no++;
+                else $unknown++;
+                if ($answer !== null && $person['interview']?->status !== 'completed') $draft++;
+            }
+            return ['label'=>$label, 'yes'=>$yes, 'no'=>$no, 'unknown'=>$unknown, 'total'=>count($people),
+                'draft'=>$draft, 'average_yes'=>$this->average($values), 'percentage_filled'=>count($values),
+                'distribution_yes'=>$this->histogram($values)['counts']];
+        }, self::CRITERIA, range(0, 4));
+    }
+
     public function histogram(array $values): array
     {
         $counts = [0, 0, 0, 0];
-        $bands = [0, 0, 0, 0, 0];
         $missing = 0;
         foreach ($values as $v) {
             if ($v === null) {
@@ -245,40 +265,39 @@ class PostEvaluationService
 
                 continue;
             }
-            $bands[$v == 0 ? 0 : ($v <= 25 ? 1 : ($v <= 50 ? 2 : ($v <= 75 ? 3 : 4)))]++;
-            $counts[$v <= 60 ? 0 : ($v <= 79 ? 1 : ($v <= 89 ? 2 : 3))]++;
+            $counts[$v <= 25 ? 0 : ($v <= 50 ? 1 : ($v <= 75 ? 2 : 3))]++;
         }
 
-        return ['counts' => $counts, 'bands' => $bands, 'missing' => $missing, 'valid' => count($values) - $missing, 'average' => $this->average($values)];
+        return ['counts' => $counts, 'bands' => $counts, 'missing' => $missing, 'valid' => count($values) - $missing, 'average' => $this->average($values)];
     }
 
-    public function summary(Training $t, array $people): array
+    public function summary(Training $t, array $people, bool $withNarrative = true): array
     {
         $slides = [['title' => 'Capaian jangka menengah dan panjang', 'series' => [
-            ['label' => 'Jangka menengah', 'data' => $this->histogram(array_column(array_column($people, 'scores'), 0))],
-            ['label' => 'Jangka panjang', 'data' => $this->histogram(array_column(array_column($people, 'scores'), 1))]]]];
+            ['label' => 'Jangka panjang', 'data' => $this->histogram(array_column(array_column($people, 'scores'), 1))],
+            ['label' => 'Jangka menengah', 'data' => $this->histogram(array_column(array_column($people, 'scores'), 0))]]]];
         foreach ($this->indicatorLabels($t) as $i => $label) {
             $slides[] = ['title' => $label, 'series' => [
-                ['label' => 'Survei', 'data' => $this->histogram(array_column(array_column($people, 'survey'), $i))],
-                ['label' => 'Wawancara', 'data' => $this->histogram(array_column(array_column($people, 'scores'), $i + 1))]]];
+                ['label' => 'Wawancara', 'data' => $this->histogram(array_column(array_column($people, 'scores'), $i + 1))],
+                ['label' => 'Survei', 'data' => $this->histogram(array_column(array_column($people, 'survey'), $i))]]];
         }
         $survey = $this->histogram(array_column($people, 'survey_average'));
         $interview = $this->histogram(array_column($people, 'interview_average'));
-        $slides[] = ['title' => 'Nilai keseluruhan: rata-rata tiga indikator', 'series' => [['label' => 'Survei', 'data' => $survey], ['label' => 'Wawancara', 'data' => $interview]]];
+        $slides[] = ['title' => 'Nilai keseluruhan: rata-rata tiga indikator', 'series' => [['label' => 'Wawancara', 'data' => $interview], ['label' => 'Survei', 'data' => $survey]]];
         $completed = count(array_filter($people, fn ($p) => $p['interview']?->status === 'completed'));
         $partial = count(array_filter($people, fn ($p) => $p['partial']));
         $total = count($people);
-        $low = $slides[0]['series'][1]['data']['counts'][0];
+        $low = $slides[0]['series'][0]['data']['counts'][0];
 
         $summary = ['training' => $t->nama_pelatihan, 'program' => $t->program_evaluasi, 'total' => $total, 'completed' => $completed, 'partial' => $partial,
             'roles' => collect($t->evaluationRoleLabels())->map(fn ($l, $r) => ['label' => $l, 'filled' => count(array_filter($people, fn ($p) => $p['roles'][$r]))])->values()->all(),
-            'survey' => $survey, 'interview' => $interview, 'slides' => $slides, 'categories' => self::CATEGORIES,
+            'survey' => $survey, 'interview' => $interview, 'slides' => $slides, 'categories' => self::CATEGORIES, 'continuation_recap' => $this->continuationRecap($people),
             'conclusions' => ["Data mencakup $total alumni; $completed wawancara selesai.", "Nilai survei tersedia untuk {$survey['valid']} alumni dan wawancara untuk {$interview['valid']} alumni. Rerata memakai indikator terisi; $partial hasil survei masih parsial atau belum lengkap.", 'Survei dan wawancara adalah sumber berbeda. Perbandingan ini belum membuktikan perubahan dampak dari waktu ke waktu.'],
-            'recommendations' => [$low ? "Konfirmasi bukti capaian $low alumni dengan nilai jangka panjang <=60 dan rencanakan pendampingan." : 'Tinjau bukti capaian sebelum mereplikasi praktik baik.', $completed < $total ? 'Selesaikan wawancara draf dan validasi bukti bersama tim.' : 'Validasi hasil dan tetapkan tindak lanjut bersama unit kerja alumni.', 'Lengkapi indikator yang belum terpetakan; data kosong tidak dihitung sebagai nol.'],
+            'recommendations' => [$low ? "Konfirmasi bukti capaian $low alumni dengan nilai jangka panjang 0-25% dan rencanakan pendampingan." : 'Tinjau bukti capaian sebelum mereplikasi praktik baik.', $completed < $total ? 'Selesaikan wawancara draf dan validasi bukti bersama tim.' : 'Validasi hasil dan tetapkan tindak lanjut bersama unit kerja alumni.', 'Lengkapi indikator yang belum terpetakan; data kosong tidak dihitung sebagai nol.'],
             'generated_at' => now()->toIso8601String()];
 
         $summary = array_merge($summary, app(PostEvaluationNarrativeService::class)->metadata($people));
 
-        return app(PostEvaluationExposeService::class)->decorate($t, $summary);
+        return app(PostEvaluationExposeService::class)->decorate($t, $summary, $withNarrative);
     }
 }

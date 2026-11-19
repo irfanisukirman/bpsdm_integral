@@ -1,22 +1,62 @@
-<style>
-@media screen{body{background:#e9eff3}.controls{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid #d7e1e8;padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;font-family:Arial,sans-serif}.controls button,.controls a,.controls select{padding:10px;border:1px solid #cbdbe4;border-radius:8px;background:#f4f9fc;color:#225268;text-decoration:none;font:13px Arial,sans-serif;cursor:pointer}.slide-frame{position:relative;margin:22px auto;box-shadow:0 8px 32px #1632451a;scroll-margin-top:90px;overflow:hidden;background:white}.slide-frame .slide{position:absolute;left:0;top:0;transform-origin:top left;margin:0}.controls small{color:#68788f}}
-@media print{.controls{display:none}.slide-frame{width:960pt!important;height:540pt!important;margin:0!important;box-shadow:none;overflow:visible!important;page-break-after:always}.slide-frame:last-child{page-break-after:auto}.slide-frame .slide{transform:none!important;position:relative!important}body{background:white}}
-</style>
-<nav class="controls" aria-label="Kontrol ekspose">
-@if(!$public)
-<a href="{{ route('post-evaluation.show', request()->route('training')) }}">&larr; Kembali ke Hasil Evaluasi</a>
-@endif
-<button id="previousSlide" type="button">&larr; Sebelumnya</button><select id="slideSelect" aria-label="Pilih halaman"></select><button id="nextSlide" type="button">Berikutnya &rarr;</button><button id="fullscreenSlide" type="button">Layar penuh</button><button type="button" onclick="window.print()">Cetak</button><a href="{{ $public ? route('post-evaluation.public.pdf',request()->route('token')) : route('post-evaluation.pdf',request()->route('training')) }}">Unduh PDF</a><small>{{ ($summary['ai_status'] ?? 'none')==='current' ? 'Pembahasan dibuat AI dari data agregat' : 'Pembahasan dasar; AI belum tersedia untuk angka ini' }}</small></nav>
+<header class="expose-topbar">
+<div class="expose-topbar-main"><div class="expose-topbar-title"><span>RUANG EKSPOSE</span><strong>{{ $summary['training'] }}</strong></div><div class="expose-actions">
+@if(!$public)<a href="{{ route('post-evaluation.show', request()->route('training')) }}">&larr; Hasil Evaluasi</a><a href="{{ route('post-evaluation.narrative.edit', request()->route('training')) }}">Edit Narasi</a>@endif
+<a class="expose-download" href="{{ $public ? route('post-evaluation.public.pdf',request()->route('token')) : route('post-evaluation.pdf',request()->route('training')) }}">Unduh PDF &darr;</a>
+</div></div>
+<nav class="controls" aria-label="Kontrol ekspose"><div class="expose-slide-nav"><button id="previousSlide" type="button" aria-label="Slide sebelumnya">&larr;</button><select id="slideSelect" aria-label="Pilih halaman"></select><button id="nextSlide" type="button" aria-label="Slide berikutnya">&rarr;</button><span id="slidePosition" aria-live="polite"></span></div><div class="expose-view-actions"><button id="fullscreenSlide" type="button">Layar penuh</button><button type="button" onclick="window.print()">Cetak</button></div></nav>
+<div class="expose-reading-progress" aria-hidden="true"><span id="exposeProgress"></span></div>
+</header>
+<p class="expose-narrative-status">{{ ($summary['manual_narrative'] ?? false) ? (($summary['narrative_stale'] ?? false) ? 'Data berubah: tinjau kembali narasi tersimpan' : 'Narasi hasil tinjauan tersimpan') : (($summary['ai_status'] ?? 'none')==='current' ? 'Menggunakan hasil Gemini tersimpan' : 'Ringkasan dasar dari data aplikasi') }}</p>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
- const slides=[...document.querySelectorAll('.slide')],select=document.getElementById('slideSelect');let current=0;
- const frames=slides.map((slide,i)=>{const frame=document.createElement('div');frame.className='slide-frame';slide.before(frame);frame.appendChild(slide);const option=document.createElement('option');option.value=i;option.textContent=`Halaman ${i+1} / ${slides.length}`;select.appendChild(option);return frame;});
- const resize=()=>{const width=Math.min(1280,Math.max(1,document.documentElement.clientWidth-24));frames.forEach(frame=>{frame.style.width=width+'px';frame.style.height=width*9/16+'px';frame.firstElementChild.style.transform=`scale(${width/1280})`;});};
- const go=i=>{current=Math.max(0,Math.min(slides.length-1,i));select.value=current;frames[current].scrollIntoView({behavior:'instant',block:'start'});};
- document.getElementById('previousSlide').onclick=()=>go(current-1);document.getElementById('nextSlide').onclick=()=>go(current+1);select.onchange=()=>go(Number(select.value));
- document.getElementById('fullscreenSlide').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>{});};
- window.addEventListener('resize',resize);document.addEventListener('fullscreenchange',()=>{resize();go(current);});
- document.addEventListener('keydown',event=>{if(event.target.closest('input,select,textarea'))return;if(event.key==='ArrowRight'){event.preventDefault();go(current+1);}if(event.key==='ArrowLeft'){event.preventDefault();go(current-1);}});
- window.addEventListener('scroll',()=>{const top=document.querySelector('.controls').getBoundingClientRect().bottom+30;frames.forEach((frame,i)=>{if(frame.getBoundingClientRect().top<=top)current=i;});select.value=current;},{passive:true});resize();
+ const slides=[...document.querySelectorAll('.slide')],select=document.getElementById('slideSelect');
+ const previous=document.getElementById('previousSlide'),next=document.getElementById('nextSlide'),position=document.getElementById('slidePosition'),progress=document.getElementById('exposeProgress');
+ let current=0,scheduled=false,presenting=false;
+ const frames=slides.map((slide,i)=>{const frame=document.createElement('div');frame.className='slide-frame';frame.id='slide-'+(i+1);slide.before(frame);frame.appendChild(slide);const option=document.createElement('option');option.value=i;const title=slide.querySelector('.heading,.cover-title')?.textContent.trim()||'Ekspose';option.textContent=String(i+1).padStart(2,'0')+' / '+slides.length+' - '+title;select.appendChild(option);return frame;});
+ const full=document.getElementById('fullscreenSlide');
+ const resizeStage=()=>{
+  if(!presenting)return;
+  const toolbar=document.querySelector('.expose-topbar');
+  const scale=Math.max(.1,Math.min((innerWidth-24)/1280,(innerHeight-toolbar.offsetHeight-24)/720));
+  document.documentElement.style.setProperty('--presentation-scale',scale);
+  document.documentElement.style.setProperty('--presentation-width',(1280*scale)+'px');
+  document.documentElement.style.setProperty('--presentation-height',(720*scale)+'px');
+  document.documentElement.style.setProperty('--presentation-top',Math.max(0,(innerHeight-toolbar.offsetHeight-720*scale)/2)+'px');
+  const active=slides[current];
+  active.querySelectorAll('.discussion,.conclusion').forEach(panel=>{
+   panel.style.setProperty('--presentation-body-font','16px');
+   let font=16;
+   while(panel.scrollHeight>panel.clientHeight+2&&font>12){font-=.5;panel.style.setProperty('--presentation-body-font',font+'px');}
+  });
+ };
+ const sync=()=>{
+  select.value=current;position.textContent=(current+1)+' / '+slides.length;
+  previous.disabled=current===0;next.disabled=current===slides.length-1;
+  progress.style.width=((current+1)/slides.length*100)+'%';
+  frames.forEach((frame,i)=>{frame.classList.toggle('is-current',i===current);if(presenting)frame.setAttribute('aria-hidden',String(i!==current));else frame.removeAttribute('aria-hidden');});
+  requestAnimationFrame(resizeStage);
+ };
+ const go=i=>{current=Math.max(0,Math.min(slides.length-1,i));sync();if(!presenting)frames[current].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});};
+ const setPresenting=value=>{
+  presenting=value;document.body.classList.toggle('expose-presenting',value);
+  full.textContent=value?'Keluar presentasi':'Layar penuh';full.setAttribute('aria-pressed',String(value));sync();
+  if(!value)requestAnimationFrame(()=>frames[current].scrollIntoView({behavior:'instant',block:'start'}));
+ };
+ const exitPresentation=()=>{setPresenting(false);if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});};
+ previous.onclick=()=>go(current-1);next.onclick=()=>go(current+1);select.onchange=()=>go(Number(select.value));
+ full.onclick=()=>{
+  if(presenting){exitPresentation();return;}
+  setPresenting(true);
+  if(document.fullscreenEnabled)document.documentElement.requestFullscreen?.().then(resizeStage).catch(resizeStage);
+ };
+ document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&presenting)setPresenting(false);else resizeStage();});
+ window.addEventListener('resize',resizeStage);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&presenting){event.preventDefault();exitPresentation();return;}if(event.target.closest('input,select,textarea')||(!presenting&&event.target.closest('button,a'))||event.altKey||event.ctrlKey||event.metaKey)return;if(event.key==='ArrowRight'||(presenting&&(event.key==='PageDown'||event.key===' '))){event.preventDefault();go(current+1);}if(event.key==='ArrowLeft'||(presenting&&event.key==='PageUp')){event.preventDefault();go(current-1);}});
+ window.addEventListener('scroll',()=>{if(presenting||scheduled)return;scheduled=true;requestAnimationFrame(()=>{const top=document.querySelector('.expose-topbar').getBoundingClientRect().bottom+140;frames.forEach((frame,i)=>{if(frame.getBoundingClientRect().top<=top)current=i;});sync();scheduled=false;});},{passive:true});
+ const toolbar=document.querySelector('.expose-topbar');
+ const updateOffset=()=>document.documentElement.style.setProperty('--expose-toolbar-height',(toolbar.offsetHeight+24)+'px');
+ if('ResizeObserver' in window)new ResizeObserver(updateOffset).observe(toolbar);
+ window.addEventListener('resize',updateOffset);updateOffset();
+ sync();
 });
 </script>

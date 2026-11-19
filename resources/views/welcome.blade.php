@@ -470,9 +470,12 @@
             .integration-card { padding: 1.25rem; }
             .integration-card__head { margin-bottom: .9rem; }
         }    </style>
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-welcome.css') }}?v=20261117-gedung-sate-wide">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-welcome.css') }}?v=20261118-green-actions">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-public-motion.css') }}?v=20261118-page-logo">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-page-loader.css') }}?v=20261118-logo-spin-large">
 </head>
 <body>
+    @include('layouts.partials.page-loader')
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-xl navbar-custom" id="mainNavbar">
@@ -919,5 +922,6 @@
             });
         }
     </script>
+    <script src="{{ asset('assets/js/integral-public-motion.js') }}?v=20261118-page-logo"></script>
 </body>
 </html>

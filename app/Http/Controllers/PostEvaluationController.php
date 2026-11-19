@@ -271,12 +271,9 @@ class PostEvaluationController extends Controller
     public function save(Request $request, Training $training, Participant $participant, PostEvaluationService $service)
     {
         $interview = $this->interviewAccess($request, $training, $participant, $service);
-        $data = $request->validate(['revision' => 'required|integer|min:0', 'scores' => 'required|array|size:5', 'scores.*' => 'nullable|numeric|between:0,100', 'notes' => 'required|array|size:5', 'notes.*' => 'nullable|string|max:10000', 'status' => ['required', Rule::in(['draft', 'completed'])]]);
+        $data = $request->validate(['revision' => 'required|integer|min:0', 'continuation' => 'sometimes|array|size:5', 'continuation.*' => 'nullable|in:yes,no', 'scores' => 'required|array|size:5', 'scores.*' => 'nullable|numeric|between:0,100', 'notes' => 'required|array|size:5', 'notes.*' => 'nullable|string|max:10000', 'status' => ['required', Rule::in(['draft', 'completed'])]]);
         if (array_keys($data['scores']) !== range(0, 4) || array_keys($data['notes']) !== range(0, 4)) {
             throw ValidationException::withMessages(['scores' => 'Urutan lima kriteria tidak valid.']);
-        }
-        if ($data['status'] === 'completed' && in_array(null, $data['scores'], true)) {
-            throw ValidationException::withMessages(['scores' => 'Lengkapi kelima nilai sebelum menandai selesai.']);
         }
         DB::transaction(function () use ($request, $data, $interview, $training, $service) {
             $row = PostEvaluationInterview::lockForUpdate()->findOrFail($interview->id);
@@ -285,6 +282,29 @@ class PostEvaluationController extends Controller
                 abort(409, 'Data berubah dari perangkat lain. Salin catatan Anda lalu muat ulang halaman.');
             }
             $data['scores'] = array_map(fn ($v) => $v === null ? null : (float) $v, $data['scores']);
+            if (isset($data['continuation'])) {
+                if (array_keys($data['continuation']) !== range(0, 4)) {
+                    throw ValidationException::withMessages(['continuation'=>'Urutan konfirmasi tidak valid.']);
+                }
+                $choices = [];
+                foreach ($data['continuation'] as $i => $answer) {
+                    $choices[$i] = $answer === null ? null : $answer === 'yes';
+                    if ($answer === 'no') {
+                        $stored = $row->scores[$i] ?? null;
+                        $data['scores'][$i] = $stored !== null && $stored <= 25 ? (float) $stored : 0.0;
+                    } elseif ($answer === null) $data['scores'][$i] = null;
+                }
+                $data['continuation'] = $choices;
+                if ($data['status'] === 'completed' && in_array(null, $choices, true)) {
+                    throw ValidationException::withMessages(['continuation'=>'Pilih YA atau TIDAK pada kelima kriteria sebelum menandai selesai.']);
+                }
+            } else {
+                // Compatibility for older open forms: infer confirmation from submitted percentages.
+                $data['continuation'] = array_map(fn ($v) => $v === null ? null : $v > 25, $data['scores']);
+            }
+            if ($data['status'] === 'completed' && in_array(null, $data['scores'], true)) {
+                throw ValidationException::withMessages(['scores'=>'Lengkapi kelima nilai sebelum menandai selesai.']);
+            }
             $row->update(array_merge($data, ['revision' => $row->revision + 1, 'updated_by' => $request->user()->id]));
         });
         if ($request->expectsJson()) {
@@ -292,6 +312,42 @@ class PostEvaluationController extends Controller
         }
 
         return back()->with('success', 'Wawancara tersimpan.');
+    }
+
+    public function editNarrative(Request $request, Training $training, PostEvaluationService $service, \App\Services\PostEvaluationNarrativeService $narrative)
+    {
+        $service->authorize($request->user(), $training, true);
+        $people = $service->people($training);
+        $summary = $service->summary($training, $people, false);
+        $saved = $service->setting($training)?->report_narrative ?? [];
+        $sourceHash = $narrative->fingerprint($summary);
+        $stale = $saved && ($saved['source_hash'] ?? '') !== $sourceHash;
+        $notes = $narrative->notes($people);
+        $evaluatorNotes = $narrative->notesText($notes);
+        $noteCount = count($notes);
+        $prompt = $narrative->prompt($summary, $notes);
+        return response()->view('post-evaluation.narrative', compact('training','summary','saved','sourceHash','stale','evaluatorNotes','noteCount','prompt'))->header('Cache-Control','private, no-store');
+    }
+
+    public function saveNarrative(Request $request, Training $training, PostEvaluationService $service, \App\Services\PostEvaluationNarrativeService $narrative)
+    {
+        $service->authorize($request->user(), $training, true);
+        $data = $request->validate([
+            'action'=>'required|in:save,reset', 'source_hash'=>'required|string|size:64',
+            'notes'=>'nullable|string|max:10000', 'discussion'=>'required|array:4,5,6,7,8',
+            'discussion.*'=>'nullable|string|max:1600', 'conclusions'=>'nullable|string|max:1600',
+            'recommendations'=>'nullable|string|max:1600',
+        ]);
+        if ($data['action'] === 'save') {
+            $summary = $service->summary($training, $service->people($training), false);
+            if (!hash_equals($narrative->fingerprint($summary), $data['source_hash'])) {
+                throw ValidationException::withMessages(['source_hash'=>'Data evaluasi berubah. Salin dahulu narasi Anda, muat ulang prompt terbaru, lalu tinjau kembali sebelum menyimpan.']);
+            }
+        }
+        PostEvaluationSetting::firstOrCreate(['training_id'=>$training->id])->update([
+            'report_narrative'=>$data['action'] === 'reset' ? null : array_merge($data,['saved_at'=>now()->toIso8601String(),'saved_by'=>$request->user()->id]),
+        ]);
+        return redirect()->route('post-evaluation.expose', $training)->with('success', $data['action']==='reset' ? 'Narasi kembali ke ringkasan dasar atau hasil Gemini yang tersimpan.' : 'Narasi disimpan dan diterapkan pada ekspose serta PDF.');
     }
 
     public function generateExposeAi(Request $request, Training $training, PostEvaluationService $service, PostEvaluationAiService $ai, PostEvaluationExposeService $expose)

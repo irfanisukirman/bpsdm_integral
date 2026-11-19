@@ -1,0 +1,13 @@
+/* Gentle motion for the public welcome and sign-in pages. */
+/* Navigation remains immediate; only the arriving content moves gently. */
+@view-transition { navigation: none; }
+html.integral-motion-ready .animate__animated { animation:none!important; }
+.login-panel { transition:box-shadow 280ms ease; }
+.login-art img { transition:transform 650ms cubic-bezier(.22,1,.36,1); }
+@media(hover:hover) and (pointer:fine) { .login-identity:hover .login-art img { transform:translateY(-5px); } }
+@media(prefers-reduced-motion:reduce) {
+ html { scroll-behavior:auto!important; }
+ .login-art img,.login-panel { transition:none; }
+ .login-identity:hover .login-art img { transform:none; }
+}
+

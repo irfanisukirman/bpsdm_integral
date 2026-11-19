@@ -1,7 +1,7 @@
 /* Integral fresh green (#16a75c), shared by Light and Dark modes. */
 @media screen {
   #layout-menu.bg-menu-theme { background:#16a75c!important; color:#e9f8ef!important; border-right:1px solid rgba(166,225,190,.14); box-shadow:4px 0 22px rgba(4,42,24,.12)!important; }
-  #layout-menu .app-brand { border-bottom:1px solid rgba(195,233,208,.13); }
+  #layout-menu .app-brand { border-bottom:2px solid rgba(195,233,208,.65); box-shadow:0 1px 0 rgba(0,77,41,.16); }
   #layout-menu .app-brand-text { color:#effbf4!important; }
   #layout-menu .app-brand-logo { display:inline-flex; align-items:center; justify-content:center; padding:4px; background:#e6f6ec; border-radius:10px; }
   #layout-menu .menu-inner-shadow { background:linear-gradient(#16a75c 30%,rgba(22,167,92,0))!important; }
@@ -21,3 +21,19 @@
   #layout-menu .menu-notification-badge { border-color:#16a75c; color:#fff!important; }
 }
 
+
+@media screen {
+  /* Submenu dots occupy their own column, including the active state. */
+  #layout-menu .menu-sub > .menu-item > .menu-link {
+    display:flex; align-items:center; gap:.8rem; padding-left:1.45rem; padding-right:.8rem;
+  }
+  #layout-menu .menu-sub > .menu-item > .menu-link::before,
+  #layout-menu .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle)::before {
+    content:""; position:static; inset:auto; transform:none; margin:0; flex:0 0 6px;
+    width:6px; height:6px; border:0!important; border-radius:50%; background:#e6f6ec!important;
+  }
+  #layout-menu .menu-sub > .menu-item.active > .menu-link::before,
+  #layout-menu .menu-sub > .menu-item > .menu-link:hover::before,
+  #layout-menu .menu-sub > .menu-item > .menu-link:focus-visible::before { background:#004d29!important; }
+  #layout-menu .menu-sub > .menu-item > .menu-link > div { min-width:0; white-space:normal; line-height:1.45; }
+}

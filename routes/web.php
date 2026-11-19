@@ -605,6 +605,8 @@ Route::controller(\App\Http\Controllers\PostEvaluationController::class)->group(
         Route::put('{training}/wawancara/{participant}', 'save')->name('interview.save');
         Route::get('{training}/bukti/{evidence}', 'evidence')->name('evidence');
         Route::post('{training}/publikasi', 'publish')->name('publish');
+        Route::get('{training}/ekspose/narasi', 'editNarrative')->name('narrative.edit');
+        Route::put('{training}/ekspose/narasi', 'saveNarrative')->name('narrative.update');
         Route::post('{training}/ekspose/ai', 'generateExposeAi')->middleware('throttle:3,1')->name('ai.generate');
         Route::get('{training}/ekspose', 'expose')->name('expose');
         Route::get('{training}/laporan', 'expose')->name('pdf');

@@ -40,6 +40,7 @@
 @if($manager)
 @include('post-evaluation.ai-expose')
 @endif
+@include('post-evaluation.continuation-recap')
 @include('post-evaluation.summary')
 
 @elseif($tab === 'jawaban')

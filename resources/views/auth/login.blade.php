@@ -1,34 +1,29 @@
 @extends('layouts.auth')
 
-@section('content')
-<div class="authentication-wrapper authentication-basic container-p-y">
-    <div class="authentication-inner">
-        
-        <!-- Tombol Kembali ke Beranda (Diletakkan di luar Card agar terlihat modern) -->
-        <div class="mb-3 animate__animated animate__fadeInLeft">
-            <a href="{{ url('/') }}" class="d-flex align-items-center text-muted fw-semibold">
-                <i class="bx bx-chevron-left fs-4"></i>
-                <span>Kembali ke Beranda</span>
-            </a>
-        </div>
+@section('title', 'Masuk Integral')
+@section('body_class', 'integral-login-page')
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/integral-fonts.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/integral-login.css') }}?v=20261118">
+<link rel="stylesheet" href="{{ asset('assets/css/integral-public-motion.css') }}?v=20261118-page-logo">
+@endpush
 
-        <!-- Login Card -->
-        <div class="card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px;">
-            <div class="card-body p-3 p-sm-4 p-md-5">
-                <!-- Branding Logo -->
-                <div class="app-brand justify-content-center mb-4">
-                    <a href="/" class="app-brand-link gap-2">
-                        <span class="app-brand-logo demo">
-                            <img src="{{ asset('assets/img/favicon/inte.png') }}" alt="Integral Logo" style="width: 55px; filter: drop-shadow(0px 4px 10px rgba(105, 108, 255, 0.3));">
-                        </span>
-                    </a>
-                </div>
-                
-                <div class="text-center mb-4">
-                    <h4 class="mb-1 fw-bold text-dark" style="letter-spacing: -0.5px;">Integral <span class="text-primary">Technology</span></h4>
-                    <p class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 1px;">Sistem Pengelolaan Terintegrasi</p>
-                </div>
-                
+@section('content')
+<main class="login-shell">
+    <a href="{{ url('/') }}" class="login-back"><i class="bx bx-arrow-back"></i>Kembali ke Beranda</a>
+    <div class="login-panel">
+        <section class="login-identity" aria-labelledby="loginIdentityTitle">
+            <a href="{{ url('/') }}" class="login-brand"><img src="{{ asset('assets/img/favicon/inte.png') }}" alt="Logo Integral" width="44" height="44"><span>INTEGRAL<small>BPSDM Provinsi Jawa Barat</small></span></a>
+            <div class="login-identity-copy">
+                <span class="login-eyebrow">SATU PLATFORM, LAYANAN TERINTEGRASI</span>
+                <h1 id="loginIdentityTitle">Terhubung untuk<br><span>kompetensi yang lebih baik.</span></h1>
+                <p>Kelola perjalanan pelatihan Anda, dari persiapan dan pelaksanaan hingga evaluasi dan pelaporan.</p>
+            </div>
+            <div class="login-art"><img src="{{ asset('assets/img/illustrations/integrated.png') }}" alt="Ilustrasi layanan pelatihan Integral" width="560" height="400"></div>
+            <div class="login-identity-note"><i class="bx bx-check-shield"></i>Pelatihan terkelola. Kompetensi berkembang.</div>
+        </section>
+        <section class="login-form-panel" aria-labelledby="loginFormTitle">
+            <div class="login-form-heading"><span class="login-eyebrow">SELAMAT DATANG KEMBALI</span><h2 id="loginFormTitle">Masuk ke Integral</h2><p>Gunakan akun Anda untuk melanjutkan.</p></div>
                 {{-- Alert Error --}}
                 @if(session('error'))
                     <div class="alert alert-danger border-0 small d-flex align-items-center animate__animated animate__shakeX" role="alert">
@@ -43,7 +38,7 @@
                         <label for="username" class="form-label fw-bold">NIP/NIK, Email Evaluator, atau Username</label>
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-user"></i></span>
-                            <input type="text" class="form-control @error('username') is-invalid @enderror" name="username" placeholder="Masukkan NIP/NIK, email evaluator, atau username" autofocus value="{{ old('username') }}" style="border-left: none;" />
+                            <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" autocomplete="username" required placeholder="Masukkan NIP/NIK, email evaluator, atau username" autofocus value="{{ old('username') }}" style="border-left: none;" />
                         </div>
                         @error('username')
                             <small class="text-danger mt-1 d-block">{{ $message }}</small>
@@ -52,7 +47,7 @@
 
                     <div class="mb-3 form-password-toggle">
                         <div class="d-flex justify-content-between">
-                            <label class="form-label fw-bold" for="password">Password</label>
+                            <label class="form-label fw-bold" for="loginPassword">Password</label>
                             @if($loginHelp->is_active)
                             <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
                                 <small class="text-primary fw-semibold">Lupa Password?</small>
@@ -61,7 +56,7 @@
                         </div>
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-lock-alt"></i></span>
-                            <input id="loginPassword" type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="Password" style="border-left:none;border-right:none" />
+                            <input id="loginPassword" type="password" class="form-control @error('password') is-invalid @enderror" name="password" autocomplete="current-password" required placeholder="Password" style="border-left:none;border-right:none" />
                             <button type="button" class="input-group-text cursor-pointer border-start-0" id="toggleLoginPassword" aria-label="Tampilkan password" aria-pressed="false"><i class="bx bx-show fs-5"></i></button>
                         </div>
                         @error('password')
@@ -84,20 +79,14 @@
                 <div class="d-flex justify-content-center">
                     <a href="{{ route('auth.google') }}" class="btn btn-outline-white w-100 d-flex align-items-center justify-content-center py-2 google-btn shadow-xs">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width: 18px;" class="me-2">
-                        <span class="fw-bold text-dark" style="font-size: 0.9rem;">Google Account</span>
+                        <span class="fw-bold text-dark" style="font-size: 0.9rem;">Masuk dengan Google</span>
                     </a>
                 </div>
 
-                <div class="text-center mt-5">
-                    <p class="mb-0 small text-muted">
-                        BPSDM Provinsi Jawa Barat &copy; {{ date('Y') }}
-                    </p>
-                    <small class="fw-bold text-primary" style="font-size: 10px; letter-spacing: 2px;">INTEGRAL TECH</small>
-                </div>
-            </div>
-        </div>
+            <p class="login-copyright">BPSDM Provinsi Jawa Barat &copy; {{ date('Y') }}<br><span>INTEGRAL ? Sistem Pengelolaan Terintegrasi</span></p>
+        </section>
     </div>
-</div>
+</main>
 
 @if($loginHelp->is_active)
 <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordTitle" aria-hidden="true">
@@ -119,107 +108,8 @@
  </div></div>
 </div>
 @endif
+<script src="{{ asset('assets/js/integral-public-motion.js') }}?v=20261118-page-logo"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){const input=document.getElementById('loginPassword'),button=document.getElementById('toggleLoginPassword');button?.addEventListener('click',function(){const visible=input.type==='text';input.type=visible?'password':'text';this.setAttribute('aria-label',visible?'Tampilkan password':'Sembunyikan password');this.setAttribute('aria-pressed',String(!visible));this.querySelector('i').className=visible?'bx bx-show fs-5':'bx bx-hide fs-5';input.focus();});});
 </script>
-<!-- Background Elements -->
-<div class="bg-shape-1 d-none d-sm-block"></div>
-<div class="bg-shape-2 d-none d-sm-block"></div>
-
-<style>
-    body {
-        background-color: #f4f7ff;
-        background-image: radial-gradient(#696cff 0.5px, transparent 0.5px);
-        background-size: 30px 30px;
-        min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
-    }
-
-    /* Responsivitas Kontainer Utama */
-    .authentication-inner {
-        max-width: 450px !important;
-        width: 100%;
-        margin: 0 auto;
-        padding: 0 1.2rem;
-        position: relative;
-        z-index: 10;
-    }
-
-    @media (max-width: 576px) {
-        .hero-title { font-size: 1.5rem; }
-        .card-body { padding: 1.5rem !important; }
-        .authentication-wrapper.authentication-basic .authentication-inner { padding: 0 1rem; }
-    }
-
-    /* Dekorasi Lingkaran di Background (Hidden on Mobile for Performance) */
-    .bg-shape-1 {
-        position: fixed;
-        top: -100px;
-        right: -100px;
-        width: 400px;
-        height: 400px;
-        background: linear-gradient(135deg, rgba(105, 108, 255, 0.2) 0%, rgba(105, 108, 255, 0) 100%);
-        border-radius: 50%;
-        z-index: -1;
-    }
-
-    .bg-shape-2 {
-        position: fixed;
-        bottom: -150px;
-        left: -150px;
-        width: 500px;
-        height: 500px;
-        background: linear-gradient(135deg, rgba(3, 195, 236, 0.15) 0%, rgba(3, 195, 236, 0) 100%);
-        border-radius: 50%;
-        z-index: -1;
-    }
-
-    /* Input Focus Styling */
-    .input-group-text {
-        background-color: #fcfcff;
-        border-color: #d9dee3;
-        color: #696cff;
-    }
-    .form-control:focus, .form-control:focus + .input-group-text {
-        border-color: #696cff !important;
-    }
-
-    /* Button Login Animation */
-    .btn-login {
-        background: linear-gradient(45deg, #696cff, #43459d);
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(105, 108, 255, 0.3) !important;
-    }
-
-    /* Google Button */
-    .google-btn {
-        border: 1px solid #d9dee3;
-        background: white;
-        transition: all 0.2s;
-    }
-    .google-btn:hover {
-        background-color: #f8f9fa !important;
-        border-color: #696cff !important;
-        transform: scale(1.01);
-    }
-
-    /* Divider */
-    .divider-text {
-        background-color: transparent !important;
-        font-weight: 700;
-        letter-spacing: 1px;
-    }
-    .divider::before, .divider::after {
-        border-color: #d9dee3 !important;
-    }
-    
-    .shadow-xs {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-</style>
 @endsection

@@ -7,7 +7,7 @@
                 {{-- LOGO INTEGRAL --}}
                 <img src="{{ asset('assets/img/favicon/inte.png') }}" 
                      alt="Integral Logo" 
-                     style="width: 32px; filter: drop-shadow(0px 2px 4px rgba(105, 108, 255, 0.3));">
+                     style="width: 32px; filter: drop-shadow(0px 2px 4px rgba(0, 77, 41, 0.2));">
             </span>
             <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="letter-spacing: 1px; font-size: 1.25rem;">Integral</span>
         </a>
@@ -78,7 +78,7 @@
                 <a href="{{ route('pengajar.index') }}" class="menu-link"><i class="menu-icon bx bx-home-alt"></i><div class="fw-bold">Dashboard Narasumber</div></a>
             </li>
         @elseif(Auth::user()->role === 'mitra')
-            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
+            <li class="menu-item {{ request()->routeIs('mitra.dashboard') ? 'active' : '' }}"><a href="{{ route('mitra.dashboard') }}" class="menu-link"><i class="menu-icon bx bx-user-plus"></i><div class="fw-bold">Pengajuan Mitra</div></a></li>
         @elseif(Auth::user()->role === 'penandatangan')
             {{-- Dashboard akun penandatangan adalah Pusat Tanda Tangan Elektronik di atas. --}}
         @else
@@ -107,6 +107,10 @@
             </li>
         @endif
 
+        @if(in_array(Auth::user()->role, ['superadmin', 'evaluator'], true) || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
+            <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
+        @endif
+
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
             <li class="menu-item {{ request()->routeIs('alumni.index') ? 'active' : '' }}">
                 <a href="{{ route('alumni.index') }}" class="menu-link">
@@ -118,10 +122,7 @@
 
 
 
-        @if(in_array(Auth::user()->role, ['superadmin', 'evaluator'], true) || (Auth::user()->role !== 'admin_bidang' && \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')->where('user_id', Auth::id())->exists()))
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Expose Evaluasi Pasca</span></li>
-            <li class="menu-item {{ request()->routeIs('post-evaluation.*') ? 'active' : '' }}"><a href="{{ route('post-evaluation.index') }}" class="menu-link"><i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Hasil Evaluasi Pasca Level 3 &amp; 4</div></a></li>
-        @endif
+
 
 
 
@@ -148,7 +149,7 @@
                 <a href="{{ route('certifications.index') }}" class="menu-link"><i class="menu-icon bx bx-certification"></i><div>Kelola Sertifikasi</div></a>
             </li>
             <li class="menu-item {{ request()->routeIs('cooperations.*') ? 'active' : '' }}">
-                <a href="{{ route('cooperations.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Kelola Kerja Sama</div></a>
+                <a href="{{ route('cooperations.index') }}" class="menu-link"><i class="menu-icon bx bx-group"></i><div>Kelola Kerja Sama</div></a>
             </li>
         @endif
 
@@ -193,7 +194,7 @@
             ], true))
                 <li class="menu-header small text-uppercase"><span class="menu-header-text">Kemitraan</span></li>
                 <li class="menu-item {{ request()->routeIs('mitra.admin.*') || (request()->routeIs('mitra.submissions.show') && Auth::user()->role !== 'mitra') ? 'active' : '' }}">
-                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-handshake"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
+                    <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-user-plus"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
                 </li>
             @endif
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>

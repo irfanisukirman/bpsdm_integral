@@ -47,7 +47,7 @@
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/integral-theme.css') }}?v=20261117-green3">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-sidebar.css') }}?v=20261117-sidebar-labels">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-sidebar.css') }}?v=20261118-submenu-dots">
 
     <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261117-freshgreen">
 
@@ -59,9 +59,11 @@
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
     <script src="{{ asset('assets/js/config.js') }}?v=20261117-sapawarga-green"></script>
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-page-loader.css') }}?v=20261118-logo-spin-large">
 </head>
 
 <body>
+    @include('layouts.partials.page-loader')
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -87,7 +89,7 @@
                     <footer class="content-footer footer bg-footer-theme">
                         <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
                             <div class="mb-2 mb-md-0">
-                                © {{ date('Y') }} <strong>Integral</strong> - BPSDM Provinsi Jawa Barat
+                                Â© {{ date('Y') }} <strong>Integral</strong> - BPSDM Provinsi Jawa Barat
                             </div>
                         </div>
                     </footer>

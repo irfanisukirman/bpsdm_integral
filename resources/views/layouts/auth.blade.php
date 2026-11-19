@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" class="light-style customizer-hide" dir="ltr">
+<html lang="id" class="light-style customizer-hide" dir="ltr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@yield('title', 'Login') | INTEGRAL</title>
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
@@ -13,8 +13,11 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/pages/page-auth.css') }}" />
+    @stack('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-page-loader.css') }}?v=20261118-logo-spin-large">
 </head>
-<body>
+<body class="@yield('body_class')">
+    @include('layouts.partials.page-loader')
     <div class="container-xxl">
         @yield('content')
     </div>

@@ -1,27 +1,27 @@
-# Ekspose pasca dan narasi AI
+# Ekspose pasca dan narasi
 
-Ekspose Integral mengikuti referensi Ekspose-Kegiatan-4 (8).pdf: sembilan halaman 16:9, sampul, tujuan, mekanisme konfirmasi, lima grafik dengan pembahasan di kanan, lalu pembahasan keseluruhan dan rekomendasi. Aset sampul/tujuan/logo menggunakan aset lokal proyek Pasca yang sudah ada. Tidak memerlukan akses gambar eksternal.
+Ekspose Integral berisi sembilan slide 16:9. Grafik dan rubrik mengikuti Pasca terbaru: 0-25%, >25-50%, >50-75%, >75-100%. Data kosong bukan nilai nol. Rata-rata ekspose memakai tiga indikator terisi, sedangkan nilai berbobot memakai lima kriteria.
 
-## Grafik
+## Alur ringan tanpa API (19 November 2026)
 
-Grafik ekspose menggunakan lima rentang sama dengan referensi: nilai 0, lebih dari 0 sampai 25, lebih dari 25 sampai 50, lebih dari 50 sampai 75, lebih dari 75 sampai 100. Label singkat 1-25 dan seterusnya adalah rentang visual; nilai desimal mengikuti batas tepat ini. Nilai kosong tetap tidak masuk rentang mana pun dan dicantumkan sebagai belum dinilai.
+1. Buka Hasil Evaluasi Pasca, pilih pelatihan, lalu Prompt ChatGPT & Edit Narasi. Tombol yang sama tersedia pada toolbar ekspose.
+2. Prompt berisi metadata pelatihan, lima grafik, data terisi/kosong/parsial, rekap YA/TIDAK, serta catatan evaluator tersamarkan. Catatan tambahan opsional langsung memperbarui prompt di browser.
+3. Salin Prompt + Data, buka ChatGPT, lalu tempel prompt. Aplikasi tidak mengirim prompt secara otomatis. Clipboard yang tidak tersedia memakai pilihan teks untuk Ctrl+C.
+4. Tempel hasil pada pembahasan slide 4-8, kesimpulan, dan rekomendasi slide 9. Penghitung kata membantu membatasi panjang sekitar 120 kata; batas penyimpanan 1600 karakter per kolom.
+5. Simpan dan Pratinjau menerapkan narasi pada ekspose dan PDF. Kolom kosong memakai ringkasan dasar berbasis angka. Ringkasan dasar dan prompt dibuat lokal, tanpa API.
+6. Jika sumber berubah, ekspose/PDF menandai narasi agar ditinjau. Penyimpanan dari formulir dengan sidik sumber lama ditolak dengan mempertahankan input. Muat ulang prompt terbaru setelah menyalin draf.
+7. Kembali ke Ringkasan Dasar menghapus hanya narasi manual dan catatan tambahan, bukan wawancara, survei, tim, atau dokumen.
 
-Pengelompokan grafik ini terpisah dari kategori rubrik Kurang/Cukup/Baik/Sangat Baik yang sudah digunakan ringkasan. Nilai survei dan wawancara tidak diubah. Rerata keseluruhan tetap menggunakan tiga indikator terisi, bukan nilai berbobot lima kriteria. Snapshot publik lama yang belum memiliki lima rentang tetap menampilkan kategori lamanya tanpa merekayasa data; perbarui publikasi untuk memakai data grafik terbaru.
+Narasi manual disimpan per pelatihan pada post_evaluation_settings.report_narrative, termasuk sidik sumber, waktu, dan penyimpan. Hanya superadmin yang dapat menyiapkan prompt, menyimpan, atau menghapus narasi. Hak evaluator tetap terbatas ke ringkasan dan wawancara timnya.
 
-## Membuat narasi
+## Gemini opsional
 
-1. Buka Hasil Evaluasi Pasca, pilih pelatihan lalu tab Ringkasan.
-2. Pastikan jawaban survei untuk tiga indikator otomatis dan nilai wawancara sudah tersedia.
-3. Narasi otomatis dibuat saat superadmin membuka tab Ringkasan jika belum tersedia atau sumber berubah. Tombol Buat ulang narasi AI tersedia untuk mencoba ulang. Layanan memakai provider/model AI yang sudah dikonfigurasi pada aplikasi (OpenAI atau Gemini), bukan konfigurasi atau API key baru.
-4. AI menulis pembahasan lima grafik, kesimpulan dan tiga rekomendasi yang lebih terjelaskan. Angka grafik tetap dihitung aplikasi; API tidak diminta membuat atau mengubah grafik.
-5. Tinjau draf melalui Ekspose atau PDF. Jika sesuai, gunakan Perbarui Hasil Publik untuk menerbitkan snapshot beserta narasinya. Link publik tidak otomatis berubah saat generate.
+Generate Gemini dijalankan hanya saat tombol diklik. Tidak ada fetch otomatis saat membuka ringkasan atau ekspose. Halaman dan ekspor PDF tidak menunggu layanan AI. Hasil Gemini yang masih cocok dengan data dapat dipakai dari cache; narasi manual yang sudah ditinjau diprioritaskan.
 
-Yang dikirim ke AI adalah program, jumlah peserta, cakupan/progres, histogram, rerata, penjelasan rumus, dan catatan evaluator lima kriteria yang disamarkan (nama/NIP/email peserta terdaftar dan nomor panjang dihapus). Judul/isi Proper dan file tidak dikirim. Catatan draf disebut sementara, temuan tidak digeneralisasi ke seluruh peserta. Seluruh nilai kosong berarti belum dinilai, bukan bukti tidak hadir. Narasi diminta membedakan sumber survei dan wawancara, menyebut keterbatasan cakupan, serta tidak mengarang sebab-akibat, bukti atau angka. Setiap rekomendasi harus berupa usulan tindakan dan pemantauan, bukan klaim kegiatan telah dilakukan.
+Alur API lama tetap tersedia untuk kompatibilitas, dengan CSRF, otorisasi, throttle, lock per pelatihan, fingerprint data, dan penanganan kegagalan. API key tidak ditampilkan. Pengujian menggunakan respons palsu; pekerjaan implementasi ini tidak memanggil provider AI nyata.
 
-Narasi tersimpan pada ai_generations beserta model, waktu, status dan sidik angka dan catatan evaluator. Ekspose otomatis memakai hasil AI yang sesuai angka terkini. Jika angka berubah, hasil lama tidak dicampur dengan data baru; status meminta generate ulang dan tampilan menggunakan narasi dasar berbasis angka sementara. Kegagalan API tidak menghapus hasil sebelumnya. Konfigurasi AI yang belum siap atau belum adanya nilai menghasilkan pesan yang jelas. Pengguna tidak perlu memanggil API setiap kali membuka/mengekspor PDF.
+## Data dan privasi
 
-Pengujian memalsukan respons API, memeriksa payload agregat tanpa identitas, penyimpanan narasi, hasil gagal, deteksi data berubah, snapshot publik tetap, otorisasi, batas rentang, dan PDF sembilan halaman. Panggilan API nyata dilakukan otomatis dari tab Ringkasan superadmin bila narasi belum sesuai, atau saat tombol buat ulang dijalankan dan bergantung pada kredensial/ketersediaan provider.
+Prompt memakai nomor peserta anonim dan menyamarkan nama, NIP, NIK, email serta nomor panjang pada catatan. Dokumen dan isi Proper tidak disertakan. Catatan draf tetap dinyatakan sementara; temuan tidak digeneralisasi, nilai kosong bukan bukti ketidakhadiran. Catatan tambahan perlu ditinjau pengguna sebelum disalin ke layanan luar.
 
-## Otomatisasi 17 November 2026
-
-Permintaan otomatis memakai POST ber-CSRF, otorisasi superadmin, lock per pelatihan, dan cache hasil berdasarkan sidik sumber. Kegagalan otomatis ditahan lima menit agar tidak berulang saat halaman dimuat ulang; tombol manual dapat mencoba kembali. Catatan mentah tidak masuk snapshot publik. Perubahan catatan atau status wawancara membuat narasi lama kedaluwarsa meskipun angka tetap. API tidak dijalankan dari GET, ekspor PDF, atau link publik.
+Catatan mentah dan catatan tambahan tidak masuk snapshot publik; hanya narasi yang diterapkan. Snapshot lama tetap stabil sampai dipublikasikan ulang melalui endpoint yang sudah ada. UI publikasi tetap tidak ditampilkan.

@@ -2,6 +2,8 @@
 @section('title','Wawancara Evaluasi Pasca')
 @section('content')
 <style>
+#interviewForm .interview-survey-scroll{overflow-x:auto!important;max-width:100%}
+
 .proper-reference{margin-top:18px;padding:18px;border:1px solid #cfe3d8;border-radius:12px;background:#f5faf7}.proper-reference h6{color:#176344;font-weight:700}.proper-reference dl{margin:0}.proper-reference dl>div{display:grid;grid-template-columns:180px minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid #deebe4}.proper-reference dt{font-size:.8rem;color:#64786e}.proper-reference dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.interview-survey td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}.interview-criterion{scroll-margin-top:20px}.score-guide dt{margin-top:12px}.proper-documents{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.proper-documents small{overflow-wrap:anywhere}.criterion-reference .proper-reference{margin:0 0 20px}.interview-score-comment{display:grid;grid-template-columns:124px minmax(0,1fr);gap:20px;align-items:start}.interview-score-box{width:124px;min-width:0}.interview-score-box input{height:70px;text-align:center;font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;padding:.5rem}.interview-comment-box{min-width:0}.interview-score-box .form-label{font-size:.85rem}.interview-title{white-space:pre-wrap;overflow-wrap:anywhere}@media(max-width:600px){.interview-score-comment{grid-template-columns:94px minmax(0,1fr);gap:12px}.interview-score-box{width:94px}.interview-score-box input{font-size:1.3rem;height:62px}.proper-reference dl>div{grid-template-columns:1fr;gap:4px}}
 </style>
 <a href="{{ route('post-evaluation.show',[$training,'tab'=>'wawancara']) }}">&larr; Kembali ke wawancara</a>
@@ -44,7 +46,7 @@
 </div><small class="text-muted mt-3">Informasi Proper diisi melalui link publik pelatihan. Evaluator membaca data ini sebagai dasar penilaian.</small>
 </section>
 <section class="card card-body mb-4"><h5>Jawaban survei</h5><p class="text-muted">Jawaban evaluasi langsung dari Integral. Khusus PKP, PKA, PKN dan LATSAR: Tidak Sesuai=1, Kurang Sesuai=2, Sesuai=3, Sangat Sesuai=4. Konversi ke skala 100 adalah nilai tersebut dikali 25. Teknis menggunakan skala sumbernya sendiri. Hanya tiga indikator hasil berikut yang ditampilkan. Sumber penilai ditampilkan terpisah.</p>
-<div class="table-responsive"><table class="table interview-survey"><thead><tr><th>Pertanyaan</th><th>Penilai</th><th>Jawaban asli</th><th>Skala 1-4</th><th>Konversi 100</th></tr></thead><tbody>
+<div class="table-responsive interview-survey-scroll"><table class="table interview-survey"><thead><tr><th>Pertanyaan</th><th>Penilai</th><th>Jawaban asli</th><th>Skala 1-4</th><th>Konversi 100</th></tr></thead><tbody>
 @foreach(app(\App\Services\PostEvaluationService::class)->surveyQuestionLabels($training) as $indicator=>$label)
 @php $indicatorAnswers=collect($surveyAnswers)->where('indicator',$indicator); @endphp
 <tr data-survey-indicator="{{ $indicator }}"><td style="min-width:220px">{{ $label }}</td>
@@ -93,7 +95,17 @@
 </section>
 @foreach($rubric as $i=>$criterion)
 <section class="card card-body mb-4 interview-criterion" id="criterion-{{ $i }}"><div class="d-flex flex-wrap gap-2 justify-content-between align-items-start mb-3"><h5>{{ $i+1 }}. {{ $criterion['label'] }}</h5><span class="badge bg-label-primary">Bobot {{ $criterion['weight'] }}%</span></div>
-<div class="row g-4"><div class="col-lg-7"><div class="interview-score-comment"><div class="interview-score-box"><label class="form-label fw-bold" for="score-{{ $i }}">Nilai wawancara</label><input class="form-control mb-2 interview-score-input" inputmode="decimal" id="score-{{ $i }}" name="scores[{{ $i }}]" type="number" min="0" max="100" step="0.0001" value="{{ old('scores.'.$i,$interview->scores[$i] ?? '') }}"><p class="small text-muted mb-0">Maksimal 100.<br>Kosongkan bila belum dinilai.</p></div><div class="interview-comment-box">
+@php
+    $savedChoice = $interview->continuation[$i] ?? null;
+    $choice = old('continuation.'.$i, $savedChoice === null ? '' : ($savedChoice ? 'yes' : 'no'));
+@endphp
+<div class="mb-4 p-3 border rounded-3">
+<label class="form-label fw-bold" for="continuation-{{ $i }}">Apakah masih berlanjut / tercapai?</label>
+<select class="form-select" id="continuation-{{ $i }}" name="continuation[{{ $i }}]" data-continuation="{{ $i }}">
+<option value="" @selected($choice==='')>Belum dikonfirmasi</option><option value="yes" @selected($choice==='yes')>YA</option><option value="no" @selected($choice==='no')>TIDAK</option>
+</select><small class="text-muted d-block mt-2">YA: isi persentase capaian. TIDAK: nilai 0%; nilai lama 0-25% tetap dipertahankan. Belum dikonfirmasi: nilai kosong.</small>
+</div>
+<div class="row g-4"><div class="col-lg-7"><div class="interview-score-comment"><div class="interview-score-box"><label class="form-label fw-bold" for="score-{{ $i }}">Nilai wawancara</label><input class="form-control mb-2 interview-score-input" inputmode="decimal" id="score-{{ $i }}" name="scores[{{ $i }}]" type="number" min="0" max="100" step="0.0001" value="{{ old('scores.'.$i,$interview->scores[$i] ?? '') }}"><p class="small text-muted mb-0">Skala 0-100%.<br>Acuan survei: 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%.</p></div><div class="interview-comment-box">
 <label class="form-label fw-bold" for="note-{{ $i }}">Hasil wawancara &amp; bukti</label><textarea id="note-{{ $i }}" class="form-control" name="notes[{{ $i }}]" rows="4" maxlength="10000" placeholder="Tuliskan capaian, alasan pemberian nilai, kendala, dan bukti yang dikonfirmasi.">{{ old('notes.'.$i,$interview->notes[$i] ?? '') }}</textarea></div></div></div>
 <div class="col-lg-5 criterion-reference">
 
@@ -118,7 +130,7 @@
 @endforeach
 </dl></div></div></section>
 @endforeach
-<div class="card card-body mb-4"><label class="form-label fw-bold">Status wawancara</label><select class="form-select mb-3" name="status"><option value="draft" @selected(old('status',$interview->status)==='draft')>Draf</option><option value="completed" @selected(old('status',$interview->status)==='completed')>Selesai - kelima nilai wajib terisi</option></select><p class="small text-muted">Rerata pembanding survei memakai kriteria 2-4. Nilai berbobot memakai kelima kriteria. Menyimpan wawancara tidak mengubah survei atau informasi Proper peserta.</p><button class="btn btn-primary" type="submit">Simpan Wawancara</button><small id="saveStatus" class="mt-2" role="status"></small></div>
+<div class="card card-body mb-4"><label class="form-label fw-bold">Status wawancara</label><select class="form-select mb-3" name="status"><option value="draft" @selected(old('status',$interview->status)==='draft')>Draf</option><option value="completed" @selected(old('status',$interview->status)==='completed')>Selesai - kelima konfirmasi dan nilai wajib terisi</option></select><p class="small text-muted">Rerata pembanding survei memakai kriteria 2-4. Nilai berbobot memakai kelima kriteria. Menyimpan wawancara tidak mengubah survei atau informasi Proper peserta.</p><button class="btn btn-primary" type="submit">Simpan Wawancara</button><small id="saveStatus" class="mt-2" role="status"></small></div>
 </form>
 @endsection
 
@@ -134,6 +146,18 @@
     else if(value<0)input.value='0';
    }
   });
+ });
+ const storedScores=@json($interview->scores ?? array_fill(0,5,null));
+ const syncChoice=select=>{
+  const i=Number(select.dataset.continuation),input=document.getElementById('score-'+i);
+  input.readOnly=select.value!=='yes';
+  if(select.value==='no') input.value=storedScores[i]!==null&&storedScores[i]<=25?storedScores[i]:0;
+  else if(select.value==='') input.value='';
+  else if(input.dataset.lastChoice && input.dataset.lastChoice!=='yes') input.value='';
+  input.dataset.lastChoice=select.value;
+ };
+ form.querySelectorAll('[data-continuation]').forEach(select=>{
+  syncChoice(select);select.addEventListener('change',()=>syncChoice(select));
  });
  const weights=@json(array_column($rubric,'weight'));
  const formatScore=value=>value===null?'-':value.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -165,7 +189,9 @@
   } catch(error){status.textContent=error.message || 'Belum tersimpan. Periksa koneksi dan klik Simpan Wawancara.';status.classList.add('text-danger');}
   finally{busy=false;}
  };
- form.addEventListener('input',()=>{dirty=true;version++;status.classList.remove('text-danger');status.textContent='Ada perubahan yang belum disimpan.';clearTimeout(timer);timer=setTimeout(save,1300);});
+ const markDirty=()=>{dirty=true;version++;status.classList.remove('text-danger');status.textContent='Ada perubahan yang belum disimpan.';clearTimeout(timer);timer=setTimeout(save,1300);};
+ form.addEventListener('input',markDirty);
+ form.addEventListener('change',markDirty);
  form.addEventListener('submit',event=>{event.preventDefault();dirty=true;save();});
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 })();
