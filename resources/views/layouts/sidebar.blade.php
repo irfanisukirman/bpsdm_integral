@@ -118,6 +118,29 @@
                     <div>Kelola Alumni</div>
                 </a>
             </li>
+
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
+            <li class="menu-item {{ request()->routeIs('monitoring.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('monitoring.dashboard') }}" class="menu-link">
+                    <i class="menu-icon bx bx-bar-chart-alt-2"></i><div>Dashboard Monitoring</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('monitoring.index', 'monitoring.fill') ? 'active' : '' }}">
+                <a href="{{ route('monitoring.index') }}" class="menu-link">
+                    <i class="menu-icon bx bx-search-alt"></i><div>Instrumen Monitoring</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
+                <a href="{{ route('followup.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-task"></i>
+                    <div>Tindak Lanjut Monitoring</div>@if($menuNoticeCount('followup'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('followup')>99?'99+':$menuNoticeCount('followup')}}</span>@endif
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('monitoring.downloads', 'monitoring.download-options', 'monitoring.report-settings') ? 'active' : '' }}">
+                <a href="{{ route('monitoring.downloads') }}" class="menu-link">
+                    <i class="menu-icon bx bx-download"></i><div>Download Laporan Monitoring</div>
+                </a>
+            </li>
         @endif
 
 
@@ -197,14 +220,6 @@
                     <a href="{{ route('mitra.admin.index') }}" class="menu-link"><i class="menu-icon bx bx-user-plus"></i><div>Pengajuan Mitra</div>@if($menuNoticeCount('partners'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('partners')>99?'99+':$menuNoticeCount('partners')}}</span>@endif</a>
                 </li>
             @endif
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Monitoring & Tindak Lanjut</span></li>
-            <li class="menu-item {{ request()->routeIs('followup.*') ? 'active' : '' }}">
-                <a href="{{ route('followup.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-task"></i>
-                    <div>Rekomendasi Monitoring</div>@if($menuNoticeCount('followup'))<span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" title="Notifikasi baru">{{$menuNoticeCount('followup')>99?'99+':$menuNoticeCount('followup')}}</span>@endif
-                </a>
-            </li>
-
         @endif
 
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang', 'manajemen_mutu'], true))

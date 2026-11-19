@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonitoringResult;
+use App\Models\Training;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,16 +14,18 @@ class FollowUpController extends Controller
     {
         $user = Auth::user();
         
-        $query = MonitoringResult::with(['training', 'question', 'stage', 'submitter', 'verifier'])
-            ->where('answer', 'tidak');
+        abort_unless(in_array($user->role, ['superadmin', 'admin_bidang'], true), 403);
+        $query = MonitoringResult::followUpsVisibleTo($user)
+            ->with(['training', 'question', 'stage', 'submitter', 'verifier']);
 
-        if ($user->role !== 'superadmin') {
-            abort_unless($user->role === 'admin_bidang', 403);
-            $query->where(function ($scope) use ($user) {
-                $scope->where('follow_up_target', $user->bidang)
-                    ->orWhereHas('training', fn ($training) => $training->where('bidang', $user->bidang));
-            });
-        }
+        $trainings = Training::query()
+            ->when($user->role !== 'superadmin', fn ($trainings) => $trainings->where(
+                fn ($scope) => $scope->where('bidang', $user->bidang)
+                    ->orWhereIn('id', (clone $query)->select('training_id'))
+            ))
+            ->latest()->get(['id', 'nama_pelatihan', 'angkatan', 'bidang']);
+        $selectedTraining = $trainings->firstWhere('id', request('training_id'));
+
         $query->when(request('training_id'), fn ($q, $trainingId) => $q->where('training_id', $trainingId))
             ->when(request('status'), fn ($q, $status) => $q->where('workflow_status', $status));
 
@@ -37,7 +40,7 @@ class FollowUpController extends Controller
             )->count(),
         ];
 
-        return view('monitoring.follow_up', compact('followUps', 'summary'));
+        return view('monitoring.follow_up', compact('followUps', 'summary', 'trainings', 'selectedTraining'));
     }
 
     public function resolve(Request $request, $id)

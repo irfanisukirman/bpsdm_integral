@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="light-style customizer-hide" dir="ltr">
+<html lang="id" class="light-style customizer-hide" dir="ltr" @hasSection('integral_theme') data-integral-theme="@yield('integral_theme')" @endif>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

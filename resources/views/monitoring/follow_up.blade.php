@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Rekomendasi Monitoring')
+@section('title', 'Tindak Lanjut Monitoring')
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -9,8 +9,8 @@
             <h4 class="fw-bold mb-1"><span class="text-muted fw-light">Monitoring /</span> Rekomendasi & Tindak Lanjut</h4>
             <small class="text-muted">Temuan indikator TIDAK harus diselesaikan oleh bidang tujuan dan diverifikasi.</small>
         </div>
-        @if(request('training_id'))
-            <a href="{{ route('trainings.manage', request('training_id')) }}" class="btn btn-outline-secondary">
+        @if($selectedTraining && (auth()->user()->role === 'superadmin' || auth()->user()->bidang === $selectedTraining->bidang))
+            <a href="{{ route('trainings.manage', $selectedTraining) }}" class="btn btn-outline-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
         @endif
@@ -49,12 +49,20 @@
     <div class="card border shadow-none mb-4">
         <div class="card-body py-3">
             <form method="GET" class="row g-2 align-items-end">
-                @if(request('training_id'))
-                    <input type="hidden" name="training_id" value="{{ request('training_id') }}">
-                @endif
+                <div class="col-md-5">
+                    <label for="followup-training" class="form-label small fw-bold mb-1">Pelatihan</label>
+                    <select id="followup-training" name="training_id" class="form-select">
+                        <option value="">Semua Pelatihan</option>
+                        @foreach($trainings as $training)
+                            <option value="{{ $training->id }}" @selected($selectedTraining?->id === $training->id)>
+                                {{ $training->nama_pelatihan }}{{ filled($training->angkatan) ? ' · Angkatan '.$training->angkatan : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold mb-1">Status</label>
-                    <select name="status" class="form-select">
+                    <label for="followup-status" class="form-label small fw-bold mb-1">Status</label>
+                    <select id="followup-status" name="status" class="form-select">
                         <option value="">Semua Status</option>
                         @foreach(['open' => 'Open', 'in_progress' => 'Sedang Dikerjakan', 'submitted' => 'Menunggu Verifikasi', 'verified' => 'Selesai', 'rejected' => 'Perlu Revisi'] as $value => $label)
                             <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -63,7 +71,7 @@
                 </div>
                 <div class="col-md-auto">
                     <button class="btn btn-primary"><i class="bx bx-filter-alt me-1"></i>Terapkan</button>
-                    <a href="{{ route('followup.index', array_filter(['training_id' => request('training_id')])) }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route('followup.index') }}" class="btn btn-outline-secondary">Reset</a>
                 </div>
             </form>
         </div>

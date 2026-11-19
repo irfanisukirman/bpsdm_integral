@@ -18,21 +18,64 @@ use Illuminate\Validation\ValidationException;
 
 class MonitoringController extends Controller
 {
+    public function dashboard(Request $request)
+    {
+        $user = $request->user();
+        abort_unless(in_array($user->role, ['superadmin', 'admin_bidang'], true), 403);
+
+        $trainings = Training::query()
+            ->when($user->role === 'admin_bidang', fn ($query) => $query->where('bidang', $user->bidang));
+        $totalTrainings = $trainings->count();
+        $monitoredTrainings = $trainings->whereHas('monitoringResults')->count();
+
+        $findings = MonitoringResult::followUpsVisibleTo($user);
+        $statusCounts = (clone $findings)->selectRaw('workflow_status, count(*) as total')
+            ->groupBy('workflow_status')->pluck('total', 'workflow_status');
+        $totalFollowUps = $statusCounts->sum();
+        $verifiedFollowUps = $statusCounts->get('verified', 0);
+        $overdueFollowUps = $findings->where('workflow_status', '!=', 'verified')
+            ->where('due_date', '<', now())->count();
+
+        return view('monitoring.dashboard', compact(
+            'totalTrainings', 'monitoredTrainings', 'statusCounts',
+            'totalFollowUps', 'verifiedFollowUps', 'overdueFollowUps'
+        ));
+    }
+
     /**
      * Menampilkan daftar pelatihan untuk monitoring
      */
-    public function index()
+    public function index(Request $request)
     {
+        abort_unless(in_array($request->user()->role, ['superadmin', 'admin_bidang'], true), 403);
         $query = Training::query();
+        $downloadsOnly = $request->routeIs('monitoring.downloads');
+        $search = trim((string) $request->string('q'));
+        $status = $request->query('status');
 
         // Probis: Admin Bidang hanya melihat pelatihan bidangnya sendiri
         if (Auth::user()->role !== 'superadmin') {
             $query->where('bidang', Auth::user()->bidang);
         }
 
-        $trainings = $query->latest()->get();
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->whereLike('nama_pelatihan', "%{$search}%")
+                    ->orWhereLike('bidang', "%{$search}%")
+                    ->orWhereLike('angkatan', "%{$search}%");
+            });
+        }
 
-        return view('monitoring.index', compact('trainings'));
+        match ($status) {
+            'filled' => $query->whereHas('monitoringResults'),
+            'unfilled' => $query->whereDoesntHave('monitoringResults'),
+            default => null,
+        };
+
+        $trainings = $query->withExists('monitoringResults')
+            ->latest()->orderByDesc('id')->paginate(12)->withQueryString();
+
+        return view('monitoring.index', compact('trainings', 'downloadsOnly', 'search', 'status'));
     }
 
     /**
@@ -208,9 +251,14 @@ class MonitoringController extends Controller
         return redirect()->back()->with('success', 'Kesimpulan akhir berhasil disimpan.');
     }
 
-    /**
-     * Placeholder untuk fungsi Export (Sempurnakan sesuai kebutuhan template)
-     */
+    public function downloadOptions($id)
+    {
+        $training = Training::findOrFail($id);
+        $this->authorizeTraining($training);
+
+        return view('monitoring.download-options', compact('training'));
+    }
+
     public function reportSettings(Request $request, $id)
     {
         $training = Training::findOrFail($id);

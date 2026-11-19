@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class MonitoringResult extends Model
@@ -22,6 +23,15 @@ class MonitoringResult extends Model
         'verified_at' => 'datetime',
         'is_resolved' => 'boolean',
     ];
+
+    public function scopeFollowUpsVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->where('answer', 'tidak')
+            ->when($user->role !== 'superadmin', fn (Builder $query) => $query->where(
+                fn (Builder $scope) => $scope->where('follow_up_target', $user->bidang)
+                    ->orWhereHas('training', fn (Builder $training) => $training->where('bidang', $user->bidang))
+            ));
+    }
 
     public function training() {
         return $this->belongsTo(Training::class);

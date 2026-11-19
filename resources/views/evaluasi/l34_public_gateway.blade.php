@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-integral-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-bright-orange">
 
     @php
         $startDate = filled($training->tgl_mulai) ? \Carbon\Carbon::parse($training->tgl_mulai)->locale('id') : null;
@@ -27,13 +28,13 @@
 
     <style>
         :root {
-            --primary: #635bff;
-            --primary-dark: #4338ca;
-            --ink: #182230;
-            --muted: #667085;
-            --line: #e8ebf2;
-            --surface: #ffffff;
-            --page: #f4f6fb;
+            --primary: var(--integral-brand-ink);
+            --ink: var(--integral-text);
+            --muted: var(--integral-muted);
+            --line: var(--integral-border);
+            --surface: var(--integral-surface);
+            --page: var(--integral-canvas);
+            --intro-text: #eefaf3;
         }
 
         * { box-sizing: border-box; }
@@ -41,10 +42,7 @@
             min-height: 100vh;
             margin: 0;
             color: var(--ink);
-            background:
-                radial-gradient(circle at 5% 5%, rgba(99, 91, 255, .12), transparent 28rem),
-                radial-gradient(circle at 95% 95%, rgba(3, 195, 236, .1), transparent 25rem),
-                var(--page);
+            background: var(--page);
             font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -78,13 +76,13 @@
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            color: #475467;
+            color: var(--primary);
             font-size: .8rem;
             font-weight: 600;
             padding: 8px 12px;
-            border: 1px solid var(--line);
+            border: 1px solid var(--integral-brand-border);
             border-radius: 999px;
-            background: rgba(255,255,255,.8);
+            background: var(--integral-brand-soft);
         }
 
         .gateway-card {
@@ -93,7 +91,7 @@
             min-height: 620px;
             overflow: hidden;
             background: var(--surface);
-            border: 1px solid rgba(232, 235, 242, .9);
+            border: 1px solid var(--line);
             border-radius: 28px;
             box-shadow: 0 24px 70px rgba(16, 24, 40, .1);
         }
@@ -103,7 +101,8 @@
             overflow: hidden;
             padding: 48px;
             color: #fff;
-            background: linear-gradient(145deg, #26245d 0%, #4037a7 55%, #635bff 100%);
+            background: radial-gradient(ellipse at 100% 0%, rgba(112,205,148,.25), transparent 60%),
+                linear-gradient(120deg, #005c36, #006d42);
         }
         .intro-panel::before,
         .intro-panel::after {
@@ -130,7 +129,7 @@
             letter-spacing: .06em;
             text-transform: uppercase;
         }
-        .intro-panel h1 {
+        .intro-panel .intro-title {
             max-width: 470px;
             margin: 0 0 12px;
             color: #fff;
@@ -138,16 +137,15 @@
             line-height: 1.12;
             letter-spacing: -.035em;
         }
-        .intro-lead { margin: 0 0 28px; color: rgba(255,255,255,.72); line-height: 1.7; }
+        .intro-lead { margin: 0 0 28px; color: var(--intro-text); line-height: 1.65; }
         .training-box {
             padding: 18px;
             border: 1px solid rgba(255,255,255,.16);
             border-radius: 18px;
             background: rgba(255,255,255,.09);
-            backdrop-filter: blur(8px);
         }
-        .training-label { display: block; margin-bottom: 7px; color: rgba(255,255,255,.6); font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; }
-        .training-name { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.5; }
+        .training-label { display: block; margin-bottom: 7px; color: var(--intro-text); font-size: .875rem; }
+        .training-box .training-name { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.5; }
         .meta-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
         .meta-item {
             display: inline-flex;
@@ -155,94 +153,90 @@
             gap: 6px;
             padding: 7px 10px;
             border-radius: 10px;
-            color: rgba(255,255,255,.86);
-            background: rgba(12, 10, 48, .18);
-            font-size: .76rem;
+            color: var(--intro-text);
+            background: rgba(0, 61, 32, .28);
+            font-size: .8125rem;
         }
         .level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
         .level-item { padding: 15px; border-radius: 15px; background: rgba(255,255,255,.09); }
         .level-number { display: block; color: #fff; font-weight: 800; font-size: 1rem; }
-        .level-text { color: rgba(255,255,255,.65); font-size: .76rem; }
+        .level-text { display: block; margin-top: 4px; color: var(--intro-text); font-size: .875rem; line-height: 1.45; }
 
         .role-panel { display: flex; flex-direction: column; padding: 48px; }
-        .role-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 25px; }
+        .role-heading { margin-bottom: 24px; }
         .role-heading h2 { margin: 0 0 7px; color: var(--ink); font-size: 1.55rem; letter-spacing: -.02em; }
         .role-heading p { max-width: 480px; margin: 0; color: var(--muted); line-height: 1.55; }
-        .available-badge {
-            flex: 0 0 auto;
-            padding: 7px 10px;
-            color: var(--primary-dark);
-            border-radius: 999px;
-            background: #eeecff;
-            font-size: .72rem;
-            font-weight: 700;
-        }
         .role-list { display: grid; gap: 13px; }
         .role-card {
             display: grid;
-            grid-template-columns: 56px minmax(0, 1fr) 40px;
+            grid-template-columns: 56px minmax(0, 1fr) 36px;
             align-items: center;
             gap: 16px;
             padding: 18px;
             color: inherit;
-            border: 1px solid var(--line);
+            border: 1px solid var(--integral-brand-border);
             border-radius: 18px;
-            background: #fff;
+            background: var(--integral-raised);
             text-decoration: none;
-            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+            transition: border-color .15s ease, box-shadow .15s ease;
         }
         .role-card:hover, .role-card:focus-visible {
-            color: inherit;
-            transform: translateY(-3px);
-            border-color: #c9c5ff;
-            box-shadow: 0 12px 28px rgba(99, 91, 255, .12);
-            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 87, 61, .1);
+        }
+        .role-card:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 3px;
+        }
+        .role-card:hover .role-title, .role-card:focus-visible .role-title {
+            text-decoration: underline;
+            text-underline-offset: .2em;
         }
         .role-icon {
             display: grid;
             place-items: center;
             width: 56px;
             height: 56px;
+            color: var(--primary);
             border-radius: 16px;
+            background: var(--integral-brand-soft);
             font-size: 1.65rem;
         }
-        .card-mandiri .role-icon { color: #635bff; background: #eeecff; }
-        .card-atasan .role-icon { color: #087ea4; background: #e5f8fc; }
-        .card-rekan .role-icon { color: #348514; background: #ecf9e7; }
-        .role-title { display: block; margin-bottom: 4px; color: #1d2939; font-weight: 800; font-size: .94rem; }
-        .role-description { display: block; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+        .role-title { display: block; margin-bottom: 4px; color: var(--primary); font-weight: 800; font-size: .9375rem; }
+        .role-description { display: block; color: var(--muted); font-size: .9375rem; line-height: 1.5; }
         .role-arrow {
             display: grid;
             place-items: center;
-            width: 38px;
-            height: 38px;
+            aspect-ratio: 1;
             color: var(--primary);
             border-radius: 50%;
-            background: #f3f2ff;
+            background: var(--integral-brand-soft);
             font-size: 1.35rem;
-            transition: transform .2s ease;
         }
-        .role-card:hover .role-arrow { transform: translateX(3px); }
-        .empty-state { padding: 34px 24px; text-align: center; border: 1px dashed #d0d5dd; border-radius: 18px; background: #fafbfc; }
-        .empty-icon { display: grid; place-items: center; width: 58px; height: 58px; margin: 0 auto 14px; color: #b54708; border-radius: 50%; background: #fff3e0; font-size: 1.7rem; }
-        .empty-state h3 { margin: 0 0 7px; font-size: 1.05rem; }
-        .empty-state p { margin: 0; color: var(--muted); font-size: .85rem; }
+        .role-card:hover .role-arrow, .role-card:focus-visible .role-arrow {
+            color: var(--surface);
+            background: var(--primary);
+        }
+        .empty-state { padding: 28px 20px; text-align: center; border: 1px solid #eed7a6; border-radius: 18px; background: #fff9ed; }
+        .empty-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 14px; color: #835014; border-radius: 50%; background: #f9e9c7; font-size: 1.5rem; }
+        .empty-state h3 { margin: 0 0 7px; color: #67400f; font-size: 1.05rem; }
+        .empty-state p { margin: 0; color: #694e2c; font-size: .9375rem; }
         .helper-box {
             display: flex;
             gap: 11px;
             margin-top: auto;
             padding-top: 26px;
-            color: #475467;
-            font-size: .78rem;
+            color: var(--muted);
+            font-size: .875rem;
             line-height: 1.55;
         }
         .helper-box i { flex: 0 0 auto; margin-top: 2px; color: var(--primary); font-size: 1.15rem; }
-        .public-footer { padding-top: 18px; color: #7b8494; text-align: center; font-size: .74rem; }
+        .public-footer { padding-top: 18px; color: var(--muted); text-align: center; font-size: .8125rem; }
 
         @media (max-width: 900px) {
             .gateway-card { grid-template-columns: 1fr; }
             .intro-panel, .role-panel { padding: 36px; }
-            .intro-panel h1 { max-width: none; }
+            .intro-panel .intro-title { max-width: none; }
         }
         @media (max-width: 575px) {
             .page-shell { width: min(100% - 20px, 1180px); padding: 14px 0 22px; }
@@ -250,13 +244,13 @@
             .secure-label { display: none; }
             .gateway-card { border-radius: 21px; }
             .intro-panel, .role-panel { padding: 27px 22px; }
-            .intro-panel h1 { font-size: 2rem; }
+            .intro-panel .intro-title { font-size: 2rem; }
             .level-grid { grid-template-columns: 1fr; }
-            .role-heading { display: block; }
-            .available-badge { display: inline-block; margin-top: 13px; }
             .role-card { grid-template-columns: 48px minmax(0, 1fr) 32px; gap: 12px; padding: 15px; }
             .role-icon { width: 48px; height: 48px; border-radius: 14px; font-size: 1.4rem; }
-            .role-arrow { width: 32px; height: 32px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .role-card { transition: none; }
         }
     </style>
 </head>
@@ -276,9 +270,9 @@
         <main class="gateway-card">
             <section class="intro-panel">
                 <div class="intro-content">
-                    <div class="eyebrow"><i class="bx bx-line-chart"></i> Evaluasi Pasca Pelatihan</div>
-                    <h1>Perubahan yang terukur dimulai dari penilaian Anda.</h1>
-                    <p class="intro-lead">Pilih peran yang sesuai untuk memberikan penilaian Level 3 dan Level 4 secara objektif.</p>
+                    <div class="eyebrow"><i class="bx bx-line-chart" aria-hidden="true"></i> Level 3 dan Level 4</div>
+                    <h1 class="intro-title">Evaluasi Pasca Pelatihan</h1>
+                    <p class="intro-lead">Nilai perubahan perilaku dan dampak pelatihan terhadap kinerja.</p>
 
                     <div class="training-box">
                         <span class="training-label">Pelatihan yang dinilai</span>
@@ -311,18 +305,17 @@
 
             <section class="role-panel">
                 <div class="role-heading">
-                    <div>
-                        <h2>Anda mengisi sebagai siapa?</h2>
-                        <p>Pilih satu peran yang paling sesuai. Hanya instrumen yang tersedia untuk pelatihan ini yang ditampilkan.</p>
-                    </div>
-                    <span class="available-badge">{{ $roleOptions->count() }} pilihan tersedia</span>
+                    <h2>Pilih peran Anda</h2>
+                    @if($roleOptions->isNotEmpty())
+                        <p>Pilih peran yang sesuai untuk membuka formulir evaluasi.</p>
+                    @endif
                 </div>
 
                 @if($roleOptions->isNotEmpty())
                     <div class="role-list">
                         @foreach($roleOptions as $role => $option)
                             <a href="{{ route('public.l34.form', [$training->id, $role]) }}" class="role-card card-{{ $role }}">
-                                <span class="role-icon"><i class="bx {{ $option['icon'] }}"></i></span>
+                                <span class="role-icon" aria-hidden="true"><i class="bx {{ $option['icon'] }}"></i></span>
                                 <span>
                                     <span class="role-title">{{ $option['label'] }}</span>
                                     <span class="role-description">{{ $option['description'] }}</span>

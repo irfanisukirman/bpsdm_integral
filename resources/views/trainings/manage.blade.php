@@ -20,14 +20,11 @@
             ],
         ],
         'execution' => [
-            'label' => 'Pelaksanaan', 'icon' => 'bx-play-circle', 'description' => 'Pantau kegiatan, kehadiran, komunikasi, dan monitoring.',
+            'label' => 'Pelaksanaan', 'icon' => 'bx-play-circle', 'description' => 'Pantau kegiatan, kehadiran, dan komunikasi.',
             'items' => [
                 ['title' => 'Kehadiran / Absensi', 'description' => 'Keterisian '.$dashboard['attendanceFilled'].'% Â· hadir '.$dashboard['attendanceRate'].'%', 'icon' => 'bx-user-check', 'tone' => 'success', 'url' => route('attendance.index', $training), 'status' => $dashboard['attendanceFilled'].'%', 'status_tone' => $dashboard['attendanceFilled'] >= 90 ? 'success' : 'info'],
                 ['title' => 'Forum Pelatihan', 'description' => 'Komunikasi peserta dan pengelola', 'icon' => 'bx-conversation', 'tone' => 'primary', 'url' => route('training.forum.index', $training), 'status' => $forumUnread ? $forumUnread.' baru' : 'Terbaca', 'status_tone' => $forumUnread ? 'danger' : 'success'],
                 ['title' => 'Catatan Pelaksanaan', 'description' => 'Catatan pengamatan kelas selama kegiatan', 'icon' => 'bx-note', 'tone' => 'secondary', 'url' => route('trainings.execution-notes.index', $training), 'status' => $training->execution_notes_count.' catatan', 'status_tone' => $training->execution_notes_count ? 'info' : 'secondary'],
-                ['title' => 'Instrumen Monitoring', 'description' => 'Periksa kesesuaian pelaksanaan', 'icon' => 'bx-search-alt', 'tone' => 'info', 'url' => route('monitoring.fill', $training), 'status' => $monitoringStats['total'].' temuan', 'status_tone' => $monitoringStats['open'] ? 'warning' : 'success'],
-                ['title' => 'Tindak Lanjut Monitoring', 'description' => $monitoringStats['verified'].' selesai Â· '.$monitoringStats['open'].' perlu aksi', 'icon' => 'bx-task', 'tone' => 'warning', 'url' => route('followup.index', ['training_id' => $training->id]), 'status' => $monitoringStats['overdue'] ? $monitoringStats['overdue'].' terlambat' : 'Terkendali', 'status_tone' => $monitoringStats['overdue'] ? 'danger' : 'success'],
-                ['title' => 'Download Laporan Monitoring', 'description' => 'Laporan monitoring, tindak lanjut, dan ceklis monitoring', 'icon' => 'bx-download', 'tone' => 'primary', 'url' => '#modalMonitoringDownloads', 'modal' => '#modalMonitoringDownloads', 'status' => '3 dokumen', 'status_tone' => 'primary'],
             ],
         ],
         'evaluation' => [
@@ -127,7 +124,7 @@
 
     <section class="workflow-shell mb-4">
         <div class="workflow-head"><div><h5 class="fw-bold mb-1">Pusat Kendali Pelatihan</h5><p class="text-muted small mb-0">Menu disusun mengikuti tahapan kerja pengelola.</p></div><div class="workflow-scroll"><ul class="nav nav-pills workflow-tabs flex-nowrap" role="tablist">@foreach($sections as $key=>$section)<li class="nav-item"><button class="nav-link {{ $loop->first ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#workflow-{{ $key }}" type="button"><span class="workflow-tab-number">{{ $loop->iteration }}</span><span>{{ $section['label'] }}</span></button></li>@endforeach</ul></div></div>
-        <div class="tab-content workflow-content">@foreach($sections as $key=>$section)<div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="workflow-{{ $key }}"><div class="section-intro"><span><i class="bx {{ $section['icon'] }}"></i></span><div><h5>{{ $section['label'] }}</h5><p>{{ $section['description'] }}</p></div></div><div class="action-grid">@foreach($section['items'] as $item)<a href="{{ $item['url'] }}" @isset($item['modal']) data-bs-toggle="modal" data-bs-target="{{ $item['modal'] }}" @endisset class="action-card"><span class="action-card__icon bg-label-{{ $item['tone'] }}"><i class="bx {{ $item['icon'] }}"></i></span><div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2 mb-1"><h6 class="mb-0">{{ $item['title'] }}</h6><span class="badge bg-label-{{ $item['status_tone'] }}">{{ $item['status'] }}</span></div><p>{{ $item['description'] }}</p></div><i class="bx bx-chevron-right action-card__arrow"></i></a>@endforeach</div></div>@endforeach</div>
+        <div class="tab-content workflow-content">@foreach($sections as $key=>$section)<div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="workflow-{{ $key }}"><div class="section-intro"><span><i class="bx {{ $section['icon'] }}"></i></span><div><h5>{{ $section['label'] }}</h5><p>{{ $section['description'] }}</p></div></div><div class="action-grid">@foreach($section['items'] as $item)<a href="{{ $item['url'] }}" class="action-card"><span class="action-card__icon bg-label-{{ $item['tone'] }}"><i class="bx {{ $item['icon'] }}"></i></span><div class="flex-grow-1 min-w-0"><div class="d-flex flex-wrap align-items-center gap-2 mb-1"><h6 class="mb-0">{{ $item['title'] }}</h6><span class="badge bg-label-{{ $item['status_tone'] }}">{{ $item['status'] }}</span></div><p>{{ $item['description'] }}</p></div><i class="bx bx-chevron-right action-card__arrow"></i></a>@endforeach</div></div>@endforeach</div>
     </section>
 
     <section class="row g-4 mb-4" id="organizerDocuments">
@@ -140,6 +137,13 @@
 <div class="modal fade" id="modalLms{{ $training->id }}" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><form action="{{ route('trainings.set_lms',$training) }}" method="POST" class="modal-content">@csrf @method('PUT')<div class="modal-header"><div><h5 class="modal-title fw-bold">Akses LMS / Pertemuan</h5><small class="text-muted">Tautan akan ditampilkan kepada peserta.</small></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><label class="form-label fw-semibold">Tautan URL</label><input type="url" name="link_lms" class="form-control" placeholder="https://..." value="{{ $training->link_lms }}" required><div class="form-text">Gunakan alamat lengkap yang diawali http:// atau https://.</div></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan Tautan</button></div></form></div></div>
 
 @push('js')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash === '#modalMonitoringDownloads') {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMonitoringDownloads')).show();
+    }
+});
+</script>
 <script>
 @if(isset($errors) && ($errors->has('document_name') || $errors->has('document_file')))
 document.addEventListener('DOMContentLoaded', () => new bootstrap.Modal(document.getElementById('modalOrganizerDocument')).show());

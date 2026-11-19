@@ -512,6 +512,9 @@ Route::middleware(['auth'])->group(function () {
     
     // --- 10. MONITORING PENYELENGGARAAN ---
     Route::get('monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('monitoring/dashboard', [MonitoringController::class, 'dashboard'])->name('monitoring.dashboard');
+    Route::get('monitoring/laporan', [MonitoringController::class, 'index'])->name('monitoring.downloads');
+    Route::get('monitoring/laporan/{id}', [MonitoringController::class, 'downloadOptions'])->whereNumber('id')->name('monitoring.download-options');
     Route::get('monitoring/{id}/fill', [MonitoringController::class, 'create'])->name('monitoring.fill');
     Route::post('monitoring/{id}/store', [MonitoringController::class, 'store'])->name('monitoring.store');
     

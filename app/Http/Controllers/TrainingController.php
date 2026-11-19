@@ -17,7 +17,6 @@ use App\Models\AssetLoanRequest;
 use App\Models\EvaluationFormL1;
 use App\Models\File;
 use App\Models\Folder;
-use App\Models\MonitoringResult;
 use App\Models\Participant;
 use App\Models\Schedule;
 use App\Models\Training;
@@ -946,17 +945,6 @@ class TrainingController extends Controller
         );
         // Ambil data evaluasi L1 untuk pengecekan status di Hub jika diperlukan
         $formsL1 = EvaluationFormL1::where('training_id', $id)->get();
-        $monitoringFindings = MonitoringResult::where('training_id', $id)
-            ->where('answer', 'tidak')
-            ->get();
-        $monitoringStats = [
-            'total' => $monitoringFindings->count(),
-            'open' => $monitoringFindings->whereIn('workflow_status', ['open', 'in_progress', 'rejected'])->count(),
-            'submitted' => $monitoringFindings->where('workflow_status', 'submitted')->count(),
-            'verified' => $monitoringFindings->where('workflow_status', 'verified')->count(),
-            'overdue' => $monitoringFindings->filter(fn ($item) => $item->workflow_status !== 'verified' && $item->due_date && $item->due_date->isPast()
-            )->count(),
-        ];
         $organizerFolder = Folder::where('training_id', $training->id)
             ->where('name', 'KELENGKAPAN PENYELENGGARA')
             ->whereNotNull('parent_id')
@@ -967,7 +955,7 @@ class TrainingController extends Controller
         $organizerDocumentsCount = $organizerDocuments->count();
 
         return view('trainings.manage', compact(
-            'training', 'formsL1', 'monitoringStats', 'organizerFolder', 'organizerDocuments', 'organizerDocumentsCount'
+            'training', 'formsL1', 'organizerFolder', 'organizerDocuments', 'organizerDocumentsCount'
         ));
     }
 

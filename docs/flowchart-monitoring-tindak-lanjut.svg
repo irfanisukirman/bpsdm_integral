@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1030" viewBox="0 0 1120 1030" role="img" aria-labelledby="title desc">
+<title id="title">Flowchart Monitoring dan Tindak Lanjut</title>
+<desc id="desc">Hasil instrumen yang tersimpan dapat dilaporkan. Temuan diajukan dengan bukti PDF dan diverifikasi. Pengajuan yang perlu revisi kembali ke bidang tujuan.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#547366"/></marker></defs>
+<rect width="1120" height="1030" fill="#f3f7f4"/>
+<rect x="0" y="0" width="1120" height="100" fill="#005c36"/>
+<rect x="32" y="120" width="575" height="864" rx="20" fill="#fff" stroke="#dbe8df"/>
+<rect x="635" y="120" width="453" height="864" rx="20" fill="#fff" stroke="#dbe8df"/>
+<text x="35" y="44" text-anchor="start" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="31" font-weight="700">Monitoring dan Tindak Lanjut</text>
+<text x="35" y="73" text-anchor="start" fill="#e6f6ec" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400">Alur pelaksanaan monitoring, penanganan temuan, dan pelaporan pelatihan</text>
+<text x="60" y="156" text-anchor="start" fill="#005c36" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Pelaksanaan dan tindak lanjut</text>
+<text x="663" y="156" text-anchor="start" fill="#005c36" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Pelaporan per pelatihan</text>
+<path d="M320 248 V266" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 352 V375" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 447 V467" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 531 V566" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M174 499 H92 V546" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 648 V674" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 758 V780" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M320 844 V887" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M466 812 H515 V848" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M515 914 H586 V607 H494" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M491 411 H660" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862 447 V483" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862 575 V611" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862 685 V721" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M862 807 V855" fill="none" stroke="#547366" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="147" y="174" width="346" height="74" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="320" y="198" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Pilih pelatihan dan buka instrumen</text>
+<text x="320" y="220" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Standar: pilih tanggal. Bertahap: pilih tahapan.</text>
+<rect x="147" y="267" width="346" height="85" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="320" y="291" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Isi indikator dan kesimpulan</text>
+<text x="320" y="313" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Ya: sesuai. Tidak: catat temuan, rekomendasi,</text>
+<text x="320" y="332" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">bidang tujuan, prioritas, dan tenggat.</text>
+<rect x="147" y="376" width="346" height="71" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="320" y="400" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Simpan hasil monitoring</text>
+<text x="320" y="422" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Jawaban dan kesimpulan tersimpan.</text>
+<path d="M320 467 L466 499 L320 531 L174 499 Z" fill="#fff4e5" stroke="#e9bb89"/>
+<text x="320" y="504" text-anchor="middle" fill="#673e18" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Ada temuan Tidak?</text>
+<text x="339" y="553" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Ya</text>
+<text x="133" y="488" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Tidak</text>
+<rect x="48" y="547" width="89" height="58" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="92.5" y="582" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Selesai</text>
+<text x="92" y="627" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400">Tanpa temuan</text>
+<rect x="147" y="567" width="346" height="81" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="320" y="591" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Bidang tujuan menindaklanjuti</text>
+<text x="320" y="613" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Status awal Open. Pilih Mulai bila diperlukan.</text>
+<text x="320" y="632" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Kerjakan perbaikan dan siapkan bukti.</text>
+<rect x="147" y="675" width="346" height="83" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="320" y="699" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Ajukan bukti dan verifikasi</text>
+<text x="320" y="721" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Unggah PDF dan catatan penyelesaian.</text>
+<text x="320" y="740" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Verifikator menilai bukti dan mencatat keputusan.</text>
+<path d="M320 780 L466 812 L320 844 L174 812 Z" fill="#fff4e5" stroke="#e9bb89"/>
+<text x="320" y="817" text-anchor="middle" fill="#673e18" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">Pengajuan disetujui?</text>
+<text x="339" y="869" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Ya</text>
+<text x="491" y="802" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Tidak</text>
+<rect x="165" y="888" width="309" height="53" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="319.5" y="920.5" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Selesai Terverifikasi</text>
+<rect x="477" y="849" width="76" height="65" rx="12" fill="#fff4e5" stroke="#e9bb89"/>
+<text x="515" y="887.5" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Revisi</text>
+<text x="514" y="940" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400">Ajukan ulang</text>
+<text x="862" y="235" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Laporan dapat dibuat setelah hasil tersimpan.</text>
+<text x="862" y="258" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400">Status temuan mengikuti data saat diunduh.</text>
+<rect x="661" y="376" width="402" height="71" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="862" y="400" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Buka Download Laporan Monitoring</text>
+<text x="862" y="422" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Pilih pelatihan yang sama.</text>
+<rect x="661" y="484" width="402" height="91" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="862" y="508" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Pilih dokumen</text>
+<text x="862" y="530" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Laporan Monitoring atau Tindak Lanjut (Word)</text>
+<text x="862" y="549" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Ceklis Monitoring (Excel)</text>
+<rect x="661" y="612" width="402" height="73" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="862" y="636" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Periksa penandatangan</text>
+<text x="862" y="658" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Kepala Bidang dan Tim Monitoring</text>
+<rect x="661" y="722" width="402" height="85" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="862" y="746" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Simpan &amp; Unduh</text>
+<text x="862" y="768" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">Dokumen dibuat dari data terakhir dan</text>
+<text x="862" y="787" text-anchor="middle" fill="#244039" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400">salinannya diarsipkan pada pelatihan.</text>
+<rect x="661" y="856" width="402" height="54" rx="12" fill="#e6f6ec" stroke="#b6dac4"/>
+<text x="862" y="889" text-anchor="middle" fill="#164535" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Dokumen laporan tersedia</text>
+<text x="35" y="1012" text-anchor="start" fill="#005c36" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">INTEGRAL</text>
+</svg>

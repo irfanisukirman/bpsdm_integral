@@ -1,97 +1,132 @@
 @extends('layouts.master')
 
-@section('title', 'Monitoring Pelatihan')
+@php
+    $title = $downloadsOnly ? 'Download Laporan Monitoring' : 'Instrumen Monitoring';
+    $listUrl = route($downloadsOnly ? 'monitoring.downloads' : 'monitoring.index');
+    $hasFilters = $search !== '' || in_array($status, ['filled', 'unfilled'], true);
+@endphp
+
+@section('title', $title)
+
+@push('css')
+<style>
+    .monitoring-training-title {
+        overflow-wrap: anywhere;
+    }
+
+    .monitoring-training-meta {
+        color: var(--integral-muted);
+    }
+
+    .monitoring-training-meta i {
+        color: var(--integral-brand-ink);
+    }
+</style>
+@endpush
 
 @section('content')
-<h4 class="fw-bold py-3 mb-4">
-    <span class="text-muted fw-light">Monev /</span> Monitoring Penyelenggaraan
-</h4>
+<section class="training-hero rounded-4 p-4 p-md-5 mb-4">
+    <h1 class="h3 fw-bold mb-2">{{ $title }}</h1>
+    <p class="mb-0">{{ $downloadsOnly
+        ? 'Pilih pelatihan untuk mengunduh laporan monitoring, laporan tindak lanjut, atau ceklis.'
+        : 'Cari pelatihan untuk mengisi instrumen atau melihat hasil monitoring yang sudah tersimpan.' }}</p>
+</section>
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Daftar Pelatihan terpantau</h5>
-        <small class="text-muted">Kelola instrumen monitoring per pelatihan</small>
-        <a href="{{ route('trainings.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i> Kembali ke Pelatihan
-        </a>
-    </div>
-    <div class="table-responsive text-nowrap">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Pelatihan</th>
-                    <th>Penyelenggara</th>
-                    <th>Waktu</th>
-                    <th>Status Monitoring</th>
-                    <th>Aksi Monitoring</th>
-                </tr>
-            </thead>
-            <tbody class="table-border-bottom-0">
-                @forelse($trainings as $t)
-                <tr>
-                    <td>
-                        <span class="fw-bold text-dark">{{ $t->nama_pelatihan }}</span><br>
-                        <small>Angkatan {{ $t->angkatan }}</small>
-                    </td>
-                    <td>
-                        <small class="text-wrap" style="width: 200px; display: block; line-height: 1.2">
-                            {{ $t->bidang }}
-                        </small>
-                    </td>
-                    <td>
-                        <small>{{ \Carbon\Carbon::parse($t->tgl_mulai)->format('d/m/Y') }}</small>
-                    </td>
-                    <td>
-                        {{-- Logika cek apakah sudah diisi --}}
-                        @if($t->monitoringResults()->exists())
-                            <span class="badge bg-label-success">Sudah Diisi</span>
-                        @else
-                            <span class="badge bg-label-secondary">Belum Diisi</span>
-                        @endif
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <!-- TOMBOL ISI INSTRUMEN -->
-                            <a href="{{ route('monitoring.fill', $t->id) }}" class="btn btn-sm btn-primary">
-                                <i class="bx bx-edit-alt me-1"></i> Isi Instrumen
-                            </a>
-                            
-                            <!-- DROPDOWN DOWNLOAD -->
-                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropdown</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('followup.index', ['training_id' => $t->id]) }}">
-                                        <i class="bx bx-task me-2 text-warning"></i> Rekomendasi Monitoring
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', $t->id) }}">
-                                        <i class="bx bxs-file-doc me-2 text-primary"></i> Laporan Monitoring
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', ['id' => $t->id, 'document' => 'tindaklanjut']) }}">
-                                        <i class="bx bxs-file-doc me-2 text-warning"></i> Laporan Tindak Lanjut
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('monitoring.report-settings', ['id' => $t->id, 'document' => 'ceklis']) }}">
-                                        <i class="bx bxs-spreadsheet me-2 text-success"></i> Checklist Monitoring
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="text-center">Tidak ada data pelatihan.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+<nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Navigasi monitoring">
+    <a href="{{ route('monitoring.index') }}" class="btn {{ !$downloadsOnly ? 'btn-primary' : 'btn-outline-primary' }}" @if(!$downloadsOnly) aria-current="page" @endif>Instrumen Monitoring</a>
+    <a href="{{ route('monitoring.downloads') }}" class="btn {{ $downloadsOnly ? 'btn-primary' : 'btn-outline-primary' }}" @if($downloadsOnly) aria-current="page" @endif>Download Laporan</a>
+    <a href="{{ route('monitoring.dashboard') }}" class="btn btn-outline-secondary">Dashboard Monitoring</a>
+</nav>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ $listUrl }}" class="row g-3 align-items-end">
+            <div class="col-md">
+                <label for="monitoring-search" class="form-label">Cari pelatihan</label>
+                <input type="search" id="monitoring-search" name="q" class="form-control" value="{{ $search }}" placeholder="Nama pelatihan, bidang, atau angkatan">
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label for="monitoring-status" class="form-label">Status instrumen</label>
+                <select id="monitoring-status" name="status" class="form-select">
+                    <option value="">Semua status</option>
+                    <option value="filled" @selected($status === 'filled')>Sudah diisi</option>
+                    <option value="unfilled" @selected($status === 'unfilled')>Belum diisi</option>
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bx bx-search me-1" aria-hidden="true"></i>Cari</button>
+                @if($hasFilters)
+                    <a href="{{ $listUrl }}" class="btn btn-outline-secondary">Hapus Filter</a>
+                @endif
+            </div>
+        </form>
     </div>
 </div>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h2 class="h5 mb-0">Daftar Pelatihan</h2>
+    <span class="text-muted">
+        @if($trainings->count())
+            {{ $trainings->firstItem() }}–{{ $trainings->lastItem() }} dari {{ $trainings->total() }} pelatihan
+        @else
+            {{ $trainings->total() }} pelatihan
+        @endif
+    </span>
+</div>
+
+<div class="row g-3">
+    @forelse($trainings as $training)
+        <div class="col-12 col-xl-6">
+            <article class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                        <h3 class="h5 mb-0 monitoring-training-title">{{ $training->nama_pelatihan }}</h3>
+                        <span class="badge {{ $training->monitoring_results_exists ? 'bg-label-success' : 'bg-label-secondary' }}">
+                            {{ $training->monitoring_results_exists ? 'Sudah Diisi' : 'Belum Diisi' }}
+                        </span>
+                    </div>
+                    <div class="monitoring-training-meta d-grid gap-2 mb-4">
+                        <span><i class="bx bx-buildings me-2" aria-hidden="true"></i>{{ $training->bidang ?: 'Bidang belum tercatat' }}</span>
+                        <div class="d-flex flex-wrap gap-3">
+                            @if(filled($training->tgl_mulai))
+                                <span><i class="bx bx-calendar me-2" aria-hidden="true"></i>{{ \Carbon\Carbon::parse($training->tgl_mulai)->locale('id')->translatedFormat('j M Y') }}</span>
+                            @endif
+                            @if(filled($training->angkatan))
+                                <span><i class="bx bx-group me-2" aria-hidden="true"></i>Angkatan {{ $training->angkatan }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-auto">
+                        @if($downloadsOnly)
+                            <a href="{{ route('monitoring.download-options', $training) }}" class="btn btn-primary">
+                                <i class="bx bx-download me-1" aria-hidden="true"></i>Pilih Dokumen
+                            </a>
+                        @else
+                            <a href="{{ route('monitoring.fill', $training) }}" class="btn btn-primary">
+                                <i class="bx bx-edit-alt me-1" aria-hidden="true"></i>{{ $training->monitoring_results_exists ? 'Buka Instrumen' : 'Isi Instrumen' }}
+                            </a>
+                            <a href="{{ route('followup.index', ['training_id' => $training->id]) }}" class="btn btn-outline-secondary">Tindak Lanjut</a>
+                            <a href="{{ route('monitoring.download-options', $training) }}" class="btn btn-outline-secondary">Laporan</a>
+                        @endif
+                    </div>
+                </div>
+            </article>
+        </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <h3 class="h5">{{ $hasFilters ? 'Pelatihan tidak ditemukan' : 'Belum ada pelatihan di halaman ini' }}</h3>
+                    @if($hasFilters || $trainings->currentPage() > 1)
+                        <a href="{{ $listUrl }}" class="btn btn-outline-primary mt-2">Lihat Semua Pelatihan</a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
+@if($trainings->hasPages())
+    <div class="mt-4">{{ $trainings->links() }}</div>
+@endif
 @endsection

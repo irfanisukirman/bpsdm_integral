@@ -11,7 +11,7 @@
 @csrf
 <input type="hidden" name="document" value="{{ $document }}">
 <input type="hidden" name="stage_id" value="{{ old('stage_id',$stageId) }}">
-<div class="modal-header"><h5 class="modal-title" id="monitoringReportSignatoriesTitle">Penandatangan Laporan Monitoring</h5><a href="{{ route('trainings.manage',$training->id) }}" class="btn-close" aria-label="Tutup"></a></div>
+<div class="modal-header"><h5 class="modal-title" id="monitoringReportSignatoriesTitle">Penandatangan Laporan Monitoring</h5><a href="{{ route('monitoring.download-options', $training) }}" class="btn-close" aria-label="Tutup"></a></div>
 <div class="modal-body"><p class="text-muted">Periksa jabatan, nama, dan NIP sebelum mengunduh. Pengaturan ini digunakan bersama oleh Laporan Monitoring, Laporan Tindak Lanjut, dan Ceklis Monitoring. Satu isian Tim Monitoring mengisi seluruh bagian yang terkait.</p>
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <div class="row g-4">
@@ -25,7 +25,7 @@
 </div>
 @endforeach
 </div></div>
-<div class="modal-footer"><a class="btn btn-outline-secondary" href="{{ route('trainings.manage',$training->id) }}">Kembali</a><button class="btn btn-outline-primary" name="download" value="0">Simpan Pengaturan</button><button class="btn btn-primary" name="download" value="1">Simpan &amp; Unduh {{ $document === 'ceklis' ? 'Excel' : 'Word' }}</button></div>
+<div class="modal-footer"><a class="btn btn-outline-secondary" href="{{ route('monitoring.download-options', $training) }}">Kembali</a><button class="btn btn-outline-primary" name="download" value="0">Simpan Pengaturan</button><button class="btn btn-primary" name="download" value="1">Simpan &amp; Unduh {{ $document === 'ceklis' ? 'Excel' : 'Word' }}</button></div>
 </form></div></div></div>
 @push('js')<script>document.addEventListener('DOMContentLoaded',()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('monitoringReportSignatories')).show());</script>@endpush
 
