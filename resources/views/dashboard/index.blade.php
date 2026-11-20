@@ -11,6 +11,9 @@
     .chart-box { position: relative; min-height: 285px; }
     .training-name { max-width: 300px; white-space: normal; }
     .empty-chart { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8592a3; pointer-events: none; }
+    .dashboard-bar { height: .45rem; background: var(--integral-brand-soft); }
+    .dashboard-bar .progress-bar { background-color: var(--integral-brand); }
+    .dashboard-bar .progress-bar.is-orange { background-color: var(--integral-orange); }
 </style>
 @endpush
 
@@ -26,8 +29,9 @@
                     <span class="badge bg-white text-primary mb-3">{{ $scopeLabel }}</span>
                     <h3 class="text-white mb-2">Selamat datang, {{ Auth::user()->name }}</h3>
                     <p class="mb-4 opacity-75">
-                        Ringkasan pelaksanaan, peserta, kehadiran, evaluasi, dan dokumen diperbarui dari data sistem.
+                        Lihat ringkasan pelatihan, pendaftaran peserta, kehadiran, dan evaluasi.
                     </p>
+                    @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
                     <div class="d-flex flex-wrap gap-2">
                         <a href="{{ route('trainings.index') }}" class="btn btn-light text-primary">
                             <i class="bx bx-calendar-event me-1"></i>Kelola Pelatihan
@@ -36,6 +40,7 @@
                             <i class="bx bx-folder-open me-1"></i>Manajemen Dokumen
                         </a>
                     </div>
+                    @endif
                 </div>
                 <div class="col-lg-4 d-none d-lg-block text-end">
                     <i class="bx bx-bar-chart-alt-2" style="font-size: 130px; opacity: .18;"></i>
@@ -56,7 +61,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card metric-card h-100"><div class="card-body">
                 <div class="d-flex justify-content-between">
-                    <div><small class="text-muted">Total Peserta</small><h3 class="mb-1 mt-1">{{ number_format($stats['total_participants']) }}</h3><small>{{ $stats['approved_participants'] }} disetujui</small></div>
+                    <div><small class="text-muted">Peserta Terdaftar</small><h3 class="mb-1 mt-1">{{ number_format($stats['total_participants'], 0, ',', '.') }}</h3><small>{{ $stats['approved_participants'] }} disetujui</small></div>
                     <span class="metric-icon bg-label-success"><i class="bx bx-group"></i></span>
                 </div>
             </div></div>
@@ -78,6 +83,29 @@
             </div></div>
         </div>
     </div>
+
+    <section aria-labelledby="dashboard-registrations" class="card mb-4">
+        <div class="card-body">
+            <h2 id="dashboard-registrations" class="h5 mb-1">Status Pendaftaran Peserta</h2>
+            <p class="text-muted mb-3">Jumlah pendaftaran per pelatihan. Peserta yang mengikuti beberapa pelatihan dihitung di masing-masing pelatihan.</p>
+            @if($stats['total_participants'] > 0)
+                <div class="row g-3">
+                    @foreach($registrationSeries as $label => $count)
+                        <div class="col-sm">
+                            <div class="d-flex justify-content-between align-items-baseline gap-2 mb-2">
+                                <span>{{ $label }}</span><strong>{{ number_format($count, 0, ',', '.') }}</strong>
+                            </div>
+                            <div class="progress dashboard-bar" aria-hidden="true">
+                                <div class="progress-bar {{ $loop->even ? 'is-orange' : '' }}" style="width: {{ 100 * $count / $stats['total_participants'] }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-muted mb-0">Belum ada pendaftaran peserta.</p>
+            @endif
+        </div>
+    </section>
 
     <div class="row g-3 mb-4">
         <div class="col-lg-8">

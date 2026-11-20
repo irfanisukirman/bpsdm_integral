@@ -275,7 +275,7 @@ class PostEvaluationController extends Controller
         if (array_keys($data['scores']) !== range(0, 4) || array_keys($data['notes']) !== range(0, 4)) {
             throw ValidationException::withMessages(['scores' => 'Urutan lima kriteria tidak valid.']);
         }
-        DB::transaction(function () use ($request, $data, $interview, $training, $service) {
+        $saved = DB::transaction(function () use ($request, $data, $interview, $training, $service) {
             $row = PostEvaluationInterview::lockForUpdate()->findOrFail($interview->id);
             abort_unless($service->manages($request->user(), $training) || $service->teamIds($request->user(), $training)->contains($row->team_id), 403);
             if ($row->revision !== (int) $data['revision']) {
@@ -289,10 +289,11 @@ class PostEvaluationController extends Controller
                 $choices = [];
                 foreach ($data['continuation'] as $i => $answer) {
                     $choices[$i] = $answer === null ? null : $answer === 'yes';
-                    if ($answer === 'no') {
-                        $stored = $row->scores[$i] ?? null;
-                        $data['scores'][$i] = $stored !== null && $stored <= 25 ? (float) $stored : 0.0;
-                    } elseif ($answer === null) $data['scores'][$i] = null;
+                    if ($answer === 'no' && $data['scores'][$i] === null) {
+                        $data['scores'][$i] = $row->scores[$i] ?? PostEvaluationInterview::DEFAULT_NO_SCORE;
+                    } elseif ($answer === null) {
+                        $data['scores'][$i] = null;
+                    }
                 }
                 $data['continuation'] = $choices;
                 if ($data['status'] === 'completed' && in_array(null, $choices, true)) {
@@ -306,9 +307,11 @@ class PostEvaluationController extends Controller
                 throw ValidationException::withMessages(['scores'=>'Lengkapi kelima nilai sebelum menandai selesai.']);
             }
             $row->update(array_merge($data, ['revision' => $row->revision + 1, 'updated_by' => $request->user()->id]));
+
+            return $row;
         });
         if ($request->expectsJson()) {
-            return response()->json(['revision' => $interview->fresh()->revision, 'message' => 'Wawancara tersimpan.']);
+            return response()->json(['revision' => $saved->revision, 'scores' => $saved->scores, 'message' => 'Wawancara tersimpan.']);
         }
 
         return back()->with('success', 'Wawancara tersimpan.');

@@ -14,10 +14,16 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/pages/page-auth.css') }}" />
     @stack('styles')
+    @if(auth()->guest() && !request()->routeIs('complaints.guest.*'))
+        @include('complaints.widget-assets')
+    @endif
     <link rel="stylesheet" href="{{ asset('assets/css/integral-page-loader.css') }}?v=20261118-logo-spin-large">
 </head>
 <body class="@yield('body_class')">
     @include('layouts.partials.page-loader')
+    @if(auth()->guest() && !request()->routeIs('complaints.guest.*'))
+        @include('complaints.widget')
+    @endif
     <div class="container-xxl">
         @yield('content')
     </div>

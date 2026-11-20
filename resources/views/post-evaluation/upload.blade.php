@@ -2,6 +2,10 @@
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Pengisian Inovasi / Proper - INTEGRAL</title>
 <style>
 *{box-sizing:border-box}body{font:15px/1.65 system-ui,-apple-system,sans-serif;color:#213d34;background:#f0f6f3;margin:0;padding:28px 16px}main{max-width:900px;margin:auto}.hero{padding:32px;background:linear-gradient(120deg,#145842,#24816a);color:white;border-radius:20px;margin-bottom:22px}.hero small{text-transform:uppercase;letter-spacing:.12em;color:#cee8dc}.hero h1{font-size:28px;line-height:1.3;margin:12px 0}.hero p{margin:6px 0}.card{background:white;border:1px solid #d6e6dd;border-radius:18px;padding:28px;box-shadow:0 8px 32px #163e3010}.steps{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.steps span{padding:8px 14px;background:#edf8f2;border-radius:10px;color:#28654e;font-weight:600}label{display:block;font-weight:650;margin:16px 0 8px}input,textarea,select{font:inherit;width:100%;padding:12px;border:1px solid #bdcec4;border-radius:9px;background:white;color:#213d34}textarea{resize:vertical;min-height:110px}input:focus,textarea:focus{outline:3px solid #15966b24;border-color:#15966b}.group{padding:22px;border:1px solid #d7e8e0;border-left:5px solid #15966b;border-radius:12px;margin:22px 0;background:#fbfdfb}.group.long{border-left-color:#ba8735;background:#fffdf8}.group.current{border-left-color:#4f7f9f;background:#f8fbfd}h2{font-size:20px;margin:0 0 8px}h3{font-size:17px;margin:0}.help{font-size:13px;color:#667f71;font-weight:400}.radios{display:flex;flex-wrap:wrap;gap:22px}.radios label{display:flex;gap:8px;align-items:center;font-weight:500}.radios input{width:auto}.evidence{padding:16px;background:#eef7f1;border-radius:10px}.notice{padding:16px;border-radius:10px;background:#e3f5e9;margin-bottom:18px}.error{background:#fff0ee;color:#a22f25}.status{margin:16px 0;padding:16px;border:1px solid #c9e2d3;border-radius:10px;background:#f1faf5}.actions{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-top:24px}button{border:0;border-radius:10px;padding:14px 25px;font:inherit;font-weight:700;color:white;background:#167650;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}[hidden]{display:none!important}@media(max-width:600px){body{padding:12px}.hero,.card{padding:20px}.hero h1{font-size:23px}.group{padding:16px}.actions button{width:100%}}
+.proper-success{width:min(420px,calc(100% - 32px));padding:28px;border:1px solid #c9e2d3;border-radius:18px;color:#213d34;background:#fff;text-align:center}
+.proper-success::backdrop{background:rgba(17,45,35,.58)}
+.proper-success-icon{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#e3f5e9;color:#167650;font-size:30px;font-weight:700}
+.proper-success p{margin:0 0 20px}
 </style></head><body><main>
 <header class="hero"><small>INTEGRAL - Evaluasi Pasca Pelatihan</small><h1>Pengisian Inovasi / Proper</h1><p>{{ $training->nama_pelatihan }}</p><p>{{ $training->program_evaluasi }} - Angkatan {{ $training->angkatan }}</p></header>
 <div class="card">
@@ -24,8 +28,20 @@
 <section class="group current"><h2>3. Kondisi Proper Saat Ini</h2><p class="help">Gambarkan perkembangan dan keadaan terbaru Proper.</p><label for="current_condition">Penjelasan kondisi saat ini</label><textarea id="current_condition" name="current_condition" required maxlength="10000">{{ old('current_condition') }}</textarea></section>
 <label for="document">Dokumen Inovasi / Proper</label><input id="document" type="file" name="document" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar" required><small class="help">PDF, Word, PowerPoint, Excel, ZIP atau RAR. Maksimal 100 MB, mengikuti batas unggahan server.</small><p class="help">Pengiriman ulang mengganti data dan dokumen Proper sebelumnya, tanpa mengubah nilai wawancara tim. Status belum dilaksanakan akan menghapus evidence periode tersebut.</p><div class="actions"><button id="submitProper" type="submit">Kirim Data &amp; Dokumen Proper</button><small class="help">Data dan dokumen tersimpan privat.</small></div>
 </form></div><p class="help" style="text-align:center">INTEGRAL - Hasil Evaluasi Pasca Level 3 &amp; 4</p></main>
+@if(session('success'))
+<dialog id="properSuccessDialog" class="proper-success" aria-labelledby="properSuccessTitle" aria-describedby="properSuccessMessage">
+    <span class="proper-success-icon" aria-hidden="true">✓</span>
+    <h2 id="properSuccessTitle">Proper Berhasil Dikirim</h2>
+    <p id="properSuccessMessage">{{ session('success') }}</p>
+    <form method="dialog">
+        <button type="submit" autofocus>Tutup</button>
+    </form>
+</dialog>
+@endif
 <script>
 (()=>{
+ const successDialog=document.getElementById('properSuccessDialog');
+ if(typeof successDialog?.showModal==='function')successDialog.showModal();
  const form=document.getElementById('properForm'),button=document.getElementById('submitProper');
  document.querySelectorAll('[data-evidence]').forEach(box=>{
   const period=box.dataset.evidence,input=box.querySelector('input[type=file]');

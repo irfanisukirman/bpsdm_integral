@@ -1,7 +1,22 @@
 @extends('layouts.master')
 @section('title', 'Pengaturan Bantuan Login')
+@push('css')
+<style>
+    .setting-hero { border:0; border-radius:18px; background:linear-gradient(125deg,#293b77,#696cff); color:#fff; }
+    .setting-card { border:0; border-radius:18px; box-shadow:0 5px 24px rgba(34,48,62,.07); }
+    .contact-row { border:1px solid #e7e9f1; border-radius:13px; padding:14px; background:#fafbff; }
+
+    html[data-integral-theme="dark"] .card.setting-hero { background:var(--integral-surface)!important; }
+    [data-integral-theme="dark"] .setting-card .contact-row {
+        background:var(--integral-raised);
+        border-color:var(--integral-border);
+        color:var(--integral-text);
+    }
+    [data-integral-theme="dark"] .setting-card code { color:var(--integral-brand-ink); }
+</style>
+@endpush
+
 @section('content')
-<style>.setting-hero{border:0;border-radius:18px;background:linear-gradient(125deg,#293b77,#696cff);color:#fff}.setting-card{border:0;border-radius:18px;box-shadow:0 5px 24px rgba(34,48,62,.07)}.contact-row{border:1px solid #e7e9f1;border-radius:13px;padding:14px;background:#fafbff}</style>
 <div class="card setting-hero mb-4"><div class="card-body p-4"><div class="d-flex align-items-center gap-3"><span class="avatar avatar-lg"><span class="avatar-initial rounded bg-white text-primary"><i class="bx bx-help-circle fs-2"></i></span></span><div><h4 class="text-white fw-bold mb-1">Bantuan Login</h4><p class="mb-0 opacity-75">Atur informasi dan kontak yang tampil saat pengguna memilih Lupa Password.</p></div></div></div></div>
 @if(session('success'))<div class="alert alert-success"><i class="bx bx-check-circle me-1"></i>{{ session('success') }}</div>@endif
 @if($errors->any())<div class="alert alert-danger"><strong>Periksa kembali isian:</strong><ul class="mb-0 mt-2">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif

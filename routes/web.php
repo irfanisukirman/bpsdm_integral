@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\EvaluationLevel1Controller;
 use App\Http\Controllers\EvaluationLevel2Controller;
 use App\Http\Controllers\EvaluationLevel12ReportController;
@@ -70,6 +71,17 @@ use App\Http\Controllers\PublicGuestBookController;
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::prefix('bantuan-pengaduan')->name('complaints.guest.')->controller(ComplaintController::class)->group(function () {
+    Route::get('/', 'guestCreate')->name('create');
+    Route::post('/', 'guestStore')->middleware('throttle:5,1,complaint-guest-send')->name('store');
+    Route::get('lacak', 'track')->name('track');
+    Route::get('ketersediaan', 'availability')->middleware('throttle:30,1,complaint-guest-presence')->name('availability');
+    Route::post('lacak', 'lookup')->middleware('throttle:10,1,complaint-guest-lookup')->name('lookup');
+    Route::get('tiket/{token}', 'guestShow')->where('token', '[a-f0-9]{48}')->middleware('throttle:30,1,complaint-guest-view')->name('show');
+    Route::get('tiket/{token}/pembaruan', 'guestUpdates')->where('token', '[a-f0-9]{48}')->middleware('throttle:30,1,complaint-guest-poll')->name('updates');
+    Route::post('tiket/{token}', 'guestReply')->where('token', '[a-f0-9]{48}')->middleware('throttle:10,1,complaint-guest-reply')->name('reply');
+    Route::get('tiket/{token}/lampiran/{message}', 'guestDownload')->where('token', '[a-f0-9]{48}')->whereNumber('message')->middleware('throttle:60,1,complaint-guest-file')->name('attachment');
+});
 Route::get('jadwalharian/{token?}', [PublicDailyScheduleController::class, 'index'])->where('token', '[a-f0-9]{64}')->name('public.daily-schedule');
 Route::get('reservasi-fasilitas', [AssetRentalController::class, 'catalog'])->name('public.asset-rentals.index');
 Route::post('reservasi-fasilitas/lacak', [AssetRentalController::class, 'lookup'])->middleware('throttle:10,1')->name('public.asset-rentals.lookup');
@@ -147,6 +159,23 @@ Route::get('verifikasi-tte/{token}', [ElectronicSignatureController::class, 'ver
     ->middleware('throttle:30,1')->name('electronic-signatures.verify');
 
 Route::middleware(['auth'])->group(function () {
+    Route::prefix('pengaduan')->name('complaints.')->controller(ComplaintController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('buat', 'create')->name('create');
+        Route::post('/', 'store')->middleware('throttle:10,1,complaint-send')->name('store');
+        Route::get('ketersediaan', 'availability')->middleware('throttle:30,1,complaint-presence')->name('availability');
+        Route::get('balasan-baru', 'unreadReplies')->middleware('throttle:30,1,complaint-unread')->name('unread-replies');
+        Route::post('kehadiran-admin', 'heartbeat')->middleware('throttle:30,1,complaint-heartbeat')->name('heartbeat');
+        Route::get('masuk', 'index')->name('inbox');
+        Route::get('masuk/ekspor', 'export')->name('export');
+        Route::get('{ticket}', 'show')->whereNumber('ticket')->name('show');
+        Route::get('{ticket}/pembaruan', 'updates')->whereNumber('ticket')->middleware('throttle:30,1,complaint-poll')->name('updates');
+        Route::post('{ticket}/balas', 'reply')->whereNumber('ticket')->middleware('throttle:30,1,complaint-reply')->name('reply');
+        Route::patch('{ticket}/teruskan', 'forward')->whereNumber('ticket')->name('forward');
+        Route::patch('{ticket}/selesai', 'resolve')->whereNumber('ticket')->name('resolve');
+        Route::delete('{ticket}', 'destroy')->whereNumber('ticket')->name('destroy');
+        Route::get('{ticket}/lampiran/{message}', 'download')->whereNumber(['ticket', 'message'])->name('attachment');
+    });
     Route::post('akses-peran', [\App\Http\Controllers\UserRoleController::class, 'switch'])->name('roles.switch');
     Route::get('laporan-harian', [DailyReportController::class, 'index'])->name('daily-reports.index');
     Route::get('laporan-harian/buat', [DailyReportController::class, 'edit'])->name('daily-reports.create');

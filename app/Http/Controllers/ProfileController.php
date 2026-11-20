@@ -22,7 +22,10 @@ class ProfileController extends Controller
         }
         $employmentStatuses = \App\Models\EmploymentStatus::where('is_active', true)->orderBy('sort_order')->get();
         $institutions = \App\Models\Institution::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
-        return view('profile.edit', compact('user', 'employmentStatuses', 'institutions'));
+        $isEvaluationTeamMember = \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')
+            ->where('user_id', $user->id)->exists();
+
+        return view('profile.edit', compact('user', 'employmentStatuses', 'institutions', 'isEvaluationTeamMember'));
     }
 
     /**

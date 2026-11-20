@@ -4,7 +4,7 @@
 @section('integral_theme', 'light')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-bright-orange">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
 @endpush
 
 @section('content')

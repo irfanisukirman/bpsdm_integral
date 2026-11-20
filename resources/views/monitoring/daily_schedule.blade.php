@@ -6,12 +6,18 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <h4 class="fw-bold mb-1">Monitoring Jadwal Harian</h4>
-            <p class="text-muted mb-0">Seluruh jadwal lintas bidang dan aset yang digunakan pada satu hari.</p>
+            <p class="text-muted mb-0">Pilih tanggal untuk melihat jadwal lintas bidang dan aset yang digunakan.</p>
         </div>
         <form method="GET" action="{{ route('daily-schedule.index') }}" class="d-flex gap-2 align-items-end">
-            <div><label class="form-label small fw-bold mb-1">Tanggal monitoring</label><input type="date" name="date" value="{{ $date }}" class="form-control" onchange="this.form.submit()"></div>
-            @if($date !== now()->toDateString())<a href="{{ route('daily-schedule.index') }}" class="btn btn-outline-primary">Hari Ini</a>@endif
+            <div><label for="monitoring-date" class="form-label small fw-bold mb-1">Tanggal monitoring</label><input id="monitoring-date" type="date" name="date" value="{{ $date }}" class="form-control"></div>
+            <button type="submit" class="btn btn-outline-primary">Tampilkan</button>
         </form>
+    </div>
+
+    @include('monitoring.partials.daily-calendar')
+
+    <div id="agenda-harian" class="mb-3">
+        <h2 class="h5 mb-0">{{ \Carbon\Carbon::parse($date)->locale('id')->translatedFormat('l, d F Y') }}</h2>
     </div>
 
     <div class="row g-3 mb-4">
@@ -34,7 +40,7 @@
 
     <div class="card border-0 shadow-sm">
         <div class="card-header border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div><h5 class="fw-bold mb-1">{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}</h5><small class="text-muted">Urut berdasarkan waktu mulai kegiatan.</small></div>
+            <div><h5 class="fw-bold mb-1">Rincian Agenda</h5><small class="text-muted">Urut berdasarkan waktu mulai kegiatan.</small></div>
             <div class="d-flex flex-wrap gap-2"><span class="badge bg-label-primary">Pelatihan</span><span class="badge bg-label-success">Agenda</span><span class="badge bg-label-info">Reservasi Publik</span></div>
         </div>
         <div class="card-body p-0">
@@ -100,5 +106,9 @@
 @push('styles')
 <style>
 .schedule-row{transition:.2s;background:#fff}.schedule-row:hover{background:#f8f9ff}.schedule-row.running{background:#fff8f0;border-left:4px solid #ff6b35}.time-box{background:#f2f3f7;min-width:72px}.pulse{animation:pulse 1.8s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+[data-integral-theme="dark"] .schedule-row { background:var(--integral-surface); color:var(--integral-text); }
+[data-integral-theme="dark"] .schedule-row:hover,
+[data-integral-theme="dark"] .time-box { background:var(--integral-raised); }
+[data-integral-theme="dark"] .schedule-row.running { background:#3a2e22; }
 </style>
 @endpush

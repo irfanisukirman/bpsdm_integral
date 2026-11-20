@@ -30,6 +30,75 @@ let menu, animate;
     });
   });
 
+  const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
+  if (desktopSidebarToggle) {
+    const sidebar = document.getElementById('layout-menu');
+    const root = document.documentElement;
+    const preferenceKey = 'integral:sidebar-compact';
+    const compactClass = 'integral-sidebar-compact';
+    const previewClass = 'integral-sidebar-preview';
+    const hoverCapable = window.matchMedia('(hover: hover)');
+    let previewTimer;
+
+    function hidePreview() {
+      clearTimeout(previewTimer);
+      root.classList.remove(previewClass);
+    }
+
+    function showPreview() {
+      if (!window.Helpers.isSmallScreen() && root.classList.contains(compactClass)) {
+        root.classList.add(previewClass);
+      }
+    }
+
+    function setCompact(compact) {
+      hidePreview();
+      root.classList.toggle(compactClass, compact);
+      desktopSidebarToggle.setAttribute('aria-expanded', String(!compact));
+      const label = compact ? 'Perluas sidebar' : 'Ringkas sidebar';
+      desktopSidebarToggle.setAttribute('aria-label', label);
+      desktopSidebarToggle.title = label;
+    }
+
+    function saveCompact(compact) {
+      setCompact(compact);
+      try {
+        localStorage.setItem(preferenceKey, String(compact));
+      } catch {
+        // The sidebar still works when browser storage is unavailable.
+      }
+    }
+
+    setCompact(root.classList.contains(compactClass));
+
+    desktopSidebarToggle.addEventListener('click', () => saveCompact(!root.classList.contains(compactClass)));
+    sidebar.addEventListener('pointerenter', event => {
+      if (hoverCapable.matches && event.pointerType === 'mouse') {
+        previewTimer = setTimeout(showPreview, 160);
+      }
+    });
+    sidebar.addEventListener('pointerleave', hidePreview);
+    sidebar.addEventListener('focusin', event => {
+      if (event.target.matches('.menu-link:focus-visible')) showPreview();
+    });
+    sidebar.addEventListener('focusout', event => {
+      if (!sidebar.contains(event.relatedTarget) && !sidebar.matches(':hover')) hidePreview();
+    });
+    sidebar.querySelectorAll('.menu-link').forEach(link => {
+      const label = link.querySelector(':scope > div')?.textContent.trim();
+      if (label && !link.title) link.title = label;
+    });
+    sidebar.addEventListener('click', event => {
+      const toggle = event.target.closest('.menu-toggle');
+      if (!toggle || window.Helpers.isSmallScreen() || !root.classList.contains(compactClass)) return;
+      saveCompact(false);
+      if (toggle.parentElement.classList.contains('open')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
+  }
+
   // Display menu toggle (layout-menu-toggle) on hover with delay
   let delay = function (elem, callback) {
     let timeout = null;

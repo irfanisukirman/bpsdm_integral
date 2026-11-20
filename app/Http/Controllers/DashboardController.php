@@ -11,7 +11,6 @@ use App\Models\EvaluationResultL34;
 use App\Models\MonitoringResult;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
-use DB;
 use App\Models\File;
 use Carbon\Carbon;
 
@@ -92,6 +91,8 @@ class DashboardController extends Controller
         $today = Carbon::today('Asia/Jakarta');
 
         $participantsQuery = Participant::whereIn('training_id', $trainingIds);
+        $registrationCounts = $participantsQuery->selectRaw('registration_status, COUNT(*) AS total')
+            ->groupBy('registration_status')->pluck('total', 'registration_status');
         $attendanceQuery = Attendance::whereHas('schedule', fn ($q) => $q->whereIn('training_id', $trainingIds));
         $attendanceTotal = (clone $attendanceQuery)->count();
         $attendancePresent = (clone $attendanceQuery)->where('status', 'hadir')->count();
@@ -104,9 +105,9 @@ class DashboardController extends Controller
             )->count(),
             'upcoming_training' => $trainings->filter(fn ($item) => Carbon::parse($item->tgl_mulai)->startOfDay()->gt($today))->count(),
             'completed_training' => $trainings->filter(fn ($item) => Carbon::parse($item->tgl_selesai)->endOfDay()->lt($today))->count(),
-            'total_participants' => (clone $participantsQuery)->count(),
-            'approved_participants' => (clone $participantsQuery)->where('registration_status', 'approved')->count(),
-            'pending_participants' => (clone $participantsQuery)->where('registration_status', 'pending')->count(),
+            'total_participants' => $registrationCounts->sum(),
+            'approved_participants' => (int) $registrationCounts->get('approved', 0),
+            'pending_participants' => (int) $registrationCounts->get('pending', 0),
             'attendance_present' => $attendancePresent,
             'attendance_total' => $attendanceTotal,
             'attendance_rate' => $attendanceTotal > 0 ? round(($attendancePresent / $attendanceTotal) * 100, 1) : 0,
@@ -137,6 +138,15 @@ class DashboardController extends Controller
 
         $latestTrainings = $trainings->take(6);
         $year = $today->year;
+        $registrationSeries = [
+            'Disetujui' => $stats['approved_participants'],
+            'Menunggu persetujuan' => $stats['pending_participants'],
+            'Ditolak' => (int) $registrationCounts->get('rejected', 0),
+        ];
+        $otherRegistrations = $stats['total_participants'] - array_sum($registrationSeries);
+        if ($otherRegistrations > 0) {
+            $registrationSeries['Status lainnya'] = $otherRegistrations;
+        }
         $monthlyTrainings = collect(range(1, 12))->map(fn ($month) =>
             $trainings->filter(fn ($item) =>
                 Carbon::parse($item->tgl_mulai)->year === $year &&
@@ -147,7 +157,7 @@ class DashboardController extends Controller
         return view('dashboard.index', compact(
             'stats', 'avgL1', 'avgL2Pre', 'avgL2Post', 'avgL3', 'avgL4',
             'monYa', 'monTidak', 'monitoringRate', 'latestTrainings',
-            'monthlyTrainings', 'year'
+            'monthlyTrainings', 'year', 'registrationSeries'
         ));
     }
 }

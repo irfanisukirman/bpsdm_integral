@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-bright-orange">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
 
     @php
         $startDate = filled($training->tgl_mulai) ? \Carbon\Carbon::parse($training->tgl_mulai)->locale('id') : null;

@@ -69,17 +69,28 @@
                     <div class="card-body">
                         <h6 class="text-primary mb-3 fw-bold text-uppercase"><i class="bx bx-user me-1"></i> Informasi Dasar</h6>
                         @php
+                            $roleLabels = \App\Support\UserRoles::LABELS;
+                            $assignedRoles = $user->assignedRoles();
+                            $hasMultipleRoles = count($assignedRoles) > 1;
+                            $showEvaluatorMembership = $isEvaluationTeamMember && !in_array('evaluator', $assignedRoles, true);
                             $accountTypeLabel = match($user->user_type) {
                                 'narasumber' => 'Narasumber',
                                 'mitra' => 'Mitra',
-                                default => 'Peserta',
+                                default => $roleLabels[$user->primaryRole()] ?? 'Peserta',
                             };
                         @endphp
-                        @if(!in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
+                        @if($hasMultipleRoles || $showEvaluatorMembership || !in_array($user->role, ['superadmin', 'admin_bidang', 'admin_aset'], true))
                             <div class="alert alert-{{ $user->user_type_status === 'pending' ? 'warning' : 'info' }} d-flex align-items-center gap-2 py-2">
                                 <i class="bx {{ $user->user_type === 'narasumber' ? 'bx-chalkboard' : ($user->user_type === 'mitra' ? 'bx-handshake' : 'bx-user') }} fs-5"></i>
                                 <div>
                                     <strong>Jenis akun: {{ $accountTypeLabel }}</strong>
+                                    @if($hasMultipleRoles)
+                                        <small class="d-block mt-1">Peran tersedia: {{ collect($assignedRoles)->map(fn ($role) => $roleLabels[$role] ?? $role)->implode(', ') }}</small>
+                                        <small class="d-block">Peran aktif: {{ $roleLabels[$user->role] ?? $user->role }}</small>
+                                    @endif
+                                    @if($showEvaluatorMembership)
+                                        <small class="d-block mt-1">Penugasan tambahan: Evaluator Pasca (anggota tim evaluasi)</small>
+                                    @endif
                                     @if($user->user_type_status === 'pending')
                                         <small class="d-block">Pengajuan sedang menunggu persetujuan superadmin.</small>
                                     @endif

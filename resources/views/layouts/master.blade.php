@@ -8,6 +8,15 @@
     <title>@yield('title') | INTEGRAL - Pengelolaan Pelatihan Terintegrasi</title>
 
     <script src="{{ asset('assets/js/integral-theme.js') }}?v=20261117-fonts"></script>
+    <script>
+        try {
+            if (localStorage.getItem('integral:sidebar-compact') === 'true') {
+                document.documentElement.classList.add('integral-sidebar-compact');
+            }
+        } catch {
+            // Keep the full sidebar if browser storage is unavailable.
+        }
+    </script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/inte.png') }}" />
@@ -47,11 +56,12 @@
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/integral-theme.css') }}?v=20261117-green3">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-sidebar.css') }}?v=20261118-submenu-dots">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-sidebar.css') }}?v=20261120-sidebar-labels">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-bright-orange">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-design.css') }}?v=20261117-reference">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-design.css') }}?v=20261120-sidebar-labels">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-complaints.css') }}?v=18">
 
     <!-- Helpers -->
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
@@ -64,6 +74,9 @@
 
 <body>
     @include('layouts.partials.page-loader')
+    @auth
+        @include('complaints.widget')
+    @endauth
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -120,7 +133,8 @@
     <!-- endbuild -->
 
     <!-- Main JS -->
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}?v=20261119-sidebar-motion"></script>
+    <script src="{{ asset('assets/js/integral-complaints.js') }}?v=18" defer></script>
 
     @stack('js')
     @stack('scripts')

@@ -15,6 +15,10 @@
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm align-middle"></i>
         </a>
+        <button type="button" id="desktop-sidebar-toggle" class="btn btn-icon rounded-circle d-none d-xl-inline-flex"
+            aria-controls="layout-menu" aria-expanded="true" aria-label="Ringkas sidebar" title="Ringkas sidebar">
+            <i class="bx bx-chevron-left" aria-hidden="true"></i>
+        </button>
     </div>
 
     <div class="menu-inner-shadow"></div>
@@ -32,7 +36,17 @@
 
 
 
-        <li class="menu-header small text-uppercase mt-0"><span class="menu-header-text">Menu Utama</span></li>
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Menu Utama</span></li>
+        @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
+            <li class="menu-item {{ request()->routeIs('complaints.inbox') ? 'active' : '' }}">
+                <a href="{{ route('complaints.inbox') }}" class="menu-link" data-complaint-heartbeat="{{ route('complaints.heartbeat') }}">
+                    <i class="menu-icon bx bx-message-rounded-dots"></i><div>Kotak Masuk Pengaduan</div>
+                    @php $waitingComplaints = $navbarNotifications->firstWhere('id', 'complaint-waiting')['waiting'] ?? 0; @endphp
+                    <span class="badge bg-danger rounded-pill ms-auto menu-notification-badge" data-complaint-menu-count
+                        title="Tiket menunggu ditangani" @unless($waitingComplaints) hidden @endunless>{{ $waitingComplaints > 99 ? '99+' : $waitingComplaints }}</span>
+                </a>
+            </li>
+        @endif
 
 
 
@@ -358,28 +372,6 @@
     .menu-vertical .menu-item:not(.active):not(.open) .menu-link:hover i {
         color: #696cff !important;
         transform: scale(1.1);
-    }
-
-    /* Mempercantik Menu Header */
-    .menu-header {
-        min-height: auto !important;
-        margin: 1.35rem 1rem 0.55rem !important;
-        padding: 0.52rem 0.75rem !important;
-        border-left: 3px solid #8fa8ff;
-        border-radius: 0.5rem;
-    }
-
-    .menu-header:first-child {
-        margin-top: 0 !important;
-    }
-
-    .menu-header-text {
-        color: #5d73c7 !important;
-        font-weight: 800 !important;
-        font-size: 0.67rem;
-        line-height: 1.25;
-        letter-spacing: 0.75px;
-        white-space: normal;
     }
 
     /* Badge Active Glow */

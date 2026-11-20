@@ -189,6 +189,8 @@
     .teacher-stat small { color: #697a8d; }
     .teacher-stat strong { color: #233446; font-size: 1.25rem; }
     .teacher-stat span { color: #8592a3; font-size: .75rem; }
+    [data-integral-theme="dark"] .teacher-stat :is(small, span) { color: inherit; }
+    [data-integral-theme="dark"] .teacher-stat strong { color: var(--integral-text); }
     .teacher-card { transition: transform .2s ease, box-shadow .2s ease; }
     .teacher-card:hover { transform: translateY(-2px); }
     .session-details summary { cursor: pointer; }

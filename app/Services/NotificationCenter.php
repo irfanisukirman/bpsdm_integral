@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\ComplaintTicket;
 use App\Models\EvaluationFormL1;
 use App\Models\ElectronicSignatureAction;
 use App\Models\EvaluationResultL1;
@@ -22,6 +23,7 @@ use App\Models\AssetLoanRequest;
 use App\Models\AssetPublicReservation;
 use App\Models\AgendaSchedule;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -39,7 +41,7 @@ class NotificationCenter
             ->count();
     }
 
-    public function forUser(User $user): Collection
+    public function forUser(User $user, bool $includeChatAlerts = true): Collection
     {
         $items = collect();
 
@@ -67,6 +69,7 @@ class NotificationCenter
         $items = $items->merge($this->electronicSignatureItems($user));
         $items = $items->merge($this->forumItems($user));
         $items = $items->merge($this->folderShareItems($user));
+        $items = $items->merge($this->complaintItems($user, $includeChatAlerts));
 
         $weight = ['danger' => 1, 'warning' => 2, 'info' => 3, 'success' => 4];
 
@@ -76,6 +79,121 @@ class NotificationCenter
             $item['due_at'] ?? '9999-12-31 23:59:59',
             $item['title']
         ))->values();
+    }
+
+    public function unreadComplaintReplies(User $user): Collection
+    {
+        $read = NotificationRead::where('user_id', $user->id)
+            ->where('notification_key', 'like', 'complaint-reply-%')->pluck('notification_key')->flip();
+
+        return ComplaintTicket::where('user_id', $user->id)->whereHas('latestStaffMessage')
+            ->with('latestStaffMessage')->get()->toBase()
+            ->reject(fn ($ticket) => $read->has('complaint-reply-'.$ticket->latestStaffMessage->id))
+            ->sortByDesc(fn ($ticket) => $ticket->latestStaffMessage->id)->values();
+    }
+
+    private function complaintItems(User $user, bool $includeChatAlerts): Collection
+    {
+        $items = collect();
+
+        if (in_array($user->role, ComplaintTicket::STAFF_ROLES, true)) {
+            $waiting = $this->waitingComplaints($user, includeChats: $includeChatAlerts);
+            if ($waiting > 0) {
+                $items->push($this->item(
+                    'complaint-waiting',
+                    'Pengaduan menunggu',
+                    $waiting.' tiket dengan pengaduan atau pesan baru.',
+                    'warning', 'bx-message-rounded-dots', route('complaints.inbox', ['read' => 1]),
+                    'Buka kotak masuk'
+                ) + ['waiting' => $waiting]);
+            }
+            $assigned = ComplaintTicket::where('assigned_to', $user->id)->where('status', '!=', 'resolved')
+                ->whereIntegerNotInRaw('id', $this->readComplaintIds($user, 'complaint-assigned-'))
+                ->get()->toBase()->map(fn ($ticket) => $this->item(
+                    'complaint-assigned-'.$ticket->id,
+                    'Pengaduan diteruskan kepada Anda',
+                    $ticket->reference().' · '.ComplaintTicket::CATEGORIES[$ticket->category],
+                    'info', 'bx-message-rounded-dots', route('complaints.show', $ticket),
+                    'Buka pengaduan', $ticket->updated_at->format('Y-m-d H:i:s')
+                ));
+            $items = $items->merge($assigned);
+        }
+
+        return $items;
+    }
+
+    public function waitingComplaints(User $user, ?int $activeChat = null, bool $includeChats = true): int
+    {
+        $waiting = $this->unreadWaitingComplaints($user);
+        if (!$includeChats) {
+            return $waiting->whereNull('chat_name')->count();
+        }
+
+        return $waiting->pluck('id')
+            ->merge($this->unreadStaffChats($user)->pluck('id'))->unique()
+            ->reject(fn ($ticketId) => (int) $ticketId === $activeChat)->count();
+    }
+
+    public function unreadStaffChatIds(User $user): array
+    {
+        return $this->unreadWaitingComplaints($user)->whereNotNull('chat_name')->pluck('id')
+            ->merge($this->unreadStaffChats($user)->pluck('id'))->unique()->values()->all();
+    }
+
+    public function markWaitingComplaintsRead(User $user): void
+    {
+        $this->unreadWaitingComplaints($user)->whereNull('chat_name')->select('id')->chunkById(150, function ($tickets) use ($user) {
+            $now = now();
+            NotificationRead::insertOrIgnore($tickets->map(fn ($ticket) => [
+                'user_id' => $user->id,
+                'notification_key' => 'complaint-waiting-'.$ticket->id,
+                'read_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all());
+        });
+    }
+
+    public function markStaffComplaintRead(User $user, ComplaintTicket $ticket): void
+    {
+        $keys = ['complaint-waiting-'.$ticket->id];
+        if ((int) $ticket->assigned_to === (int) $user->id) {
+            $keys[] = 'complaint-assigned-'.$ticket->id;
+        }
+
+        foreach ($keys as $key) {
+            NotificationRead::firstOrCreate(['user_id' => $user->id, 'notification_key' => $key], ['read_at' => now()]);
+        }
+    }
+
+    public function markStaffChatRead(User $user, int $messageId): void
+    {
+        NotificationRead::firstOrCreate([
+            'user_id' => $user->id,
+            'notification_key' => 'complaint-chat-message-'.$messageId,
+        ], ['read_at' => now()]);
+    }
+
+    private function unreadStaffChats(User $user): Collection
+    {
+        $read = array_fill_keys($this->readComplaintIds($user, 'complaint-chat-message-'), true);
+
+        return ComplaintTicket::staffInbox($user)->whereNotNull('chat_name')->where('status', '!=', 'resolved')
+            ->whereHas('messages', fn ($query) => $query->where('from_staff', false), '>=', 2)
+            ->with('latestCustomerMessage')->get()->toBase()
+            ->reject(fn ($ticket) => isset($read[$ticket->latestCustomerMessage->id]));
+    }
+
+    private function unreadWaitingComplaints(User $user): Builder
+    {
+        return ComplaintTicket::staffInbox($user)->where('status', 'received')
+            ->whereIntegerNotInRaw('id', $this->readComplaintIds($user, 'complaint-waiting-'));
+    }
+
+    private function readComplaintIds(User $user, string $prefix): array
+    {
+        return NotificationRead::where('user_id', $user->id)->where('notification_key', 'like', $prefix.'%')
+            ->pluck('notification_key')->map(fn ($key) => (int) substr($key, strlen($prefix)))->all();
     }
 
     private function electronicSignatureItems(User $user): Collection

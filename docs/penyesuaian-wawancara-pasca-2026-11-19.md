@@ -4,7 +4,7 @@ Mengikuti F:/pasca commit 9110d04 (perbaikan wawancara).
 
 - Grafik memakai empat kategori: 0-25%, >25-50%, >50-75%, >75-100%. Nol masuk kategori pertama; nilai kosong tidak dihitung sebagai nol.
 - Rubrik dan keterangan nilai memakai rentang yang sama.
-- Lima kriteria mempunyai konfirmasi YA/TIDAK/belum dikonfirmasi. YA membutuhkan persentase saat diselesaikan. TIDAK menjadi 0%, kecuali nilai tersimpan 0-25% yang tetap dipertahankan. Belum dikonfirmasi mengosongkan nilai.
+- Lima kriteria mempunyai konfirmasi YA, TIDAK, atau belum dikonfirmasi. YA dan TIDAK menerima nilai 0–100%. Untuk TIDAK tanpa nilai, sistem mempertahankan angka yang sudah tersimpan atau mengisi 25% jika belum pernah dinilai. Belum dikonfirmasi mengosongkan nilai.
 - Rekap hanya merata-ratakan persentase dari jawaban YA yang terisi. Cakupan evaluator tetap berdasarkan penugasan tim.
 - Rata-rata ekspose tetap tiga indikator (jangka panjang, tujuan, manfaat); nilai berbobot tetap lima kriteria.
 - Rekap keberlanjutan masuk sumber narasi AI dan ringkasan ekspose. Perubahan konfirmasi membatalkan kecocokan cache narasi lama.

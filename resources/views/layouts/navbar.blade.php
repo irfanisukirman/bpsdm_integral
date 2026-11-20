@@ -1,3 +1,8 @@
+@php
+    $staffComplaints = in_array(auth()->user()->role, \App\Models\ComplaintTicket::STAFF_ROLES, true);
+    $waitingComplaints = $navbarNotifications->firstWhere('id', 'complaint-waiting')['waiting'] ?? 0;
+    $otherNotifications = $navbarNotifications->reject(fn ($item) => $item['id'] === 'complaint-waiting');
+@endphp
 <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
     <!-- Tombol Menu untuk Mobile -->
     <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
@@ -31,21 +36,34 @@
             <li class="nav-item navbar-dropdown dropdown me-2">
                 <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" aria-label="Notifikasi">
                     <i class="bx bx-bell fs-4"></i>
-                    @if($navbarNotifications->isNotEmpty())
-                        <span class="badge rounded-pill bg-danger badge-notifications">{{ $navbarNotifications->count() > 99 ? '99+' : $navbarNotifications->count() }}</span>
-                    @endif
+                    <span class="badge rounded-pill bg-danger badge-notifications" data-notification-total="{{ $otherNotifications->count() }}"
+                        @if($navbarNotifications->isEmpty()) hidden @endif>{{ $navbarNotifications->count() > 99 ? '99+' : $navbarNotifications->count() }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width:min(380px, 92vw);">
                     <li class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
                         <div>
                             <h6 class="mb-0 fw-bold">Notifikasi</h6>
-                            <small class="text-muted">{{ $navbarNotifications->count() }} perlu ditindaklanjuti</small>
+                            <small class="text-muted"><span data-notification-count>{{ $navbarNotifications->count() }}</span> perlu ditindaklanjuti</small>
                         </div>
                         <i class="bx bx-bell-ring fs-4 text-primary"></i>
                     </li>
                     <li>
                         <div style="max-height:390px;overflow-y:auto;">
-                            @forelse($navbarNotifications->take(6) as $notification)
+                            @if($staffComplaints)
+                                <a class="dropdown-item px-3 py-3 border-bottom text-wrap" data-complaint-bell-entry
+                                    href="{{ route('complaints.inbox', ['read' => 1]) }}" @unless($waitingComplaints) hidden @endunless>
+                                    <div class="d-flex gap-3">
+                                        <span class="avatar avatar-sm flex-shrink-0">
+                                            <span class="avatar-initial rounded-circle bg-label-warning"><i class="bx bx-message-rounded-dots"></i></span>
+                                        </span>
+                                        <span>
+                                            <span class="d-block fw-semibold text-dark">Pengaduan menunggu</span>
+                                            <small class="text-muted d-block"><span data-complaint-bell-count>{{ $waitingComplaints }}</span> tiket dengan pengaduan atau pesan baru.</small>
+                                        </span>
+                                    </div>
+                                </a>
+                            @endif
+                            @forelse($otherNotifications->take(6) as $notification)
                                 <a class="dropdown-item px-3 py-3 border-bottom text-wrap" href="{{ $notification['url'] }}">
                                     <div class="d-flex gap-3">
                                         <span class="avatar avatar-sm flex-shrink-0">
@@ -60,7 +78,7 @@
                                     </div>
                                 </a>
                             @empty
-                                <div class="text-center px-4 py-5">
+                                <div class="text-center px-4 py-5" data-notification-empty @if($waitingComplaints) hidden @endif>
                                     <i class="bx bx-check-circle text-success fs-1"></i>
                                     <p class="fw-semibold mb-0 mt-2">Semua sudah selesai</p>
                                     <small class="text-muted">Tidak ada tugas baru.</small>

@@ -103,7 +103,7 @@
 <label class="form-label fw-bold" for="continuation-{{ $i }}">Apakah masih berlanjut / tercapai?</label>
 <select class="form-select" id="continuation-{{ $i }}" name="continuation[{{ $i }}]" data-continuation="{{ $i }}">
 <option value="" @selected($choice==='')>Belum dikonfirmasi</option><option value="yes" @selected($choice==='yes')>YA</option><option value="no" @selected($choice==='no')>TIDAK</option>
-</select><small class="text-muted d-block mt-2">YA: isi persentase capaian. TIDAK: nilai 0%; nilai lama 0-25% tetap dipertahankan. Belum dikonfirmasi: nilai kosong.</small>
+</select><small class="text-muted d-block mt-2">YA dan TIDAK dapat diberi nilai 0–100%. Jika nilai TIDAK masih kosong, sistem mengisi 25% dan Anda bisa mengubahnya. Nilai yang sudah terisi tetap dipertahankan saat pilihan YA atau TIDAK diganti.</small>
 </div>
 <div class="row g-4"><div class="col-lg-7"><div class="interview-score-comment"><div class="interview-score-box"><label class="form-label fw-bold" for="score-{{ $i }}">Nilai wawancara</label><input class="form-control mb-2 interview-score-input" inputmode="decimal" id="score-{{ $i }}" name="scores[{{ $i }}]" type="number" min="0" max="100" step="0.0001" value="{{ old('scores.'.$i,$interview->scores[$i] ?? '') }}"><p class="small text-muted mb-0">Skala 0-100%.<br>Acuan survei: 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%.</p></div><div class="interview-comment-box">
 <label class="form-label fw-bold" for="note-{{ $i }}">Hasil wawancara &amp; bukti</label><textarea id="note-{{ $i }}" class="form-control" name="notes[{{ $i }}]" rows="4" maxlength="10000" placeholder="Tuliskan capaian, alasan pemberian nilai, kendala, dan bukti yang dikonfirmasi.">{{ old('notes.'.$i,$interview->notes[$i] ?? '') }}</textarea></div></div></div>
@@ -147,14 +147,18 @@
    }
   });
  });
- const storedScores=@json($interview->scores ?? array_fill(0,5,null));
+ const defaultNoScore=@json(\App\Models\PostEvaluationInterview::DEFAULT_NO_SCORE);
  const syncChoice=select=>{
   const i=Number(select.dataset.continuation),input=document.getElementById('score-'+i);
-  input.readOnly=select.value!=='yes';
-  if(select.value==='no') input.value=storedScores[i]!==null&&storedScores[i]<=25?storedScores[i]:0;
-  else if(select.value==='') input.value='';
-  else if(input.dataset.lastChoice && input.dataset.lastChoice!=='yes') input.value='';
-  input.dataset.lastChoice=select.value;
+  const box=input.closest('.interview-score-box'),note=document.getElementById('note-'+i);
+  const unanswered=select.value==='';
+  box.hidden=unanswered;
+  box.parentElement.style.gridTemplateColumns=unanswered?'minmax(0, 1fr)':'';
+  if(unanswered) input.value='';
+  else if(select.value==='no' && input.value==='') input.value=defaultNoScore;
+  note.placeholder=select.value==='no'
+   ? 'Jelaskan alasan tidak berlanjut atau tidak tercapai, kendala, dan bukti yang dikonfirmasi.'
+   : 'Tuliskan capaian, alasan pemberian nilai, kendala, dan bukti yang dikonfirmasi.';
  };
  form.querySelectorAll('[data-continuation]').forEach(select=>{
   syncChoice(select);select.addEventListener('change',()=>syncChoice(select));
@@ -184,6 +188,10 @@
    const data=await response.json();
    if(!response.ok)throw new Error(data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || 'Penyimpanan gagal.'));
    form.elements.revision.value=data.revision;dirty=version!==sentVersion;
+   if(!dirty){
+    data.scores.forEach((value,i)=>{document.getElementById('score-'+i).value=value??'';});
+    updateScoreSummary();
+   }
    status.textContent=dirty?'Ada perubahan baru, menunggu disimpan.':'Tersimpan otomatis.';
    if(dirty)timer=setTimeout(save,500);
   } catch(error){status.textContent=error.message || 'Belum tersimpan. Periksa koneksi dan klik Simpan Wawancara.';status.classList.add('text-danger');}

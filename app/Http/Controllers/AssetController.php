@@ -90,7 +90,10 @@ class AssetController extends Controller {
  public function dailySchedule(Request $request)
  {
   abort_unless(in_array(Auth::user()->role,['superadmin','admin_bidang','admin_aset'],true),403);
-  $date=$request->date('date')?->toDateString()??now()->toDateString();
+  $now = now('Asia/Jakarta');
+  $date = $request->date('date')?->toDateString() ?? $now->toDateString();
+  $calendarMonth = \Carbon\CarbonImmutable::parse($date, 'Asia/Jakarta')->startOfMonth();
+  $calendarCounts = $this->dailyCalendarCounts($calendarMonth);
   $isAssetAdmin=Auth::user()->role==='admin_aset';$assetCatalog=Asset::orderBy('name')->get()->keyBy('id');
   $trainingSchedules=Schedule::with(['training.participants','pengajar','bookings.asset','assetLoanRequest'])
    ->whereDate('date',$date)->orderBy('start_time')->get()->map(function($schedule)use($isAssetAdmin,$assetCatalog){
@@ -127,7 +130,45 @@ class AssetController extends Controller {
   $assetIds=$schedules->flatMap(fn($item)=>$item['assets']->pluck('id'))->unique();
   $stats=['total'=>$schedules->count(),'trainings'=>$trainingSchedules->count(),'agendas'=>$agendaSchedules->count(),
    'public'=>$publicSchedules->count(),'assets'=>$assetIds->count(),'unassigned'=>$schedules->filter(fn($item)=>!$item['is_break']&&$item['assets']->isEmpty()&&$item['requested_assets']->isEmpty()&&blank($item['place'])&&blank($item['zoom']))->count()];
-  $now=now();$isToday=$date===$now->toDateString();$currentTime=$now->format('H:i');
-  return view('monitoring.daily_schedule',compact('date','schedules','stats','isToday','currentTime'));
+  $isToday=$date===$now->toDateString();$currentTime=$now->format('H:i');
+  return view('monitoring.daily_schedule',compact('date','schedules','stats','isToday','currentTime','calendarMonth','calendarCounts','now'));
+ }
+
+ private function dailyCalendarCounts(\Carbon\CarbonImmutable $month): array
+ {
+  $lastDay = $month->endOfMonth()->startOfDay();
+  $range = [$month->toDateString(), $lastDay->toDateString()];
+  $trainings = Schedule::query()->whereBetween('date', $range)
+   ->selectRaw('DATE(date) as calendar_day, COUNT(*) as total')
+   ->groupByRaw('DATE(date)')->pluck('total', 'calendar_day');
+  $reservations = AssetPublicReservation::query()->whereBetween('rental_date', $range)
+   ->whereIn('status', ['confirmed', 'completed'])
+   ->selectRaw('DATE(rental_date) as calendar_day, COUNT(*) as total')
+   ->groupByRaw('DATE(rental_date)')->pluck('total', 'calendar_day');
+  $agendas = AgendaSchedule::query()
+   ->whereDate('starts_at', '<=', $range[1])->whereDate('ends_at', '>=', $range[0])
+   ->get(['starts_at', 'ends_at']);
+
+  $agendaCounts = [];
+  foreach ($agendas as $agenda) {
+   $first = max($range[0], $agenda->starts_at->toDateString());
+   $last = min($range[1], $agenda->ends_at->toDateString());
+   for ($day = \Carbon\CarbonImmutable::parse($first); $day->toDateString() <= $last; $day = $day->addDay()) {
+    $key = $day->toDateString();
+    $agendaCounts[$key] = ($agendaCounts[$key] ?? 0) + 1;
+   }
+  }
+
+  $counts = [];
+  for ($day = $month; $day->lte($lastDay); $day = $day->addDay()) {
+   $key = $day->toDateString();
+   $counts[$key] = [
+    'Pelatihan' => (int) $trainings->get($key, 0),
+    'Agenda' => $agendaCounts[$key] ?? 0,
+    'Reservasi' => (int) $reservations->get($key, 0),
+   ];
+  }
+
+  return $counts;
  }
 }

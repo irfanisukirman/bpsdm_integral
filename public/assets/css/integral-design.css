@@ -49,6 +49,6 @@ body { font-family:var(--integral-font-body); line-height:1.65; }
  html[data-integral-theme] .kirkpatrick-slider::-webkit-slider-thumb { background:#008444!important; }
  html[data-integral-theme] .kirkpatrick-slider::-moz-range-thumb { background:#008444!important; }
  #layout-menu .menu-link { font-family:var(--integral-font-body); font-size:.9rem; line-height:1.5; }
- #layout-menu .menu-header-text { font-family:var(--integral-font-heading); letter-spacing:.06em; }
+ #layout-menu .menu-header-text { font-family:var(--integral-font-body); letter-spacing:.06em; }
  #layout-menu .app-brand-text { font-family:var(--integral-font-body); letter-spacing:.025em!important; }
 }

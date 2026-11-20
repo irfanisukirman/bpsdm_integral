@@ -385,18 +385,27 @@ class PostEvaluationTest extends TestCase
         [$admin,$t,$p] = $this->setupData();
         $this->actingAs($admin)->get(route('post-evaluation.interview', [$t,$p]))->assertOk()->assertSee('data-continuation', false);
         $iv = PostEvaluationInterview::where('participant_id',$p->id)->firstOrFail();
-        $iv->update(['scores'=>[25,80,null,null,null]]);
+        $iv->update(['scores'=>[0,null,null,null,null]]);
         $data=$this->interviewData();
         $data['continuation']=['no','no','yes','yes','yes'];
-        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertOk();
+        $data['scores'][0] = null;
+        $data['scores'][1] = null;
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)
+            ->assertOk()->assertJsonPath('scores.0', 0)->assertJsonPath('scores.1', 25);
         $iv->refresh();
-        $this->assertEquals([25,0,70,60,100],$iv->scores);
+        $this->assertEquals([0,25,70,60,100],$iv->scores);
         $this->assertSame([false,false,true,true,true],$iv->continuation);
         $summary=app(PostEvaluationService::class)->summary($t,app(PostEvaluationService::class)->people($t));
         $this->assertSame(1,$summary['continuation_recap'][0]['no']);
         $this->assertNull($summary['continuation_recap'][0]['average_yes']);
         $this->assertSame(70.0,$summary['continuation_recap'][2]['average_yes']);
         $data['revision']=1;
+        $data['scores'][0] = 42.5;
+        $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)
+            ->assertOk()->assertJsonPath('scores.0', 42.5);
+        $this->assertEquals(42.5, $iv->fresh()->scores[0]);
+        $this->assertFalse($iv->fresh()->continuation[0]);
+        $data['revision']=2;
         $data['continuation'][0]=null;
         $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertUnprocessable()->assertJsonValidationErrors('continuation');
         $data['continuation'][0]='yes'; $data['scores'][0]=null;
@@ -405,6 +414,28 @@ class PostEvaluationTest extends TestCase
         $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertOk();
         $this->assertNull($iv->fresh()->scores[0]);
         $this->get(route('post-evaluation.show',$t))->assertOk()->assertSee('Rekap keberlanjutan hasil wawancara');
+    }
+
+    public function test_defaults_existing_unscored_no_without_overwriting_other_scores(): void
+    {
+        [$admin, $training, $participant] = $this->setupData();
+        $interview = PostEvaluationInterview::create([
+            'training_id' => $training->id,
+            'participant_id' => $participant->id,
+            'continuation' => [false, false, true, null, false],
+            'scores' => [null, 0, null, null, 65],
+            'notes' => ['Catatan tetap', '', '', '', ''],
+            'status' => 'draft',
+            'revision' => 2,
+        ]);
+        $migration = require database_path('migrations/2026_11_20_090000_default_unscored_no_post_evaluation_interviews.php');
+        $migration->up();
+        $migration->up();
+
+        $interview->refresh();
+        $this->assertSame([25, 0, null, null, 65], $interview->scores);
+        $this->assertSame(3, $interview->revision);
+        $this->assertSame('Catatan tetap', $interview->notes[0]);
     }
 
     public function test_legacy_percentage_migration_backs_up_scores_and_preserves_notes(): void
@@ -519,8 +550,12 @@ class PostEvaluationTest extends TestCase
         $this->postJson(route('post-evaluation.proper.verify', $t), ['participant_identity' => '999'])->assertUnprocessable();
         $data = ['participant_identity' => $p->nip_nik, 'proper_title' => 'Aksi Perubahan Uji', 'medium_milestone' => 'Target menengah', 'long_milestone' => 'Target panjang', 'medium_evidence_status' => 'sudah', 'long_evidence_status' => 'belum', 'current_condition' => 'Berjalan', 'document' => UploadedFile::fake()->create('proper.pdf', 20, 'application/pdf')];
         $this->post(route('post-evaluation.proper.store', $t), $data)->assertSessionHasErrors('medium_evidence');
+        $this->get(route('post-evaluation.proper.public', $t))->assertOk()->assertDontSee('id="properSuccessDialog"', false);
         $data['medium_evidence'] = UploadedFile::fake()->image('bukti.png');
         $this->post(route('post-evaluation.proper.store', $t), $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->get(route('post-evaluation.proper.public', $t))->assertOk()
+            ->assertSee('id="properSuccessDialog"', false)->assertSee('Proper Berhasil Dikirim');
+        $this->get(route('post-evaluation.proper.public', $t))->assertOk()->assertDontSee('id="properSuccessDialog"', false);
         $iv->refresh();
         $this->assertSame('Aksi Perubahan Uji', $iv->project);
         $this->assertSame(4, $iv->revision);

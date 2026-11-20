@@ -473,8 +473,14 @@
     <link rel="stylesheet" href="{{ asset('assets/css/integral-welcome.css') }}?v=20261118-green-actions">
     <link rel="stylesheet" href="{{ asset('assets/css/integral-public-motion.css') }}?v=20261118-page-logo">
     <link rel="stylesheet" href="{{ asset('assets/css/integral-page-loader.css') }}?v=20261118-logo-spin-large">
+    @guest
+        @include('complaints.widget-assets')
+    @endguest
 </head>
 <body>
+    @guest
+        @include('complaints.widget')
+    @endguest
     @include('layouts.partials.page-loader')
 
     <!-- NAVBAR -->

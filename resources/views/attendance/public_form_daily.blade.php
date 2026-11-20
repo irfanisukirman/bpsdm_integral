@@ -1,13 +1,30 @@
 @extends('layouts.auth')
 
+@section('title', 'Presensi Harian')
+@section('integral_theme', 'light')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
+@endpush
+
 @section('content')
-<div class="container-xxl py-5">
+@php
+    $dateLabel = \Carbon\CarbonImmutable::canBeCreatedFromFormat($date, 'Y-m-d')
+        ? \Carbon\CarbonImmutable::parse($date)->locale('id')->translatedFormat('l, d F Y')
+        : $date;
+@endphp
+<main class="daily-attendance container-xxl py-3 py-md-5">
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8"> {{-- Ukuran diperlebar agar progres muat samping/bawah --}}
             <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h4 class="text-white mb-1">PRESENSI HARIAN</h4>
-                    <p class="mb-0 opacity-75">{{ $training->nama_pelatihan }}</p>
+                <div class="card-header attendance-hero p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <img src="{{ asset('assets/img/favicon/inte.png') }}" alt="" width="36" height="36" class="attendance-logo">
+                        <strong>INTEGRAL</strong>
+                    </div>
+                    <h1 class="h3 mb-2">Presensi Harian</h1>
+                    <p class="mb-2">{{ $training->nama_pelatihan }}</p>
+                    <span class="attendance-date"><i class="bx bx-calendar" aria-hidden="true"></i> {{ $dateLabel }}</span>
                 </div>
 
                 <div class="card-body p-4">
@@ -26,27 +43,28 @@
                     @endif
 
                     @if($status == 'not_set')
-                        <div class="text-center py-4">
+                        <div class="attendance-state text-center mx-auto">
                             <i class="bx bx-error-circle text-warning mb-3" style="font-size: 5rem;"></i>
                             <h5>Akses Belum Tersedia</h5>
-                            <p class="text-muted">Admin belum mengatur jendela waktu absensi untuk hari ini.</p>
+                            <p class="text-muted mb-0">Admin belum menetapkan waktu presensi untuk tanggal ini.</p>
                         </div>
                     @elseif($status == 'closed')
-                        <div class="text-center py-4">
+                        <div class="attendance-state text-center mx-auto">
                             <i class="bx bx-time-five text-danger mb-3" style="font-size: 5rem;"></i>
-                            <h5 class="text-danger fw-bold">Waktu Absensi Ditutup</h5>
+                            <h2 class="h5 fw-bold">Presensi di Luar Jam Pengisian</h2>
+                            <p class="text-muted">Presensi dapat diisi pada jam berikut.</p>
                             <div class="h4 fw-bold text-primary bg-label-primary p-3 rounded d-inline-block">
-                                {{ substr($open, 0, 5) }} s/d {{ substr($close, 0, 5) }}
+                                {{ substr($open, 0, 5) }}–{{ substr($close, 0, 5) }} WIB
                             </div>
                         </div>
                     @else
-                        <div class="row">
+                        <div class="row g-4">
                             <!-- BAGIAN KIRI: FORM INPUT (Hanya muncul jika masih ada yang belum absen) -->
-                            <div class="{{ $notAttended->isEmpty() ? 'col-12' : 'col-md-6' }} border-end">
+                            <div class="{{ $notAttended->isEmpty() ? 'col-12' : 'col-md-6' }}">
                                 @if(session('success'))
-                                    <div class="text-center py-4 animate__animated animate__fadeIn">
+                                    <div class="attendance-state text-center" role="status">
                                         <i class="bx bx-check-circle text-success mb-3" style="font-size: 4rem;"></i>
-                                        <h5 class="text-success">Terima Kasih!</h5>
+                                        <h5 class="text-success">Presensi Berhasil Dikirim</h5>
                                         <p class="small text-muted">Presensi Anda telah tercatat.</p>
                                         <button onclick="window.location.reload()" class="btn btn-sm btn-outline-primary">Tutup Pesan</button>
                                     </div>
@@ -85,9 +103,9 @@
                                             </div>
                                         @else
                                             <div class="mb-4">
-                                                <label class="form-label fw-bold small">PILIH NAMA ANDA</label>
-                                                <select name="participant_id" class="form-select form-select-lg border-primary" required>
-                                                    <option value="">-- Cari Nama --</option>
+                                                <label for="attendance-participant" class="form-label fw-bold">Pilih nama Anda</label>
+                                                <select id="attendance-participant" name="participant_id" class="form-select form-select-lg" required>
+                                                    <option value="">Pilih peserta</option>
                                                     @foreach($formParticipants as $p)
                                                         <option value="{{ $p->id }}" @selected((int) old('participant_id', $selectedParticipantId ?? 0) === (int) $p->id)>
                                                             {{ $p->name }} - {{ $p->nip_nik ?: 'NIP/NIK belum tersedia' }}
@@ -97,8 +115,8 @@
                                             </div>
                                         @endif
 
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold small">STATUS</label>
+                                        <fieldset class="mb-4">
+                                            <legend class="form-label fw-bold">Status kehadiran</legend>
                                             <div class="row g-2">
                                                 <div class="col-4">
                                                     <input type="radio" class="btn-check" name="status" id="stHadir" value="hadir" @checked(old('status','hadir')==='hadir')>
@@ -113,7 +131,7 @@
                                                     <label class="btn btn-outline-danger w-100 py-2" for="stSakit">SAKIT</label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </fieldset>
                                         <div id="absence_reason_field" class="mb-4 d-none">
                                             <label for="absence_reason" class="form-label fw-bold small">KETERANGAN <span class="text-danger">*</span></label>
                                             <textarea name="keterangan" id="absence_reason" rows="3" minlength="10" maxlength="500" class="form-control @error('keterangan') is-invalid @enderror" placeholder="Jelaskan alasan izin atau sakit secara lengkap, minimal 10 karakter.">{{ old('keterangan') }}</textarea>
@@ -121,14 +139,15 @@
                                             @error('keterangan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">KIRIM SEKARANG</button>
+                                        <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bx bx-check me-1" aria-hidden="true"></i>Kirim Presensi</button>
                                     </form>
                                 @endif
                             </div>
 
                             <!-- BAGIAN KANAN: ANTREAN PROGRES -->
-                            <div class="{{ $notAttended->isEmpty() ? 'col-12' : 'col-md-6' }} ps-md-4 mt-4 mt-md-0">
-                                <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+                            <div class="{{ $notAttended->isEmpty() ? 'col-12' : 'col-md-6' }}">
+                                <section class="attendance-progress">
+                                <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center gap-2">
                                     <span><i class="bx bx-list-ol me-2"></i>Progres Kehadiran</span>
                                     <span class="badge bg-label-primary">{{ $attended->count() }} / {{ $attended->count() + $notAttended->count() }}</span>
                                 </h6>
@@ -138,10 +157,10 @@
                                         $total = $attended->count() + $notAttended->count();
                                         $perc = $total > 0 ? ($attended->count() / $total) * 100 : 0;
                                     @endphp
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ $perc }}%"></div>
+                                    <div class="progress-bar bg-primary" role="progressbar" aria-label="Progres kehadiran" aria-valuenow="{{ round($perc) }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ $perc }}%"></div>
                                 </div>
 
-                                <div class="overflow-auto shadow-sm border rounded p-2" style="max-height: 300px; background: #fcfcfd;">
+                                <div class="attendance-roster overflow-auto border rounded">
                                     <ul class="list-group list-group-flush">
                                         {{-- DAFTAR YANG SUDAH --}}
                                         @foreach($attended as $a)
@@ -153,13 +172,13 @@
                                                         <small class="text-muted">NIP/NIK: {{ $a->nip_nik ?: '-' }}</small>
                                                     </div>
                                                 </div>
-                                                <span class="badge badge-dot bg-success"></span>
+                                                <span class="badge bg-label-primary">Tercatat</span>
                                             </li>
                                         @endforeach
 
                                         {{-- DAFTAR YANG BELUM --}}
                                         @foreach($notAttended as $n)
-                                            <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2 opacity-50">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2 gap-2">
                                                 <div class="d-flex align-items-center">
                                                     <i class="bx bx-loader-circle text-muted me-2"></i>
                                                     <div>
@@ -167,11 +186,12 @@
                                                         <small class="text-muted">NIP/NIK: {{ $n->nip_nik ?: '-' }}</small>
                                                     </div>
                                                 </div>
-                                                <span class="badge badge-dot bg-secondary"></span>
+                                                <span class="badge bg-label-secondary">Belum</span>
                                             </li>
                                         @endforeach
                                     </ul>
                                 </div>
+                                </section>
                             </div>
                         </div>
                     @endif
@@ -182,8 +202,12 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 <script>
+    (() => {
+    const clock = document.getElementById('clock');
+    if (!clock) return;
+
     function updateClock() {
         const now = new Date();
         
@@ -193,7 +217,7 @@
         const seconds = String(now.getSeconds()).padStart(2, '0');
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
-        document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
+        clock.textContent = `${hours}:${minutes}:${seconds}`;
 
         // Deteksi Zona Waktu berdasarkan Offset Menit
         // UTC+7 = -420, UTC+8 = -480, UTC+9 = -540 (dalam menit)
@@ -224,14 +248,25 @@
     }
     document.querySelectorAll('input[name="status"]').forEach(input => input.addEventListener('change', toggleReason));
     toggleReason();
+    })();
 </script>
 
 <style>
-    body { background-color: #f5f5f9; }
-    .list-group-item { border: none; border-bottom: 1px solid #eee; }
-    .list-group-item:last-child { border: none; }
-    .btn-check:checked + .btn-outline-success { background-color: #71dd37 !important; color: #fff; }
-    .btn-check:checked + .btn-outline-warning { background-color: #ffab00 !important; color: #fff; }
-    .btn-check:checked + .btn-outline-danger { background-color: #ff3e1d !important; color: #fff; }
+    .daily-attendance .attendance-hero {
+        background: radial-gradient(ellipse at 100% 0%, rgba(112, 205, 148, .18), transparent 60%),
+            linear-gradient(120deg, #005c36, #006d42);
+        color: #eefaf3;
+    }
+    .daily-attendance .attendance-hero h1 { color: #fff; }
+    .attendance-logo { padding: 4px; border-radius: 9px; object-fit: contain; background: #fff; }
+    .attendance-date { display: inline-block; padding: .35rem .75rem; border-radius: 2rem; background: rgba(255, 255, 255, .12); }
+    .attendance-state { max-width: 32rem; padding: 1.5rem; border-radius: 1rem; background: var(--integral-raised); }
+    .attendance-state i { font-size: 2.75rem !important; }
+    .attendance-progress { height: 100%; padding: 1rem; border: 1px solid var(--integral-border); border-radius: 1rem; background: var(--integral-raised); }
+    .attendance-roster { max-height: 300px; background: var(--integral-surface); }
+    .attendance-roster .list-group-item { border-color: var(--integral-border); }
+    .daily-attendance .btn-check:checked + .btn-outline-success { background: #008444; border-color: #008444; color: #fff; }
+    .daily-attendance .btn-check:checked + .btn-outline-warning { background: #ffb24f; border-color: #ffb24f; color: #371900; }
+    .daily-attendance .btn-check:checked + .btn-outline-danger { background: #bd3b31; border-color: #bd3b31; color: #fff; }
 </style>
 @endsection

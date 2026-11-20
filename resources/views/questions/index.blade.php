@@ -13,7 +13,7 @@
 .questions-table>tbody>tr>td{padding:1.15rem .85rem;vertical-align:top;white-space:normal;overflow-wrap:anywhere}
 .questions-table .badge{display:inline-block;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5;text-align:left}
 .question-row{transition:background-color .16s}
-.question-row:hover{background:#fafaff}
+[data-integral-theme="light"] .question-row:hover{background:#fafaff}
 .question-text{white-space:pre-line;overflow-wrap:anywhere;line-height:1.6}
 .question-preview{min-width:0;line-height:1.6}
 .question-preview ol{padding-left:1.25rem}
