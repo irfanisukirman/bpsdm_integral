@@ -69,6 +69,20 @@ class LevelOneRecapImportTest extends TestCase
             ->assertViewHas('speakerAverage', 94.0)->assertViewHas('organizerAverage', 89.0)
             ->assertViewHas('l1Average', 91.5)->assertViewHas('l1Respondents', 1)->assertSee('91,5');
         $this->get(route('trainings.manage', $training))->assertOk()->assertSee('Skor Level 1 91,5/100');
+        $participant->update(['registration_status' => 'approved']);
+        foreach (['Perubahan Perilaku' => 'Baik', 'Dampak Pelatihan' => 'Sangat Baik'] as $section => $answer) {
+            $question = \App\Models\Question::create([
+                'bidang' => $training->bidang, 'program_evaluasi' => 'Teknis', 'category' => 'l34_atasan',
+                'sub_category' => $section, 'type' => 'dropdown', 'question_text' => $section,
+                'options' => ['Sangat Kurang', 'Kurang', 'Cukup', 'Baik', 'Sangat Baik'],
+            ]);
+            \App\Models\EvaluationResultL34::create([
+                'training_id' => $training->id, 'participant_id' => $participant->id, 'question_id' => $question->id,
+                'evaluator_role' => 'atasan', 'evaluator_name' => 'Penilai Uji', 'note' => $answer,
+            ]);
+        }
+        $this->get(route('dashboard'))->assertOk()->assertViewHas('avgL1', 91.5)
+            ->assertViewHas('avgL3', 80.0)->assertViewHas('avgL4', 100.0);
         $this->get(route('evall1.organizer-summary', $training))->assertOk()
             ->assertSee('Perlu tambahan contoh')->assertSee($participant->name);
         $this->get(route('evall1.recap-import.download', [$training, $speaker]))

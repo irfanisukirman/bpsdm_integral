@@ -7,7 +7,9 @@ use App\Models\Schedule;
 use App\Models\Participant;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL2;
-use App\Models\EvaluationResultL34;
+use App\Models\LevelOneRecapImport;
+use App\Services\EvaluationL34DashboardService;
+use App\Services\LevelOneEvaluationScores;
 use App\Models\MonitoringResult;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +18,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(LevelOneEvaluationScores $levelOne, EvaluationL34DashboardService $levelThreeFour)
     {
         $user = Auth::user();
 
@@ -118,7 +120,17 @@ class DashboardController extends Controller
         ];
 
         // 2. KIRKPATRICK LEVEL 1 (Reaction)
-        $avgL1 = EvaluationResultL1::whereIn('training_id', $trainingIds)->avg('score') ?? 0;
+        $l1ByTraining = EvaluationResultL1::whereIn('training_id', $trainingIds)->whereNotNull('score')
+            ->selectRaw('training_id, AVG(score) AS average')->groupBy('training_id')->pluck('average', 'training_id');
+        $imports = LevelOneRecapImport::whereIn('training_id', $trainingIds)->get()->groupBy('training_id');
+        if ($imports->isNotEmpty()) {
+            $native = EvaluationResultL1::with('question')->whereIn('training_id', $imports->keys())->get()->groupBy('training_id');
+            foreach ($imports as $trainingId => $recaps) {
+                $l1ByTraining[$trainingId] = $levelOne->calculate($native->get($trainingId, collect()), $recaps)['average'];
+            }
+        }
+        $avgL1 = $l1ByTraining->avg();
+        $avgL1 = $avgL1 === null ? null : round($avgL1, 1);
 
         // 3. KIRKPATRICK LEVEL 2 (Learning - Pre vs Post)
         $avgL2Pre = EvaluationResultL2::whereHas('participant', function($q) use ($trainingIds){
@@ -129,8 +141,7 @@ class DashboardController extends Controller
                     })->avg('postest') ?? 0;
 
         // 4. KIRKPATRICK LEVEL 3 & 4 (Impact 360)
-        $avgL3 = EvaluationResultL34::whereIn('training_id', $trainingIds)->where('evaluator_role', '!=', 'mandiri')->avg('score') ?? 0;
-        $avgL4 = EvaluationResultL34::whereIn('training_id', $trainingIds)->avg('score') ?? 0; // Agregat seluruhnya
+        [$avgL3, $avgL4] = $levelThreeFour->portfolioAverages($trainings);
 
         $monYa = MonitoringResult::whereIn('training_id', $trainingIds)->where('answer', 'ya')->count();
         $monTidak = MonitoringResult::whereIn('training_id', $trainingIds)->where('answer', 'tidak')->count();

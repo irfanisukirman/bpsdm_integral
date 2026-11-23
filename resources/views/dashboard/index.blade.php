@@ -129,6 +129,11 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header"><h5 class="mb-1">Evaluasi Kirkpatrick</h5><small class="text-muted">Rata-rata skor L1, L3, dan L4</small></div>
+                <div class="px-3 d-flex flex-wrap gap-2">
+                    @foreach(['L1' => $avgL1, 'L3' => $avgL3, 'L4' => $avgL4] as $label => $score)
+                        <span class="badge bg-label-primary">{{ $label }} <strong>{{ $score === null ? '—' : number_format($score, 1, ',', '.') }}</strong></span>
+                    @endforeach
+                </div>
                 <div class="card-body chart-box"><canvas id="radarKirkpatrick"></canvas></div>
             </div>
         </div>
@@ -237,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     new Chart(document.getElementById('radarKirkpatrick'), {
         type: 'radar',
-        data: { labels: ['L1 Reaksi', 'L3 Perilaku', 'L4 Hasil'], datasets: [{ data: [{{ round($avgL1, 1) }}, {{ round($avgL3, 1) }}, {{ round($avgL4, 1) }}], backgroundColor: 'rgba(22,167,92,.16)', borderColor: '#008444', pointBackgroundColor: '#008444' }] },
+        data: { labels: ['L1 Reaksi', 'L3 Perilaku', 'L4 Hasil'], datasets: [{ data: @json([$avgL1, $avgL3, $avgL4]), backgroundColor: 'rgba(22,167,92,.16)', borderColor: '#008444', pointBackgroundColor: '#008444' }] },
         options: { ...commonOptions, scales: { r: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
     });
 

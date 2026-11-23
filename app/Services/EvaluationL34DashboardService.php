@@ -6,6 +6,7 @@ use App\Models\EvaluationResultL34;
 use App\Models\Participant;
 use App\Models\Question;
 use App\Models\Training;
+use Illuminate\Support\Collection;
 
 class EvaluationL34DashboardService
 {
@@ -27,7 +28,17 @@ class EvaluationL34DashboardService
 
     private function quantitative(Question $q, Training $t): bool
     {
-        return $q->type === 'slider' || ($this->scores->supportsFourPoint($t) && $this->scores->fourPointQuestion($q));
+        return $q->type === 'slider'
+            || ($this->scores->supportsFourPoint($t) && $this->scores->fourPointQuestion($q))
+            || $this->isTechnicalRating($q, $t);
+    }
+
+    private const TECHNICAL_RATINGS = ['sangat kurang' => 20, 'kurang' => 40, 'cukup' => 60, 'baik' => 80, 'sangat baik' => 100];
+
+    private function isTechnicalRating(Question $question, Training $training): bool
+    {
+        return $training->program_evaluasi === 'Teknis' && $question->type === 'dropdown'
+            && array_map($this->scores->normalizeText(...), $question->options ?? []) === array_keys(self::TECHNICAL_RATINGS);
     }
 
     private function score($answer, Question $question, Training $t): ?float
@@ -37,6 +48,9 @@ class EvaluationL34DashboardService
         }
         if ($question->type === 'slider') {
             return $this->scores->score($answer, ['scale' => 'hundred'], $t);
+        }
+        if ($this->isTechnicalRating($question, $t)) {
+            return self::TECHNICAL_RATINGS[$this->scores->normalizeText((string) $answer->note)] ?? null;
         }
         $score = $this->scores->score($answer, ['scale' => 'four'], $t);
         if ($score !== null) {
@@ -54,6 +68,41 @@ class EvaluationL34DashboardService
         }
 
         return null;
+    }
+
+    public function portfolioAverages(Collection $trainings): array
+    {
+        $trainings = $trainings->keyBy('id');
+        $sections = [
+            'Perubahan Perilaku' => 'l3',
+            'Perubahan Sikap Perilaku' => 'l3',
+            'Dampak Pelatihan' => 'l4',
+        ];
+        $sums = ['l3' => 0, 'l4' => 0];
+        $counts = $sums;
+        $seen = [];
+        $results = EvaluationResultL34::whereIn('training_id', $trainings->keys())
+            ->whereHas('participant', fn ($query) => $query->where('registration_status', 'approved'))
+            ->whereHas('question', fn ($query) => $query->whereIn('sub_category', array_keys($sections)))
+            ->with('question')->lazyByIdDesc();
+        foreach ($results as $result) {
+            $training = $trainings[$result->training_id];
+            $question = $result->question;
+            if ($question?->category !== 'l34_'.$result->evaluator_role || !in_array($result->evaluator_role, $training->evaluationRoles(), true)) continue;
+            $key = $result->training_id.'|'.$result->participant_id.'|'.$result->evaluator_role.'|'.$this->key($question);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $score = $this->score($result, $question, $training);
+            if ($score === null) continue;
+            $level = $sections[$question->sub_category];
+            $sums[$level] += $score;
+            $counts[$level]++;
+        }
+
+        return [
+            $counts['l3'] ? round($sums['l3'] / $counts['l3'], 1) : null,
+            $counts['l4'] ? round($sums['l4'] / $counts['l4'], 1) : null,
+        ];
     }
 
     public function build(Training $t): array
