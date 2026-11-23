@@ -10,6 +10,7 @@ use App\Models\EvaluationResultL1;
 use App\Models\EvaluationFormL1; 
 use App\Models\EvaluationL1TextSummary;
 use App\Models\AiGeneration;
+use App\Models\LevelOneRecapImport;
 use App\Services\OpenAiEvaluationSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,7 +60,11 @@ class EvaluationLevel1Controller extends Controller
                 ->where('type', 'text'))
             ->count();
 
-        return view('evaluasi.l1_index', compact('training', 'forms', 'results', 'organizerTextResponsesCount'));
+        $user = Auth::user();
+        $canManage = $user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang);
+        $importedRecaps = $canManage ? LevelOneRecapImport::where('training_id', $training->id)->latest('id')->get() : collect();
+
+        return view('evaluasi.l1_index', compact('training', 'forms', 'results', 'organizerTextResponsesCount', 'canManage', 'importedRecaps'));
     }
 
     public function organizerTextSummary($id)
@@ -72,7 +77,7 @@ class EvaluationLevel1Controller extends Controller
             403
         );
 
-        $textQuestions = Question::forTraining($training, 'l1_penyelenggara')
+        $textQuestions = Question::forTraining($training, 'l1_penyelenggara', includeHistorical: true)
             ->where('type', 'text')
             ->orderBy('id')
             ->get();
@@ -97,9 +102,11 @@ class EvaluationLevel1Controller extends Controller
         $adminSummary = EvaluationL1TextSummary::with('reviewer')
             ->where('training_id', $training->id)
             ->first();
+        $importedRecaps = LevelOneRecapImport::where('training_id', $training->id)
+            ->where('kind', 'penyelenggara')->latest('id')->get();
 
         return view('evaluasi.l1_text_summary', compact(
-            'training', 'textQuestions', 'responses', 'responseGroups', 'respondentCount', 'responseRate', 'adminSummary'
+            'training', 'textQuestions', 'responses', 'responseGroups', 'respondentCount', 'responseRate', 'adminSummary', 'importedRecaps'
         ));
     }
 
@@ -138,7 +145,7 @@ class EvaluationLevel1Controller extends Controller
         $user = Auth::user();
         abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
 
-        $questions = Question::forTraining($training, 'l1_penyelenggara')->where('type', 'text')->orderBy('id')->get();
+        $questions = Question::forTraining($training, 'l1_penyelenggara', includeHistorical: true)->where('type', 'text')->orderBy('id')->get();
         $responses = EvaluationResultL1::where('training_id', $training->id)->whereNull('schedule_id')
             ->whereIn('question_id', $questions->pluck('id'))->whereNotNull('note')->where('note', '!=', '')->get();
         if ($responses->isEmpty()) {
@@ -296,7 +303,7 @@ class EvaluationLevel1Controller extends Controller
         }
         abort_if($type === 'narasumber' && !$schedule, 404);
 
-        return view('evaluasi.l1_public_form', compact('training', 'participants', 'formParticipants', 'alreadyFilled', 'questions', 'type', 'schedule', 'sid', 'selfParticipant', 'isSelfService'));
+        return view('evaluasi.l1_public_form', compact('training', 'activeForm', 'participants', 'formParticipants', 'alreadyFilled', 'questions', 'type', 'schedule', 'sid', 'selfParticipant', 'isSelfService'));
     }
 
     public function publicStore(Request $request, $id)
@@ -336,7 +343,16 @@ class EvaluationLevel1Controller extends Controller
         abort_if(!$activeForm->isOpen(), 403, 'Evaluasi ini baru dapat diisi pada '.($opensAt?->translatedFormat('d F Y, H:i') ?: 'waktu yang ditentukan').'.');
 
         $category = $sid ? 'l1_narasumber' : 'l1_penyelenggara';
-        $applicableQuestions = Question::forTraining($training, $category)->get();
+        $applicableQuestions = Question::forTraining($training, $category)->get()->keyBy('id');
+        $rules = [];
+        $labels = [];
+        foreach ($applicableQuestions as $question) {
+            $field = 'answers.'.$question->id;
+            $labels[$field] = $question->question_text;
+            if ($question->type === 'slider') $rules[$field] = ['required', 'integer', 'between:10,100'];
+            if ($question->type === 'text') $rules[$field] = ['required', 'string'];
+        }
+        $request->validate($rules, [], $labels);
         $allowedQuestions = $applicableQuestions
             ->whereIn('id', array_keys($request->answers))
             ->pluck('id')
@@ -355,6 +371,7 @@ class EvaluationLevel1Controller extends Controller
                 continue;
             }
             $isMultipleChoice = is_array($value);
+            $isText = $applicableQuestions[$q_id]->type === 'text';
             $storedValue = $isMultipleChoice
                 ? json_encode(array_values(array_filter($value)), JSON_UNESCAPED_UNICODE)
                 : $value;
@@ -363,12 +380,12 @@ class EvaluationLevel1Controller extends Controller
                 'participant_id' => $request->participant_id,
                 'question_id'    => $q_id,
                 'schedule_id'    => $sid,
-                'score'          => !$isMultipleChoice && is_numeric($storedValue) ? $storedValue : null,
-                'note'           => $isMultipleChoice || !is_numeric($storedValue) ? $storedValue : null,
+                'score'          => !$isText && !$isMultipleChoice && is_numeric($storedValue) ? $storedValue : null,
+                'note'           => $isText || $isMultipleChoice || !is_numeric($storedValue) ? $storedValue : null,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Evaluasi berhasil disimpan!');
+        return redirect()->back()->with('evaluation_l1_saved_form', $activeForm->id);
     }
 
     /**

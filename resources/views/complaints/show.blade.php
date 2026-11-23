@@ -18,7 +18,7 @@
             <p class="text-muted mb-1">{{ $ticket->reference() }} @if($ticket->training) · {{ $ticket->training->nama_pelatihan }} @endif</p>
             <span class="badge bg-label-primary" data-complaint-ticket-status>{{ \App\Models\ComplaintTicket::STATUSES[$ticket->status] }}</span>
             @if(!$staff && !$reportOnly)
-                <p class="small text-muted mb-0 mt-2" data-complaint-presence role="status">{{ $online ? 'Admin online · Chat tersedia' : 'Admin offline · Pengaduan tetap diterima' }}</p>
+                <p class="small mb-0 mt-2" data-complaint-presence="{{ $online ? 'online' : 'offline' }}" role="status">{{ $online ? 'Admin online · Chat tersedia' : 'Admin offline · Pengaduan tetap diterima' }}</p>
             @endif
         </div>
         <a class="btn btn-outline-secondary" href="{{ route($guest ? 'complaints.guest.track' : ($staff ? 'complaints.inbox' : 'complaints.index'), ['widget' => $widget ? 1 : null]) }}">

@@ -420,7 +420,7 @@
                             <div class="card-body">
                                 <h6 class="fw-bold text-primary mb-3"><i class="bx bx-line-chart me-2"></i>B. Evaluasi Pasca Pelatihan (Level 3 & 4)</h6>
                                 
-                                @if($training->sisa_hari_sebar <= 0)
+                                @if($isFilledL34 || $training->isL34Open())
                                     {{-- Waktu sebar sudah tiba --}}
                                     <div class="p-4 rounded border {{ $isFilledL34 ? 'bg-label-info border-info' : 'bg-label-danger border-danger' }}">
                                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -448,7 +448,11 @@
                                     <div class="bg-light p-4 rounded text-muted border border-dashed text-center">
                                         <i class="bx bx-lock-alt h2 d-block mb-2"></i>
                                         <p class="mb-0">Kuesioner Dampak (L3 & L4) belum tersedia.</p>
-                                        <small>Akan dibuka otomatis pada: <strong>{{ $training->tgl_sebar_l34->translatedFormat('d F Y') }}</strong></small>
+                                        @if($training->tgl_sebar_l34)
+                                            <small>Dibuka mulai <strong>{{ $training->tgl_sebar_l34->translatedFormat('d F Y') }}</strong></small>
+                                        @else
+                                            <small>Jadwal pengisian belum ditetapkan.</small>
+                                        @endif
                                     </div>
                                 @endif
                             </div>

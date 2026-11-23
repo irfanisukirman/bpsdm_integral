@@ -61,7 +61,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
 
     <link rel="stylesheet" href="{{ asset('assets/css/integral-design.css') }}?v=20261120-sidebar-labels">
-    <link rel="stylesheet" href="{{ asset('assets/css/integral-complaints.css') }}?v=18">
+    <link rel="stylesheet" href="{{ asset('assets/css/integral-complaints.css') }}?v=20">
 
     <!-- Helpers -->
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
@@ -134,7 +134,7 @@
 
     <!-- Main JS -->
     <script src="{{ asset('assets/js/main.js') }}?v=20261119-sidebar-motion"></script>
-    <script src="{{ asset('assets/js/integral-complaints.js') }}?v=18" defer></script>
+    <script src="{{ asset('assets/js/integral-complaints.js') }}?v=20" defer></script>
 
     @stack('js')
     @stack('scripts')

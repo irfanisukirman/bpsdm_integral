@@ -12,7 +12,7 @@ class SuperAdminSeeder extends Seeder
     {
         User::create([
             'name'              => 'Super Administrator',
-            'username'          => 'superadmin', // Gunakan ini untuk login
+            'username'          => 'superadmin@bpsdm.go.id', // Gunakan ini untuk login
             'nip_nik'           => '19450817000000', // Contoh NIP
             'whatsapp'          => '6281234567890',
             'role'              => 'superadmin', // Role wajib 'superadmin'

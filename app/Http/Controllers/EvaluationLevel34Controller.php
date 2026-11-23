@@ -118,6 +118,7 @@ class EvaluationLevel34Controller extends Controller
         abort_unless(in_array($role, ['mandiri', 'rekan', 'atasan'], true), 404);
         $training = Training::findOrFail($training_id);
         abort_unless(in_array($role, $training->evaluationRoles(), true), 404);
+        $this->ensureSurveyIsOpen($training);
         $categorySearch = 'l34_' . strtolower($role);
         abort_unless(
             Question::forTraining($training, $categorySearch)->exists(),
@@ -223,6 +224,7 @@ class EvaluationLevel34Controller extends Controller
         abort_unless(in_array($role, ['mandiri', 'rekan', 'atasan'], true), 404);
         $training = Training::findOrFail($training_id);
         abort_unless(in_array($role, $training->evaluationRoles(), true), 404);
+        $this->ensureSurveyIsOpen($training);
         $rules = [
             'participant_id' => 'required|exists:participants,id',
             'scores'         => 'required|array',
@@ -360,6 +362,14 @@ class EvaluationLevel34Controller extends Controller
         }
     }
 
+    private function ensureSurveyIsOpen(Training $training): void
+    {
+        $date = $training->tgl_sebar_l34;
+        abort_unless($training->isL34Open(), 403, $date
+            ? 'Evaluasi Level 3 & 4 dibuka mulai '.$date->translatedFormat('d F Y').'.'
+            : 'Jadwal pengisian Evaluasi Level 3 & 4 belum ditetapkan.');
+    }
+
     public function exportExcel($id)
     {
         $training = Training::findOrFail($id);
@@ -436,9 +446,8 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('bidang', $training->bidang ?: '-');
         $templateProcessor->setValue('metode', $training->metode ? ucwords(str_replace('_', ' ', $training->metode)) : '-');
         $surveyStart = $training->tgl_sebar_l34 ? \Carbon\Carbon::parse($training->tgl_sebar_l34) : null;
-        $surveyEnd = $surveyStart?->copy()->addMonth();
         $templateProcessor->setValue('periode_evaluasi', $surveyStart
-            ? $surveyStart->translatedFormat('d F Y').' sampai dengan '.$surveyEnd->translatedFormat('d F Y')
+            ? $surveyStart->translatedFormat('d F Y')
             : 'belum ditentukan');
 
         // --- 2. STATISTIK RESPONDEN ---
@@ -972,11 +981,8 @@ class EvaluationLevel34Controller extends Controller
         $templateProcessor->setValue('link_atasan', route('public.l34.form', [$training->id, 'atasan']));
         $templateProcessor->setValue('link_rekan', in_array('rekan', $training->evaluationRoles(), true) ? route('public.l34.form', [$training->id, 'rekan']) : 'Tidak berlaku untuk Manajerial');
 
-        // 2. Logika Tanggal Batas Waktu (1 Bulan Setelah Link Dibuka)
-        // tgl_sebar_l34 adalah accessor yang kita buat sebelumnya (4 bln / 1 thn)
-        $tglMulaiSurvey = $training->tgl_sebar_l34;
-        $tglBatasWaktu = $tglMulaiSurvey->copy()->addMonth();
-        $templateProcessor->setValue('tgl_batas_waktu', $tglBatasWaktu->translatedFormat('d F Y'));
+        $templateProcessor->setValue('tgl_mulai_survei', $training->tgl_sebar_l34?->translatedFormat('d F Y')
+            ?? 'tanggal yang akan diinformasikan oleh pengelola');
 
         // 3. Daftar Kepala Perangkat Daerah (Unik)
         // Mengambil instansi unik dari peserta, lalu tambah kata "Kepala"

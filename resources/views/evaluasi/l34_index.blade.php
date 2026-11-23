@@ -36,6 +36,8 @@
         </div>
     </div>
 
+    @include('evaluasi.partials.opening-date', ['level' => '34'])
+
     <!-- CARD STATISTIK RINGKASAN -->
     <div class="row mb-4">
         <div class="col-md-4">

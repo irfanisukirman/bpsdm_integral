@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ParticipantUserRecapExport;
 use App\Models\User;
+use App\Services\ParticipantUserRecap;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -21,8 +26,12 @@ class UserController extends Controller
         'Sekretariat'
     ];
 
-    public function index(Request $request)
+    public function index(Request $request, ParticipantUserRecap $recap)
     {
+        if ($request->query('tab') === 'rekap-peserta') {
+            return view('users.recap', $recap->data($request));
+        }
+
         $search = $request->query('search');
         $category = $request->query('category');
         $adminRoles = \App\Support\UserRoles::ADMINISTRATIVE;
@@ -59,6 +68,36 @@ class UserController extends Controller
 
         return view('users.index', compact('users', 'listBidang', 'search', 'category', 'stats'));
     }
+    public function exportParticipantRecap(Request $request, ParticipantUserRecap $recap)
+    {
+        [$byMunicipality, $groupId, $search] = $recap->filters($request);
+        $scope = $byMunicipality ? 'kabupaten-kota' : 'instansi';
+        $key = 'participant-recap-export:'.$request->user()->id.':'.hash('sha256', serialize([$scope, $groupId, $search]));
+
+        try {
+            return Cache::lock($key.':lock', 180)->block(5, function () use ($recap, $byMunicipality, $groupId, $search, $scope, $key) {
+                $progress = Cache::get($key, ['last_id' => 0, 'batch' => 0]);
+                [$participants, $lastId] = $recap->exportBatch($byMunicipality, $groupId, $search, $progress['last_id']);
+                if ($participants->isEmpty()) {
+                    return back()->with('recap_export_status', 'Tidak ada peserta tersisa untuk diekspor dengan filter ini.');
+                }
+
+                $batch = $progress['batch'] + 1;
+                $download = Excel::download(
+                    new ParticipantUserRecapExport($participants, $byMunicipality),
+                    "rekap-peserta-{$scope}-batch-{$batch}.xlsx",
+                );
+                if (! Cache::forever($key, ['last_id' => $lastId, 'batch' => $batch])) {
+                    return back()->with('recap_export_status', 'Progres ekspor gagal disimpan. Silakan coba lagi.');
+                }
+
+                return $download;
+            });
+        } catch (LockTimeoutException) {
+            return back()->with('recap_export_status', 'Ekspor sebelumnya masih diproses. Silakan coba lagi sebentar.');
+        }
+    }
+
     public function store(Request $request)
     {
         if ($request->role !== 'admin_aset' && $request->bidang === 'Pengelola Aset') {

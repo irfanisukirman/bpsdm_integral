@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PostEvaluationAnnualSummaryExport;
 use App\Models\AiGeneration;
 use App\Models\Participant;
 use App\Models\PostEvaluationInterview;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PostEvaluationController extends Controller
 {
@@ -28,16 +30,47 @@ class PostEvaluationController extends Controller
     {
         $user = $request->user();
         abort_if($user->role === 'admin_bidang', 403);
-        $trainings = Training::query()->when($user->role !== 'superadmin', function ($query) use ($user) {
+        $query = Training::query()->when($user->role !== 'superadmin', function ($query) use ($user) {
             $query->whereExists(function ($assignment) use ($user) {
                 $assignment->selectRaw('1')->from('post_evaluation_teams as evaluator_team')
                     ->join('post_evaluation_team_user as evaluator_member', 'evaluator_member.team_id', '=', 'evaluator_team.id')
                     ->whereColumn('evaluator_team.training_id', 'trainings.id')
                     ->where('evaluator_member.user_id', $user->id);
             });
-        })->when($request->filled('q'), fn ($q) => $q->where('nama_pelatihan', 'like', '%'.mb_substr((string) $request->query('q'), 0, 100).'%'))->latest()->paginate(15)->withQueryString();
+        });
+        $annual = $request->query('tab') === 'ringkasan-tahunan';
+        $search = $request->query('q');
+        $search = is_string($search) ? mb_substr(trim($search), 0, 100) : '';
+        $years = collect();
+        $year = null;
+        if ($annual) {
+            $years = (clone $query)->selectRaw('SUBSTR(tgl_mulai, 1, 4) as year')
+                ->distinct()->orderByDesc('year')->pluck('year')->map(fn ($year) => (int) $year);
+            $selectedYear = $request->integer('year');
+            $year = $years->contains($selectedYear) ? $selectedYear : $years->first();
+            if ($year !== null) {
+                $query->whereYear('tgl_mulai', $year);
+            }
+        }
 
-        return response()->view('post-evaluation.index', compact('trainings'))->header('Cache-Control', 'private, no-store');
+        $query->when($search !== '', fn ($q) => $q->where('nama_pelatihan', 'like', '%'.$search.'%'));
+        $query = $annual ? $query->orderByDesc('tgl_mulai')->orderByDesc('id') : $query->latest();
+
+        if ($annual && $request->query('format') === 'xlsx') {
+            $filename = $year === null ? 'ringkasan-evaluasi-pasca.xlsx' : "ringkasan-evaluasi-pasca-{$year}.xlsx";
+
+            return Excel::download(new PostEvaluationAnnualSummaryExport($query, $service, $user), $filename, null, [
+                'Cache-Control' => 'private, no-store',
+            ]);
+        }
+
+        $trainings = $query->paginate($annual ? 10 : 15)->withQueryString();
+        if ($annual) {
+            $trainings->through(fn (Training $training) => $service->annualSummaryRow($training, $user));
+        }
+
+        return response()->view('post-evaluation.index', compact('trainings', 'annual', 'years', 'year', 'search'))
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function show(Request $request, Training $training, PostEvaluationService $service)
@@ -45,13 +78,33 @@ class PostEvaluationController extends Controller
         $service->authorize($request->user(), $training);
         $manager = $service->manages($request->user(), $training);
         $tab = $request->query('tab', 'ringkasan');
-        abort_unless(in_array($tab, ['ringkasan', 'jawaban', 'peserta', 'wawancara', 'pengaturan', 'import'], true), 404);
         // Keep existing participant links opening the combined workspace.
         if ($tab === 'peserta') $tab = 'wawancara';
-        abort_if(! $manager && ! in_array($tab, ['ringkasan', 'wawancara'], true), 403);
-        $people = $service->people($training, $request->user());
-        $summary = $service->summary($training, $people);
-        $surveySummary = $tab === 'ringkasan' ? app(PostEvaluationSurveySummaryService::class)->build($training, $people) : null;
+        if (in_array($tab, ['keberlanjutan', 'perbandingan', 'instansi'], true)) $tab = 'ringkasan';
+        $tabs = [
+            'ringkasan' => 'Ringkasan',
+            'jawaban' => 'Jawaban',
+            'wawancara' => 'Peserta & Wawancara',
+            'pengaturan' => 'Pengaturan',
+            'import' => 'Import Data',
+        ];
+        abort_unless(is_string($tab) && isset($tabs[$tab]), 404);
+        if (! $manager) {
+            $tabs = array_diff_key($tabs, array_flip(['jawaban', 'pengaturan', 'import']));
+        }
+        abort_unless(isset($tabs[$tab]), 403);
+
+        $user = $request->user();
+        $survey = app(PostEvaluationSurveySummaryService::class);
+        $surveySummary = $tab === 'ringkasan'
+            ? $survey->overview($training, $user) + $survey->agencies($training, $user)
+            : null;
+        $continuationRecap = $tab === 'ringkasan' ? $service->trainingContinuationRecap($training, $user) : [];
+        $showNarrative = $manager && $tab === 'ringkasan';
+        $manualNarrative = $showNarrative && filled($service->setting($training)?->report_narrative);
+        $savedGemini = $showNarrative && ! $manualNarrative && AiGeneration::where('training_id', $training->id)
+            ->where('feature', PostEvaluationExposeService::FEATURE)->where('status', 'completed')->exists();
+        $people = in_array($tab, ['jawaban', 'wawancara', 'pengaturan'], true) ? $service->people($training, $user) : [];
         $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
         $paginator = null;
         $answerRows = collect();
@@ -87,15 +140,16 @@ class PostEvaluationController extends Controller
             }
             $importHistory = DB::table('post_evaluation_imports')->where('training_id',$training->id)->where('status','imported')->latest('imported_at')->limit(10)->get();
         }
-        $setting = $service->setting($training);
-        $rubric = $service->rubric($training);
-        $questions = $manager ? $service->questions($training) : collect();
-        $teams = DB::table('post_evaluation_teams')->where('training_id', $training->id)->get();
-        $members = DB::table('post_evaluation_team_user')->join('users', 'users.id', '=', 'user_id')->whereIn('team_id', $teams->pluck('id'))->get(['team_id', 'users.id as user_id', 'users.name'])->groupBy('team_id');
-        $users = $manager ? User::where('role', '!=', 'admin_bidang')->orderBy('name')->get(['id', 'name', 'username', 'role']) : collect();
-        $evidence = DB::table('post_evaluation_evidence')->whereIn('interview_id', collect($people)->pluck('interview.id')->filter())->get()->groupBy('interview_id');
+        $teams = $manager && in_array($tab, ['wawancara', 'pengaturan'], true)
+            ? DB::table('post_evaluation_teams')->where('training_id', $training->id)->get() : collect();
+        $members = $tab === 'pengaturan' ? DB::table('post_evaluation_team_user')->join('users', 'users.id', '=', 'user_id')
+            ->whereIn('team_id', $teams->pluck('id'))->get(['team_id', 'users.id as user_id', 'users.name'])->groupBy('team_id') : collect();
+        $users = $tab === 'pengaturan' ? User::where('role', '!=', 'admin_bidang')->orderBy('name')
+            ->get(['id', 'name', 'username', 'role']) : collect();
 
-        return response()->view('post-evaluation.show', compact('training', 'manager', 'tab', 'people', 'summary', 'setting', 'rubric', 'questions', 'teams', 'members', 'users', 'evidence', 'paginator', 'answerRows', 'search', 'surveySummary', 'importPreview', 'importHistory'))->header('Cache-Control', 'private, no-store');
+        return response()->view('post-evaluation.show', compact('training', 'manager', 'tabs', 'tab', 'people',
+            'teams', 'members', 'users', 'paginator', 'answerRows', 'search', 'surveySummary', 'continuationRecap',
+            'manualNarrative', 'savedGemini', 'importPreview', 'importHistory'))->header('Cache-Control', 'private, no-store');
     }
 
     public function team(Request $request, Training $training, PostEvaluationService $service)
@@ -350,7 +404,7 @@ class PostEvaluationController extends Controller
         PostEvaluationSetting::firstOrCreate(['training_id'=>$training->id])->update([
             'report_narrative'=>$data['action'] === 'reset' ? null : array_merge($data,['saved_at'=>now()->toIso8601String(),'saved_by'=>$request->user()->id]),
         ]);
-        return redirect()->route('post-evaluation.expose', $training)->with('success', $data['action']==='reset' ? 'Narasi kembali ke ringkasan dasar atau hasil Gemini yang tersimpan.' : 'Narasi disimpan dan diterapkan pada ekspose serta PDF.');
+        return redirect()->route('post-evaluation.expose', [$training] + $request->only('from'))->with('success', $data['action']==='reset' ? 'Narasi kembali ke ringkasan dasar atau hasil Gemini yang tersimpan.' : 'Narasi disimpan dan diterapkan pada ekspose serta PDF.');
     }
 
     public function generateExposeAi(Request $request, Training $training, PostEvaluationService $service, PostEvaluationAiService $ai, PostEvaluationExposeService $expose)

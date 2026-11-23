@@ -70,7 +70,7 @@
                     <p>Isi data Anda selangkah demi selangkah untuk mulai mengikuti pelatihan.</p>
                 </header>
                 <ol class="profile-progress" aria-label="Tahapan pengisian profil">
-                    @foreach(['Identitas', 'Kepegawaian', 'Wilayah', 'Lokasi'] as $stepLabel)
+                    @foreach(['Identitas', 'Kepegawaian', 'Wilayah Tinggal', 'Alamat & Peta'] as $stepLabel)
                     <li><button type="button" class="profile-step-link" data-go-step="{{ $loop->index }}" @if($loop->first) aria-current="step" @endif><span>{{ $loop->iteration }}</span><strong>{{ $stepLabel }}</strong></button></li>
                     @endforeach
                 </ol>

@@ -27,7 +27,7 @@ class ComplaintController extends Controller
         $inbox = $request->boolean('inbox');
 
         return $this->privateJson([
-            'waiting' => $notifications->waitingComplaints($request->user(), $request->integer('active_chat') ?: null, !$inbox),
+            'waiting' => $notifications->waitingComplaints($request->user()),
             'unread_chat_ids' => $inbox ? $notifications->unreadStaffChatIds($request->user()) : [],
         ]);
     }

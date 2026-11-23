@@ -59,6 +59,7 @@
                     </div>
                     @endif
 
+                    @include('trainings.partials.cooperation-funding')
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Angkatan</label>

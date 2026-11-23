@@ -39,19 +39,21 @@ class EvaluationProgramTest extends TestCase
         }
     }
 
-    public function test_legacy_programs_are_read_as_new_groups_with_correct_roles_and_dates(): void
+    public function test_programs_keep_their_roles_and_require_an_explicit_opening_date(): void
     {
         foreach (['CPNS', 'PKP', 'PKA', 'PKN', 'LATSAR'] as $program) {
             $training = new Training;
             $training->setRawAttributes(['program_evaluasi' => $program, 'tgl_selesai' => '2024-01-02']);
             $this->assertSame($program === 'CPNS' ? 'LATSAR' : $program, $training->program_evaluasi);
             $this->assertSame(['mandiri', 'atasan'], $training->evaluationRoles());
-            $this->assertSame('2025-01-02', $training->tgl_sebar_l34->toDateString());
+            $this->assertNull($training->tgl_sebar_l34);
+            $this->assertFalse($training->isL34Open());
         }
         $training = new Training(['program_evaluasi' => 'PKTI/PKTU', 'tgl_selesai' => '2024-01-02']);
         $this->assertSame('Teknis', $training->program_evaluasi);
         $this->assertCount(3, $training->evaluationRoles());
-        $this->assertSame('2024-05-02', $training->tgl_sebar_l34->toDateString());
+        $this->assertNull($training->tgl_sebar_l34);
+        $this->assertFalse($training->isL34Open());
     }
 
     public function test_new_groups_use_legacy_questions_and_exclude_managerial_peer_questions(): void
@@ -78,6 +80,7 @@ class EvaluationProgramTest extends TestCase
         $this->get(route('public.l34.form', [$training, 'rekan']))->assertNotFound();
         $this->post(route('public.l34.store', [$training, 'rekan']), [])->assertNotFound();
         $technical = $this->training('Teknis');
+        $technical->update(['evaluation_l34_opens_on' => '2024-02-01']);
         $this->get(route('public.l34.gateway', $technical))->assertOk()->assertSee('REKAN KERJA');
     }
 
@@ -126,9 +129,133 @@ class EvaluationProgramTest extends TestCase
         }
     }
 
+    public function test_configured_evaluation_dates_gate_forms_and_submissions_without_expiring(): void
+    {
+        $training = $this->training('PKP');
+        $admin = User::findOrFail($training->created_by);
+        $this->actingAs($admin)->get(route('trainings.edit', $training))->assertOk()
+            ->assertDontSee('Jadwal Pengisian Evaluasi');
+        $manageL1 = route('evall1.index', $training);
+        $manageL34 = route('evall34.index', $training);
+        $setL1 = route('trainings.evaluation-opening-date', [$training, '1']);
+        $setL34 = route('trainings.evaluation-opening-date', [$training, '34']);
+        $this->get($manageL1)->assertOk()->assertSee('Belum dijadwalkan')->assertSee($setL1)->assertDontSee($setL34);
+        $this->get($manageL34)->assertOk()->assertSee('Belum dijadwalkan')->assertSee($setL34)->assertDontSee($setL1);
+        $this->get(route('public.l34.gateway', $training))->assertOk()->assertSee('Evaluasi belum dijadwalkan');
+
+        $participant = $training->participants()->create([
+            'name' => 'Alumni Jadwal Uji', 'nip_nik' => '1234567890', 'registration_status' => 'approved',
+        ]);
+        \App\Models\EvaluationFormL1::create(['training_id' => $training->id, 'type' => 'penyelenggara', 'name' => 'Evaluasi Jadwal Uji']);
+        $question = [
+            'bidang' => 'Semua Bidang', 'program_evaluasi' => 'PKP', 'type' => 'slider', 'metode' => 'semua',
+        ];
+        $l1 = Question::create($question + ['category' => 'l1_penyelenggara', 'question_text' => 'Pertanyaan L1']);
+        $l34 = Question::create($question + ['category' => 'l34_atasan', 'question_text' => 'Pertanyaan L34']);
+
+        $l1Form = route('public.evall1.form', [$training->id, 'type' => 'penyelenggara']);
+        $l1Store = route('public.evall1.store', $training->id);
+        $l1Answers = ['participant_id' => $participant->id, 'answers' => [$l1->id => 85]];
+        $gateway = route('public.l34.gateway', $training);
+        $l34Form = route('public.l34.form', [$training->id, 'atasan']);
+        $l34Store = route('public.l34.store', [$training->id, 'atasan']);
+        $l34Answers = ['participant_id' => $participant->id, 'scores' => [$l34->id => 85],
+            'evaluator_name' => 'Atasan Uji', 'evaluator_nip' => '1234567890'];
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-11-30 23:59:59', 'Asia/Jakarta'));
+        $this->get($l1Form)->assertForbidden();
+        $this->get($l34Form)->assertForbidden();
+        $this->actingAs(User::factory()->create(['role' => 'admin_bidang', 'bidang' => 'Bidang Lain']))
+            ->put($setL1, ['opens_on' => '2026-12-01'])->assertForbidden();
+        $this->actingAs($admin)->from($manageL1)->put($setL1, ['opens_on' => '2026-02-30'])
+            ->assertRedirect($manageL1)->assertSessionHasErrors('opens_on');
+        $this->put($setL1, ['opens_on' => '2026-12-01'])->assertRedirect($manageL1);
+        $this->assertNull($training->fresh()->evaluation_l34_opens_on);
+        $this->put($setL34, ['opens_on' => '2026-12-10'])->assertRedirect($manageL34);
+        $this->get($l1Form)->assertForbidden();
+        $this->post($l1Store, $l1Answers)->assertForbidden();
+        $this->get($gateway)->assertOk()->assertSee('Evaluasi belum dibuka')->assertDontSee($l34Form);
+        $this->get($l34Form)->assertForbidden();
+        $this->post($l34Store, $l34Answers)->assertForbidden();
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-12-01 00:00:00', 'Asia/Jakarta'));
+        $this->get($l1Form)->assertOk();
+        $this->get($l34Form)->assertForbidden();
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-12-10 00:00:00', 'Asia/Jakarta'));
+        $this->get($gateway)->assertOk()->assertSee($l34Form);
+        $this->get($l34Form)->assertOk();
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2027-02-01', 'Asia/Jakarta'));
+        $this->post($l1Store, $l1Answers)->assertSessionHas('evaluation_l1_saved_form');
+        $this->post($l34Store, $l34Answers)->assertSessionHas('success');
+        $this->assertDatabaseHas('evaluation_results_l1', ['participant_id' => $participant->id, 'question_id' => $l1->id]);
+        $this->assertDatabaseHas('evaluation_results_l34', ['participant_id' => $participant->id, 'question_id' => $l34->id]);
+    }
+
+    public function test_organizer_questionnaire_replaces_active_questions_and_preserves_old_answers(): void
+    {
+        $training = $this->training('PKP');
+        $training->update(['evaluation_l1_opens_on' => '2024-02-01']);
+        $historical = Question::create([
+            'category' => 'l1_penyelenggara', 'type' => 'text', 'question_text' => 'Pertanyaan penyelenggara lama',
+            'bidang' => 'Semua Bidang', 'program_evaluasi' => 'semua',
+        ]);
+        $alumni = $training->participants()->create(['name' => 'Peserta Lama', 'nip_nik' => 'NIP-LAMA']);
+        \App\Models\EvaluationResultL1::create([
+            'training_id' => $training->id, 'participant_id' => $alumni->id,
+            'question_id' => $historical->id, 'note' => 'Respons terdahulu',
+        ]);
+        $this->seed(\Database\Seeders\OrganizerEvaluationQuestionSeeder::class);
+        $this->seed(\Database\Seeders\OrganizerEvaluationQuestionSeeder::class);
+        $questions = Question::forTraining($training, 'l1_penyelenggara')->get();
+        $this->assertSame(array_merge(array_fill(0, 5, 'slider'), array_fill(0, 5, 'text')), $questions->pluck('type')->all());
+        $this->assertFalse($historical->fresh()->is_active);
+        $this->assertTrue(Question::forTraining($training, 'l1_penyelenggara', includeHistorical: true)->get()->contains($historical));
+
+        $participant = $training->participants()->create(['name' => 'Peserta Baru', 'nip_nik' => 'NIP-BARU']);
+        \App\Models\EvaluationFormL1::create(['training_id' => $training->id, 'type' => 'penyelenggara', 'name' => 'Form baru']);
+        $form = route('public.evall1.form', [$training->id, 'type' => 'penyelenggara']);
+        $this->withSession(['success' => 'Jadwal tersimpan'])->get($form)->assertOk()->assertSee('Identitas Peserta')
+            ->assertSee($questions->first()->question_text)->assertSee('Sangat Kurang')->assertDontSee($historical->question_text);
+
+        $store = route('public.evall1.store', $training->id);
+        $answers = $questions->mapWithKeys(fn (Question $question) => [$question->id => $question->type === 'slider' ? 10 : '123'])->all();
+        $last = $questions->last();
+        $this->from($form)->post($store, ['participant_id' => $participant->id, 'answers' => array_diff_key($answers, [$last->id => true])])
+            ->assertSessionHasErrors('answers.'.$last->id);
+        $this->post($store, ['participant_id' => $participant->id, 'answers' => $answers])->assertSessionHas('evaluation_l1_saved_form');
+        $this->get($form)->assertOk()->assertSee('Evaluasi berhasil disimpan.')->assertDontSee('Identitas Peserta');
+        $this->assertDatabaseHas('evaluation_results_l1', [
+            'participant_id' => $participant->id, 'question_id' => $last->id, 'score' => null, 'note' => '123',
+        ]);
+    }
+
+    public function test_speaker_evaluation_shows_eleven_questions_for_managerial_training(): void
+    {
+        $training = $this->training('PKP');
+        $training->update(['evaluation_l1_opens_on' => '2024-02-01']);
+        $teacher = User::factory()->create(['role' => 'pengajar']);
+        $schedule = $training->schedules()->create([
+            'pengajar_id' => $teacher->id, 'date' => '2024-01-01', 'start_time' => '08:00',
+            'end_time' => '10:00', 'activity' => 'Materi Uji', 'pic' => 'Panitia', 'jp' => 2,
+        ]);
+        \App\Models\EvaluationFormL1::create([
+            'training_id' => $training->id, 'type' => 'narasumber', 'name' => 'Form Narasumber',
+            'schedule_id' => $schedule->id,
+        ]);
+        $this->seed(\Database\Seeders\SpeakerEvaluationQuestionSeeder::class);
+        $questions = Question::forTraining($training, 'l1_narasumber')->get();
+        $this->assertSame(array_merge(array_fill(0, 10, 'slider'), ['text']), $questions->pluck('type')->all());
+        $this->get(route('public.evall1.form', [$training->id, 'type' => 'narasumber', 'sid' => $schedule->id]))
+            ->assertOk()->assertSee('Identitas Peserta')->assertSee('Sistematika Penyajian?')
+            ->assertSee('11. Catatan dan Saran Peserta')->assertDontSee('Pertanyaan belum tersedia');
+    }
+
     public function test_public_supervisor_form_shows_method_dropdown_and_explanation(): void
     {
         $training = $this->training('PKP');
+        $training->update(['evaluation_l34_opens_on' => '2024-02-01']);
         \App\Models\Participant::create([
             'training_id' => $training->id, 'name' => 'Alumni Uji', 'nip_nik' => '1234567890',
             'jabatan' => 'Analis', 'instansi' => 'BPSDM', 'registration_status' => 'approved',

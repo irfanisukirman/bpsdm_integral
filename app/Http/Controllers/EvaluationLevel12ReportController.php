@@ -11,14 +11,16 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
 use App\Models\Training;
 use App\Models\AiGeneration;
+use App\Models\LevelOneRecapImport;
 use App\Services\AiEvaluationDashboardService;
+use App\Services\LevelOneEvaluationScores;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 class EvaluationLevel12ReportController extends Controller
 {
-    public function dashboard(int $id)
+    public function dashboard(int $id, LevelOneEvaluationScores $scores)
     {
         $training = Training::withCount('participants')->findOrFail($id);
         $user = Auth::user();
@@ -32,29 +34,15 @@ class EvaluationLevel12ReportController extends Controller
         $l1Results = EvaluationResultL1::with('question')
             ->where('training_id', $training->id)
             ->get();
-        $numericL1 = $l1Results->whereNotNull('score');
-        $l1Respondents = $l1Results->pluck('participant_id')->unique()->count();
+        $importedRecaps = LevelOneRecapImport::where('training_id', $training->id)->latest('id')->get();
+        $l1 = $scores->calculate($l1Results, $importedRecaps);
+        $l1Respondents = $training->participants()->whereIn('id', $l1['respondentIds'])->count();
         $l1ResponseRate = $participantsTotal > 0 ? round(($l1Respondents / $participantsTotal) * 100, 1) : 0;
-        $l1Average = $numericL1->isNotEmpty() ? round($numericL1->avg('score'), 1) : null;
-        $organizerScores = $numericL1->whereNull('schedule_id');
-        $speakerScores = $numericL1->whereNotNull('schedule_id');
-        $organizerAverage = $organizerScores->isNotEmpty() ? round($organizerScores->avg('score'), 1) : null;
-        $speakerAverage = $speakerScores->isNotEmpty() ? round($speakerScores->avg('score'), 1) : null;
-
-        $indicatorData = $numericL1
-            ->filter(fn ($result) => $result->question)
-            ->groupBy('question_id')
-            ->map(function ($results) {
-                $question = $results->first()->question;
-
-                return [
-                    'label' => $question->question_text,
-                    'average' => round($results->avg('score'), 1),
-                    'responses' => $results->count(),
-                ];
-            })
-            ->sortBy('average')
-            ->values();
+        $l1Average = $l1['average'];
+        $organizerAverage = $l1['organizer'];
+        $speakerAverage = $l1['speaker'];
+        $indicatorData = $l1['indicators'];
+        $usesImportedScores = $l1['usesImport'];
         $lowestIndicator = $indicatorData->first();
 
         $l2Results = EvaluationResultL2::with('participant')
@@ -71,7 +59,7 @@ class EvaluationLevel12ReportController extends Controller
         ];
         $increaseRate = $l2Count ? round(($l2Status['increased'] / $l2Count) * 100, 1) : 0;
 
-        $textQuestions = Question::forTraining($training, 'l1_penyelenggara')->where('type', 'text')->pluck('id');
+        $textQuestions = Question::forTraining($training, 'l1_penyelenggara', includeHistorical: true)->where('type', 'text')->pluck('id');
         $textFeedback = $l1Results
             ->whereNull('schedule_id')
             ->whereIn('question_id', $textQuestions)
@@ -79,7 +67,7 @@ class EvaluationLevel12ReportController extends Controller
         $adminSummary = EvaluationL1TextSummary::with('reviewer')->where('training_id', $training->id)->first();
 
         $recommendations = collect();
-        if ($participantsTotal > 0 && $l1ResponseRate < 100) {
+        if (!$usesImportedScores && $participantsTotal > 0 && $l1ResponseRate < 100) {
             $recommendations->push([
                 'priority' => $l1ResponseRate < 75 ? 'tinggi' : 'sedang',
                 'finding' => ($participantsTotal - $l1Respondents).' peserta belum memberikan respons L1.',
@@ -119,7 +107,7 @@ class EvaluationLevel12ReportController extends Controller
             default => 'Sangat Kurang',
         };
         $executiveNarrative = $l1Average === null
-            ? 'Data Level 1 belum tersedia untuk menilai reaksi peserta.'
+            ? 'Nilai Level 1 belum tersedia. '
             : 'Reaksi peserta memperoleh skor '.$l1Average.'/100 dengan kategori '.$scoreCategory($l1Average).'. ';
         $executiveNarrative .= $gainAverage === null
             ? 'Data Level 2 belum tersedia untuk mengukur perubahan hasil belajar.'
@@ -131,26 +119,29 @@ class EvaluationLevel12ReportController extends Controller
             'training', 'participantsTotal', 'l1Respondents', 'l1ResponseRate', 'l1Average',
             'organizerAverage', 'speakerAverage', 'indicatorData', 'lowestIndicator', 'l2Count',
             'preAverage', 'postAverage', 'gainAverage', 'l2Status', 'increaseRate', 'textFeedback',
-            'adminSummary', 'recommendations', 'scoreCategory', 'executiveNarrative', 'aiAnalysis'
+            'adminSummary', 'recommendations', 'scoreCategory', 'executiveNarrative', 'aiAnalysis', 'importedRecaps', 'usesImportedScores'
         ));
     }
 
-    public function generateAiAnalysis(int $id, AiEvaluationDashboardService $ai)
+    public function generateAiAnalysis(int $id, AiEvaluationDashboardService $ai, LevelOneEvaluationScores $scores)
     {
         $training = Training::withCount('participants')->findOrFail($id); $user = Auth::user();
         abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
-        $l1 = EvaluationResultL1::with('question')->where('training_id', $id)->get(); $numeric = $l1->whereNotNull('score');
+        $l1 = $scores->calculate(
+            EvaluationResultL1::with('question')->where('training_id', $id)->get(),
+            LevelOneRecapImport::where('training_id', $id)->get(),
+        );
         $l2 = EvaluationResultL2::whereHas('participant', fn ($q) => $q->where('training_id', $id))->get();
         $pre = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->pretest), 1) : null;
         $post = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->postest), 1) : null;
         $summary = EvaluationL1TextSummary::where('training_id', $id)->first();
         $payload = [
             'pelatihan' => ['nama' => $training->nama_pelatihan, 'angkatan' => $training->angkatan, 'bidang' => $training->bidang],
-            'cakupan' => ['peserta' => $training->participants_count, 'responden_l1' => $l1->pluck('participant_id')->unique()->count(), 'peserta_l2' => $l2->count()],
-            'level_1' => ['rerata' => $numeric->isNotEmpty() ? round($numeric->avg('score'), 1) : null,
-                'penyelenggara' => $numeric->whereNull('schedule_id')->isNotEmpty() ? round($numeric->whereNull('schedule_id')->avg('score'), 1) : null,
-                'narasumber' => $numeric->whereNotNull('schedule_id')->isNotEmpty() ? round($numeric->whereNotNull('schedule_id')->avg('score'), 1) : null,
-                'indikator' => $numeric->filter(fn ($x) => $x->question)->groupBy('question_id')->map(fn ($items) => ['label' => $items->first()->question->question_text, 'rerata' => round($items->avg('score'), 1), 'respons' => $items->count()])->values()->all()],
+            'cakupan' => ['peserta' => $training->participants_count, 'responden_l1_teridentifikasi' => $training->participants()->whereIn('id', $l1['respondentIds'])->count(), 'peserta_l2' => $l2->count()],
+            'level_1' => ['rerata' => $l1['average'], 'penyelenggara' => $l1['organizer'], 'narasumber' => $l1['speaker'],
+                'indikator' => $l1['indicators']->map(fn ($item) => [
+                    'label' => $item['label'], 'rerata' => $item['average'], 'respons' => $item['responses'], 'sumber' => $item['source'],
+                ])->all()],
             'level_2' => ['rerata_pretest' => $pre, 'rerata_posttest' => $post, 'perubahan' => $pre !== null ? round($post - $pre, 1) : null,
                 'meningkat' => $l2->filter(fn ($x) => (float) $x->postest > (float) $x->pretest)->count(),
                 'tetap' => $l2->filter(fn ($x) => (float) $x->postest === (float) $x->pretest)->count(),

@@ -7,6 +7,7 @@ use App\Exports\ParticipantTemplateExport;
 use App\Exports\ScheduleTemplateExport;
 use App\Exports\TeacherMonitoringExport;
 use App\Exports\TeacherScheduleExport;
+use App\Exports\TrainingAnnualSummaryExport;
 use App\Exports\TrainingEvaluationExport;
 use App\Helpers\LogHelper;
 use App\Imports\ParticipantImport;
@@ -23,6 +24,7 @@ use App\Models\Training;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,12 +38,7 @@ class TrainingController extends Controller
 {
     public function index(Request $request)
     {
-        $baseQuery = Training::query();
-
-        // Jika bukan superadmin, filter berdasarkan bidang user
-        if (Auth::user()->role !== 'superadmin') {
-            $baseQuery->where('bidang', Auth::user()->bidang);
-        }
+        $baseQuery = $this->visibleTrainings($request->user());
 
         $today = now('Asia/Jakarta')->toDateString();
         $dashboardStats = [
@@ -51,7 +48,7 @@ class TrainingController extends Controller
             'completed' => (clone $baseQuery)->whereDate('tgl_selesai', '<', $today)->count(),
             'participants' => (clone $baseQuery)->withCount(['participants as approved_participants_count' => fn ($query) => $query->where('registration_status', 'approved')])->get()->sum('approved_participants_count'),
         ];
-        $years = (clone $baseQuery)->selectRaw('YEAR(tgl_mulai) as year')->distinct()->orderByDesc('year')->pluck('year');
+        $years = (clone $baseQuery)->selectRaw('SUBSTR(tgl_mulai, 1, 4) as year')->distinct()->orderByDesc('year')->pluck('year');
 
         $query = (clone $baseQuery)->with(['schedules' => fn ($query) => $query->orderBy('date')->orderBy('start_time')])
             ->withCount([
@@ -94,6 +91,27 @@ class TrainingController extends Controller
         return view('trainings.index', compact('trainings', 'dashboardStats', 'years'));
     }
 
+    public function exportAnnualSummary(Request $request)
+    {
+        $user = $request->user();
+        abort_unless(in_array($user->role, ['superadmin', 'admin_bidang'], true), 403);
+
+        $year = (int) $request->validate(['year' => ['required', 'integer', 'digits:4', 'between:1000,9999']])['year'];
+        $trainings = $this->visibleTrainings($user)->whereYear('tgl_mulai', $year)
+            ->withCount(['participants as approved_participants_count' => fn ($query) => $query->where('registration_status', 'approved')])
+            ->orderBy('tgl_mulai')->orderBy('id');
+
+        return Excel::download(
+            new TrainingAnnualSummaryExport($trainings, now('Asia/Jakarta')->toDateString()),
+            "ringkasan-pelatihan-{$year}.xlsx",
+        );
+    }
+
+    private function visibleTrainings(User $user): Builder
+    {
+        return Training::query()->when($user->role !== 'superadmin', fn ($query) => $query->where('bidang', $user->bidang));
+    }
+
     public function create(Request $request)
     {
         $model = $request->query('model', 'standar'); // standar atau blended
@@ -111,6 +129,8 @@ class TrainingController extends Controller
             'model' => 'required',
             'lokasi' => 'required',
             'angkatan' => 'required',
+            'kerjasama' => ['nullable', Rule::in(Training::COOPERATION_OPTIONS)],
+            'sumber_anggaran' => ['nullable', Rule::in(Training::FUNDING_SOURCE_OPTIONS)],
             'jumlah_peserta' => 'required|numeric',
             'jp' => 'required|numeric',
             'tgl_mulai' => 'required|date',
@@ -734,6 +754,7 @@ class TrainingController extends Controller
     public function edit($id)
     {
         $training = Training::with('stages')->findOrFail($id);
+        $this->authorizeTrainingEdit($training);
         $model = $training->model;
 
         return view('trainings.edit', compact('training', 'model'));
@@ -742,6 +763,7 @@ class TrainingController extends Controller
     public function update(Request $request, $id)
     {
         $training = Training::findOrFail($id);
+        $this->authorizeTrainingEdit($training);
 
         $rules = [
             'nama_pelatihan' => 'required',
@@ -749,6 +771,8 @@ class TrainingController extends Controller
             'program_evaluasi' => 'required|in:LATSAR,PKP,PKA,PKN,Teknis',
             'lokasi' => 'required',
             'angkatan' => 'required',
+            'kerjasama' => ['nullable', Rule::in(Training::COOPERATION_OPTIONS)],
+            'sumber_anggaran' => ['nullable', Rule::in(Training::FUNDING_SOURCE_OPTIONS)],
             'jumlah_peserta' => 'required|numeric',
             'jp' => 'required|numeric',
             'tgl_mulai' => 'required|date',
@@ -785,6 +809,29 @@ class TrainingController extends Controller
         }
 
         return redirect()->route('trainings.index')->with('success', 'Data pelatihan berhasil diperbarui.');
+    }
+
+    public function updateEvaluationOpeningDate(Request $request, Training $training, string $level)
+    {
+        $this->authorizeTrainingEdit($training);
+        [$field, $page] = match ($level) {
+            '1' => ['evaluation_l1_opens_on', 'evall1.index'],
+            '34' => ['evaluation_l34_opens_on', 'evall34.index'],
+            default => abort(404),
+        };
+        $date = $request->validate(['opens_on' => ['required', 'date_format:Y-m-d']], [], [
+            'opens_on' => 'tanggal mulai pengisian',
+        ])['opens_on'];
+
+        $training->update([$field => $date]);
+
+        return to_route($page, $training)->with('evaluation_schedule_saved', 'Jadwal pengisian berhasil disimpan.');
+    }
+
+    private function authorizeTrainingEdit(Training $training): void
+    {
+        $user = Auth::user();
+        abort_unless($user->role === 'superadmin' || ($user->role === 'admin_bidang' && $user->bidang === $training->bidang), 403);
     }
 
     public function destroy($id)

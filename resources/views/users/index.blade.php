@@ -42,6 +42,8 @@
         </div>
     </div>
 
+    @include('users.navigation', ['recapActive' => false])
+
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm alert-dismissible" role="alert">
             <i class="bx bx-check-circle me-1"></i> {{ session('success') }}

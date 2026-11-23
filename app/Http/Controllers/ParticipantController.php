@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Throwable;
+use App\Support\ProfileInstitution;
 
 class ParticipantController extends Controller
 {
@@ -145,7 +146,8 @@ class ParticipantController extends Controller
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
         $employmentStatuses = \App\Models\EmploymentStatus::where('is_active', true)->orderBy('sort_order')->get();
         $institutions = \App\Models\Institution::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
-        return view('participant.complete_profile', compact('user', 'employmentStatuses', 'institutions'));
+        $municipalities = ProfileInstitution::municipalities($user);
+        return view('participant.complete_profile', compact('user', 'employmentStatuses', 'institutions', 'municipalities'));
     }
 
     /**
@@ -156,7 +158,8 @@ class ParticipantController extends Controller
         $user = Auth::user();
         abort_unless($user->role === 'participant', 403, 'Form registrasi ini hanya untuk akun pengguna publik.');
 
-        $request->validate([
+        $validated = $request->validate([
+            ...ProfileInstitution::rules($request, $user),
             'nip' => ['required', 'digits:18', \Illuminate\Validation\Rule::unique('users', 'nip')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)],
             'nik' => ['required', 'digits:16', \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)],
             'whatsapp' => 'required',
@@ -165,7 +168,6 @@ class ParticipantController extends Controller
             'birth_date' => 'required|date|before_or_equal:today',
             'jabatan' => 'required',
             'golongan' => 'nullable|in:I/a,II/a,II/b,II/c,II/d,III/a,III/b,III/c,III/d,IV/a,IV/b,IV/c,V,VI,VII,VIII,IX,X,XI,XII,XIII,XIV',
-            'institution_id' => 'required|exists:institutions,id',
             'provinsi' => 'required',
             'kota' => 'required', // <--- Gunakan 'kota'
             'kecamatan' => 'required',
@@ -177,7 +179,6 @@ class ParticipantController extends Controller
             'password' => [\Illuminate\Validation\Rule::requiredIf(fn () => (bool) $user->must_change_password), 'nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
         $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
         $previousIdentity = $user->nip_nik;
         $publicPrimary = $user->primaryRole() === 'participant';
@@ -199,8 +200,7 @@ class ParticipantController extends Controller
             'birth_date' => $request->birth_date,
             'jabatan' => $request->jabatan,
             'golongan' => $request->golongan,
-            'institution_id' => $institution->id,
-            'instansi' => $institution->name,
+            ...ProfileInstitution::attributes($validated),
             'employment_status_id' => $employmentStatus->id,
             'status_kepegawaian' => $employmentStatus->name,
             'provinsi' => $request->provinsi,

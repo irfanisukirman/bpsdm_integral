@@ -60,7 +60,12 @@ class PostEvaluationImportService
             return ['score' => (float) $value, 'note' => null];
         }
         if ($q->type === 'dropdown' || $q->type === 'checkbox') {
-            $options = collect($q->options ?? [])->mapWithKeys(fn ($o) => [$this->normalize((string) $o) => (string) $o]);
+            $choices = $q->options ?? [];
+            $technical = $training->program_evaluasi === 'Teknis';
+            if ($technical && $choices === ['Diskusi informal', 'Diskusi formal (und rapat', 'daftar hadir', 'dll)']) {
+                $choices = ['Diskusi informal', 'Diskusi formal (und rapat, daftar hadir, dll)'];
+            }
+            $options = collect($choices)->mapWithKeys(fn ($o) => [$this->normalize((string) $o) => (string) $o]);
             if ($q->type === 'dropdown' && $this->service->supportsFourPoint($training) && $this->service->fourPointQuestion($q)) {
                 $labels = [1 => 'Tidak Sesuai', 2 => 'Kurang Sesuai', 3 => 'Sesuai', 4 => 'Sangat Sesuai'];
                 $ordinal = array_search($this->normalize($value), array_map(fn ($label) => $this->normalize($label), $labels), true);
@@ -77,7 +82,7 @@ class PostEvaluationImportService
                 if (is_array($json)) {
                     $values = $json;
                 } elseif (! $options->has($this->normalize($value))) {
-                    $values = preg_split('/[;|\r\n]+/u', $value);
+                    $values = preg_split($technical ? '/[,;|\r\n]+/u' : '/[;|\r\n]+/u', $value);
                 }
             }
             $selected = [];
@@ -140,6 +145,9 @@ class PostEvaluationImportService
         $book = $reader->load($path);
         try {
             $answers = $book->getSheetByName($sheets['jawaban']);
+            $technicalLayout = $training->program_evaluasi === 'Teknis'
+                && $this->normalize($this->value($answers, 3, 1)) === 'alumni'
+                && str_starts_with($this->normalize($this->value($answers, 4, 1)), 'alumni pns');
             $roster = $book->getSheetByName($sheets['data peserta']);
             $info = isset($sheets['informasi umum']) ? $book->getSheetByName($sheets['informasi umum']) : null;
             $title = $info ? $this->value($info, 3, 2) : '';
@@ -218,17 +226,21 @@ class PostEvaluationImportService
                 if (in_array($group, ['atasan alumni', 'atasan langsung', 'atasan'], true)) {
                     $role = 'atasan';
                 }
-                if (in_array($group, ['rekan kerja', 'rekan'], true)) {
+                if (in_array($group, ['rekan kerja', 'rekan', 'rekan alumni'], true)) {
                     $role = 'rekan';
                 }
-                if ($key === 'nama responden') {
+                if ($key === 'nama responden' || ($technicalLayout && $key === 'nama anda')) {
                     $evaluatorColumns[$role] = $c;
+
+                    if (!$technicalLayout) continue;
+                }
+                if (str_starts_with($key, 'saya memberikan penilaian pada alumni') || ($technicalLayout && str_starts_with($key, 'saya menilai alumni yang bernama'))) {
+                    $identityColumns[$role] = $c;
 
                     continue;
                 }
-                if (str_starts_with($key, 'saya memberikan penilaian pada alumni')) {
+                if ($technicalLayout && $role === 'mandiri' && str_starts_with($key, 'nama / nip / nik')) {
                     $identityColumns[$role] = $c;
-
                     continue;
                 }
                 if ($key === '' || in_array($key, ['nama instansi responden', 'jabatan responden'], true)) {
@@ -271,7 +283,8 @@ class PostEvaluationImportService
                     continue;
                 }
                 if (isset($mappedQuestions[$role][$question->id])) {
-                    if ($training->program_evaluasi === 'LATSAR' && filled($question->source_column) && $key === 'menggerakkan pemanfaatan berbagai sumber daya untuk tujuan bersama') {
+                    if (($technicalLayout && $role === 'mandiri' && in_array($letter, ['P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'], true))
+                        || ($training->program_evaluasi === 'LATSAR' && filled($question->source_column) && $key === 'menggerakkan pemanfaatan berbagai sumber daya untuk tujuan bersama')) {
                         $columns[$role][$c] = $question;
                         $warnings[] = 'Kolom '.Coordinate::stringFromColumnIndex($mappedQuestions[$role][$question->id]).' dan '.$letter.' ('.$role.') digabung menjadi satu pertanyaan. Jawaban terisi yang berbeda harus diperbaiki terlebih dahulu.';
                     } else {
@@ -301,7 +314,9 @@ class PostEvaluationImportService
 
                         continue;
                     }
-                    $label = isset($identityColumns[$role]) ? $this->value($answers, $identityColumns[$role], $r) : $this->value($answers, 2, $r);
+                    $label = $this->value($answers, $identityColumns[$role] ?? ($technicalLayout ? 3 : 2), $r);
+                    $rowNip = $technicalLayout ? $this->nip($this->value($answers, 3, $r)) : null;
+                    if ($label === '' && $rowNip) $label = $rowNip;
                     $nip = $this->nip($label);
                     if (! $nip) {
                         $keys = $names[$this->name($label)] ?? [];
@@ -312,6 +327,10 @@ class PostEvaluationImportService
                     if (! $nip || ! isset($people[$nip])) {
                         $errors[] = 'Jawaban baris '.$r.' ('.$role.'): identitas tidak cocok dengan NIP pada Data Peserta.';
 
+                        continue;
+                    }
+                    if ($rowNip && $rowNip !== $nip) {
+                        $errors[] = 'Jawaban baris '.$r.' ('.$role.'): identitas berbeda dengan alumni pada kolom C.';
                         continue;
                     }
                     if (isset($seen[$role][$nip])) {
@@ -336,7 +355,7 @@ class PostEvaluationImportService
                         }
                         if (isset($rowAnswers[$q->id])) {
                             if ($rowAnswers[$q->id]['answer'] !== $answer) {
-                                $errors[] = 'Sel '.Coordinate::stringFromColumnIndex($c).$r.' ('.$role.'): jawaban berbeda dengan '.Coordinate::stringFromColumnIndex($rowAnswers[$q->id]['column']).$r.' untuk soal LATSAR yang sudah digabung. Samakan nilai kedua kolom sebelum import.';
+                                $errors[] = 'Sel '.Coordinate::stringFromColumnIndex($c).$r.' ('.$role.'): jawaban berbeda dengan '.Coordinate::stringFromColumnIndex($rowAnswers[$q->id]['column']).$r.' untuk soal yang sama. Samakan nilai kedua kolom sebelum import.';
                             }
 
                             continue;

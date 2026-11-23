@@ -4,7 +4,7 @@
 @section('form_title', 'Lengkapi Profil Pengguna')
 @section('module_name', 'Registrasi Pengguna')
 @section('page_title', 'Lengkapi Profil Pengguna')
-@section('page_description', 'Silakan lengkapi data identitas dan wilayah kerja Anda untuk integrasi sistem INTEGRAL.')
+@section('page_description', 'Lengkapi data identitas, kepegawaian, dan alamat tempat tinggal Anda.')
 @section('form_action', route('participant.profile.store'))
 @section('submit_text', 'Simpan Profil & Lanjutkan')
 
@@ -121,24 +121,20 @@
                     </select>
                     <div class="form-text">Pilih golongan saat ini sesuai data kepegawaian.</div>
                 </div>
-                <!-- Instansi -->
-                <div class="col-12 mb-3">
-                    <label class="form-label">Instansi / Unit Kerja <span class="required-star">*</span></label>
-                    <select name="institution_id" class="form-select" required><option value="">-- Pilih Instansi --</option>@foreach($institutions as $institution)<option value="{{$institution->id}}" @selected((string) old('institution_id', $user->institution_id) === (string) $institution->id)>{{$institution->name}}</option>@endforeach</select>
-                </div>
+                @include('profile.partials.institution-fields')
             </div>
 
         </div>
     </div>
 
     </section>
-    <section class="profile-step" data-step="2" aria-label="Wilayah" hidden>
-    <!-- KARTU 2: WILAYAH KERJA / DOMISILI (DENGAN PENCARIAN SELECT2) -->
+    <section class="profile-step" data-step="2" aria-label="Wilayah tempat tinggal" hidden>
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
             <div class="form-section-title">
-                <i class="bx bx-map-pin fs-4 me-2"></i> Wilayah domisili / kerja
+                <i class="bx bx-map-pin fs-4 me-2"></i> Wilayah tempat tinggal saat ini
             </div>
+            <p class="alert alert-info">Pilih provinsi, kabupaten/kota, kecamatan, dan kelurahan/desa sesuai tempat Anda tinggal sehari-hari. Data instansi atau unit kerja diisi pada Langkah 2.</p>
 
             <div class="row">
                 <div class="row">
@@ -174,10 +170,10 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
             <div class="form-section-title">
-                <i class="bx bx-map fs-4 me-2"></i> Alamat & titik lokasi
+                <i class="bx bx-map fs-4 me-2"></i> Alamat & titik lokasi tempat tinggal
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Alamat Lengkap <span class="required-star">*</span></label>
+                <label for="addressSearch" class="form-label fw-bold">Alamat Lengkap Tempat Tinggal <span class="required-star">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bx bx-search-alt"></i></span>
                     <input type="text" name="address" id="addressSearch" class="form-control" value="{{old('address',$user->address)}}" placeholder="Cari nama jalan atau desa, contoh: Jalan Dago / Desa Ciburial" autocomplete="street-address" required>
@@ -189,7 +185,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div>
                     <label class="form-label mb-0">Pilih Titik Lokasi <span class="required-star">*</span></label>
-                    <div class="form-text">Setelah memilih wilayah, peta akan menuju area kelurahan. Klik posisi tempat tinggal Anda pada peta.</div>
+                    <div class="form-text">Peta otomatis membuka wilayah yang dipilih di Langkah 3. Klik titik tempat tinggal langsung di peta jika alamat sulit ditemukan lewat pencarian.</div>
                 </div>
                 <button type="button" id="useCurrentLocation" class="btn btn-sm btn-outline-primary">
                     <i class="bx bx-current-location me-1"></i>Gunakan Lokasi Saya
@@ -198,7 +194,7 @@
             <div id="profileLocationMap" class="rounded border" style="height: 360px;"></div>
             <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', auth()->user()->latitude) }}" required>
             <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', auth()->user()->longitude) }}" required>
-            <div id="coordinateStatus" class="small mt-2 text-muted">Pilih wilayah terlebih dahulu, kemudian tentukan titik pada peta.</div>
+            <div id="coordinateStatus" class="small mt-2 text-muted" role="status">Peta akan membuka wilayah tempat tinggal Anda.</div>
         </div>
     </div>
 
@@ -234,9 +230,11 @@ $(document).ready(function() {
     const initialLng = parseFloat(longitudeInput.value);
     const hasInitialPoint = Number.isFinite(initialLat) && Number.isFinite(initialLng);
     const locationMap = L.map('profileLocationMap').setView(hasInitialPoint ? [initialLat, initialLng] : [-2.5, 118], hasInitialPoint ? 15 : 5);
-    document.addEventListener('integral:profile-step', () => setTimeout(() => locationMap.invalidateSize(), 50));
+    const mapStep = locationMap.getContainer().closest('.profile-step');
     let locationMarker = null;
     let locationSearchController = null;
+    let focusedArea = null;
+    const savedArea = JSON.stringify([savedVillage, savedDistrict, savedRegency, savedProvince]);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -244,6 +242,8 @@ $(document).ready(function() {
     }).addTo(locationMap);
 
     function setLocationPoint(lat, lng, zoom = true) {
+        locationSearchController?.abort();
+        if (!mapStep.hidden) focusedArea = JSON.stringify(selectedArea());
         const point = [Number(lat), Number(lng)];
         latitudeInput.value = point[0].toFixed(7);
         longitudeInput.value = point[1].toFixed(7);
@@ -258,59 +258,96 @@ $(document).ready(function() {
         coordinateStatus.innerHTML = `<i class="bx bx-check-circle me-1"></i>Titik tersimpan: ${latitudeInput.value}, ${longitudeInput.value}`;
     }
 
-    async function focusSelectedVillage() {
-        const village = $kelSelect.val();
-        if (!village) return;
-
-        const district = $kecSelect.val();
-        const regency = $kabSelect.val();
-        const province = $provSelect.val();
-        const query = [village, district, regency, province, 'Indonesia'].filter(Boolean).join(', ');
-
-        if (locationSearchController) locationSearchController.abort();
-        locationSearchController = new AbortController();
-        coordinateStatus.className = 'small mt-2 text-primary';
-        coordinateStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mencari area ' + village + ' pada peta...';
-
-        try {
-            const params = new URLSearchParams({
-                q: query,
-                format: 'jsonv2',
-                limit: '1',
-                countrycodes: 'id'
-            });
-            const response = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
-                signal: locationSearchController.signal,
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!response.ok) throw new Error('Pencarian lokasi gagal.');
-            const results = await response.json();
-            if (!results.length) throw new Error('Area tidak ditemukan.');
-
-            const result = results[0];
-            if (Array.isArray(result.boundingbox) && result.boundingbox.length === 4) {
-                locationMap.fitBounds([
-                    [Number(result.boundingbox[0]), Number(result.boundingbox[2])],
-                    [Number(result.boundingbox[1]), Number(result.boundingbox[3])]
-                ], { maxZoom: 16, padding: [24, 24] });
-            } else {
-                locationMap.setView([Number(result.lat), Number(result.lon)], 15);
-            }
-
-            coordinateStatus.className = 'small mt-2 text-info';
-            coordinateStatus.innerHTML = '<i class="bx bx-map-pin me-1"></i>Area ' + village + ' sudah ditampilkan. Klik posisi tempat tinggal Anda pada peta untuk menyimpan titik.';
-        } catch (error) {
-            if (error.name === 'AbortError') return;
-            console.error(error);
-            coordinateStatus.className = 'small mt-2 text-warning';
-            coordinateStatus.innerHTML = '<i class="bx bx-info-circle me-1"></i>Area belum dapat ditemukan otomatis. Gunakan tombol Lokasi Saya atau cari titik secara manual pada peta.';
-        }
-    }
-
     locationMap.on('click', event => setLocationPoint(event.latlng.lat, event.latlng.lng, false));
-    if (hasInitialPoint) setLocationPoint(initialLat, initialLng, false);
 
 @include('profile.partials.address-search-script')
+
+    function selectedArea() {
+        return [$kelSelect.val(), $kecSelect.val(), $kabSelect.val(), $provSelect.val()];
+    }
+
+    function normalizeArea(name) {
+        return name.toLowerCase().trim().replace(/^(kelurahan|desa|kecamatan|kabupaten|kota|provinsi)\s+/, '');
+    }
+
+    async function focusSelectedVillage() {
+        const area = selectedArea();
+        if (mapStep.hidden || !area.every(Boolean)) return;
+
+        const areaKey = JSON.stringify(area);
+        if (areaKey === focusedArea) return;
+        if (hasInitialPoint && locationMarker && areaKey === savedArea && focusedArea === null) {
+            focusedArea = areaKey;
+            return;
+        }
+
+        locationSearchController?.abort();
+        const controller = new AbortController();
+        locationSearchController = controller;
+        coordinateStatus.className = 'small mt-2 text-primary';
+        coordinateStatus.textContent = `Membuka wilayah ${area[0]} pada peta…`;
+
+        try {
+            const searches = area.map((_, index) => ({ index, parts: area.slice(index) }));
+            searches.splice(1, 0, { index: 0, parts: [area[0], area[2], area[3]] });
+            for (const { index, parts } of searches) {
+                const name = area[index];
+                const query = [...parts, 'Indonesia'].join(', ');
+                const params = new URLSearchParams({ q: query.slice(0, 200) });
+                const response = await fetch(`${addressSearchUrl}?${params}`, {
+                    signal: controller.signal,
+                    headers: { Accept: 'application/json' },
+                });
+                if (!response.ok) break;
+                const { data } = await response.json();
+                if (controller.signal.aborted || mapStep.hidden || areaKey !== JSON.stringify(selectedArea())) return;
+
+                const result = data.find(item => normalizeArea(item.name) === normalizeArea(name));
+                if (!result) continue;
+
+                const bounds = Array.isArray(result.boundingbox) ? result.boundingbox.map(Number) : [];
+                if (bounds.length === 4 && bounds.every(Number.isFinite) && bounds[0] < bounds[1] && bounds[2] < bounds[3]) {
+                    locationMap.fitBounds([[bounds[0], bounds[2]], [bounds[1], bounds[3]]], {
+                        maxZoom: 16,
+                        padding: [24, 24],
+                    });
+                } else {
+                    locationMap.setView([result.lat, result.lon], [15, 13, 11, 8][index]);
+                }
+                focusedArea = areaKey;
+                coordinateStatus.className = 'small mt-2 text-info';
+                coordinateStatus.textContent = index === 0
+                    ? `Wilayah ${name} ditampilkan. Klik titik tempat tinggal Anda pada peta.`
+                    : `Wilayah ${name} ditampilkan. Geser atau perbesar peta untuk memilih titik tempat tinggal Anda.`;
+                return;
+            }
+        } catch (error) {
+            if (controller.signal.aborted) return;
+        }
+        if (controller.signal.aborted || mapStep.hidden || areaKey !== JSON.stringify(selectedArea())) return;
+        coordinateStatus.className = 'small mt-2 text-warning';
+        coordinateStatus.textContent = 'Wilayah belum dapat dibuka otomatis. Geser peta atau gunakan tombol Gunakan Lokasi Saya saat berada di tempat tinggal.';
+    }
+
+    if (hasInitialPoint) {
+        setLocationPoint(initialLat, initialLng, false);
+        focusedArea = null;
+    }
+
+    function updateVisibleMap() {
+        if (mapStep.hidden) {
+            locationSearchController?.abort();
+            return;
+        }
+        requestAnimationFrame(() => {
+            if (mapStep.hidden) return;
+            locationMap.invalidateSize();
+            focusSelectedVillage();
+        });
+    }
+
+    document.addEventListener('integral:profile-step', updateVisibleMap);
+    updateVisibleMap();
 
     document.getElementById('useCurrentLocation').addEventListener('click', function() {
         if (!navigator.geolocation) return alert('Browser tidak mendukung deteksi lokasi.');
@@ -469,9 +506,7 @@ $(document).ready(function() {
         }
     });
 
-    $kelSelect.on('change', function() {
-        if ($(this).val()) focusSelectedVillage();
-    });
+    $kelSelect.on('change', updateVisibleMap);
 });
 </script>
 @endpush

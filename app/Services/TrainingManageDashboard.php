@@ -7,6 +7,7 @@ use App\Models\EvaluationFormL1;
 use App\Models\EvaluationResultL1;
 use App\Models\EvaluationResultL2;
 use App\Models\EvaluationResultL34;
+use App\Models\LevelOneRecapImport;
 use App\Models\Folder;
 use App\Models\MonitoringResult;
 use App\Models\ParticipantCertificate;
@@ -41,10 +42,19 @@ class TrainingManageDashboard
         $attendanceRate = $expectedAttendance > 0 ? round(($attendances->where('status', 'hadir')->count() / $expectedAttendance) * 100, 1) : 0;
 
         $l1Forms = EvaluationFormL1::where('training_id', $training->id)->count();
-        $l1Respondents = EvaluationResultL1::where('training_id', $training->id)->whereIn('participant_id', $approvedIds)->distinct()->count('participant_id');
+        $l1Results = EvaluationResultL1::where('training_id', $training->id);
+        $l1Imports = LevelOneRecapImport::where('training_id', $training->id)->get();
+        $l1ImportedScore = null;
+        if ($l1Imports->isNotEmpty()) {
+            $l1 = app(LevelOneEvaluationScores::class)->calculate($l1Results->with('question')->get(), $l1Imports);
+            $l1Respondents = $l1['respondentIds']->intersect($approvedIds)->count();
+            $l1ImportedScore = $l1['usesImport'] ? $l1['average'] : null;
+        } else {
+            $l1Respondents = $l1Results->whereIn('participant_id', $approvedIds)->distinct()->count('participant_id');
+        }
         $l2Respondents = EvaluationResultL2::whereIn('participant_id', $approvedIds)->count();
         $l34Respondents = EvaluationResultL34::where('training_id', $training->id)->whereIn('participant_id', $approvedIds)->where('evaluator_role', 'mandiri')->distinct()->count('participant_id');
-        $l34Due = $now->startOfDay()->greaterThanOrEqualTo($training->tgl_sebar_l34->copy()->startOfDay());
+        $l34Due = $training->isL34Open();
         $evaluationParts = [$approved ? $l1Respondents / $approved : 0, $approved ? $l2Respondents / $approved : 0];
         if ($l34Due) {
             $evaluationParts[] = $approved ? $l34Respondents / $approved : 0;
@@ -81,7 +91,7 @@ class TrainingManageDashboard
         if ($missingTeachers > 0) {
             $attention->push(['tone' => 'danger', 'icon' => 'bx-user-x', 'title' => "$missingTeachers jadwal belum memiliki pengajar", 'description' => 'Lengkapi pengajar agar jadwal siap digunakan.', 'url' => route('trainings.schedules', $training), 'action' => 'Atur']);
         }
-        if ($status === 'completed' && $approved > $l1Respondents) {
+        if ($status === 'completed' && $l1ImportedScore === null && $approved > $l1Respondents) {
             $attention->push(['tone' => 'info', 'icon' => 'bx-message-square-check', 'title' => ($approved - $l1Respondents).' peserta belum mengisi Evaluasi L1', 'description' => 'Pantau progres dan ingatkan peserta yang belum mengisi.', 'url' => route('evall1.progres', $training), 'action' => 'Lihat progres']);
         }
         if ($photos === 0) {
@@ -104,6 +114,6 @@ class TrainingManageDashboard
             $scheduleState = $now->between($sessionStart, $sessionEnd) ? 'Sedang berlangsung' : 'Jadwal berikutnya';
         }
 
-        return compact('status', 'statusLabel', 'statusTone', 'progress', 'componentScores', 'attention', 'approved', 'pending', 'attendanceRate', 'attendanceFilled', 'l1Respondents', 'l2Respondents', 'l34Respondents', 'l34Due', 'evaluationProgress', 'missingTeachers', 'organizerFolder', 'organizerDocuments', 'photos', 'report', 'certificates', 'nextSchedule', 'scheduleState', 'learningSchedules');
+        return compact('status', 'statusLabel', 'statusTone', 'progress', 'componentScores', 'attention', 'approved', 'pending', 'attendanceRate', 'attendanceFilled', 'l1Respondents', 'l1ImportedScore', 'l2Respondents', 'l34Respondents', 'l34Due', 'evaluationProgress', 'missingTeachers', 'organizerFolder', 'organizerDocuments', 'photos', 'report', 'certificates', 'nextSchedule', 'scheduleState', 'learningSchedules');
     }
 }

@@ -4,13 +4,13 @@
 <style>
 .narrative-card{background:var(--bs-body-bg,#fff);border:1px solid var(--bs-border-color,#dce8df);border-radius:12px;padding:22px;margin:18px 0}.narrative-card textarea{display:block;width:100%;box-sizing:border-box;margin:10px 0;min-height:160px;line-height:1.6}.narrative-card label{display:block;font-weight:600}.narrative-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.narrative-help{color:var(--bs-secondary-color,#616161);font-size:14px}.narrative-warning{padding:16px;background:var(--bs-warning-bg-subtle,#fff1d6);border-radius:8px}#ai-prompt{min-height:220px;font-size:13px}
 </style>
-<a class="btn btn-outline-secondary btn-sm mb-3" href="{{route('post-evaluation.show',$training)}}">&larr; Kembali ke Hasil Evaluasi</a>
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{route('post-evaluation.show', [$training] + request()->only('from'))}}">&larr; Kembali ke Hasil Evaluasi</a>
 <h4 class="fw-bold">Narasi paparan</h4>
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <p>{{$training->nama_pelatihan}} · Slide 4–9</p>
 <p>Salin prompt ke ChatGPT, tinjau hasilnya, lalu tempel ke bagian yang sesuai. Angka dan kategori mengikuti data aplikasi. Tidak memerlukan API.</p>
 @if($stale)<p class="narrative-warning" role="alert">Data laporan berubah sejak narasi disimpan. Salin prompt terbaru dan periksa kembali angka serta pembahasannya sebelum menyimpan.</p>@endif
-<form method="post" action="{{route('post-evaluation.narrative.update',$training)}}">
+<form method="post" action="{{route('post-evaluation.narrative.update', [$training] + request()->only('from'))}}">
 @csrf @method('put')
 <input type="hidden" name="source_hash" value="{{$sourceHash}}">
 <section class="narrative-card card">
@@ -47,7 +47,7 @@
 </section>
 <div class="narrative-actions">
     <button type="submit" class="btn btn-primary" name="action" value="save">Simpan dan Pratinjau</button>
-    <a class="btn btn-outline-primary" href="{{route('post-evaluation.expose',$training)}}">Kembali ke laporan</a>
+    <a class="btn btn-outline-primary" href="{{route('post-evaluation.expose', [$training] + request()->only('from'))}}">Kembali ke laporan</a>
     <button type="submit" name="action" value="reset" class="btn btn-outline-secondary" onclick="return confirm('Hapus narasi manual dan catatan evaluator kegiatan ini, lalu gunakan ringkasan dasar?')">Kembali ke Ringkasan Dasar</button>
 </div>
 </form>

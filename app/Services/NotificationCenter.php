@@ -41,7 +41,7 @@ class NotificationCenter
             ->count();
     }
 
-    public function forUser(User $user, bool $includeChatAlerts = true): Collection
+    public function forUser(User $user): Collection
     {
         $items = collect();
 
@@ -69,7 +69,7 @@ class NotificationCenter
         $items = $items->merge($this->electronicSignatureItems($user));
         $items = $items->merge($this->forumItems($user));
         $items = $items->merge($this->folderShareItems($user));
-        $items = $items->merge($this->complaintItems($user, $includeChatAlerts));
+        $items = $items->merge($this->complaintItems($user));
 
         $weight = ['danger' => 1, 'warning' => 2, 'info' => 3, 'success' => 4];
 
@@ -92,17 +92,17 @@ class NotificationCenter
             ->sortByDesc(fn ($ticket) => $ticket->latestStaffMessage->id)->values();
     }
 
-    private function complaintItems(User $user, bool $includeChatAlerts): Collection
+    private function complaintItems(User $user): Collection
     {
         $items = collect();
 
         if (in_array($user->role, ComplaintTicket::STAFF_ROLES, true)) {
-            $waiting = $this->waitingComplaints($user, includeChats: $includeChatAlerts);
+            $waiting = $this->waitingComplaints($user);
             if ($waiting > 0) {
                 $items->push($this->item(
                     'complaint-waiting',
                     'Pengaduan menunggu',
-                    $waiting.' tiket dengan pengaduan atau pesan baru.',
+                    $waiting.' tiket pengaduan atau chat baru.',
                     'warning', 'bx-message-rounded-dots', route('complaints.inbox', ['read' => 1]),
                     'Buka kotak masuk'
                 ) + ['waiting' => $waiting]);
@@ -122,27 +122,19 @@ class NotificationCenter
         return $items;
     }
 
-    public function waitingComplaints(User $user, ?int $activeChat = null, bool $includeChats = true): int
+    public function waitingComplaints(User $user): int
     {
-        $waiting = $this->unreadWaitingComplaints($user);
-        if (!$includeChats) {
-            return $waiting->whereNull('chat_name')->count();
-        }
-
-        return $waiting->pluck('id')
-            ->merge($this->unreadStaffChats($user)->pluck('id'))->unique()
-            ->reject(fn ($ticketId) => (int) $ticketId === $activeChat)->count();
+        return $this->unreadWaitingComplaints($user)->count();
     }
 
     public function unreadStaffChatIds(User $user): array
     {
-        return $this->unreadWaitingComplaints($user)->whereNotNull('chat_name')->pluck('id')
-            ->merge($this->unreadStaffChats($user)->pluck('id'))->unique()->values()->all();
+        return $this->unreadStaffChats($user)->pluck('id')->all();
     }
 
     public function markWaitingComplaintsRead(User $user): void
     {
-        $this->unreadWaitingComplaints($user)->whereNull('chat_name')->select('id')->chunkById(150, function ($tickets) use ($user) {
+        $this->unreadWaitingComplaints($user)->select('id')->chunkById(150, function ($tickets) use ($user) {
             $now = now();
             NotificationRead::insertOrIgnore($tickets->map(fn ($ticket) => [
                 'user_id' => $user->id,
@@ -350,8 +342,7 @@ class NotificationCenter
                 ->where('evaluator_role', 'mandiri')
                 ->exists();
             $postEvaluationAt = $training->tgl_sebar_l34?->copy()->startOfDay();
-            $postEvaluationIsDue = $postEvaluationAt
-                && now('Asia/Jakarta')->startOfDay()->greaterThanOrEqualTo($postEvaluationAt);
+            $postEvaluationIsDue = $training->isL34Open();
             if ($postEvaluationIsDue && !$hasL34) {
                 $items->push($this->item(
                     'evaluation-l34-'.$participant->id,

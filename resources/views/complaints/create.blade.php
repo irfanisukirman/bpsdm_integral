@@ -70,7 +70,7 @@
             @endif
             @include('complaints.message-fields', ['messageLabel' => $mode === 'chat' ? 'Keluhan Kaka' : 'Pesan'])
             @if($mode !== 'report')
-                <p class="text-muted" data-complaint-presence role="status">Memeriksa ketersediaan admin…</p>
+                <p data-complaint-presence role="status">Memeriksa ketersediaan admin…</p>
             @endif
             @if($guest && $mode !== 'chat')
                 <p class="text-muted">Setelah laporan dikirim, simpan tautan atau kode pelacakan untuk melihat balasan tanpa login.</p>

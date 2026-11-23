@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
@@ -32,13 +30,13 @@ class EvaluationFormL1 extends Model
     }
     public function opensAt(): ?Carbon
     {
+        $openingDate = $this->training?->evaluation_l1_opens_on;
         if ($this->type === 'narasumber') {
             $schedule = $this->schedule;
-            if (!$schedule || !$schedule->pengajar_id || !$schedule->date || !$schedule->end_time) return null;
-            return Carbon::parse($schedule->date.' '.$schedule->end_time, 'Asia/Jakarta');
+            if (!$schedule?->pengajar_id) return null;
         }
-        $training = $this->training;
-        return $training?->tgl_selesai ? Carbon::parse($training->tgl_selesai, 'Asia/Jakarta')->startOfDay() : null;
+
+        return $openingDate ? Carbon::parse($openingDate->toDateString(), 'Asia/Jakarta') : null;
     }
 
     public function isOpen(): bool

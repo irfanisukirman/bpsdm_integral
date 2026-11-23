@@ -7,6 +7,9 @@ use Carbon\Carbon;
 
 class Training extends Model
 {
+    public const COOPERATION_OPTIONS = ['APBD Provinsi/Mandiri', 'Kerjasama/Fasilitasi', 'Kerjasama/Pengiriman'];
+    public const FUNDING_SOURCE_OPTIONS = ['APBN', 'APBD', 'APBD Kab/Kota'];
+
     public function getProgramEvaluasiAttribute($value): string
     {
         return \App\Support\EvaluationProgram::normalize($value);
@@ -39,14 +42,21 @@ class Training extends Model
         'metode',
         'lokasi',
         'angkatan',
+        'kerjasama',
+        'sumber_anggaran',
         'jumlah_peserta',
         'jp',
         'tgl_mulai',
         'tgl_selesai',
+        'evaluation_l1_opens_on',
+        'evaluation_l34_opens_on',
         'created_by',
     ];
 
-    protected $casts = ['l34_report_signatories' => 'array', 'monitoring_report_signatories' => 'array'];
+    protected $casts = [
+        'l34_report_signatories' => 'array', 'monitoring_report_signatories' => 'array',
+        'evaluation_l1_opens_on' => 'date', 'evaluation_l34_opens_on' => 'date',
+    ];
 
     public function monitoringReportSignatories(): array
     {
@@ -133,30 +143,30 @@ class Training extends Model
             ->first(); // Mengambil sesi pertama yang cocok
     }
 
-    public function getTglSebarL34Attribute()
+    public function getTglSebarL34Attribute(): ?Carbon
     {
-        $selesai = Carbon::parse($this->tgl_selesai);
+        return $this->evaluation_l34_opens_on
+            ? Carbon::parse($this->evaluation_l34_opens_on->toDateString(), 'Asia/Jakarta')
+            : null;
+    }
 
-        // Program manajerial dievaluasi satu tahun setelah pelatihan,
-        // terlepas dari bidang yang menjadi penyelenggara.
-        $program = strtoupper(trim((string) ($this->program_evaluasi ?: 'Teknis')));
-        if (\App\Support\EvaluationProgram::isManagerial($program)) {
-            return $selesai->addYear();
-        }
+    public function isL34Open(): bool
+    {
+        $opensAt = $this->tgl_sebar_l34;
 
-        return $selesai->addMonths(4);
+        return $opensAt !== null && now('Asia/Jakarta')->greaterThanOrEqualTo($opensAt);
     }
 
     /**
      * Menghitung Sisa Hari Menuju Sebar Kuisioner
      */
-    public function getSisaHariSebarAttribute()
+    public function getSisaHariSebarAttribute(): ?int
     {
         $today = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
-        $target = $this->tgl_sebar_l34->startOfDay();
+        $target = $this->tgl_sebar_l34;
 
         // Menghasilkan angka positif jika masa depan, negatif jika sudah lewat
-        return (int) $today->diffInDays($target, false);
+        return $target ? (int) $today->diffInDays($target, false) : null;
     }
     
     protected static function boot() {

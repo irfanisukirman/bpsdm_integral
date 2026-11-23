@@ -44,7 +44,7 @@ class EvaluationL1Export implements FromArray, WithStyles, WithColumnWidths, Wit
     {
         $form = $this->form;
         $training = $form->training;
-        $questions = Question::where('category', 'l1_' . $form->type)->get();
+        $questions = Question::forTraining($training, 'l1_'.$form->type, includeHistorical: true)->get();
         $participants = Participant::where('training_id', $training->id)->orderBy('name', 'asc')->get();
 
         // 1. HEADER INFORMASI

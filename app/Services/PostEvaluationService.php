@@ -9,6 +9,7 @@ use App\Models\PostEvaluationSetting;
 use App\Models\Question;
 use App\Models\Training;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class PostEvaluationService
@@ -198,16 +199,23 @@ class PostEvaluationService
         return $this->surveyRows($training, $answers, $this->automaticSurveySources($training, $questions));
     }
 
+    public function visibleParticipants(Training $training, User $user): Builder
+    {
+        return Participant::where('training_id', $training->id)->where('registration_status', 'approved')
+            ->when(! $this->manages($user, $training), fn ($query) => $query->whereIn('participants.id',
+                PostEvaluationInterview::where('training_id', $training->id)
+                    ->whereIn('team_id', $this->teamIds($user, $training))->select('participant_id')));
+    }
+
     public function people(Training $t, ?User $user = null): array
     {
         $questions = $this->questions($t)->keyBy('id');
         $sources = $this->automaticSurveySources($t, $questions);
-        $participants = Participant::with('alumniProfile')->where('training_id', $t->id)->where('registration_status', 'approved')->orderBy('name')->get();
-        $interviews = PostEvaluationInterview::where('training_id', $t->id)->get()->keyBy('participant_id');
-        if ($user && ! $this->manages($user, $t)) {
-            $teams = $this->teamIds($user, $t);
-            $participants = $participants->filter(fn ($p) => $interviews->has($p->id) && $teams->contains($interviews[$p->id]->team_id));
-        }
+        $participantQuery = $user ? $this->visibleParticipants($t, $user)
+            : Participant::where('training_id', $t->id)->where('registration_status', 'approved');
+        $participants = $participantQuery->with('alumniProfile')->orderBy('name')->get();
+        $interviews = PostEvaluationInterview::where('training_id', $t->id)
+            ->whereIn('participant_id', $participants->pluck('id'))->get()->keyBy('participant_id');
         $results = EvaluationResultL34::with('question')->where('training_id', $t->id)->whereIn('participant_id', $participants->pluck('id'))->whereIn('question_id', $questions->keys())->whereIn('evaluator_role', $t->evaluationRoles())->orderBy('id')->get()->groupBy('participant_id');
         $rubric = $this->rubric($t);
         $teams = DB::table('post_evaluation_teams')->where('training_id', $t->id)->pluck('name', 'id');
@@ -228,11 +236,27 @@ class PostEvaluationService
 
             return ['participant' => $p, 'interview' => $iv, 'team' => $teams[$iv?->team_id] ?? 'Belum dibagi', 'answers' => $answers,
                 'roles' => collect($t->evaluationRoles())->mapWithKeys(fn ($r) => [$r => $answers->where('evaluator_role', $r)->isNotEmpty()])->all(),
-                'survey' => $survey, 'coverage' => $coverage, 'survey_average' => $this->average($survey), 'scores' => $scores,
+                'survey' => $survey, 'coverage' => $coverage, 'survey_average' => $this->average($survey),
+                'supervisor_survey_average' => $this->average($surveyRows->where('role', 'atasan')->pluck('converted')->all()),
+                'scores' => $scores,
                 'continuation' => $iv?->continuation ?? array_fill(0, 5, null),
                 'interview_average' => $this->average(array_slice($scores, 1, 3)), 'weighted' => $weighted,
                 'partial' => count(array_filter($survey, fn ($v) => $v !== null)) < 3 || collect($coverage)->contains(fn ($c) => $c['filled'] < $c['expected'])];
         })->values()->all();
+    }
+
+    public function annualSummaryRow(Training $training, User $user): array
+    {
+        $people = $this->people($training, $user);
+
+        return [
+            'training' => $training,
+            'total' => count($people),
+            'survey' => $this->histogram(array_column($people, 'survey_average')),
+            'supervisor_survey' => $this->histogram(array_column($people, 'supervisor_survey_average')),
+            'interview' => $this->histogram(array_column($people, 'interview_average')),
+            'completed' => count(array_filter($people, fn ($person) => $person['interview']?->status === 'completed')),
+        ];
     }
 
     public function continuationRecap(array $people): array
@@ -253,6 +277,19 @@ class PostEvaluationService
                 'draft'=>$draft, 'average_yes'=>$this->average($values), 'percentage_filled'=>count($values),
                 'distribution_yes'=>$this->histogram($values)['counts']];
         }, self::CRITERIA, range(0, 4));
+    }
+
+    public function trainingContinuationRecap(Training $training, User $user): array
+    {
+        $ids = $this->visibleParticipants($training, $user)->pluck('participants.id');
+        $interviews = PostEvaluationInterview::where('training_id', $training->id)
+            ->whereIn('participant_id', $ids)->get(['participant_id', 'continuation', 'scores', 'status'])->keyBy('participant_id');
+
+        return $this->continuationRecap($ids->map(function ($id) use ($interviews) {
+            $interview = $interviews->get($id);
+
+            return ['interview' => $interview, 'continuation' => $interview?->continuation, 'scores' => $interview?->scores];
+        })->all());
     }
 
     public function histogram(array $values): array

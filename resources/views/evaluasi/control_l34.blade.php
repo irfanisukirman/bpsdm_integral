@@ -27,7 +27,10 @@
                         $gatewayLink = route('public.l34.gateway', $t->id);
                         
                         // Penentuan Warna & Status
-                        if($sisa <= 0) {
+                        if($sisa === null) {
+                            $colorClass = 'bg-label-secondary';
+                            $statusText = 'BELUM DIJADWALKAN';
+                        } elseif($sisa <= 0) {
                             $colorClass = 'bg-label-danger';
                             $statusText = 'WAKTUNYA SEBAR';
                         } elseif($sisa <= 7) {
@@ -41,11 +44,10 @@
                     <tr>
                         <td>
                             <span class="fw-bold text-dark">{{ $t->nama_pelatihan }}</span><br>
-                            <small class="text-muted">Target: {{ \App\Support\EvaluationProgram::isManagerial($t->program_evaluasi) ? '1 Tahun' : '4 Bulan' }} pasca pelatihan</small>
                         </td>
                         <td>
                             <div class="d-flex flex-column">
-                                <span class="fw-bold">{{ $t->tgl_sebar_l34->translatedFormat('d F Y') }}</span>
+                                <span class="fw-bold">{{ $t->tgl_sebar_l34?->translatedFormat('d F Y') ?? 'Belum ditetapkan' }}</span>
                                 <small class="text-muted">Selesai: {{ \Carbon\Carbon::parse($t->tgl_selesai)->format('d/m/y') }}</small>
                             </div>
                         </td>
@@ -55,7 +57,9 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            @if($sisa <= 7)
+                            @if($sisa === null)
+                                <a href="{{ route('evall34.index', $t) }}#jadwal-evaluasi" class="btn btn-sm btn-outline-primary">Atur Jadwal</a>
+                            @elseif($sisa <= 7)
                                 {{-- Tombol Terbuka 1 Minggu Sebelumnya --}}
                                 <div class="btn-group">
                                     <button class="btn btn-sm btn-primary" onclick="copyToClipboard('{{ $gatewayLink }}', this)">

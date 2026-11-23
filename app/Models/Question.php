@@ -67,10 +67,15 @@ class Question extends Model
     public function scopeForTraining($query, Training $training, ?string $category = null, bool $includeHistorical = false)
     {
         $category ??= '';
-        $query->where(function ($active) use ($includeHistorical, $training) {
+        $query->where(function ($active) use ($includeHistorical, $training, $category) {
             $active->where('is_active', true);
             if ($includeHistorical) {
-                $active->orWhereIn('id', EvaluationResultL34::where('training_id', $training->id)->whereNotNull('question_id')->select('question_id'));
+                $results = match ($category) {
+                    'l1_penyelenggara' => EvaluationResultL1::whereNull('schedule_id'),
+                    'l1_narasumber' => EvaluationResultL1::whereNotNull('schedule_id'),
+                    default => EvaluationResultL34::query(),
+                };
+                $active->orWhereIn('id', $results->where('training_id', $training->id)->whereNotNull('question_id')->select('question_id'));
             }
         });
         $query->orderByRaw('COALESCE(source_order, id)');
@@ -88,7 +93,8 @@ class Question extends Model
                     ->orWhere('bidang', 'Semua Bidang');
 
                 $program = strtoupper(trim((string) ($training->program_evaluasi ?: 'Teknis')));
-                if (($category === '' || str_starts_with($category, 'l34_')) && EvaluationProgram::isManagerial($program)) {
+                if (($category === '' || str_starts_with($category, 'l34_')) && EvaluationProgram::isManagerial($program)
+                    || ($program === 'TEKNIS' && str_starts_with($category, 'l34_'))) {
                     $q->orWhere('bidang', Bidang::resolve('Bidang Pengembangan Kompetensi Manajerial'));
                 }
             })

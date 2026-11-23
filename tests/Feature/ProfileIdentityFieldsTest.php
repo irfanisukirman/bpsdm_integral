@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\InstitutionMunicipality;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,10 +41,84 @@ class ProfileIdentityFieldsTest extends TestCase
         $this->assertSame('199001012020011001', $user->nip);
         $this->assertSame('3201010101900001', $user->nik);
         $this->assertSame($user->nip, $user->nip_nik);
+        $this->assertSame('province', $user->institution_scope);
         $this->assertSame('Bandung',$user->birth_place);
         $this->assertSame('1990-01-01',$user->birth_date->format('Y-m-d'));
         $this->assertSame('III/a',$user->golongan);
         $this->assertSame('Jl. Ir. H. Juanda No. 1, Bandung',$user->address);
+    }
+
+    public function test_profile_saves_manual_institutions_and_clears_unrelated_master_ids(): void
+    {
+        $user = User::factory()->create(['role' => 'participant']);
+        $municipality = InstitutionMunicipality::where('name', 'Kabupaten Bandung')->firstOrFail();
+        $payload = $this->payload([
+            'institution_scope' => 'municipality',
+            'institution_municipality_id' => $municipality->id,
+            'institution_name' => 'Dinas Pendidikan Kabupaten Bandung',
+        ]);
+
+        $this->actingAs($user)->get(route('participant.profile.complete'))
+            ->assertOk()->assertSee('Pemerintah Kabupaten/Kota Jawa Barat')->assertSee($municipality->name);
+        $this->post(route('participant.profile.store'), array_replace($payload, ['institution_name' => '']))
+            ->assertSessionHasErrors('institution_name');
+        $this->post(route('participant.profile.store'), $payload)
+            ->assertSessionHasNoErrors()->assertRedirect(route('participant.dashboard'));
+
+        $user->refresh();
+        $this->assertSame('municipality', $user->institution_scope);
+        $this->assertEquals($municipality->id, $user->institution_municipality_id);
+        $this->assertSame('Dinas Pendidikan Kabupaten Bandung', $user->instansi);
+        $this->assertNull($user->institution_id);
+        $this->assertSame('KOTA BANDUNG', $user->kota);
+
+        $this->put(route('profile.update'), array_replace($payload, [
+            'institution_scope' => 'other',
+            'institution_name' => 'Universitas Contoh',
+        ]))->assertSessionHasNoErrors()->assertSessionHas('profile_saved');
+        $user->refresh();
+        $this->assertSame('other', $user->institution_scope);
+        $this->assertSame('Universitas Contoh', $user->instansi);
+        $this->assertNull($user->institution_municipality_id);
+    }
+
+    public function test_superadmin_manages_municipalities_and_inactive_options_are_rejected(): void
+    {
+        $admin = User::factory()->create(['role' => 'superadmin']);
+        $this->actingAs($admin)->get(route('workforce-masters.index'))->assertOk()->assertSee('Kabupaten/Kota Jawa Barat');
+        $this->post(route('workforce-masters.municipalities.store'), ['name' => 'Kota Uji'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('workforce-masters.index', ['tab' => 'kabupaten-kota']));
+        $municipality = InstitutionMunicipality::where('name', 'Kota Uji')->firstOrFail();
+        $this->put(route('workforce-masters.municipalities.update', $municipality), [
+            'name' => 'Kota Uji Baru',
+            'is_active' => false,
+        ])->assertSessionHasNoErrors()->assertRedirect(route('workforce-masters.index', ['tab' => 'kabupaten-kota']));
+        $this->assertFalse($municipality->fresh()->is_active);
+
+        $participant = User::factory()->create(['role' => 'participant']);
+        $this->actingAs($participant)->post(route('participant.profile.store'), $this->payload([
+            'institution_scope' => 'municipality',
+            'institution_municipality_id' => $municipality->id,
+            'institution_name' => 'Instansi Uji',
+        ]))->assertSessionHasErrors('institution_municipality_id');
+    }
+
+    public function test_workforce_master_saves_institution_and_status_on_their_respective_tabs(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'superadmin']));
+
+        $institutions = route('workforce-masters.index', ['tab' => 'instansi']);
+        $this->get($institutions)->assertOk()->assertSee('Daftar Perangkat Daerah/Instansi')
+            ->assertDontSee('Kabupaten/Kota Jawa Barat');
+        $this->post(route('workforce-masters.institutions.store'), ['name' => 'Instansi Uji'])
+            ->assertSessionHasNoErrors()->assertRedirect($institutions);
+
+        $statuses = route('workforce-masters.index', ['tab' => 'status-kepegawaian']);
+        $this->get($statuses)->assertOk()->assertSee('Tambah Status Kepegawaian')
+            ->assertDontSee('Daftar Perangkat Daerah/Instansi');
+        $this->post(route('workforce-masters.statuses.store'), ['name' => 'Status Uji', 'code' => 'UJI'])
+            ->assertSessionHasNoErrors()->assertRedirect($statuses);
     }
 
     public function test_public_registration_ignores_requested_role_and_defaults_to_participant(): void
@@ -79,11 +154,13 @@ class ProfileIdentityFieldsTest extends TestCase
     {
         \Illuminate\Support\Facades\Cache::flush();
         \Illuminate\Support\Facades\Http::fake(['https://nominatim.openstreetmap.org/search*' => \Illuminate\Support\Facades\Http::response([
-            ['name'=>'Desa Ciburial','display_name'=>'Ciburial, Bandung, Jawa Barat','lat'=>'-6.86','lon'=>'107.63','type'=>'village'],
+            ['name'=>'Desa Ciburial','display_name'=>'Ciburial, Bandung, Jawa Barat','lat'=>'-6.86','lon'=>'107.63','type'=>'village',
+                'boundingbox'=>['-6.87', '-6.85', '107.62', '107.64']],
         ])]);
         $user = User::factory()->create(['role'=>'participant','must_complete_profile'=>true,'must_change_password'=>true]);
         $this->actingAs($user)->getJson(route('profile.address-search', ['q'=>'Desa Ciburial']))
-            ->assertOk()->assertJsonPath('data.0.name', 'Desa Ciburial');
+            ->assertOk()->assertJsonPath('data.0.name', 'Desa Ciburial')
+            ->assertJsonPath('data.0.boundingbox', ['-6.87', '-6.85', '107.62', '107.64']);
     }
 
     public function test_profile_page_renders_for_participant_and_admin(): void
@@ -93,6 +170,12 @@ class ProfileIdentityFieldsTest extends TestCase
             $response = $this->actingAs($user)->get(route('profile.edit'))->assertOk();
             if ($role === 'participant') {
                 $response->assertSee('name="nip"', false)->assertSee('name="nik"', false)->assertDontSee('name="nip_nik"', false);
+                $this->assertMatchesRegularExpression('/container-p-y"\s+data-profile-mode="view"/', $response->getContent());
+                $response->assertSee('Edit Profil')
+                    ->assertSee('id="profileFields" disabled', false)->assertSee('id="profilePasswordFields" disabled', false);
+            } else {
+                $this->assertDoesNotMatchRegularExpression('/container-p-y"\s+data-profile-mode=/', $response->getContent());
+                $response->assertDontSee('id="profileFields" disabled', false);
             }
         }
     }
@@ -101,10 +184,33 @@ class ProfileIdentityFieldsTest extends TestCase
     {
         $user = User::factory()->create(['role'=>'participant']);
         $this->actingAs($user)->put(route('profile.update'), $this->payload(['nik'=>'']))->assertSessionHasErrors('nik');
-        $this->put(route('profile.update'), $this->payload())->assertSessionHasNoErrors()->assertRedirect();
+        $this->get(route('profile.edit'))->assertOk()->assertSee('data-profile-mode="edit"', false)
+            ->assertDontSee('id="profileFields" disabled', false);
+        $this->from(route('profile.edit'))->put(route('profile.update'), $this->payload())
+            ->assertSessionHasNoErrors()->assertSessionHas('profile_saved')->assertRedirect(route('profile.edit'));
+        $this->get(route('profile.edit'))->assertOk()->assertSee('data-profile-mode="view"', false)
+            ->assertSee('id="profileSavedModal"', false)->assertSee('Berhasil disimpan');
         $this->assertSame('199001012020011001', $user->fresh()->nip);
         $this->assertSame('3201010101900001', $user->fresh()->nik);
         $this->assertSame($user->fresh()->nip, $user->fresh()->nip_nik);
+    }
+
+    public function test_profile_photo_is_replaced_on_save(): void
+    {
+        $disk = \Illuminate\Support\Facades\Storage::fake('public');
+        $previous = 'avatars/foto-lama.jpg';
+        $disk->put($previous, 'foto lama');
+        $user = User::factory()->create(['role' => 'participant', 'profile_photo' => $previous]);
+
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk()
+            ->assertSee('id="profilePhotoCropModal"', false);
+        $disk->assertExists($previous);
+        $this->put(route('profile.update'), $this->payload([
+            'profile_photo' => \Illuminate\Http\UploadedFile::fake()->image('foto-profil.jpg', 512, 512),
+        ]))->assertSessionHasNoErrors()->assertSessionHas('profile_saved');
+
+        $disk->assertExists($user->fresh()->profile_photo);
+        $disk->assertMissing($previous);
     }
 
     public function test_backfill_copies_only_unambiguous_legacy_identifiers(): void

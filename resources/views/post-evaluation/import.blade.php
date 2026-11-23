@@ -14,9 +14,12 @@
 <details id="importUploadPanel" class="card import-upload mb-4" @if(!$importPreview) open @endif>
     <summary class="p-3 p-md-4"><span><strong class="d-block">{{ $importPreview?'Ganti atau periksa ulang file':'Import Data Evaluasi Historis' }}</strong><small class="text-muted">{{ $importPreview?'Unggah kembali setelah memperbaiki file, peserta, atau bank soal.':'Daftarkan dan setujui peserta di pelatihan ini sebelum mengunggah hasil evaluasi.' }}</small></span><i class="bx bx-chevron-down fs-4" aria-hidden="true"></i></summary>
     <div class="px-3 px-md-4 pb-4">
-        <form method="POST" enctype="multipart/form-data" action="{{ route('post-evaluation.import.preview',$training) }}" class="row g-3 align-items-end">@csrf
+        <form method="POST" enctype="multipart/form-data" action="{{ route('post-evaluation.import.preview', [$training] + $origin) }}" class="row g-3 align-items-end">@csrf
             <div class="col-md-9"><label class="form-label" for="pascaWorkbook">File Excel hasil evaluasi</label><input id="pascaWorkbook" name="workbook" type="file" class="form-control" accept=".xlsx" required><small class="text-muted d-block mt-2">XLSX maksimal 20 MB. Sheet wajib: Jawaban dan Data Peserta. Nama peserta harus memuat NIP/NIK 16 atau 18 digit. Informasi Umum digunakan untuk memeriksa program.</small></div>
             <div class="col-md-3"><button type="submit" class="btn btn-primary w-100"><i class="bx bx-search-alt me-1" aria-hidden="true"></i>Periksa File</button></div>
+            @if($training->program_evaluasi === 'Teknis')
+                <div class="col-12 small text-muted">Format Teknis mendukung blok Alumni PNS dan Non-ASN, Atasan Alumni, serta Rekan Alumni dalam satu file.</div>
+            @endif
         </form>
     </div>
 </details>
@@ -52,10 +55,10 @@
             <small class="text-muted d-block mb-1">Pelatihan tujuan</small><strong class="d-block import-target-name mb-2">{{ $training->nama_pelatihan }}</strong><div class="d-flex gap-2 flex-wrap mb-3"><span class="badge bg-label-primary">{{ $training->program_evaluasi }}</span><span class="badge bg-label-secondary">Angkatan {{ $training->angkatan }}</span></div>
             <p class="small text-muted">Peserta dicocokkan berdasarkan NIP/NIK. Jawaban terisi tetap dipertahankan; akun, Proper dan penilaian wawancara tidak berubah.</p>
             @if($imported)
-                <div class="alert alert-success small mb-3">Jawaban sudah tersimpan. Lihat hasilnya pada tab Jawaban atau Ringkasan.</div><a class="btn btn-outline-primary w-100" href="{{ route('post-evaluation.show',[$training,'tab'=>'jawaban']) }}">Lihat Jawaban</a>
+                <div class="alert alert-success small mb-3">Jawaban sudah tersimpan. Lihat hasilnya pada tab Jawaban atau Ringkasan.</div><a class="btn btn-outline-primary w-100" href="{{ route('post-evaluation.show', [$training, 'tab' => 'jawaban'] + $origin) }}">Lihat Jawaban</a>
             @else
                 @if($expired)<div class="alert alert-warning small">Pratinjau sudah melewati 24 jam. Unggah dan periksa ulang file sebelum menyimpan.</div>@elseif(count($report['errors']))<div class="alert alert-warning small">Tombol simpan aktif setelah semua masalah pencocokan diperbaiki.</div>@elseif($counts['new']===0)<div class="alert alert-info small">Tidak ada jawaban baru untuk disimpan.</div>@endif
-                <form method="POST" action="{{ route('post-evaluation.import.store',[$training,$importPreview->id]) }}">@csrf
+                <form method="POST" action="{{ route('post-evaluation.import.store', [$training, $importPreview->id] + $origin) }}">@csrf
                     <div class="form-check mb-3"><input id="confirmImportTraining" type="checkbox" class="form-check-input" name="confirm_training" value="1" required @disabled($blocked)><label class="form-check-label small" for="confirmImportTraining">Saya sudah memeriksa hasil pencocokan dan memastikan data ini untuk pelatihan tujuan di atas.</label></div>
                     <button type="submit" class="btn btn-success w-100" @disabled($blocked)><i class="bx bx-check-circle me-1" aria-hidden="true"></i>Simpan Hasil Import</button>
                 </form>

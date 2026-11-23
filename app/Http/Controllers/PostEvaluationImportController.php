@@ -37,7 +37,7 @@ class PostEvaluationImportController extends Controller
             throw $e;
         }
 
-        return redirect()->route('post-evaluation.show', [$training, 'tab' => 'import', 'preview' => $id]);
+        return redirect()->route('post-evaluation.show', [$training, 'tab' => 'import', 'preview' => $id] + $request->only('from'));
     }
 
     public function store(Request $request, Training $training, string $import, PostEvaluationService $access, PostEvaluationImportService $importer)
@@ -85,6 +85,6 @@ class PostEvaluationImportController extends Controller
             return $count;
         });
 
-        return redirect()->route('post-evaluation.show',[$training, 'tab' => 'import', 'preview' => $import])->with('success',$count.' jawaban evaluasi berhasil disimpan. Data peserta, akun, Proper, tim dan nilai wawancara tetap dipertahankan.');
+        return redirect()->route('post-evaluation.show',[$training, 'tab' => 'import', 'preview' => $import] + $request->only('from'))->with('success',$count.' jawaban evaluasi berhasil disimpan. Data peserta, akun, Proper, tim dan nilai wawancara tetap dipertahankan.');
     }
 }

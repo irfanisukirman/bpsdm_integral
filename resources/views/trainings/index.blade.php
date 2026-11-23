@@ -11,7 +11,12 @@
 <div class="training-portfolio">
     <div class="portfolio-header mb-4">
         <div class="min-w-0"><span class="portfolio-kicker">PENGELOLAAN PROGRAM</span><h3 class="fw-bold mb-1">Daftar Pelatihan</h3><p class="text-muted mb-0">Pantau seluruh program pelatihan dan buka pusat kendali dari satu halaman.</p></div>
-        <div class="dropdown flex-shrink-0"><button class="btn btn-primary dropdown-toggle px-4" data-bs-toggle="dropdown"><i class="bx bx-plus me-1"></i>Buat Pelatihan</button><ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><h6 class="dropdown-header">Pilih model pelatihan</h6></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'standar']) }}"><span class="create-option-icon bg-label-primary"><i class="bx bx-chalkboard"></i></span><span><strong class="d-block">Model Standar</strong><small class="text-muted">Satu metode pelaksanaan</small></span></a></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'blended']) }}"><span class="create-option-icon bg-label-warning"><i class="bx bx-sync"></i></span><span><strong class="d-block">Blended Learning</strong><small class="text-muted">Beberapa tahapan pembelajaran</small></span></a></li></ul></div>
+        <div class="d-flex flex-wrap gap-2">
+            @if(in_array(auth()->user()->role, ['superadmin', 'admin_bidang'], true))
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#annualTrainingSummary"><i class="bx bx-download me-1" aria-hidden="true"></i>Ekspor Ringkasan Tahunan</button>
+            @endif
+            <div class="dropdown flex-shrink-0"><button class="btn btn-primary dropdown-toggle px-4" data-bs-toggle="dropdown"><i class="bx bx-plus me-1"></i>Buat Pelatihan</button><ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><h6 class="dropdown-header">Pilih model pelatihan</h6></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'standar']) }}"><span class="create-option-icon bg-label-primary"><i class="bx bx-chalkboard"></i></span><span><strong class="d-block">Model Standar</strong><small class="text-muted">Satu metode pelaksanaan</small></span></a></li><li><a class="dropdown-item py-2" href="{{ route('trainings.create',['model'=>'blended']) }}"><span class="create-option-icon bg-label-warning"><i class="bx bx-sync"></i></span><span><strong class="d-block">Blended Learning</strong><small class="text-muted">Beberapa tahapan pembelajaran</small></span></a></li></ul></div>
+        </div>
     </div>
 
     @if(session('success'))<div class="alert alert-success alert-dismissible border-0 shadow-sm"><i class="bx bx-check-circle me-2"></i>{{ session('success') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>@endif
@@ -74,6 +79,36 @@
 
     @if($trainings->hasPages())<div class="card border-0 shadow-sm"><div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><small class="text-muted">Halaman {{ $trainings->currentPage() }} dari {{ $trainings->lastPage() }}</small><div>{{ $trainings->onEachSide(1)->links() }}</div></div></div>@endif
 </div>
+
+    @if(in_array(auth()->user()->role, ['superadmin', 'admin_bidang'], true))
+    <div class="modal fade" id="annualTrainingSummary" tabindex="-1" aria-labelledby="annualTrainingSummaryTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="GET" action="{{ route('trainings.export-summary') }}" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="annualTrainingSummaryTitle">Ekspor Ringkasan Tahunan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" for="annualTrainingYear">Tahun Mulai Pelatihan</label>
+                    @php
+                        $exportYears = $years->isEmpty() ? collect([$today->year]) : $years;
+                        $exportYear = request()->integer('year') ?: ($exportYears->contains($today->year) ? $today->year : $exportYears->first());
+                    @endphp
+                    <select id="annualTrainingYear" name="year" class="form-select" required>
+                        @foreach($exportYears as $year)
+                            <option value="{{ $year }}" @selected((int) $exportYear === (int) $year)>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                    <p class="form-text mb-0">Jumlah peserta dihitung dari pendaftaran yang disetujui.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary" type="submit"><i class="bx bx-download me-1" aria-hidden="true"></i>Unduh Excel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
 <div class="modal fade" id="deleteTrainingModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-header bg-label-danger border-0 p-4"><div class="d-flex align-items-center gap-3"><span class="delete-icon"><i class="bx bx-trash"></i></span><div><small class="text-danger fw-bold">TINDAKAN PERMANEN</small><h5 class="modal-title fw-bold mb-0">Hapus Pelatihan?</h5></div></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><p class="text-muted mb-2">Anda akan menghapus pelatihan:</p><div class="delete-target" id="deleteTrainingName">-</div><div class="alert alert-warning border-0 mt-3 mb-0"><i class="bx bx-error-circle me-1"></i>Seluruh data pelatihan terkait akan ikut dihapus. Akun pengguna tetap aman.</div></div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-danger" id="confirmDeleteTraining"><i class="bx bx-trash me-1"></i>Ya, Hapus Seluruh Data</button></div></div></div></div>
 

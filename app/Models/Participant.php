@@ -79,6 +79,11 @@ class Participant extends Model
         return $this->hasOne(EvaluationResultL2::class, 'participant_id');
     }
 
+    public function evaluationResultsL1()
+    {
+        return $this->hasMany(EvaluationResultL1::class, 'participant_id');
+    }
+
     public function evaluationResultsL34()
     {
         return $this->hasMany(EvaluationResultL34::class, 'participant_id');
@@ -221,8 +226,7 @@ class Participant extends Model
     {
         $training = $this->relationLoaded('training') ? $this->training : $this->training()->first();
 
-        return $training
-            && now()->startOfDay()->greaterThanOrEqualTo($training->tgl_sebar_l34->copy()->startOfDay());
+        return $training?->isL34Open() ?? false;
     }
 
     public function getIsAllFinishedAttribute()

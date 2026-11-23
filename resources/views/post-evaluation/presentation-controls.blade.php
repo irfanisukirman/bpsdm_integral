@@ -1,6 +1,6 @@
 <header class="expose-topbar">
 <div class="expose-topbar-main"><div class="expose-topbar-title"><span>RUANG EKSPOSE</span><strong>{{ $summary['training'] }}</strong></div><div class="expose-actions">
-@if(!$public)<a href="{{ route('post-evaluation.show', request()->route('training')) }}">&larr; Hasil Evaluasi</a><a href="{{ route('post-evaluation.narrative.edit', request()->route('training')) }}">Edit Narasi</a>@endif
+@if(!$public)<a href="{{ route('post-evaluation.show', [request()->route('training')] + request()->only('from')) }}">&larr; Hasil Evaluasi</a><a href="{{ route('post-evaluation.narrative.edit', [request()->route('training')] + request()->only('from')) }}">Edit Narasi</a>@endif
 <a class="expose-download" href="{{ $public ? route('post-evaluation.public.pdf',request()->route('token')) : route('post-evaluation.pdf',request()->route('training')) }}">Unduh PDF &darr;</a>
 </div></div>
 <nav class="controls" aria-label="Kontrol ekspose"><div class="expose-slide-nav"><button id="previousSlide" type="button" aria-label="Slide sebelumnya">&larr;</button><select id="slideSelect" aria-label="Pilih halaman"></select><button id="nextSlide" type="button" aria-label="Slide berikutnya">&rarr;</button><span id="slidePosition" aria-live="polite"></span></div><div class="expose-view-actions"><button id="fullscreenSlide" type="button">Layar penuh</button><button type="button" onclick="window.print()">Cetak</button></div></nav>

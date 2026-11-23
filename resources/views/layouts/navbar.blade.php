@@ -58,7 +58,7 @@
                                         </span>
                                         <span>
                                             <span class="d-block fw-semibold text-dark">Pengaduan menunggu</span>
-                                            <small class="text-muted d-block"><span data-complaint-bell-count>{{ $waitingComplaints }}</span> tiket dengan pengaduan atau pesan baru.</small>
+                                            <small class="text-muted d-block"><span data-complaint-bell-count>{{ $waitingComplaints }}</span> tiket pengaduan atau chat baru.</small>
                                         </span>
                                     </div>
                                 </a>

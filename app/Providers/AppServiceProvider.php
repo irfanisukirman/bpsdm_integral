@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             $request = request();
             if (! $request->attributes->has('_integral_notifications')) {
                 $center = app(\App\Services\NotificationCenter::class);
-                $items = $center->forUser($user, includeChatAlerts: !$request->routeIs('complaints.inbox'));
+                $items = $center->forUser($user);
                 $request->attributes->set('_integral_notifications', [$items, $center->menuCounts($items)]);
             }
             [$items, $counts] = $request->attributes->get('_integral_notifications');

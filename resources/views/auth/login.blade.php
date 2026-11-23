@@ -71,11 +71,6 @@
                     </div>
                 </form>
 
-                <div class="d-flex flex-wrap justify-content-center gap-3 small">
-                    <a href="{{ route('complaints.guest.create', ['category' => 'account']) }}" class="fw-semibold">Pengaduan Kendala Login</a>
-                    <a href="{{ route('complaints.guest.track') }}" class="fw-semibold">Lacak Tiket</a>
-                </div>
-
                 <div class="divider my-4">
                     <div class="divider-text text-muted small text-uppercase">Atau akses cepat</div>
                 </div>

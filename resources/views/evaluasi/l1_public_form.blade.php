@@ -1,26 +1,32 @@
 @extends('layouts.auth')
 
+@section('title', 'Evaluasi Level 1')
+@section('integral_theme', 'light')
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/integral-brand.css') }}?v=20261119-white-canvas">
+@endpush
+
 @section('content')
-<div class="container-xxl py-5">
+<div class="container-xxl py-4 py-md-5 l1-evaluation">
     <div class="row justify-content-center">
         <div class="col-md-11 col-lg-10">
             <div class="card shadow-lg border-0">
-                <div class="alert alert-info border-0 mb-4 shadow-sm py-3">
+                <header class="l1-evaluation-header px-4 py-3">
                     <div class="d-flex align-items-center">
                         @if($type == 'penyelenggara')
                             <i class="bx bx-building me-3 h2 mb-0"></i>
                             <div>
-                                <small class="d-block text-uppercase fw-bold opacity-75">Menilai Objek:</small> 
-                                <span class="h5 fw-bold mb-0">Instansi Penyelenggara Diklat</span>
+                                <small class="l1-evaluation-heading-label">Menilai Objek</small>
+                                <h1 class="l1-evaluation-heading mb-0">Instansi Penyelenggara Diklat</h1>
                             </div>
                         @else
                             <i class="bx bx-user-voice me-3 h2 mb-0"></i>
                             <div>
-                                <small class="d-block text-uppercase fw-bold opacity-75">Menilai Narasumber:</small> 
-                                <span class="h5 fw-bold mb-0">{{ $schedule->pengajar?->name ?? 'Pengajar belum ditentukan' }}</span>
+                                <small class="l1-evaluation-heading-label">Menilai Narasumber</small>
+                                <h1 class="l1-evaluation-heading mb-0">{{ $schedule->pengajar?->name ?? 'Pengajar belum ditentukan' }}</h1>
                                 
                                 <div class="mt-1">
-                                    <span class="badge bg-white text-info shadow-sm me-1">
+                                    <span class="badge bg-white text-primary shadow-sm me-1">
                                         Materi: {{ $schedule->activity }}
                                     </span>
                                     {{-- TAMBAHKAN TANGGAL DI SINI --}}
@@ -31,23 +37,23 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </header>
 
                 <div class="card-body p-4">
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <span class="badge bg-label-primary">{{ $training->bidang }}</span>
-                        <span class="badge bg-label-info">{{ ucfirst($training->metode) }}</span>
+                        <span class="badge bg-label-primary">{{ ucfirst($training->metode) }}</span>
                         <span class="badge bg-label-secondary">Kirkpatrick Level 1</span>
                     </div>
                     <div class="row">
                         <!-- KOLOM KIRI -->
                         <div class="col-md-7 col-lg-8 border-end">
-                            @if(session('success'))
+                            @if(session('evaluation_l1_saved_form') === $activeForm->id)
                                 <div class="text-center py-5">
                                     <i class="bx bx-check-circle text-success mb-3" style="font-size: 5rem;"></i>
                                     <h4 class="text-success fw-bold">Berhasil!</h4>
-                                    <p>{{ session('success') }}</p>
-                                    <button onclick="window.location.reload()" class="btn btn-primary">Kembali ke Form</button>
+                                    <p>Evaluasi berhasil disimpan.</p>
+                                    <a href="{{ request()->fullUrl() }}" class="btn btn-primary">Kembali ke Form</a>
                                 </div>
                             @else
                                 @if($questions->isEmpty())
@@ -66,6 +72,7 @@
                                     @csrf
                                     <input type="hidden" name="schedule_id" value="{{ $sid }}">
 
+                                    <h5 class="fw-bold mb-3">Identitas Peserta</h5>
                                     @if($isSelfService ?? false)
                                         <div class="mb-4 p-3 border border-primary rounded bg-label-primary">
                                             <small class="text-primary fw-bold d-block mb-2">EVALUASI ATAS NAMA</small>
@@ -86,23 +93,29 @@
                                     @endif
 
                                     @foreach($questions as $index => $q)
+                                    @php $answer = old('answers.'.$q->id); @endphp
                                     <div class="question-card mb-5 p-3 border rounded">
-                                        <label class="form-label fw-bold d-block mb-4">{{ $index + 1 }}. {{ strtoupper($q->question_text) }}</label>
+                                        <label class="form-label fw-bold d-block mb-3" for="l1-answer-{{ $q->id }}">
+                                            {{ $index + 1 }}. {{ $q->question_text }}
+                                            <span class="text-danger" aria-label="wajib">*</span>
+                                        </label>
 
                                         @if($q->type == 'slider')
+                                            @php $score = is_numeric($answer) ? max(10, min(100, (int) $answer)) : 10; @endphp
                                             <div class="px-2">
-                                                <input type="range" name="answers[{{ $q->id }}]" 
+                                                <span class="small text-muted d-block mb-2">Pilih nilai</span>
+                                                <input type="range" id="l1-answer-{{ $q->id }}" name="answers[{{ $q->id }}]"
                                                        class="form-range kirk-slider" 
-                                                       min="10" max="100" step="1" value="80"
+                                                       min="10" max="100" step="1" value="{{ $score }}"
                                                        data-qid="{{ $q->id }}">
                                                 
                                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                                    <div class="p-2 bg-primary text-white rounded fw-bold h5 mb-0" id="val-{{ $q->id }}" style="min-width: 50px; text-align: center;">80</div>
-                                                    <span class="fw-bold h5 mb-0" id="lab-{{ $q->id }}" style="color: #71dd37;">Cukup</span>
+                                                    <div class="p-2 bg-primary text-white rounded fw-bold h5 mb-0" id="val-{{ $q->id }}" style="min-width: 50px; text-align: center;">{{ $score }}</div>
+                                                    <span class="fw-bold h5 mb-0" id="lab-{{ $q->id }}">{{ $score === 10 ? 'Sangat Kurang' : 'Cukup' }}</span>
                                                 </div>
                                             </div>
                                         @elseif($q->type == 'dropdown')
-                                            <select name="answers[{{ $q->id }}]" class="form-select border-primary" required>
+                                            <select id="l1-answer-{{ $q->id }}" name="answers[{{ $q->id }}]" class="form-select border-primary" required>
                                                 <option value="">-- Pilih Jawaban --</option>
                                                 @foreach($q->options as $opt)
                                                     <option value="{{ $opt }}">{{ $opt }}</option>
@@ -123,8 +136,9 @@
                                                 @endforeach
                                             </div>
                                         @else
-                                            <textarea name="answers[{{ $q->id }}]" class="form-control" rows="3" placeholder="Isi masukan anda..."></textarea>
+                                            <textarea id="l1-answer-{{ $q->id }}" name="answers[{{ $q->id }}]" class="form-control" rows="3" placeholder="Isi masukan Anda..." required>{{ is_string($answer) ? $answer : '' }}</textarea>
                                         @endif
+                                        @error('answers.'.$q->id)<p class="text-danger small mt-2 mb-0">{{ $message }}</p>@enderror
                                     </div>
                                     @endforeach
 
@@ -163,43 +177,32 @@
     </div>
 </div>
 
-{{-- SCRIPT JQUERY LANGSUNG DI BLADE AGAR PASTI JALAN --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    function getLabel(val) {
-        val = parseInt(val);
-        if (val <= 60) return { l: "Sangat Kurang", c: "#ff3e1d" };
-        if (val <= 70) return { l: "Kurang", c: "#fdac41" };
-        if (val <= 80) return { l: "Cukup", c: "#71dd37" };
-        if (val <= 90) return { l: "Baik", c: "#03c3ec" };
-        return { l: "Sangat Baik", c: "#696cff" };
-    }
-
-    $('.kirk-slider').on('input', function() {
-        const val = $(this).val();
-        const qid = $(this).data('qid');
-        const info = getLabel(val);
-
-        $(`#val-${qid}`).text(val).css('background-color', info.c);
-        $(`#lab-${qid}`).text(info.l).css('color', info.c);
+    document.querySelectorAll('.l1-evaluation .kirk-slider').forEach(slider => {
+        const value = document.getElementById('val-' + slider.dataset.qid);
+        const label = document.getElementById('lab-' + slider.dataset.qid);
+        const update = () => {
+            const score = Number(slider.value);
+            value.textContent = score;
+            label.textContent = score <= 60 ? 'Sangat Kurang' : score <= 70 ? 'Kurang'
+                : score <= 80 ? 'Cukup' : score <= 90 ? 'Baik' : 'Sangat Baik';
+        };
+        slider.addEventListener('input', update);
+        update();
     });
-});
 </script>
 
 <style>
-    body { background-color: #f5f5f9; }
-    .question-card { background: #fff; transition: 0.3s; }
-    .question-card:hover { border-color: #696cff !important; }
-    .kirk-slider { height: 10px; cursor: pointer; }
-    .alert-info {
-        background: linear-gradient(45deg, #03c3ec, #009ef7) !important;
-        color: white !important;
-    }
-    .alert-info .badge {
-        font-size: 0.85rem;
-        padding: 5px 12px;
-        color: #009ef7 !important;
-    }
+    .l1-evaluation-header { background: var(--integral-brand-ink); color: #fff; border-radius: 14px 14px 0 0; }
+    .l1-evaluation-heading-label { display: block; margin-bottom: .25rem; color: #e6f6ec; font-size: .875rem; font-weight: 600; }
+    .l1-evaluation-header .l1-evaluation-heading { color: #fff; font-size: clamp(1.125rem, 2.5vw, 1.5rem); font-weight: 700; line-height: 1.3; }
+    .l1-evaluation .question-card { background: var(--integral-surface); border-color: var(--integral-border) !important; }
+    .l1-evaluation .question-card:focus-within { border-color: var(--integral-brand-accent) !important; }
+    .l1-evaluation .form-range { accent-color: var(--integral-brand); cursor: pointer; }
+    .l1-evaluation .form-range::-webkit-slider-thumb { background: var(--integral-brand); }
+    .l1-evaluation .form-range::-moz-range-thumb { background: var(--integral-brand); }
+    .l1-evaluation .form-range::-webkit-slider-runnable-track { background: var(--integral-brand-soft); }
+    .l1-evaluation .form-range::-moz-range-track { background: var(--integral-brand-soft); }
+    .l1-evaluation [id^="lab-"] { color: var(--integral-brand-ink); }
 </style>
 @endsection

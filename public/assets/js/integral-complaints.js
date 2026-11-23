@@ -17,8 +17,7 @@
     if (!label) return;
     const message = online ? 'Admin online · Chat tersedia' : 'Admin offline · Pengaduan tetap diterima';
     if (label.textContent !== message) label.textContent = message;
-    label.classList.toggle('text-success', online);
-    label.classList.toggle('text-muted', !online);
+    label.dataset.complaintPresence = online ? 'online' : 'offline';
   }
 
   const widget = document.querySelector('.complaint-widget');
@@ -95,7 +94,6 @@
     const bellBadge = document.querySelector('[data-notification-total]');
     const bellCount = document.querySelector('[data-notification-count]');
     const bellEmpty = document.querySelector('[data-notification-empty]');
-    const room = document.querySelector('[data-complaint-staff-room]');
     const inbox = document.querySelector('[data-complaint-staff-inbox]');
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
     const badgeText = count => count > 99 ? '99+' : count;
@@ -103,7 +101,6 @@
       if (document.hidden) return;
       try {
         const endpoint = new URL(staffInbox.dataset.complaintHeartbeat);
-        if (room && document.hasFocus()) endpoint.searchParams.set('active_chat', room.dataset.complaintStaffRoom);
         if (inbox) endpoint.searchParams.set('inbox', '1');
         const { waiting, unread_chat_ids } = await requestJson(endpoint, {
           method: 'POST', headers: { 'X-CSRF-TOKEN': csrf },
@@ -133,10 +130,6 @@
     if (inbox) window.addEventListener('pageshow', event => {
       if (event.persisted) heartbeat();
     });
-    if (room) {
-      window.addEventListener('focus', heartbeat);
-      window.addEventListener('blur', heartbeat);
-    }
   }
 
   document.querySelectorAll('[data-complaint-availability]').forEach(container => {
@@ -165,7 +158,9 @@
         if (latest !== sequence) return;
         updateActions(false);
         showPresence(container, false);
-        container.querySelector('[data-complaint-presence]').textContent = 'Ketersediaan admin belum dapat diperiksa.';
+        const label = container.querySelector('[data-complaint-presence]');
+        label.dataset.complaintPresence = '';
+        label.textContent = 'Ketersediaan admin belum dapat diperiksa.';
       }
     };
     check();
@@ -409,6 +404,7 @@
         status.textContent = 'Tidak tersedia';
         conversation.querySelector('[data-complaint-unavailable]').hidden = false;
       } else if (label) {
+        label.dataset.complaintPresence = '';
         label.textContent = 'Ketersediaan admin belum dapat diperiksa.';
       }
     } finally {

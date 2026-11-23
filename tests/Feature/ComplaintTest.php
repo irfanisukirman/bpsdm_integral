@@ -144,6 +144,11 @@ class ComplaintTest extends TestCase
         $this->actingAs($participant)->post(route('complaints.store', ['mode' => 'chat']), $chatMessage)->assertRedirect();
         $ticket = ComplaintTicket::whereBelongsTo($participant)->firstOrFail();
         $superadmin = User::factory()->create(['role' => 'superadmin']);
+        $initialInbox = $this->actingAs($admin)->get(route('complaints.inbox'))->assertOk()
+            ->assertSee('data-complaint-menu-count', false)->assertSee('data-complaint-bell-entry', false);
+        $this->assertMatchesRegularExpression('/data-complaint-bell-count>4</', $initialInbox->getContent());
+        $this->postJson(route('complaints.heartbeat'), ['inbox' => 1])
+            ->assertJsonPath('waiting', 4)->assertJsonPath('unread_chat_ids', []);
         foreach ([$admin, $superadmin] as $staff) {
             $this->actingAs($staff)->get(route('complaints.show', $ticket))->assertOk()
                 ->assertSee('Siti')->assertSee('BPSDM')->assertSee('Mohon bantuan chat.');
@@ -176,12 +181,13 @@ class ComplaintTest extends TestCase
         $adminWaiting = $notificationCenter->waitingComplaints($admin);
         $superadminWaiting = $notificationCenter->waitingComplaints($superadmin);
         $this->postJson(route('complaints.reply', $ticket), ['message' => 'Ada pertanyaan lanjutan.'])->assertOk();
-        $this->actingAs($admin)->postJson(route('complaints.heartbeat'))->assertJsonPath('waiting', $adminWaiting + 1);
-        $this->postJson(route('complaints.heartbeat'), ['active_chat' => $ticket->id])->assertJsonPath('waiting', $adminWaiting);
+        $this->actingAs($admin)->postJson(route('complaints.heartbeat'))->assertJsonPath('waiting', $adminWaiting);
+        $beforeReading = $this->postJson(route('complaints.heartbeat'), ['inbox' => 1])->json('unread_chat_ids');
+        $this->assertContains($ticket->id, $beforeReading);
         $this->getJson(route('complaints.updates', ['ticket' => $ticket, 'after' => $reply->id]))
             ->assertOk()->assertSee('Ada pertanyaan lanjutan.');
         $this->postJson(route('complaints.heartbeat'))->assertJsonPath('waiting', $adminWaiting);
-        $this->actingAs($superadmin)->postJson(route('complaints.heartbeat'))->assertJsonPath('waiting', $superadminWaiting + 1);
+        $this->actingAs($superadmin)->postJson(route('complaints.heartbeat'))->assertJsonPath('waiting', $superadminWaiting);
         $this->get(route('complaints.inbox', ['read' => 1]))->assertRedirect(route('complaints.inbox'));
         $unreadIds = $this->postJson(route('complaints.heartbeat'), ['inbox' => 1])
             ->assertJsonPath('waiting', 0)->json('unread_chat_ids');

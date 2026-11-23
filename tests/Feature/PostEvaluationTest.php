@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 
 class PostEvaluationTest extends TestCase
@@ -46,6 +49,74 @@ class PostEvaluationTest extends TestCase
     private function interviewData(int $revision = 0): array
     {
         return ['revision' => $revision, 'scores' => [80, 90, 70, 60, 100], 'notes' => ['catatan privat', '', '', '', ''], 'status' => 'completed', 'project' => 'Proyek rahasia'];
+    }
+
+    public function test_annual_summary_filters_by_training_year_and_shows_interview_only_when_scored(): void
+    {
+        [$admin, $training, $participant] = $this->setupData();
+        $otherYear = $training->replicate(['proper_uid', 'invitation_code']);
+        $otherYear->forceFill(['nama_pelatihan' => 'Pelatihan Tahun Lain', 'tgl_mulai' => '2025-01-01', 'tgl_selesai' => '2025-01-02'])->save();
+        $otherTraining = $training->replicate(['proper_uid', 'invitation_code']);
+        $otherTraining->forceFill(['nama_pelatihan' => 'Pelatihan lain di tahun yang sama'])->save();
+        $this->answer($training, $participant, $this->question($training), 'Sesuai');
+        $this->answer($training, $participant, $this->question($training, 'atasan'), 'Sangat Sesuai');
+        $filters = ['tab' => 'ringkasan-tahunan', 'year' => 2024, 'q' => 'Uji Pasca'];
+        $report = route('post-evaluation.index', $filters);
+        $export = route('post-evaluation.index', $filters + ['format' => 'xlsx']);
+
+        $this->actingAs($admin)->get($report)->assertOk()
+            ->assertSee('Ekspor Excel')->assertSee($export)
+            ->assertSee($training->nama_pelatihan)->assertDontSee($otherYear->nama_pelatihan)->assertDontSee($otherTraining->nama_pelatihan)
+            ->assertSee('Rerata Survei Alumni')->assertSee('75,00%')->assertDontSee('Rerata Wawancara');
+        $response = $this->get($export)->assertDownload('ringkasan-evaluasi-pasca-2024.xlsx');
+        Cell::setValueBinder(new DefaultValueBinder());
+        $sheet = IOFactory::load($response->baseResponse->getFile()->getPathname())->getActiveSheet();
+        $this->assertSame(2, $sheet->getHighestDataRow());
+        $this->assertSame($training->nama_pelatihan, $sheet->getCell('A2')->getValue());
+        $this->assertSame('75.00%', $sheet->getCell('F2')->getFormattedValue());
+        $this->assertSame('Rerata Survei Atasan', $sheet->getCell('H1')->getValue());
+        $this->assertSame('100.00%', $sheet->getCell('H2')->getFormattedValue());
+        $this->assertEquals(1, $sheet->getCell('I2')->getValue());
+        $this->assertNull($sheet->getCell('J2')->getValue());
+
+        $evaluator = User::factory()->create(['role' => 'evaluator']);
+        $teamId = DB::table('post_evaluation_teams')->insertGetId(['training_id' => $training->id, 'name' => 'Tim Tahunan']);
+        DB::table('post_evaluation_team_user')->insert(['team_id' => $teamId, 'user_id' => $evaluator->id]);
+        $this->actingAs($evaluator)->get($report)->assertOk()
+            ->assertSee('Belum ada nilai survei')->assertDontSee('Rerata Wawancara');
+
+        PostEvaluationInterview::create([
+            'training_id' => $training->id, 'participant_id' => $participant->id, 'team_id' => $teamId,
+            'scores' => [80, 90, 80, 70, 100], 'status' => 'completed',
+        ]);
+        $this->get($report)->assertOk()->assertSee('75,00%')->assertSee('Rerata Wawancara')
+            ->assertSee('80,00%')->assertSee('1 wawancara selesai');
+        $response = $this->get($export)->assertDownload('ringkasan-evaluasi-pasca-2024.xlsx');
+        Cell::setValueBinder(new DefaultValueBinder());
+        $sheet = IOFactory::load($response->baseResponse->getFile()->getPathname())->getActiveSheet();
+        $this->assertSame('100.00%', $sheet->getCell('H2')->getFormattedValue());
+        $this->assertSame('80.00%', $sheet->getCell('J2')->getFormattedValue());
+        $this->assertEquals(1, $sheet->getCell('L2')->getValue());
+    }
+
+    public function test_result_back_link_follows_entry_point_across_tabs(): void
+    {
+        [$admin, $training] = $this->setupData();
+        $manage = route('trainings.manage', $training);
+        $index = route('post-evaluation.index');
+        $origin = ['from' => 'kelola-pelatihan'];
+        $fromManage = route('post-evaluation.show', [$training] + $origin);
+
+        $this->actingAs($admin)->get($index)->assertOk()->assertSee(route('post-evaluation.show', $training));
+        $this->get(route('post-evaluation.show', [$training, 'tab' => 'ringkasan']))->assertOk()
+            ->assertSee('href="'.$index.'" class="btn btn-outline-secondary btn-sm"', false)
+            ->assertSee('Kembali ke Hasil Evaluasi Pasca');
+        $this->get($manage)->assertOk()->assertSee($fromManage);
+        $tab = route('post-evaluation.show', [$training, 'tab' => 'jawaban'] + $origin);
+        $this->get($fromManage)->assertOk()->assertSee($tab)
+            ->assertSee('href="'.$manage.'" class="btn btn-outline-secondary btn-sm"', false);
+        $this->get($tab)->assertOk()->assertSee('name="from" value="kelola-pelatihan"', false)
+            ->assertSee('href="'.$manage.'" class="btn btn-outline-secondary btn-sm"', false);
     }
 
     public function test_field_admin_cannot_access_results_even_when_assigned_to_team(): void
@@ -311,7 +382,9 @@ class PostEvaluationTest extends TestCase
         $this->assertSame(4.0, $summary['sections']['Dampak Pelatihan'][0]['roles']['atasan']['average']);
         $this->assertSame(1, $summary['sections']['Dampak Pelatihan'][0]['roles']['mandiri']['count']);
         $this->assertSame(2, $summary['total']);
-        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'ringkasan']))->assertOk()->assertSeeInOrder(['Perubahan jabatan', 'Metode pelatihan', 'Perbandingan hasil alumni dan atasan', 'Sebaran asal instansi'])->assertDontSee('Pemetaan indikator survei')->assertSee('3,00')->assertSee('4,00');
+        $this->actingAs($admin)->get(route('post-evaluation.show', [$training, 'tab' => 'ringkasan']))->assertOk()
+            ->assertSeeInOrder(['Rekap keberlanjutan hasil wawancara', 'Perubahan jabatan', 'Metode pelatihan', 'Klasikal', 'Sebaran asal instansi', 'Instansi lain'])
+            ->assertDontSee('Perbandingan hasil alumni dan atasan')->assertDontSee('tab=perbandingan', false);
     }
 
     public function test_automatic_three_indicator_scores_and_summary_do_not_double_count_question_versions(): void
@@ -413,7 +486,8 @@ class PostEvaluationTest extends TestCase
         $data['status']='draft';
         $this->putJson(route('post-evaluation.interview.save',[$t,$p]),$data)->assertOk();
         $this->assertNull($iv->fresh()->scores[0]);
-        $this->get(route('post-evaluation.show',$t))->assertOk()->assertSee('Rekap keberlanjutan hasil wawancara');
+        $this->get(route('post-evaluation.show', $t))->assertOk()
+            ->assertSee('Rekap keberlanjutan hasil wawancara')->assertSee('Sebaran asal instansi');
     }
 
     public function test_defaults_existing_unscored_no_without_overwriting_other_scores(): void

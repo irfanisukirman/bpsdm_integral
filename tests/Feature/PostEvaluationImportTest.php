@@ -78,6 +78,37 @@ class PostEvaluationImportTest extends TestCase
         return DB::table('post_evaluation_imports')->where('id', $query['preview'])->first();
     }
 
+    public function test_technical_workbook_maps_alumni_supervisor_and_peer_with_legacy_question_bank(): void
+    {
+        [$admin, $training, $participant] = $this->setupData();
+        $training->update(['program_evaluasi' => 'Teknis']);
+        $bank = 'Bidang Pengembangan Kompetensi Manajerial';
+        foreach (['mandiri', 'atasan', 'rekan'] as $role) {
+            Question::create([
+                'bidang' => $bank, 'program_evaluasi' => 'Teknis', 'category' => 'l34_'.$role,
+                'metode' => 'semua', 'type' => 'text', 'question_text' => 'Catatan '.$role,
+            ]);
+        }
+        $cells = array_fill_keys(['B1', 'B3', 'H2', 'H3', 'AN2', 'AN3', 'AR2', 'AR3',
+            'AZ1', 'AZ2', 'AZ3', 'BC2', 'BC3', 'CM2', 'CM3', 'CN2', 'CN3', 'CO2', 'CO3'], null);
+        $file = $this->workbook('Teknis', array_replace($cells, [
+            'C1' => 'Alumni', 'C3' => 'Alumni Pertama | '.$participant->nip_nik, 'D1' => 'Alumni PNS',
+            'O1' => 'Alumni P3K, Non-ASN', 'O2' => 'Nama / NIP / NIK (Pilihan nama akan hilang)', 'O3' => 'Alumni Pertama',
+            'X2' => '1. Catatan mandiri', 'X3' => 'Mandiri uji',
+            'AP1' => 'Atasan Alumni', 'AU2' => 'Saya menilai Alumni yang bernama:', 'AU3' => 'Alumni Pertama',
+            'AV2' => 'Catatan atasan', 'AV3' => 'Atasan uji',
+            'BN1' => 'Rekan Alumni', 'BS2' => 'Saya menilai Alumni yang bernama:', 'BS3' => 'Alumni Pertama',
+            'BT2' => 'Catatan rekan', 'BT3' => 'Rekan uji',
+        ]));
+        $batch = $this->preview($admin, $training, $file);
+        $plan = json_decode($batch->report, true);
+        $this->assertSame([], $plan['errors']);
+        $this->assertSame(['mandiri' => 1, 'atasan' => 1, 'rekan' => 1], $plan['counts']['roles']);
+        $this->post(route('post-evaluation.import.store', [$training, $batch->id]), ['confirm_training' => 1])
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('evaluation_results_l34', ['participant_id' => $participant->id, 'evaluator_role' => 'rekan', 'note' => 'Rekan uji']);
+    }
+
     public function test_preview_and_import_match_nip_and_headers_and_feed_native_results_without_creating_people(): void
     {
         [$admin,$t,$p] = $this->setupData();

@@ -38,6 +38,16 @@
         </div>
     </div>
 
+    @if($importedRecaps->isNotEmpty())
+        <section class="mb-4">
+            <h5 class="mb-1">Impor Rekap Lama Level 1</h5>
+            <p class="text-muted small">Nilai impor dipakai untuk kategori yang memiliki skor. Skor narasumber dihitung dari rerata tiap baris pengajar/materi.</p>
+            @foreach($importedRecaps as $import)
+                @include('evaluasi.partials.imported-l1-recap', ['notesOnly' => false])
+            @endforeach
+        </section>
+    @endif
+
     @include('evaluasi.partials.ai_dashboard_analysis', [
         'analysis' => $aiAnalysis,
         'aiError' => session('l12_ai_analysis_error'),
@@ -45,7 +55,7 @@
     ])
     <div class="row g-3 mb-4">
         @foreach([
-            ['icon'=>'bx-check-circle','color'=>$responseClass,'label'=>'Tingkat Respons L1','value'=>number_format($l1ResponseRate,1,',','.').' %','detail'=>$l1Respondents.' dari '.$participantsTotal.' peserta'],
+            ['icon'=>'bx-check-circle','color'=>$responseClass,'label'=>$usesImportedScores ? 'Respons L1 Teridentifikasi' : 'Tingkat Respons L1','value'=>$usesImportedScores && !$l1Respondents ? '—' : number_format($l1ResponseRate,1,',','.').' %','detail'=>$usesImportedScores && !$l1Respondents ? 'Jumlah responden belum tersedia.' : $l1Respondents.' dari '.$participantsTotal.' peserta'],
             ['icon'=>'bx-smile','color'=>'primary','label'=>'Skor Kepuasan L1','value'=>$l1Average === null ? '–' : number_format($l1Average,1,',','.'),'detail'=>$scoreCategory($l1Average)],
             ['icon'=>'bx-trending-up','color'=>$gainClass,'label'=>'Peningkatan Rerata L2','value'=>$gainAverage === null ? '–' : (($gainAverage > 0 ? '+' : '').number_format($gainAverage,1,',','.')),'detail'=>$l2Count.' peserta memiliki nilai'],
             ['icon'=>'bx-user-check','color'=>'success','label'=>'Peserta Meningkat','value'=>number_format($increaseRate,1,',','.').' %','detail'=>$l2Status['increased'].' dari '.$l2Count.' peserta'],
@@ -61,7 +71,7 @@
         @endforeach
     </div>
 
-    @if($l1ResponseRate < 75 || $l2Count < $participantsTotal)
+    @if((!$usesImportedScores && $l1ResponseRate < 75) || $l2Count < $participantsTotal)
         <div class="alert alert-warning border-0 shadow-sm mb-4"><i class="bx bx-error-circle me-2"></i><strong>Perhatikan kelengkapan data.</strong> Interpretasi hasil perlu mempertimbangkan bahwa respons L1 atau data L2 belum mencakup seluruh peserta.</div>
     @endif
 
@@ -69,6 +79,12 @@
         <div class="col-xl-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header border-bottom"><h5 class="mb-1 fw-bold">Komposisi Skor Level 1</h5><small class="text-muted">Perbandingan reaksi terhadap penyelenggara dan narasumber.</small></div>
+                @if($usesImportedScores)
+                    <div class="px-4 pt-3 small d-flex flex-wrap gap-3">
+                        <span>Penyelenggara <strong>{{ $organizerAverage === null ? '—' : number_format($organizerAverage, 1, ',', '.') }}</strong></span>
+                        <span>Narasumber <strong>{{ $speakerAverage === null ? '—' : number_format($speakerAverage, 1, ',', '.') }}</strong></span>
+                    </div>
+                @endif
                 <div class="card-body"><div class="chart-wrap"><canvas id="l1ComparisonChart"></canvas></div></div>
             </div>
         </div>
@@ -99,7 +115,13 @@
         <div class="col-xl-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header border-bottom"><h5 class="mb-1 fw-bold">Progres Pengisian L1</h5><small class="text-muted">Cakupan data reaksi peserta.</small></div>
-                <div class="card-body"><div class="chart-wrap"><canvas id="responseChart"></canvas></div></div>
+                <div class="card-body">
+                    @if($usesImportedScores && !$l1Respondents)
+                        <p class="mb-0 text-muted">Jumlah responden belum tersedia.</p>
+                    @else
+                        <div class="chart-wrap"><canvas id="responseChart"></canvas></div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -158,7 +180,8 @@ document.addEventListener('DOMContentLoaded', function () {
     new Chart(document.getElementById('indicatorChart'), { type: 'bar', data: { labels: @json($indicatorData->pluck('label')->map(fn($label) => \Illuminate\Support\Str::limit($label, 42))), datasets: [{ label: 'Skor indikator', data: @json($indicatorData->pluck('average')), backgroundColor: @json($indicatorData->map(fn($item) => $item['average'] < 80 ? '#ff3e1d' : ($item['average'] < 90 ? '#ffab00' : '#71dd37'))), borderRadius: 6 }] }, options: { ...common, indexAxis: 'y', scales: { x: { beginAtZero: true, max: 100 } } } });
     new Chart(document.getElementById('learningChart'), { type: 'bar', data: { labels: ['Pretest', 'Posttest'], datasets: [{ label: 'Nilai rata-rata', data: @json([$preAverage, $postAverage]), backgroundColor: ['#8592a3','#03c3ec'], borderRadius: 10 }] }, options: { ...common, scales: { y: { beginAtZero: true, max: 100 } } } });
     new Chart(document.getElementById('learningStatusChart'), { type: 'doughnut', data: { labels: ['Meningkat', 'Tetap', 'Menurun'], datasets: [{ data: @json(array_values($l2Status)), backgroundColor: ['#71dd37','#ffab00','#ff3e1d'], borderWidth: 0 }] }, options: { ...common, cutout: '65%' } });
-    new Chart(document.getElementById('responseChart'), { type: 'doughnut', data: { labels: ['Sudah mengisi', 'Belum mengisi'], datasets: [{ data: @json([$l1Respondents, max(0, $participantsTotal-$l1Respondents)]), backgroundColor: ['#696cff','#e7e7ff'], borderWidth: 0 }] }, options: { ...common, cutout: '68%' } });
+    const responseChart = document.getElementById('responseChart');
+    if (responseChart) new Chart(responseChart, { type: 'doughnut', data: { labels: @json($usesImportedScores ? ['Teridentifikasi', 'Belum teridentifikasi'] : ['Sudah mengisi', 'Belum mengisi']), datasets: [{ data: @json([$l1Respondents, max(0, $participantsTotal-$l1Respondents)]), backgroundColor: ['#696cff','#e7e7ff'], borderWidth: 0 }] }, options: { ...common, cutout: '68%' } });
 });
 </script>
 @endpush

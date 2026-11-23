@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Pengajar;
+use App\Support\ProfileInstitution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,9 @@ class ProfileController extends Controller
         $isEvaluationTeamMember = \Illuminate\Support\Facades\DB::table('post_evaluation_team_user')
             ->where('user_id', $user->id)->exists();
 
-        return view('profile.edit', compact('user', 'employmentStatuses', 'institutions', 'isEvaluationTeamMember'));
+        $municipalities = $user->primaryRole() === 'participant' ? ProfileInstitution::municipalities($user) : collect();
+
+        return view('profile.edit', compact('user', 'employmentStatuses', 'institutions', 'municipalities', 'isEvaluationTeamMember'));
     }
 
     /**
@@ -59,6 +62,7 @@ class ProfileController extends Controller
 
         if ($user->primaryRole() === 'participant') {
             unset($rules['nip_nik']);
+            $rules = array_replace($rules, ProfileInstitution::rules($request, $user));
             $rules['nip'] = ['required', 'digits:18', \Illuminate\Validation\Rule::unique('users', 'nip')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)];
             $rules['nik'] = ['required', 'digits:16', \Illuminate\Validation\Rule::unique('users', 'nik')->ignore($user->id), \Illuminate\Validation\Rule::unique('users', 'nip_nik')->ignore($user->id)];
         }
@@ -77,7 +81,7 @@ class ProfileController extends Controller
             ]);
         }
 
-        $request->validate($rules, [
+        $validated = $request->validate($rules, [
             'profile_photo.image'    => 'Foto profil harus berupa gambar.',
             'profile_photo.mimes'    => 'Foto profil harus berformat JPG, PNG, atau WebP.',
             'profile_photo.max'      => 'Ukuran foto profil maksimal 5 MB.',
@@ -85,14 +89,6 @@ class ProfileController extends Controller
             'file_sertifikat.mimes'  => 'Berkas Sertifikat harus berformat PDF.',
             'file_surat_tugas.mimes' => 'Berkas Surat Tugas harus berformat PDF.',
         ]);
-
-        // 2. Update Foto Profil
-        if ($request->hasFile('profile_photo')) {
-            if ($user->profile_photo) {
-                Storage::disk('public')->delete($user->profile_photo);
-            }
-            $user->profile_photo = $request->file('profile_photo')->store('avatars', 'public');
-        }
 
         // 3. Simpan Data Profil Umum ke tabel Users
         $user->name               = $request->name;
@@ -109,10 +105,14 @@ class ProfileController extends Controller
         $user->birth_date         = $request->birth_date;
         $user->jabatan            = $request->jabatan;
         $user->golongan           = $request->golongan;
-        $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
         $employmentStatus = \App\Models\EmploymentStatus::where('is_active', true)->findOrFail($request->employment_status_id);
-        $user->institution_id     = $institution->id;
-        $user->instansi           = $institution->name;
+        if ($user->primaryRole() === 'participant') {
+            $user->fill(ProfileInstitution::attributes($validated));
+        } else {
+            $institution = \App\Models\Institution::where('is_active', true)->findOrFail($request->institution_id);
+            $user->institution_id = $institution->id;
+            $user->instansi = $institution->name;
+        }
         $user->employment_status_id = $employmentStatus->id;
         $user->status_kepegawaian = $employmentStatus->name;
         
@@ -145,7 +145,7 @@ class ProfileController extends Controller
             }
 
             $pengajar->pangkat_golongan   = $request->pangkat_golongan;
-            $pengajar->instansi           = $institution->name;
+            $pengajar->instansi           = $user->instansi;
             $pengajar->npwp               = $request->npwp;
             $pengajar->nama_bank          = $request->nama_bank;
             $pengajar->nomor_rekening     = $request->nomor_rekening;
@@ -153,7 +153,25 @@ class ProfileController extends Controller
             $pengajar->save();
         }
 
-        $user->save();
+        $previousPhoto = $user->profile_photo;
+        $newPhoto = null;
+        if ($request->hasFile('profile_photo')) {
+            $newPhoto = $request->file('profile_photo')->store('avatars', 'public');
+            if ($newPhoto === false) {
+                return back()->withInput()->withErrors(['profile_photo' => 'Foto profil gagal disimpan. Silakan coba lagi.']);
+            }
+            $user->profile_photo = $newPhoto;
+        }
+
+        try {
+            $user->save();
+        } catch (\Throwable $exception) {
+            if ($newPhoto) Storage::disk('public')->delete($newPhoto);
+            throw $exception;
+        }
+        if ($newPhoto && $previousPhoto) {
+            Storage::disk('public')->delete($previousPhoto);
+        }
 
         // 5. Otomatis Update tabel Participants (Sinkronisasi NIP)
         \App\Models\Participant::where('user_id', $user->id)->update([
@@ -169,7 +187,9 @@ class ProfileController extends Controller
             'status_kepegawaian' => $user->status_kepegawaian,
         ]);
 
-        return redirect()->back()->with('success', 'Profil dan data wilayah berhasil diperbarui.');
+        $flash = $user->primaryRole() === 'participant' ? 'profile_saved' : 'success';
+
+        return redirect()->back()->with($flash, 'Profil dan data wilayah berhasil diperbarui.');
     }
 
 
@@ -177,7 +197,7 @@ class ProfileController extends Controller
     {
         $data=$request->validate(['q'=>'required|string|min:3|max:200']);
         $query=preg_replace('/\s+/u',' ',trim($data['q']));
-        $cacheKey='profile-geocode:'.sha1(mb_strtolower($query));
+        $cacheKey='profile-geocode-v2:'.sha1(mb_strtolower($query));
 
         try {
             $results=\Illuminate\Support\Facades\Cache::remember($cacheKey,now()->addDay(),function()use($query){
@@ -212,6 +232,7 @@ class ProfileController extends Controller
                         'lat'=>(float)($item['lat']??0),
                         'lon'=>(float)($item['lon']??0),
                         'type'=>(string)($item['type']??'location'),
+                        'boundingbox'=>$item['boundingbox']??null,
                     ])->filter(fn($item)=>$item['display_name']!==''&&$item['lat']>=-90&&$item['lat']<=90&&$item['lon']>=-180&&$item['lon']<=180)->values()->all();
                 });
             });
@@ -240,6 +261,8 @@ class ProfileController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->back()->with('success', 'Password berhasil diperbarui.');
+        $flash = $user->primaryRole() === 'participant' ? 'profile_saved' : 'success';
+
+        return redirect()->back()->with($flash, 'Password berhasil diperbarui.');
     }
 }

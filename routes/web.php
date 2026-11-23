@@ -191,6 +191,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('kelola-pppk-pw/template', [DailyReportManagementController::class, 'template'])->name('daily-report-management.template');
     Route::post('kelola-pppk-pw/import', [DailyReportManagementController::class, 'import'])->name('daily-report-management.import');
     Route::get('pengaturan/master-kepegawaian', [WorkforceMasterController::class, 'index'])->name('workforce-masters.index');
+    Route::post('pengaturan/kabupaten-kota', [WorkforceMasterController::class, 'storeMunicipality'])->name('workforce-masters.municipalities.store');
+    Route::put('pengaturan/kabupaten-kota/{municipality}', [WorkforceMasterController::class, 'updateMunicipality'])->name('workforce-masters.municipalities.update');
     Route::post('pengaturan/instansi', [WorkforceMasterController::class, 'storeInstitution'])->name('workforce-masters.institutions.store');
     Route::get('pengaturan/instansi-template', [WorkforceMasterController::class, 'institutionTemplate'])->name('workforce-masters.institutions.template');
     Route::post('pengaturan/instansi-import', [WorkforceMasterController::class, 'importInstitutions'])->name('workforce-masters.institutions.import');
@@ -371,6 +373,7 @@ Route::middleware(['auth'])->group(function () {
     // --- 02. KELOLA USER (Khusus Superadmin) ---
     Route::middleware(['can:superadmin-only'])->group(function () {
         Route::put('users/{user}/roles', [\App\Http\Controllers\UserRoleController::class, 'update'])->name('users.roles.update');
+        Route::post('users/rekap-peserta/export', [UserController::class, 'exportParticipantRecap'])->name('users.recap.export');
         Route::resource('users', UserController::class);
         Route::put('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::put('users/{user}/approve-type', [UserController::class, 'approveUserType'])->name('users.approve-type');
@@ -406,6 +409,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pengajar/sesi/{schedule}/dokumen', [PengajarController::class, 'uploadSession'])->name('pengajar.session.upload');
 
     // --- 03 & 04. KELOLA PELATIHAN ---
+    Route::get('trainings/export-summary', [TrainingController::class, 'exportAnnualSummary'])->name('trainings.export-summary');
     Route::resource('trainings', TrainingController::class);
     Route::get('monitoring-pengajar', [TrainingController::class, 'teacherMonitoring'])->name('teacher-monitoring.index');
     Route::get('monitoring-pengajar/export', [TrainingController::class, 'exportTeacherMonitoring'])->name('teacher-monitoring.export');
@@ -505,6 +509,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trainings/{id}/evaluasi-l34/report-signatories', [EvaluationLevel34Controller::class, 'saveReportSignatories'])->name('evall34.report-signatories');
     Route::get('trainings/{id}/schedules/pdf', [TrainingController::class, 'downloadSchedulePdf'])->name('schedules.pdf');
     Route::get('trainings/{id}/evaluasi-l1/progres', [EvaluationLevel1Controller::class, 'showProgres'])->name('evall1.progres');
+    Route::controller(\App\Http\Controllers\LevelOneRecapImportController::class)
+        ->prefix('trainings/{training}/evaluasi-l1/rekap-lama')->name('evall1.recap-import.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/pratinjau', 'preview')->name('preview');
+            Route::post('/{token}', 'store')->whereUuid('token')->name('store');
+            Route::get('/{import}/download', 'download')->whereNumber('import')->name('download');
+        });
+    Route::put('trainings/{training}/jadwal-evaluasi/{level}', [TrainingController::class, 'updateEvaluationOpeningDate'])
+        ->whereIn('level', ['1', '34'])->name('trainings.evaluation-opening-date');
     Route::get('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'organizerTextSummary'])->name('evall1.organizer-summary');
     Route::put('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara', [EvaluationLevel1Controller::class, 'storeOrganizerTextSummary'])->name('evall1.organizer-summary.store');
     Route::post('trainings/{id}/evaluasi-l1/rangkuman-penyelenggara/ai', [EvaluationLevel1Controller::class, 'generateOrganizerTextSummary'])->name('evall1.organizer-summary.ai');

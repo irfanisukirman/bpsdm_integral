@@ -54,6 +54,13 @@
         @endforeach
     </div>
 
+    @if($importedRecaps->isNotEmpty())
+        <h5 class="mb-3">Masukan dari Rekap Lama</h5>
+        @foreach($importedRecaps as $import)
+            @include('evaluasi.partials.imported-l1-recap', ['notesOnly' => true])
+        @endforeach
+    @endif
+
     @if($responses->isNotEmpty())
         <div class="card border-0 shadow-sm mb-4"><div class="card-body py-3">
             <div class="input-group">

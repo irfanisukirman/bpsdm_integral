@@ -9,6 +9,9 @@
             <span class="text-muted fw-light">Evaluasi /</span> Level 1: Reaksi ({{ $training->nama_pelatihan }})
         </h4>
         <div class="d-flex gap-2">
+            @if($canManage)
+                <a href="{{ route('evall1.recap-import.index', $training) }}" class="btn btn-outline-primary"><i class="bx bx-upload me-1"></i>Impor &amp; Rekap Lama</a>
+            @endif
             <a href="{{ route('trainings.manage', $training->id) }}" class="btn btn-outline-secondary">
                 <i class="bx bx-arrow-back me-1"></i> Kembali ke Pengelolaan
             </a>
@@ -17,6 +20,8 @@
             </button>
         </div>
     </div>
+
+    @include('evaluasi.partials.opening-date', ['level' => '1'])
 
     <!-- Status Pelatihan sesuai Gambar -->
     <div class="card bg-label-primary border-0 shadow-none mb-4">
@@ -30,6 +35,15 @@
             </div>
         </div>
     </div>
+
+    @if($importedRecaps->isNotEmpty())
+        <section class="mb-4" aria-labelledby="levelOneImportedRecaps">
+            <h5 id="levelOneImportedRecaps" class="mb-3">Hasil Impor Evaluasi Level 1</h5>
+            @foreach($importedRecaps as $import)
+                @include('evaluasi.partials.imported-l1-recap', ['notesOnly' => false])
+            @endforeach
+        </section>
+    @endif
 
     <!-- Tabel Daftar Form -->
     <div class="card">

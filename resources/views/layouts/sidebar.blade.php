@@ -33,10 +33,6 @@
                 <a href="{{ route('ai-assistant.index') }}" class="menu-link"><i class="menu-icon bx bx-bot"></i><div class="fw-bold">Asisten AI</div></a>
             </li>
         @endif
-
-
-
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Menu Utama</span></li>
         @if(in_array(Auth::user()->role, ['superadmin', 'admin_bidang'], true))
             <li class="menu-item {{ request()->routeIs('complaints.inbox') ? 'active' : '' }}">
                 <a href="{{ route('complaints.inbox') }}" class="menu-link" data-complaint-heartbeat="{{ route('complaints.heartbeat') }}">
@@ -48,7 +44,7 @@
             </li>
         @endif
 
-
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Menu Utama</span></li>
 
         @if(Auth::user()->role === 'resepsionis')
             <li class="menu-item {{ request()->routeIs('guest-book.*') ? 'active' : '' }}"><a href="{{route('guest-book.index')}}" class="menu-link"><i class="menu-icon bx bx-book-reader"></i><div class="fw-bold">Buku Tamu</div></a></li>

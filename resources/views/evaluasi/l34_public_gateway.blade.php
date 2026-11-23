@@ -15,8 +15,8 @@
         $startDate = filled($training->tgl_mulai) ? \Carbon\Carbon::parse($training->tgl_mulai)->locale('id') : null;
         $endDate = filled($training->tgl_selesai) ? \Carbon\Carbon::parse($training->tgl_selesai)->locale('id') : null;
         $dateLabel = null;
-        $surveyDate = $training->tgl_sebar_l34->copy()->locale('id');
-        $surveyIsOpen = $surveyDate->copy()->startOfDay()->lte(now('Asia/Jakarta')->startOfDay());
+        $surveyDate = $training->tgl_sebar_l34?->locale('id');
+        $surveyIsOpen = $training->isL34Open();
         if ($startDate && $endDate) {
             $dateLabel = $startDate->isSameDay($endDate)
                 ? $startDate->translatedFormat('d F Y')
@@ -306,12 +306,12 @@
             <section class="role-panel">
                 <div class="role-heading">
                     <h2>Pilih peran Anda</h2>
-                    @if($roleOptions->isNotEmpty())
+                    @if($surveyIsOpen && $roleOptions->isNotEmpty())
                         <p>Pilih peran yang sesuai untuk membuka formulir evaluasi.</p>
                     @endif
                 </div>
 
-                @if($roleOptions->isNotEmpty())
+                @if($surveyIsOpen && $roleOptions->isNotEmpty())
                     <div class="role-list">
                         @foreach($roleOptions as $role => $option)
                             <a href="{{ route('public.l34.form', [$training->id, $role]) }}" class="role-card card-{{ $role }}">
@@ -330,9 +330,12 @@
                         @if($surveyIsOpen)
                             <h3>Jadwal evaluasi sudah dibuka, instrumen belum tersedia</h3>
                             <p>Evaluasi dijadwalkan mulai {{ $surveyDate->translatedFormat('d F Y') }}, tetapi bank soal program {{ $training->program_evaluasi ?: 'Teknis' }} belum diimpor oleh pengelola.</p>
-                        @else
+                        @elseif($surveyDate)
                             <h3>Evaluasi belum dibuka</h3>
                             <p>Formulir dijadwalkan tersedia mulai {{ $surveyDate->translatedFormat('d F Y') }}.</p>
+                        @else
+                            <h3>Evaluasi belum dijadwalkan</h3>
+                            <p>Tanggal mulai pengisian akan diinformasikan oleh pengelola pelatihan.</p>
                         @endif
                     </div>
                 @endif
