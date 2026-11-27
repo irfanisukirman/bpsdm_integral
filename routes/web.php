@@ -71,6 +71,14 @@ use App\Http\Controllers\PublicGuestBookController;
 
 // LANDING PAGE (Satu-satunya rute untuk '/')
 Route::get('/', [App\Http\Controllers\LandingController::class, 'index'])->name('landing');
+Route::get('kuis-akhir/{quiz:public_token}', [EvaluationLevel2Controller::class, 'publicQuiz'])
+    ->whereUuid('quiz')->name('public.final-quiz.show');
+Route::post('kuis-akhir/{quiz:public_token}/verifikasi', [EvaluationLevel2Controller::class, 'verifyPublicQuiz'])
+    ->whereUuid('quiz')->middleware('throttle:20,1,final-quiz-verify')->name('public.final-quiz.verify');
+Route::post('kuis-akhir/{quiz:public_token}/konfirmasi', [EvaluationLevel2Controller::class, 'confirmPublicParticipant'])
+    ->whereUuid('quiz')->name('public.final-quiz.confirm');
+Route::post('kuis-akhir/{quiz:public_token}/jawaban', [EvaluationLevel2Controller::class, 'submitPublicQuiz'])
+    ->whereUuid('quiz')->middleware('throttle:60,1,final-quiz-submit')->name('public.final-quiz.submit');
 Route::prefix('bantuan-pengaduan')->name('complaints.guest.')->controller(ComplaintController::class)->group(function () {
     Route::get('/', 'guestCreate')->name('create');
     Route::post('/', 'guestStore')->middleware('throttle:5,1,complaint-guest-send')->name('store');
@@ -524,7 +532,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('trainings/{id}/evaluasi-l1/destroy', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroy');
     Route::post('trainings/{id}/evaluasi-l1/create-form', [EvaluationLevel1Controller::class, 'storeForm'])->name('evall1.storeForm');
     Route::delete('evaluasi-l1/form/{id}', [EvaluationLevel1Controller::class, 'destroyForm'])->name('evall1.destroyForm');
-    Route::get('trainings/{id}/evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
     
     Route::get('evaluasi-l1/export/{form_id}', [EvaluationLevel1Controller::class, 'exportExcel'])->name('evall1.export');
     
@@ -586,14 +593,29 @@ Route::middleware(['auth'])->group(function () {
     Route::get('control-l34', [PostEvalControlController::class, 'index'])->name('control_l34.index');
     Route::get('evaluasi/l1', [EvaluationLevel1Controller::class, 'indexAll'])->name('evaluasi.l1'); // List Pelatihan L1
     Route::get('trainings/{id}/evaluasi-l1', [EvaluationLevel1Controller::class, 'index'])->name('evall1.index'); // Detail L1
-    Route::get('evaluasi-l2/download-template', [EvaluationLevel2Controller::class, 'downloadTemplate'])->name('evall2.template');
     Route::get('evaluasi-l34/download-template', [EvaluationLevel34Controller::class, 'downloadTemplate'])->name('evall34.template');
     
     // Level 2: Learning
     Route::get('evaluasi/l2', [EvaluationLevel2Controller::class, 'indexAll'])->name('evaluasi.l2'); // List Pelatihan L2
-    Route::get('trainings/{id}/evaluasi-l2', [EvaluationLevel2Controller::class, 'index'])->name('evall2.index'); // Detail L2
-    Route::post('evaluasi-l2/update-single', [EvaluationLevel2Controller::class, 'updateSingle'])->name('evall2.update-single');
-    Route::post('trainings/{id}/evaluasi-l2/import', [EvaluationLevel2Controller::class, 'importExcel'])->name('evall2.import');
+    Route::controller(EvaluationLevel2Controller::class)->prefix('trainings/{training}/evaluasi-l2')->name('evall2.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/nilai/{participant}', 'correctScore')->name('quiz.score');
+        foreach (['quiz' => '', 'pretest' => 'pretest'] as $name => $prefix) {
+            Route::prefix($prefix)->name($name.'.')->group(function () {
+                Route::put('/kuis', 'settings')->name('settings');
+                Route::get('/pengaturan-soal', 'questionSettings')->name('manage');
+                Route::post('/token/{participant}/lihat', 'showParticipantToken')->name('token.show');
+                Route::post('/token/unduh-semua', 'downloadAllParticipantTokens')->name('tokens.download');
+                Route::put('/token/{participant}', 'rotateParticipantToken')->name('token.rotate');
+                Route::delete('/pengisian/{participant}/{attempt}', 'resetAttempt')->whereNumber('attempt')->name('attempt.reset');
+                Route::get('/soal/template', 'questionTemplate')->name('questions.template');
+                Route::post('/soal/impor', 'importQuestions')->name('questions.import');
+                Route::post('/soal', 'saveQuestion')->name('questions.store');
+                Route::put('/soal/{question}', 'saveQuestion')->whereUuid('question')->name('questions.update');
+                Route::delete('/soal/{question}', 'deleteQuestion')->whereUuid('question')->name('questions.destroy');
+            });
+        }
+    });
 
     // Level 3 & 4: Impact (360)
     Route::get('evaluasi/l34', [EvaluationLevel34Controller::class, 'indexAll'])->name('evaluasi.l34'); // List Pelatihan L34
@@ -612,6 +634,10 @@ Route::middleware(['auth'])->group(function () {
     
         // Detail pelatihan dan kelengkapan peserta
         Route::get('/training/{id}/detail', [ParticipantController::class, 'showTrainingDetail'])->name('participant.training.show');
+        Route::get('/training/{training}/kuis-akhir', [EvaluationLevel2Controller::class, 'quiz'])->name('participant.final-quiz.show');
+        Route::post('/training/{training}/kuis-akhir', [EvaluationLevel2Controller::class, 'submit'])->name('participant.final-quiz.submit');
+        Route::get('/training/{training}/pretest', [EvaluationLevel2Controller::class, 'quiz'])->name('participant.pretest.show');
+        Route::post('/training/{training}/pretest', [EvaluationLevel2Controller::class, 'submit'])->name('participant.pretest.submit');
         Route::get('/training/{training}/identity-card', [TrainingIdentityCardController::class, 'editor'])->name('participant.identity-card.edit');
         Route::put('/training/{training}/identity-card/photo', [TrainingIdentityCardController::class, 'updatePhoto'])->name('participant.identity-card.photo');
         Route::get('/training/{training}/identity-card/image/{format}', [TrainingIdentityCardController::class, 'image'])->where('format', 'png|jpg')->name('participant.identity-card.image');

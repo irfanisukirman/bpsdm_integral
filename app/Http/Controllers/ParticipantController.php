@@ -368,6 +368,15 @@ class ParticipantController extends Controller
 
         // Ambil form evaluasi
         $formsL1 = \App\Models\EvaluationFormL1::with(['training','schedule.pengajar'])->where('training_id', $id)->get();
+        $finalQuiz = $training->finalQuiz;
+        $finalQuizAttempt = $finalQuiz?->attempts()->where('participant_id', $participant->id)->first();
+        $finalQuizScheduleMessage = $finalQuiz?->scheduleMessage();
+        $pretestQuiz = $training->pretestQuiz;
+        $pretestAttempt = $pretestQuiz?->attempts()->where('participant_id', $participant->id)->first();
+        $pretestScheduleMessage = $pretestQuiz?->scheduleMessage();
+        $finalQuizScore = $finalQuizAttempt && $finalQuizScheduleMessage === null
+            ? (float) ($participant->evaluationL2?->postest ?? $finalQuizAttempt->score)
+            : null;
         $participantAttendances = Attendance::with('schedule')
             ->where('participant_id', $participant->id)
             ->whereHas('schedule', fn ($query) => $query->where('training_id', $training->id))
@@ -392,7 +401,7 @@ class ParticipantController extends Controller
         $identityCardSetting = \App\Models\TrainingIdentityCardSetting::where('training_id', $training->id)->first();
         $identityCard = \App\Models\ParticipantIdentityCard::where('participant_id', $participant->id)->first();
 
-        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays', 'participantCertificate', 'identityCardSetting', 'identityCard'));
+        return view('participant.training_detail', compact('training', 'participant', 'formsL1', 'user', 'attendanceDays', 'participantCertificate', 'identityCardSetting', 'identityCard', 'finalQuiz', 'finalQuizAttempt', 'finalQuizScore', 'finalQuizScheduleMessage', 'pretestQuiz', 'pretestAttempt', 'pretestScheduleMessage'));
     }
 
     public function myHistory(Request $request)

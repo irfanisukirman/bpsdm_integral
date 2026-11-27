@@ -112,6 +112,31 @@ class Training extends Model
         return $this->hasMany(Participant::class);
     }
 
+    public function finalQuiz()
+    {
+        return $this->quizFor('posttest');
+    }
+
+    public function pretestQuiz()
+    {
+        return $this->quizFor('pretest');
+    }
+
+    public function quizFor(string $kind)
+    {
+        return $this->hasOne(TrainingFinalQuiz::class)->withAttributes(['kind' => $kind]);
+    }
+
+    public function level2Questions(): array
+    {
+        return $this->finalQuiz?->questions ?? $this->pretestQuiz?->questions ?? [];
+    }
+
+    public function level2PublicToken(): ?string
+    {
+        return collect([$this->finalQuiz, $this->pretestQuiz])->filter()->sortBy('id')->first()?->public_token;
+    }
+
     public function evaluationL1TextSummary()
     {
         return $this->hasOne(EvaluationL1TextSummary::class);

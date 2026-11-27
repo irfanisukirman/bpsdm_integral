@@ -139,7 +139,7 @@
         </div>
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header"><h5 class="mb-1">Level 2: Pembelajaran</h5><small class="text-muted">Rata-rata pre-test dan post-test</small></div>
+                <div class="card-header"><h5 class="mb-1">Level 2: Pembelajaran</h5><small class="text-muted">Rata-rata pretest dan nilai akhir</small></div>
                 <div class="card-body chart-box"><canvas id="barLearning"></canvas></div>
             </div>
         </div>
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     new Chart(document.getElementById('barLearning'), {
         type: 'bar',
-        data: { labels: ['Pre-test', 'Post-test'], datasets: [{ data: [{{ round($avgL2Pre, 1) }}, {{ round($avgL2Post, 1) }}], backgroundColor: ['#ffab00', '#16a75c'], borderRadius: 7 }] },
+        data: { labels: ['Pretest', 'Nilai Akhir'], datasets: [{ data: @json($learningScores), backgroundColor: ['#ffab00', '#16a75c'], borderRadius: 7 }] },
         options: { ...commonOptions, scales: { y: { beginAtZero: true, max: 100 }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
     });
 

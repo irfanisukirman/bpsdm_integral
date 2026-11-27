@@ -316,8 +316,10 @@ class TrainingActivityReportController extends Controller
         $totalSlots = $participants->count() * $learningSchedules->count();
         $present = $attendance->where('status', 'hadir')->count();
         $percent = $totalSlots ? round(($present / $totalSlots) * 100, 1) : null;
-        $preAverage = $l2->isNotEmpty() ? round($l2->avg(fn ($r) => (float) $r->pretest), 1) : null;
-        $postAverage = $l2->isNotEmpty() ? round($l2->avg(fn ($r) => (float) $r->postest), 1) : null;
+        $pretests = $l2->whereNotNull('pretest');
+        $posttests = $l2->whereNotNull('postest');
+        $pairedL2 = $pretests->whereNotNull('postest');
+        $preAverage = $pretests->isNotEmpty() ? round($pretests->avg('pretest'), 1) : null;
         $teachers = $learningSchedules->filter(fn ($row) => $row->pengajar || filled($row->pic))->groupBy(fn ($row) => $row->pengajar_id ? 'user:'.$row->pengajar_id : 'pic:'.trim($row->pic))->values()->map(fn ($items, $i) => ['teacher_no' => $i + 1, 'teacher_name' => $items->first()->pengajar?->name ?: $items->first()->pic, 'teacher_sessions' => $items->count(), 'teacher_topics' => $items->pluck('activity')->filter()->unique()->implode('; '), 'teacher_jp' => $items->where('duration_unit','JP')->sum('jp'), 'teacher_oj' => $items->where('duration_unit','OJ')->sum('jp')])->all();
         $values = [
             'nama_pelatihan' => $training->nama_pelatihan, 'angkatan' => $training->angkatan, 'jenis_pelatihan' => $training->program_evaluasi ?: '-',
@@ -330,9 +332,9 @@ class TrainingActivityReportController extends Controller
             'rata_rata_kehadiran' => $percent === null ? '-' : number_format($percent, 1, ',', '.').'%', 'jumlah_hadir' => $present, 'jumlah_izin' => $attendance->where('status', 'izin')->count(), 'jumlah_sakit' => $attendance->where('status', 'sakit')->count(),
             'jumlah_tanpa_keterangan' => max(0, $totalSlots - $attendance->whereIn('status',['hadir','izin','sakit'])->count()), 'jumlah_pengajar' => count($teachers),
             'nilai_evaluasi_l1' => $l1->isNotEmpty() ? number_format($l1->avg('score'), 1, ',', '.') : '-',
-            'nilai_evaluasi_l2' => $l2->isNotEmpty() ? number_format($l2->avg(fn ($x) => (float) $x->postest), 1, ',', '.') : '-',
+            'nilai_evaluasi_l2' => $posttests->isNotEmpty() ? number_format($posttests->avg('postest'), 1, ',', '.') : '-',
             'nilai_pretest_l2' => $preAverage === null ? '-' : number_format($preAverage,1,',','.'),
-            'peningkatan_l2' => $preAverage === null ? '-' : number_format($postAverage - $preAverage,1,',','.'),
+            'peningkatan_l2' => $pairedL2->isEmpty() ? '-' : number_format($pairedL2->avg(fn ($row) => $row->postest - $row->pretest),1,',','.'),
             'responden_evaluasi_l1' => $l1All->pluck('participant_id')->unique()->count(), 'responden_evaluasi_l2' => $l2->count(),
             'nilai_penyelenggara_l1' => $l1->whereNull('schedule_id')->isEmpty() ? '-' : number_format($l1->whereNull('schedule_id')->avg('score'),1,',','.'),
             'nilai_pengajar_l1' => $l1->whereNotNull('schedule_id')->isEmpty() ? '-' : number_format($l1->whereNotNull('schedule_id')->avg('score'),1,',','.'),

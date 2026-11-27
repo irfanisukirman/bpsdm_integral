@@ -57,8 +57,8 @@
         @foreach([
             ['icon'=>'bx-check-circle','color'=>$responseClass,'label'=>$usesImportedScores ? 'Respons L1 Teridentifikasi' : 'Tingkat Respons L1','value'=>$usesImportedScores && !$l1Respondents ? '—' : number_format($l1ResponseRate,1,',','.').' %','detail'=>$usesImportedScores && !$l1Respondents ? 'Jumlah responden belum tersedia.' : $l1Respondents.' dari '.$participantsTotal.' peserta'],
             ['icon'=>'bx-smile','color'=>'primary','label'=>'Skor Kepuasan L1','value'=>$l1Average === null ? '–' : number_format($l1Average,1,',','.'),'detail'=>$scoreCategory($l1Average)],
-            ['icon'=>'bx-trending-up','color'=>$gainClass,'label'=>'Peningkatan Rerata L2','value'=>$gainAverage === null ? '–' : (($gainAverage > 0 ? '+' : '').number_format($gainAverage,1,',','.')),'detail'=>$l2Count.' peserta memiliki nilai'],
-            ['icon'=>'bx-user-check','color'=>'success','label'=>'Peserta Meningkat','value'=>number_format($increaseRate,1,',','.').' %','detail'=>$l2Status['increased'].' dari '.$l2Count.' peserta'],
+            ['icon'=>'bx-trending-up','color'=>$gainClass,'label'=>$l2PairedCount ? 'Peningkatan Rerata L2' : ($postAverage === null && $preAverage !== null ? 'Rerata Pretest L2' : 'Rerata Posttest L2'),'value'=>$l2PairedCount ? (($gainAverage > 0 ? '+' : '').number_format($gainAverage,1,',','.')) : (($postAverage ?? $preAverage) === null ? '—' : number_format($postAverage ?? $preAverage,1,',','.')),'detail'=>$l2Count.' peserta memiliki nilai'],
+            ['icon'=>'bx-user-check','color'=>'success','label'=>'Peserta Meningkat','value'=>$increaseRate === null ? '—' : number_format($increaseRate,1,',','.').' %','detail'=>$l2PairedCount ? $l2Status['increased'].' dari '.$l2PairedCount.' peserta dengan pretest' : 'Belum ada pasangan nilai pretest dan nilai akhir'],
         ] as $stat)
             <div class="col-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 executive-stat"><div class="card-body p-3 p-md-4">

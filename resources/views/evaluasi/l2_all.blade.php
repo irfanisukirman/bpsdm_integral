@@ -4,11 +4,11 @@
 
 @section('content')
 <h4 class="fw-bold py-3 mb-4">
-    <span class="text-muted fw-light">Evaluasi /</span> Level 2: Learning (Pre/Post Test)
+    <span class="text-muted fw-light">Evaluasi /</span> Level 2 · Pretest dan Posttest
 </h4>
 
 <div class="card">
-    <h5 class="card-header">Pilih Pelatihan untuk Input Nilai</h5>
+    <h5 class="card-header">Pilih Pelatihan untuk Mengelola Kuis</h5>
     <div class="table-responsive text-nowrap">
         <table class="table table-hover">
             <thead>
@@ -34,7 +34,7 @@
                     <td>{{ \Carbon\Carbon::parse($t->tgl_mulai)->format('d/m/Y') }}</td>
                     <td>
                         <a href="{{ route('evall2.index', $t->id) }}" class="btn btn-sm btn-primary">
-                            <i class="bx bx-edit-alt me-1"></i> Kelola Nilai
+                            <i class="bx bx-edit-alt me-1"></i> Kelola Kuis
                         </a>
                     </td>
                 </tr>

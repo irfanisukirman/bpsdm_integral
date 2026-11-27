@@ -11,7 +11,11 @@
     $documentsComplete = $completedDocuments === 3;
     $l1Complete = $participant->hasCompletedAllL1();
     $isFilledL34 = $participant->hasFilledL34Mandiri();
-    $evaluationComplete = $l1Complete && $isFilledL34;
+    $level2HasQuestions = $training->level2Questions() !== [];
+    $finalQuizRequired = $participant->registration_status === 'approved'
+        && $level2HasQuestions && ($finalQuiz?->is_visible || $finalQuiz?->is_public);
+    $finalQuizPending = $finalQuizRequired && !$finalQuizAttempt;
+    $evaluationComplete = $l1Complete && $isFilledL34 && !$finalQuizPending;
     $certificateComplete = filled($participantCertificate?->final_file_path) && filled($participantCertificate?->sent_at);
     $forumUnread = app(\App\Services\NotificationCenter::class)->unreadCountForTraining(auth()->user(), $training);
 @endphp
@@ -75,7 +79,9 @@
                     <li class="nav-item">
                         <button type="button" class="nav-link {{ $activeTab === 'evaluasi' ? 'active' : '' }}" role="tab" data-tab="evaluasi" data-bs-toggle="tab" data-bs-target="#navs-pills-evaluasi">
                             <i class="bx bx-bar-chart-alt-2 me-1"></i> Evaluasi
-                            @if($evaluationComplete)
+                            @if($finalQuizPending)
+                                <span class="badge bg-warning text-dark ms-1">Kuis Wajib</span>
+                            @elseif($evaluationComplete)
                                 <i class="bx bxs-check-circle text-success ms-1"></i>
                             @else
                                 <span class="badge badge-dot bg-danger ms-1"></span>
@@ -369,6 +375,59 @@
 
                     {{-- TAB: EVALUASI --}}
                     <div class="tab-pane fade {{ $activeTab === 'evaluasi' ? 'show active' : '' }}" id="navs-pills-evaluasi" role="tabpanel">
+                        @if($participant->registration_status === 'approved' && ($pretestAttempt || ($level2HasQuestions && ($pretestQuiz?->is_visible || $pretestQuiz?->is_public))))
+                            <section class="card border mb-4">
+                                <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                    <div>
+                                        <h6 class="text-primary fw-bold mb-1">Pretest · {{ $pretestQuiz->title }}</h6>
+                                        @if($pretestAttempt)<span class="badge bg-label-success mb-2">Sudah dikerjakan</span>@endif
+                                        @if($pretestScheduleMessage)
+                                            <p class="small text-muted mb-0">{{ $pretestScheduleMessage }}</p>
+                                        @elseif(!$pretestAttempt)
+                                            <p class="small text-muted mb-0">Ukur kemampuan awal Anda sebelum pelatihan.</p>
+                                        @endif
+                                    </div>
+                                    @unless($pretestScheduleMessage)
+                                        @if($pretestAttempt || $pretestQuiz->is_visible)
+                                            <a href="{{ route('participant.pretest.show', $training) }}" class="btn btn-outline-primary">{{ $pretestAttempt ? 'Lihat Nilai Pretest' : 'Mulai Pretest' }}</a>
+                                        @else
+                                            <a href="{{ route('public.final-quiz.show', $training->level2PublicToken()) }}" class="btn btn-outline-primary">Mulai Pretest</a>
+                                        @endif
+                                    @endunless
+                                </div>
+                            </section>
+                        @endif
+                        @if($participant->registration_status === 'approved' && ($finalQuizAttempt || $finalQuizRequired))
+                            <section class="card border {{ $finalQuizPending ? 'border-warning' : '' }} mb-4">
+                                <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                    <div>
+                                        <h6 class="text-primary fw-bold mb-1">Posttest · {{ $finalQuiz->title }}</h6>
+                                        @if($finalQuizPending)
+                                            <p class="fw-semibold mb-1"><i class="bx bx-error-circle me-1" aria-hidden="true"></i>Kuis Akhir wajib diselesaikan untuk melengkapi evaluasi pelatihan.</p>
+                                        @elseif($finalQuizAttempt)
+                                            <span class="badge bg-label-success mb-2">Sudah dikerjakan</span>
+                                        @endif
+                                        @if($finalQuizScheduleMessage)
+                                            <p class="small text-muted mb-0">{{ $finalQuizScheduleMessage }}</p>
+                                            @if($finalQuizPending && $finalQuiz->closes_at?->isPast())
+                                                <p class="small text-muted mb-0">Hubungi penyelenggara jika Anda belum sempat mengirim jawaban.</p>
+                                            @endif
+                                        @elseif($finalQuizAttempt)
+                                            <p class="mb-0">Nilai akhir <strong>{{ number_format($finalQuizScore, 2, ',', '.') }}</strong> · {{ $finalQuizAttempt->passes($finalQuizScore) ? 'Lulus' : 'Belum Lulus' }}</p>
+                                        @else
+                                            <p class="small text-muted mb-0">Standar kelulusan {{ $finalQuiz->pass_score }}/100. Satu kali pengiriman.</p>
+                                        @endif
+                                    </div>
+                                    @if(!$finalQuizScheduleMessage)
+                                        @if($finalQuizAttempt || $finalQuiz->is_visible)
+                                            <a href="{{ route('participant.final-quiz.show', $training) }}" class="btn btn-primary">{{ $finalQuizAttempt ? 'Lihat Nilai' : 'Mulai Kuis Akhir' }}</a>
+                                        @else
+                                            <a href="{{ route('public.final-quiz.show', $training->level2PublicToken()) }}" class="btn btn-primary">Mulai Kuis Akhir</a>
+                                        @endif
+                                    @endif
+                                </div>
+                            </section>
+                        @endif
     
                         {{-- BAGIAN A: LEVEL 1 (REAKSI) --}}
                         <div class="card shadow-none border mb-4">

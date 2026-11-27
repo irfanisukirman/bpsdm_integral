@@ -11,6 +11,16 @@ class EvaluationResultL2 extends Model
 
     protected $guarded = [];
 
+    public function scoreCorrections()
+    {
+        return $this->hasMany(EvaluationL2ScoreCorrection::class, 'result_id');
+    }
+
+    public function latestScoreCorrection()
+    {
+        return $this->hasOne(EvaluationL2ScoreCorrection::class, 'result_id')->latestOfMany();
+    }
+
     public function participant()
     {
         return $this->belongsTo(Participant::class, 'participant_id');

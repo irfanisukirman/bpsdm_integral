@@ -49,15 +49,19 @@ class EvaluationLevel12ReportController extends Controller
             ->whereHas('participant', fn ($query) => $query->where('training_id', $training->id))
             ->get();
         $l2Count = $l2Results->count();
-        $preAverage = $l2Count ? round($l2Results->avg(fn ($result) => (float) $result->pretest), 1) : null;
-        $postAverage = $l2Count ? round($l2Results->avg(fn ($result) => (float) $result->postest), 1) : null;
-        $gainAverage = $l2Count ? round($postAverage - $preAverage, 1) : null;
+        $l2Pretests = $l2Results->whereNotNull('pretest');
+        $l2Posttests = $l2Results->whereNotNull('postest');
+        $l2Paired = $l2Pretests->whereNotNull('postest');
+        $l2PairedCount = $l2Paired->count();
+        $preAverage = $l2Pretests->isNotEmpty() ? round($l2Pretests->avg('pretest'), 1) : null;
+        $postAverage = $l2Posttests->isNotEmpty() ? round($l2Posttests->avg('postest'), 1) : null;
+        $gainAverage = $l2PairedCount ? round($l2Paired->avg(fn ($row) => $row->postest - $row->pretest), 1) : null;
         $l2Status = [
-            'increased' => $l2Results->filter(fn ($result) => (float) $result->postest > (float) $result->pretest)->count(),
-            'same' => $l2Results->filter(fn ($result) => (float) $result->postest === (float) $result->pretest)->count(),
-            'decreased' => $l2Results->filter(fn ($result) => (float) $result->postest < (float) $result->pretest)->count(),
+            'increased' => $l2Paired->filter(fn ($result) => (float) $result->postest > (float) $result->pretest)->count(),
+            'same' => $l2Paired->filter(fn ($result) => (float) $result->postest === (float) $result->pretest)->count(),
+            'decreased' => $l2Paired->filter(fn ($result) => (float) $result->postest < (float) $result->pretest)->count(),
         ];
-        $increaseRate = $l2Count ? round(($l2Status['increased'] / $l2Count) * 100, 1) : 0;
+        $increaseRate = $l2PairedCount ? round(($l2Status['increased'] / $l2PairedCount) * 100, 1) : null;
 
         $textQuestions = Question::forTraining($training, 'l1_penyelenggara', includeHistorical: true)->where('type', 'text')->pluck('id');
         $textFeedback = $l1Results
@@ -110,7 +114,7 @@ class EvaluationLevel12ReportController extends Controller
             ? 'Nilai Level 1 belum tersedia. '
             : 'Reaksi peserta memperoleh skor '.$l1Average.'/100 dengan kategori '.$scoreCategory($l1Average).'. ';
         $executiveNarrative .= $gainAverage === null
-            ? 'Data Level 2 belum tersedia untuk mengukur perubahan hasil belajar.'
+            ? ($postAverage === null ? 'Nilai Level 2 belum tersedia.' : 'Rerata nilai akhir Level 2 adalah '.$postAverage.'/100.')
             : 'Rerata hasil belajar berubah '.($gainAverage >= 0 ? '+' : '').$gainAverage.' poin, dengan '.$increaseRate.'% peserta mengalami peningkatan.';
 
         $aiAnalysis = session('l12_ai_analysis') ?: AiGeneration::where('training_id', $training->id)->where('feature', 'evaluation_dashboard_l12')->where('status', 'completed')->latest()->value('generated_content');
@@ -118,7 +122,7 @@ class EvaluationLevel12ReportController extends Controller
         return view('evaluasi.l12_dashboard', compact(
             'training', 'participantsTotal', 'l1Respondents', 'l1ResponseRate', 'l1Average',
             'organizerAverage', 'speakerAverage', 'indicatorData', 'lowestIndicator', 'l2Count',
-            'preAverage', 'postAverage', 'gainAverage', 'l2Status', 'increaseRate', 'textFeedback',
+            'preAverage', 'postAverage', 'gainAverage', 'l2Status', 'l2PairedCount', 'increaseRate', 'textFeedback',
             'adminSummary', 'recommendations', 'scoreCategory', 'executiveNarrative', 'aiAnalysis', 'importedRecaps', 'usesImportedScores'
         ));
     }
@@ -132,8 +136,11 @@ class EvaluationLevel12ReportController extends Controller
             LevelOneRecapImport::where('training_id', $id)->get(),
         );
         $l2 = EvaluationResultL2::whereHas('participant', fn ($q) => $q->where('training_id', $id))->get();
-        $pre = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->pretest), 1) : null;
-        $post = $l2->isNotEmpty() ? round($l2->avg(fn ($x) => (float) $x->postest), 1) : null;
+        $pretests = $l2->whereNotNull('pretest');
+        $posttests = $l2->whereNotNull('postest');
+        $paired = $pretests->whereNotNull('postest');
+        $pre = $pretests->isNotEmpty() ? round($pretests->avg('pretest'), 1) : null;
+        $post = $posttests->isNotEmpty() ? round($posttests->avg('postest'), 1) : null;
         $summary = EvaluationL1TextSummary::where('training_id', $id)->first();
         $payload = [
             'pelatihan' => ['nama' => $training->nama_pelatihan, 'angkatan' => $training->angkatan, 'bidang' => $training->bidang],
@@ -142,10 +149,10 @@ class EvaluationLevel12ReportController extends Controller
                 'indikator' => $l1['indicators']->map(fn ($item) => [
                     'label' => $item['label'], 'rerata' => $item['average'], 'respons' => $item['responses'], 'sumber' => $item['source'],
                 ])->all()],
-            'level_2' => ['rerata_pretest' => $pre, 'rerata_posttest' => $post, 'perubahan' => $pre !== null ? round($post - $pre, 1) : null,
-                'meningkat' => $l2->filter(fn ($x) => (float) $x->postest > (float) $x->pretest)->count(),
-                'tetap' => $l2->filter(fn ($x) => (float) $x->postest === (float) $x->pretest)->count(),
-                'menurun' => $l2->filter(fn ($x) => (float) $x->postest < (float) $x->pretest)->count()],
+            'level_2' => ['rerata_pretest' => $pre, 'rerata_posttest' => $post, 'perubahan' => $paired->isNotEmpty() ? round($paired->avg(fn ($row) => $row->postest - $row->pretest), 1) : null,
+                'meningkat' => $paired->filter(fn ($x) => (float) $x->postest > (float) $x->pretest)->count(),
+                'tetap' => $paired->filter(fn ($x) => (float) $x->postest === (float) $x->pretest)->count(),
+                'menurun' => $paired->filter(fn ($x) => (float) $x->postest < (float) $x->pretest)->count()],
             'kesimpulan_masukan_anonim' => $summary?->conclusion,
         ];
         return $this->runAiDashboard($training, $user, $ai, $payload, 'evaluation_dashboard_l12', 'Level 1 dan 2', 'l12_ai_analysis');
@@ -276,31 +283,34 @@ class EvaluationLevel12ReportController extends Controller
 
         $l2Rows = $participants->filter(fn ($participant) => $participant->evaluationL2 !== null)
             ->map(function ($participant, $index) {
-                $pre = (float) $participant->evaluationL2->pretest;
-                $post = (float) $participant->evaluationL2->postest;
-                $delta = round($post - $pre, 1);
+                $pre = $participant->evaluationL2->pretest === null ? null : (float) $participant->evaluationL2->pretest;
+                $post = $participant->evaluationL2->postest === null ? null : (float) $participant->evaluationL2->postest;
+                $delta = $pre === null || $post === null ? null : round($post - $pre, 1);
 
                 return [
                     'no' => $index + 1,
                     'nama' => $participant->name,
                     'nip' => $participant->nip_nik ?: '-',
-                    'pre' => number_format($pre, 1, ',', '.'),
-                    'post' => number_format($post, 1, ',', '.'),
-                    'delta' => ($delta > 0 ? '+' : '') . number_format($delta, 1, ',', '.'),
-                    'status' => $delta > 0 ? 'Meningkat' : ($delta < 0 ? 'Menurun' : 'Tetap'),
+                    'pre' => $pre === null ? '-' : number_format($pre, 1, ',', '.'),
+                    'post' => $post === null ? '-' : number_format($post, 1, ',', '.'),
+                    'delta' => $delta === null ? '-' : (($delta > 0 ? '+' : '') . number_format($delta, 1, ',', '.')),
+                    'status' => $delta === null ? ($post === null ? 'Pretest' : 'Nilai akhir') : ($delta > 0 ? 'Meningkat' : ($delta < 0 ? 'Menurun' : 'Tetap')),
                     'pre_value' => $pre,
                     'post_value' => $post,
                     'delta_value' => $delta,
                 ];
             })->values();
         $l2Count = $l2Rows->count();
-        $preAverage = $l2Count ? round($l2Rows->avg('pre_value'), 1) : null;
-        $postAverage = $l2Count ? round($l2Rows->avg('post_value'), 1) : null;
-        $gainAverage = $l2Count ? round($l2Rows->avg('delta_value'), 1) : null;
+        $l2PairedCount = $l2Rows->whereNotNull('delta_value')->count();
+        $pre = $l2Rows->avg('pre_value');
+        $post = $l2Rows->avg('post_value');
+        $preAverage = $pre === null ? null : round($pre, 1);
+        $postAverage = $post === null ? null : round($post, 1);
+        $gainAverage = $l2PairedCount ? round($l2Rows->avg('delta_value'), 1) : null;
         $increasedCount = $l2Rows->where('status', 'Meningkat')->count();
         $sameCount = $l2Rows->where('status', 'Tetap')->count();
         $decreasedCount = $l2Rows->where('status', 'Menurun')->count();
-        $increaseRate = $l2Count ? round(($increasedCount / $l2Count) * 100, 1) : 0;
+        $increaseRate = $l2PairedCount ? round(($increasedCount / $l2PairedCount) * 100, 1) : null;
 
         $values = [
             'nama_pelatihan' => strtoupper($training->nama_pelatihan),
@@ -325,7 +335,7 @@ class EvaluationLevel12ReportController extends Controller
             'jumlah_meningkat' => $increasedCount,
             'jumlah_tetap' => $sameCount,
             'jumlah_menurun' => $decreasedCount,
-            'persentase_meningkat' => number_format($increaseRate, 1, ',', '.') . '%',
+            'persentase_meningkat' => $increaseRate === null ? '-' : number_format($increaseRate, 1, ',', '.') . '%',
         ];
         foreach ($values as $key => $value) {
             $template->setValue($key, htmlspecialchars((string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8'));
@@ -382,7 +392,7 @@ class EvaluationLevel12ReportController extends Controller
                 'indikator' => 'Setiap masukan telah ditelaah dan isu prioritas memiliki keputusan tindak lanjut yang terdokumentasi.',
             ];
         }
-        if ($l2Count > 0 && ($gainAverage <= 0 || $decreasedCount > 0)) {
+        if ($gainAverage !== null && ($gainAverage <= 0 || $decreasedCount > 0)) {
             $followUpRows[] = [
                 'temuan' => "Rerata perubahan nilai {$values['rerata_gain']} poin; {$decreasedCount} peserta menurun dan {$sameCount} peserta tetap.",
                 'tindakan' => 'Menelaah keselarasan tujuan, materi, metode, dan butir asesmen; memberikan penguatan atau remediasi kepada peserta yang nilainya tetap/menurun.',

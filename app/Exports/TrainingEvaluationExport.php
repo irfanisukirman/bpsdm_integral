@@ -69,7 +69,7 @@ class TrainingEvaluationExport implements FromArray, WithStyles, WithColumnWidth
             
             // Ambil Post-test L2 (Learning)
             $l2 = EvaluationResultL2::where('participant_id', $p->id)->first();
-            $valL2 = $l2 ? $l2->postest : 0;
+            $valL2 = $l2?->postest;
 
             $rows[] = [
                 $index + 1,
@@ -78,7 +78,7 @@ class TrainingEvaluationExport implements FromArray, WithStyles, WithColumnWidth
                 round($avgL1, 1),
                 $this->getPredicate($avgL1),
                 $valL2,
-                $this->getPredicate($valL2),
+                $valL2 === null ? '-' : $this->getPredicate($valL2),
             ];
         }
 

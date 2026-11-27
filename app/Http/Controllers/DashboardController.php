@@ -135,10 +135,11 @@ class DashboardController extends Controller
         // 3. KIRKPATRICK LEVEL 2 (Learning - Pre vs Post)
         $avgL2Pre = EvaluationResultL2::whereHas('participant', function($q) use ($trainingIds){
                         $q->whereIn('training_id', $trainingIds);
-                    })->avg('pretest') ?? 0;
+                    })->avg('pretest');
         $avgL2Post = EvaluationResultL2::whereHas('participant', function($q) use ($trainingIds){
                         $q->whereIn('training_id', $trainingIds);
-                    })->avg('postest') ?? 0;
+                    })->avg('postest');
+        $learningScores = array_map(fn ($score) => $score === null ? null : round($score, 1), [$avgL2Pre, $avgL2Post]);
 
         // 4. KIRKPATRICK LEVEL 3 & 4 (Impact 360)
         [$avgL3, $avgL4] = $levelThreeFour->portfolioAverages($trainings);
@@ -166,7 +167,7 @@ class DashboardController extends Controller
         )->values();
 
         return view('dashboard.index', compact(
-            'stats', 'avgL1', 'avgL2Pre', 'avgL2Post', 'avgL3', 'avgL4',
+            'stats', 'avgL1', 'learningScores', 'avgL3', 'avgL4',
             'monYa', 'monTidak', 'monitoringRate', 'latestTrainings',
             'monthlyTrainings', 'year', 'registrationSeries'
         ));

@@ -19,7 +19,7 @@ class SuperAdminSeeder extends Seeder
             'bidang'            => 'Sekretariat', // Bidang utama
             'gender'            => 'Laki-Laki',
             'status_kepegawaian'=> 'PNS',
-            'password'          => Hash::make('admin123'), // Password Anda
+            'password'          => Hash::make('Admin123'), // Password Anda
         ]);
     }
 }
