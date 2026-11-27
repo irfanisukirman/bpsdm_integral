@@ -8,7 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class QuestionImport implements ToModel, WithHeadingRow
 {
-    public function __construct(private readonly string $defaultBidang)
+    public const HEADINGS = ['bidang', 'metode', 'program_evaluasi', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'];
+
+    public function __construct(private readonly ?string $defaultBidang, private readonly array $allowedBidang = [])
     {
     }
 
@@ -17,6 +19,10 @@ class QuestionImport implements ToModel, WithHeadingRow
         $questionText = trim((string) ($row['pertanyaan'] ?? ''));
         if ($questionText === '') {
             return null;
+        }
+        $bidang = $this->defaultBidang ?? trim((string) ($row['bidang'] ?? ''));
+        if ($this->defaultBidang === null && !in_array($bidang, $this->allowedBidang, true)) {
+            throw new \InvalidArgumentException('Bidang pada file Excel tidak tersedia: '.($bidang ?: '(kosong)').'.');
         }
 
         $categoryMap = [
@@ -48,10 +54,13 @@ class QuestionImport implements ToModel, WithHeadingRow
             if (blank($rawOptions)) {
                 $rawOptions = $row['jawaban'] ?? '';
             }
-            $options = array_values(array_filter(
-                array_map('trim', preg_split('/[|,;\r\n]+/u', (string) $rawOptions)),
-                fn ($option) => $option !== '' && $option !== '-'
-            ));
+            $decoded = json_decode((string) $rawOptions, true);
+            $options = is_array($decoded) && array_is_list($decoded) && collect($decoded)->every(fn ($option) => is_string($option))
+                ? $decoded
+                : array_values(array_filter(
+                    array_map('trim', preg_split('/[|,;\r\n]+/u', (string) $rawOptions)),
+                    fn ($option) => $option !== '' && $option !== '-'
+                ));
             if ($options === []) {
                 throw new \InvalidArgumentException('Pertanyaan "'.mb_substr($questionText, 0, 80).'" bertipe '.$type.' wajib memiliki pilihan pada kolom pilihan_jawaban atau jawaban.');
             }
@@ -59,8 +68,8 @@ class QuestionImport implements ToModel, WithHeadingRow
 
         $programInput = strtoupper(trim((string) ($row['program_evaluasi'] ?? 'Teknis')));
         $program = \App\Support\EvaluationProgram::normalize($programInput);
-        if (!in_array($program, ['semua', 'LATSAR', 'PKP', 'PKA', 'PKN', 'Teknis'], true)) {
-            throw new \InvalidArgumentException('Program evaluasi wajib semua, LATSAR, PKP, PKA, PKN, atau Teknis.');
+        if (!in_array($program, ['semua', 'LATSAR', 'PKP', 'PKA', 'PKN', 'Teknis', 'Manajerial'], true)) {
+            throw new \InvalidArgumentException('Program evaluasi wajib semua, LATSAR, PKP, PKA, PKN, Manajerial, atau Teknis.');
         }
 
         if ($category === 'l34_rekan' && \App\Support\EvaluationProgram::isManagerial($program)) {
@@ -88,8 +97,8 @@ class QuestionImport implements ToModel, WithHeadingRow
         }
 
         return new Question([
-            'training_type' => $this->defaultBidang,
-            'bidang' => $this->defaultBidang,
+            'training_type' => $bidang,
+            'bidang' => $bidang,
             'program_evaluasi' => $program,
             'metode' => $metode,
             'category' => $category,

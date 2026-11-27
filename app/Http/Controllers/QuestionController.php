@@ -10,6 +10,8 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
 
 class QuestionController extends Controller
 {
@@ -288,18 +290,26 @@ class QuestionController extends Controller
 
     public function import(Request $request)
     {
+        $user = Auth::user();
+        $isSuperadmin = $user->role === 'superadmin';
+        $bidangOptions = $this->bidangOptions();
         $request->validate([
             'file' => 'required|mimes:xlsx,xls',
-            'bidang' => ['required', 'string', Rule::in($this->bidangOptions())],
+            'bidang' => ['required', 'string', Rule::in($isSuperadmin ? [...$bidangOptions, '__excel__'] : $bidangOptions)],
         ]);
 
-        $defaultBidang = Auth::user()->role === 'superadmin' ? $request->input('bidang') : Auth::user()->bidang;
-        abort_if(blank($defaultBidang), 422, 'Bidang akun Admin belum ditentukan.');
-        abort_if(Auth::user()->role !== 'superadmin' && $request->input('bidang') !== $defaultBidang, 403);
-        Excel::import(new QuestionImport($defaultBidang), $request->file('file'));
+        $selected = $request->input('bidang');
+        abort_if(!$isSuperadmin && blank($user->bidang), 422, 'Bidang akun Admin belum ditentukan.');
+        abort_if(!$isSuperadmin && $selected !== $user->bidang, 403);
+        $defaultBidang = $selected === '__excel__' ? null : $selected;
+        try {
+            Excel::import(new QuestionImport($defaultBidang, $bidangOptions), $request->file('file'));
+        } catch (\InvalidArgumentException $exception) {
+            return back()->withErrors(['file' => $exception->getMessage()]);
+        }
 
-        return redirect()->route('questions.index', Auth::user()->role === 'superadmin' ? ['bidang' => $defaultBidang] : [])
-            ->with('success', 'Bank soal berhasil diimpor ke '.$defaultBidang.'.');
+        return redirect()->route('questions.index', $isSuperadmin && $defaultBidang ? ['bidang' => $defaultBidang] : [])
+            ->with('success', 'Bank soal berhasil diimpor'.($defaultBidang ? ' ke '.$defaultBidang : ' sesuai bidang di file Excel').'.');
     }
 
     public function exportAll()
@@ -316,43 +326,40 @@ class QuestionController extends Controller
             ->orderBy('sub_category')
             ->orderBy('id');
 
-        $rows = [[
-            'No.', 'Bidang', 'Program Evaluasi', 'Level / Peran', 'Bagian Evaluasi L3/L4',
-            'Metode', 'Tipe Jawaban', 'Pertanyaan', 'Pilihan Jawaban', 'Dibuat', 'Diperbarui'
-        ]];
+        $rows = [QuestionImport::HEADINGS];
 
-        $query->each(function (Question $question, int $index) use (&$rows) {
+        $query->each(function (Question $question) use (&$rows) {
             $rows[] = [
-                $index + 1,
                 $question->bidang ?: $question->training_type,
+                $question->metode ?: 'semua',
                 $question->program_evaluasi ?: 'Teknis',
                 match ($question->category) {
-                    'l1_penyelenggara' => 'L1 Penyelenggara',
-                    'l1_narasumber' => 'L1 Narasumber',
-                    'l34_mandiri' => 'L3/L4 Mandiri (Alumni)',
-                    'l34_atasan' => 'L3/L4 Atasan',
-                    'l34_rekan' => 'L3/L4 Rekan Kerja',
+                    'l1_penyelenggara' => 'Penyelenggara',
+                    'l1_narasumber' => 'Narasumber',
+                    'l34_mandiri' => 'Mandiri',
+                    'l34_atasan' => 'Atasan',
+                    'l34_rekan' => 'Rekan',
                     default => $question->category,
                 },
-                $question->sub_category ?: '-',
-                ucfirst((string) ($question->metode ?: 'semua')),
-                ucfirst($question->type),
+                $question->sub_category,
+                $question->type,
                 $question->question_text,
-                collect($question->options ?? [])->join(' | ') ?: '-',
-                optional($question->created_at)->format('d-m-Y H:i'),
-                optional($question->updated_at)->format('d-m-Y H:i'),
+                $question->options ? json_encode(array_values($question->options), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) : null,
             ];
         });
 
-        return Excel::download(new class($rows) implements FromArray, \Maatwebsite\Excel\Concerns\ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithStyles {
+        return Excel::download(new class($rows) extends StringValueBinder implements FromArray, WithCustomValueBinder, \Maatwebsite\Excel\Concerns\WithStyles {
             public function __construct(private array $rows) {}
             public function array(): array { return $this->rows; }
             public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): array
             {
                 $sheet->freezePane('A2');
                 $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
-                $sheet->getStyle('H')->getAlignment()->setWrapText(true);
-                return [1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF5065D5']]]];
+                foreach (['A' => 42, 'B' => 17, 'C' => 21, 'D' => 17, 'E' => 32, 'F' => 17, 'G' => 65, 'H' => 55] as $column => $width) {
+                    $sheet->getColumnDimension($column)->setWidth($width);
+                }
+                $sheet->getStyle('G:H')->getAlignment()->setWrapText(true);
+                return [1 => ['font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF198754']]]];
             }
         }, 'seluruh-pertanyaan-evaluasi-'.now()->format('Ymd-His').'.xlsx');
     }
@@ -361,7 +368,7 @@ class QuestionController extends Controller
         $bidang = Auth::user()->role === 'superadmin' ? $request->query('bidang') : Auth::user()->bidang;
         abort_if(blank($bidang) || !in_array($bidang, $this->bidangOptions(), true), 422, 'Pilih bidang terlebih dahulu.');
         $header = [
-            ['bidang', 'metode', 'program_evaluasi', 'level_peran', 'sub_kategori', 'tipe_jawaban', 'pertanyaan', 'pilihan_jawaban'],
+            QuestionImport::HEADINGS,
             [$bidang, 'klasikal', 'Teknis', 'Penyelenggara', '', 'slider', 'Bagaimana kualitas penyelenggaraan pelatihan?', ''],
             [$bidang, 'semua', 'Teknis', 'Narasumber', '', 'slider', 'Bagaimana penguasaan materi narasumber?', ''],
         ];
@@ -380,7 +387,7 @@ class QuestionController extends Controller
             ];
 
             foreach ($programs as $program) {
-                foreach (['Mandiri', 'Atasan', 'Rekan'] as $peran) {
+                foreach (['Mandiri', 'Atasan'] as $peran) {
                     $sections = $commonSections;
                     if ($peran === 'Mandiri') {
                         array_unshift($sections, 'Data Diri Alumni');

@@ -30,6 +30,7 @@
 
 @section('content')
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 py-3 mb-4"><h4 class="fw-bold mb-0"><span class="text-muted fw-light">Sistem /</span> Bank Soal Evaluasi</h4><a href="{{ route('questions.export') }}" class="btn btn-success"><i class="bx bx-spreadsheet me-1"></i>Export Semua Pertanyaan</a></div>
+@error('file')<div class="alert alert-danger" role="alert">{{ $message }}</div>@enderror
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
     <div class="d-flex align-items-center gap-2">
@@ -282,7 +283,11 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Bidang untuk Import</label>
-                    <select name="bidang" class="form-select" required onchange="document.getElementById('questionTemplateLink').href = @js(route('questions.template')) + '?bidang=' + encodeURIComponent(this.value)">
+                    <select name="bidang" class="form-select" required
+                            onchange="document.getElementById('questionTemplateLink').href = @js(route('questions.template')) + '?bidang=' + encodeURIComponent(this.value === '__excel__' ? @js($selectedBidang) : this.value)">
+                        @if($isSuperadmin)
+                            <option value="__excel__">Ikuti bidang di file Excel</option>
+                        @endif
                         @foreach($isSuperadmin ? $bidangOptions : [Auth::user()->bidang] as $bidang)
                             <option value="{{ $bidang }}">{{ $bidang }}</option>
                         @endforeach
@@ -292,7 +297,8 @@
                 <div class="alert alert-info py-2 shadow-none mb-3">
                     <small class="fw-bold d-block mb-1">ATURAN PENGISIAN EXCEL:</small>
                     <ul class="small mb-0 ps-3">
-                        <li><strong>bidang</strong>: mengikuti bidang untuk import yang dipilih di atas.</li>
+                        <li>Untuk file hasil <strong>Export Semua Pertanyaan</strong>, pilih <strong>Ikuti bidang di file Excel</strong> agar bidang tiap soal tetap sama.</li>
+                        <li>Jika memilih satu bidang, seluruh soal masuk ke bidang yang dipilih.</li>
                         <li><strong>metode</strong>: klasikal, full learning, blended, atau semua.</li>
                         <li><strong>program_evaluasi</strong>: semua, LATSAR, PKP, PKA, PKN, atau Teknis.</li>
                         <li>LATSAR, PKP, PKA, PKN: mandiri dan atasan. Teknis: mandiri, atasan, dan rekan kerja.</li>
